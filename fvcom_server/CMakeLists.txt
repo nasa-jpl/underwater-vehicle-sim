@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(fvcom_loader)
+project(fvcom_server)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
  add_compile_options(-std=c++11)
@@ -103,7 +103,7 @@ find_package(catkin REQUIRED COMPONENTS
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
   INCLUDE_DIRS include
-#  LIBRARIES fvcom_loader
+#  LIBRARIES fvcom_server
   CATKIN_DEPENDS roscpp std_msgs
 #  DEPENDS system_lib
 )
@@ -113,10 +113,10 @@ catkin_package(
 ###########
 
 ##Declare a C++ library
-#add_library(fvcom_loader
-#   src/fvcom_loader.cpp
+#add_library(fvcom_server
+#   src/fvcom_server.cpp
 # )
-#target_link_libraries(fvcom_loader ${catkin_LIBRARIES})
+#target_link_libraries(fvcom_server ${catkin_LIBRARIES})
 
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
@@ -133,7 +133,7 @@ include_directories(
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
- add_executable(${PROJECT_NAME}_node src/fvcom_loader_node.cpp)
+ add_executable(${PROJECT_NAME}_node src/fvcom_server_node.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
