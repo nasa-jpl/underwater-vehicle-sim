@@ -13,8 +13,11 @@ find_package(catkin REQUIRED COMPONENTS
 )
 
 ## System dependencies are found with CMake's conventions
-# find_package(Boost REQUIRED COMPONENTS system)
+set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/modules)
 
+set (NETCDF_CXX "YES")
+find_package(NetCDF REQUIRED)
+# find_package(netCDF REQUIRED COMPONENTS system)
 
 ## Uncomment this if the package has a setup.py. This macro ensures
 ## modules and global scripts declared therein get installed
@@ -113,16 +116,17 @@ catkin_package(
 ###########
 
 ##Declare a C++ library
-#add_library(fvcom_server
-#   src/fvcom_server.cpp
-# )
-#target_link_libraries(fvcom_server ${catkin_LIBRARIES})
+add_library(fvcom
+   src/fvcom.cpp
+ )
+target_link_libraries(fvcom ${catkin_LIBRARIES} ${NETCDF_LIBRARIES})
 
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 include_directories(
   include
   ${catkin_INCLUDE_DIRS}
+  ${NETCDF_INCLUDES} 
 )
 
 ## Add cmake target dependencies of the library
@@ -133,7 +137,7 @@ include_directories(
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
- add_executable(${PROJECT_NAME}_node src/fvcom_server_node.cpp)
+ add_executable(${PROJECT_NAME}_node src/fvcom_server_node.cpp src/fvcom.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -148,8 +152,8 @@ include_directories(
 ## Specify libraries to link a library or executable target against
  target_link_libraries(${PROJECT_NAME}_node
    ${catkin_LIBRARIES}
+   ${NETCDF_LIBRARIES}
  )
-
 #############
 ## Install ##
 #############
@@ -191,7 +195,9 @@ include_directories(
 ## Add gtest based cpp test target and link libraries
 if (CATKIN_ENABLE_TESTING)
  catkin_add_gtest(lru_cache_test tests/lru_cache_test.cpp)
+ catkin_add_gtest(fvcom_test tests/FVCOM_test.cpp WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
  target_link_libraries(lru_cache_test ${catkin_LIBRARIES})
+ target_link_libraries(fvcom_test fvcom ${catkin_LIBRARIES} ${NETCDF_LIBRARIES})
 endif()
 
 ## Add folders to be run by python nosetests
