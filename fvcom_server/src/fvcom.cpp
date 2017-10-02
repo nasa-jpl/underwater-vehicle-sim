@@ -2,43 +2,176 @@
 
 #include <netcdf>
 #include <memory>
+#include <cmath>
+#include <limits>
 
 FVCOM::FVCOM(std::string filename) :
-	dataFile(netCDF::NcFile(filename, netCDF::NcFile::read)),
-	nodeDim(dataFile.getDim("node").getSize()),
-	neleDim(dataFile.getDim("nele").getSize())
+	dataFile(netCDF::NcFile(filename, netCDF::NcFile::read))
 {
+	//Get dimensions of structure elements
+	unsigned int nodeDim = dataFile.getDim("node").getSize();
+	unsigned int neleDim = dataFile.getDim("nele").getSize();
+	unsigned int timeDim = dataFile.getDim("time").getSize();
+
 	//Load all variables for the structure of the model
 	netCDF::NcVar xVar = dataFile.getVar("x");
 	netCDF::NcVar yVar = dataFile.getVar("y");
 	netCDF::NcVar xcVar = dataFile.getVar("xc");
 	netCDF::NcVar ycVar = dataFile.getVar("yc");
 	netCDF::NcVar nvVar = dataFile.getVar("nv");
+	netCDF::NcVar hVar = dataFile.getVar("h");
+	netCDF::NcVar centerHVar = dataFile.getVar("center_h");
+	netCDF::NcVar timeVar = dataFile.getVar("time");
 
-	x.resize(nodeDim);
-	y.resize(nodeDim);
-	xc.resize(neleDim);
-	yc.resize(neleDim);
+	std::vector<float> nodeX;
+	std::vector<float> nodeY;
+	std::vector<float> nodeH;
+
+	std::vector<float> triangleX;
+	std::vector<float> triangleY;
+	std::vector<float> triangleH;
+	
+
+	nodeX.resize(nodeDim);
+	nodeY.resize(nodeDim);
+	triangleX.resize(neleDim);
+	triangleY.resize(neleDim);
+	nodeH.resize(nodeDim);
+	triangleH.resize(neleDim);
+	time.resize(timeDim);
 
 	//resize for multidimensional array
-	nv.resize(3);
+	triangleToNodes.resize(3);
 	for(int i = 0; i < 3; i++)
 	{
-		nv[i].resize(neleDim);
+		triangleToNodes[i].resize(neleDim);
 	}
 
 
 	//Assign all arrays for the structure variables
-	xVar.getVar(x.data());
-	yVar.getVar(y.data());
-	xcVar.getVar(xc.data());
-	ycVar.getVar(yc.data());
+	xVar.getVar(nodeX.data());
+	yVar.getVar(nodeY.data());
+	xcVar.getVar(triangleX.data());
+	ycVar.getVar(triangleY.data());
+	hVar.getVar(nodeH.data());
+	centerHVar.getVar(triangleH.data());
+	timeVar.getVar(time.data())
 
 	//load nvVar into a multidimensional vector
 	for(unsigned int i = 0; i < 3; i++)
 	{
 		std::vector<size_t> start = {i, 0};
 		std::vector<size_t> count = {1, neleDim};
-		nvVar.getVar(start, count, nv[i].data());
+		nvVar.getVar(start, count, triangleToNodes[i].data());
 	}
+
+	//Convert to use point struct
+	nodes.resize(nodeDim);
+	triangles.resize(neleDim);
+	for(int i = 0; i < nodeDim; i++)
+	{
+		nodes[i].x = nodeX[i];
+		nodes[i].y = nodeY[i];
+		nodes[i].h = nodeH[i];
+	}
+
+	for(int i = 0; i < neleDim; i++)
+	{
+		triangles[i].x = triangleX[i];
+		triangles[i].y = triangleY[i];
+		triangles[i].h = triangleH[i];
+	}
+
+
+	//The nv variable from the netCDF indexes starting at 1
+	//Convert this to 0 by subtracting 1 from every value
+	for(unsigned int i = 0; i < neleDim; i++)
+	{
+		for(unsigned int j = 0; j < 3; j++)
+		{
+			triangleToNodes[j][i]--;
+		}
+	}
+	
+	//Pre Processes model to get node to triangle conversion
+	nodeToTriangles.resize(nodeDim);
+
+	for(unsigned int i = 0; i < neleDim; i++)
+	{
+		for(unsigned int j = 0; j < 3; j++)
+		{
+			int triangle = i;
+			int node = triangleToNodes[j][i];
+
+			nodeToTriangles[node].push_back(triangle);
+		}
+	}
+
+	std::cout << getContainingTriangle(0,0) << std::endl;
+}
+
+bool FVCOM::pointInTriangle(float px, float py, int triangle)
+{
+	int p0Index = triangleToNodes[0][triangle];
+	int p1Index = triangleToNodes[1][triangle];
+	int p2Index = triangleToNodes[2][triangle];
+
+	point p0 = nodes[p0Index];
+	point p1 = nodes[p1Index];
+	point p2 = nodes[p2Index];
+
+	float alpha = ((p1.y - p2.y)*(px - p2.x) + (p2.x - p1.x)*(py - p2.y)) /
+        ((p1.y - p2.y)*(p0.x - p2.x) + (p2.x - p1.x)*(p0.y - p2.y));
+
+	float beta = ((p2.y - p0.y)*(px - p2.x) + (p0.x - p2.x)*(py - p2.y)) /
+       	((p1.y - p2.y)*(p0.x - p2.x) + (p2.x - p1.x)*(p0.y - p2.y));
+
+	float gamma = 1.0f - alpha - beta;
+
+	return alpha >= 0 && beta >= 0 && gamma >= 0;
+}
+
+int FVCOM::getContainingTriangle(float x, float y)
+{
+	int closestNode = getClosestNode(x,y);
+
+	std::cout << closestNode << std::endl;
+	for(int i = 0; i < nodeToTriangles[closestNode].size(); i++)
+	{
+		if(pointInTriangle(x, y, nodeToTriangles[closestNode][i]))
+		{
+			return nodeToTriangles[closestNode][i];
+		}
+	}
+
+	for(int i = 0; i < triangles.size(); i++)
+	{
+		if(pointInTriangle(x, y, i))
+		{
+			return i;
+		}
+	}
+
+	return -1;
+}
+
+int FVCOM::getClosestNode(float x, float y)
+{
+	float closestDistance = std::numeric_limits<float>::max();
+	int node = -1;
+	for(int i = 0; i < nodes.size(); i++)
+	{
+		if(distance(x, y, nodes[i]) < closestDistance)
+		{
+			closestDistance = distance(x, y, nodes[i]);
+			node = i;
+		}
+	}
+
+	return node;
+}
+
+float FVCOM::distance(float p0X, float p0Y, point p1)
+{
+	return std::sqrt( (p0X - p1.x)*(p0X - p1.x) + (p0Y - p1.y)*(p0Y - p1.y) );
 }
