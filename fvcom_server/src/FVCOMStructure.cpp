@@ -1,32 +1,22 @@
-#include "fvcom_server/fvcom.h"
+#include "fvcom_server/FVCOMStructure.h"
 
 #include <netcdf>
 #include <memory>
 #include <cmath>
 #include <limits>
 
-FVCOM::FVCOM(std::string filename) :
-	dataFile(netCDF::NcFile(filename, netCDF::NcFile::read)),
-	xChunkSize(500),
-	yChunkSize(500),
-	siglayChunkSize(10),
-	timeChunkSize(10)
-{
-	loadStructureData();
-	splitIntoChunks();
-}
 
-FVCOM::FVCOM(std::string filename, int xChunkSize, int yChunkSize, int siglayChunkSize, int timeChunkSize) :
+FVCOMStructure::FVCOMStructure(const netCDF::NcFile dataFile, int xChunkSize, int yChunkSize, int siglayChunkSize, int timeChunkSize) :
 	xChunkSize(xChunkSize),
 	yChunkSize(yChunkSize),
 	siglayChunkSize(siglayChunkSize),
 	timeChunkSize(timeChunkSize)
 {
-	loadStructureData();
+	loadStructureData(dataFile);
 	splitIntoChunks();
 }
 
-void FVCOM::loadStructureData()
+void FVCOMStructure::loadStructureData(const netCDF::NcFile dataFile)
 {
 	//Get dimensions of structure elements
 	unsigned int nodeDim = dataFile.getDim("node").getSize();
@@ -129,7 +119,7 @@ void FVCOM::loadStructureData()
 	}
 }
 
-void FVCOM::splitIntoChunks()
+void FVCOMStructure::splitIntoChunks()
 {
 	getModelExtent();
 
@@ -139,7 +129,7 @@ void FVCOM::splitIntoChunks()
 	xDimChunks = std::ceil((maxX - minX) / (double)xChunkSize);
 }
 
-void FVCOM::getModelExtent()
+void FVCOMStructure::getModelExtent()
 {
 	for(int i = 0; i < nodes.size(); i++)
 	{
@@ -167,7 +157,7 @@ void FVCOM::getModelExtent()
 	}
 }
 
-bool FVCOM::pointInTriangle(point testPoint, int triangle)
+bool FVCOMStructure::pointInTriangle(point testPoint, int triangle)
 {
 	int p0Index = triangleToNodes[0][triangle];
 	int p1Index = triangleToNodes[1][triangle];
@@ -190,7 +180,7 @@ bool FVCOM::pointInTriangle(point testPoint, int triangle)
 	return alpha >= 0 && beta >= 0 && gamma >= 0;
 }
 
-int FVCOM::getContainingTriangle(point testPoint)
+int FVCOMStructure::getContainingTriangle(point testPoint)
 {
 	//Get the closest node to start the search for the containing triangle
 	int closestNode = getClosestNode(testPoint);
@@ -217,7 +207,7 @@ int FVCOM::getContainingTriangle(point testPoint)
 	return -1;
 }
 
-int FVCOM::getClosestNode(point testPoint)
+int FVCOMStructure::getClosestNode(point testPoint)
 {
 	//Checks distance between testPoint and every node, this is slow and will probably need to be improved
 	float closestDistance = std::numeric_limits<float>::max();
@@ -234,13 +224,13 @@ int FVCOM::getClosestNode(point testPoint)
 	return node;
 }
 
-float FVCOM::distance(point p0, point p1)
+float FVCOMStructure::distance(point p0, point p1)
 {
 	return std::sqrt( (p0.x - p1.x)*(p0.x - p1.x) + (p0.y - p1.y)*(p0.y - p1.y) );
 }
 
 
-int FVCOM::getChunkForNode(int node, int siglay, int time)
+int FVCOMStructure::getChunkForNode(int node, int siglay, int time)
 {
 	//Chunk ids based on this ordering (x,y,sigma,time)
 
@@ -260,12 +250,12 @@ int FVCOM::getChunkForNode(int node, int siglay, int time)
 }
 
 
-int FVCOM::getChunkForTriangle(int triangle, int siglay, int time)
+int FVCOMStructure::getChunkForTriangle(int triangle, int siglay, int time)
 {
 	//Chunk ids based on this ordering (x,y,sigma,time)
 
 	int triangleX = triangles[triangle].x;
-	int triangleY = triangles[node].y;
+	int triangleY = triangles[triangle].y;
 
 	//calculate the chunks for each individual dimension
 	int xChunk = (triangleX / (maxX - minX)) * xDimChunks;

@@ -1,5 +1,5 @@
-#ifndef FVCOM_H
-#define FVCOM_H
+#ifndef FVCOM_STRUCTURE_H
+#define FVCOM_STRUCTURE_H
 
 #include <list>
 #include <unordered_map>
@@ -11,28 +11,21 @@
 
 
 /**
- * Class used to load and query FVCOM data
+ * Class used to load and query FVCOM structure data
  */
-class FVCOM
+class FVCOMStructure
 {
 public:
-	/**
-	 * Initalize FVCOM class with data from file,
-     * @param filename File to load
-     */
-	FVCOM(std::string filename);
 
 	/**
-	 * Initalize FVCOM class with data from file and specify the size of the FVCOMChunks
+	 * Initalize FVCOMStructure class with data from file and specify the size of the FVCOMChunks
      * @param filename File to load
      * @param xChunkSize Size of a chunk in the x direction
      * @param yChunkSize Size of a chunk in the y direction
      * @param siglayChunkSize Size of a chunk in the siglay direction
      * @param timeChunkSize Size of a chunk in the time direction
      */
-	FVCOM(std::string filename, int xChunkSize, int yChunkSize, int siglayChunkSize, int timeChunkSize);
-
-private:
+	FVCOMStructure(const netCDF::NcFile dataFile, int xChunkSize, int yChunkSize, int siglayChunkSize, int timeChunkSize);
 
 	/**
 	 * Struct to group a (x, y, height) point
@@ -84,7 +77,7 @@ private:
 	/**
 	 * Helper function which loads all the model structure data from the model file
 	 */
-	void loadStructureData();
+	void loadStructureData(const netCDF::NcFile dataFile);
 
 	/**
 	 * Helper function that determines the extent of the model
@@ -114,30 +107,7 @@ private:
 	 */
 	int getChunkForTriangle(int triangle, int siglay, int time);
 
-
-
-	/**
-	 * Retrieves data from a specific node
-	 * If the needed data is not loaded this function will call all the necessary functions to load it 
-	 * @param node Node number of get data from
-	 * @param sigma Sigma layer to get the data from
-	 * @param time Time index to get the data from
-	 */
-	float getDataFromNode(int node, int sigma, int time);
-
-	/**
-	 * Retrieves data from a specific triangle
-	 * If the needed data is not loaded this function will call all the necessary functions to load it 
-	 * @param triangle Triangle number of get data from
-	 * @param sigma Sigma layer to get the data from
-	 * @param time Time index to get the data from
-	 */
-
-	float getDataFromTriangle(int triangle, int sigma, int time);
-
 private:
-	const netCDF::NcFile dataFile;
-
 	/**
 	 * Number of sigma layers
 	 */
