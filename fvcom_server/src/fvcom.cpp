@@ -106,8 +106,6 @@ FVCOM::FVCOM(std::string filename) :
 			nodeToTriangles[node].push_back(triangle);
 		}
 	}
-
-	std::cout << getContainingTriangle(0,0) << std::endl;
 }
 
 bool FVCOM::pointInTriangle(float px, float py, int triangle)
