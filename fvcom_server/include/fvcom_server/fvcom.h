@@ -39,8 +39,19 @@ private:
      */
 	struct point
 	{
+		/**
+		 * x location in meters
+		 */
 		float x;
+
+		/**
+		 * y location in meters
+		 */
 		float y;
+
+		/**
+		 * water depth (bathymetry) in meters
+		 */
 		float h;
 	};
 
@@ -76,6 +87,36 @@ private:
 	void loadStructureData();
 
 	/**
+	 * Helper function that determines the extent of the model
+	 */
+	void getModelExtent();
+
+	/**
+	 * Helper function which splits the model into chunks which can be individually loaded
+	 */
+	void splitIntoChunks();
+
+	/**
+	 * Gets the chunk that contains the (node, sigma, time) tuple
+	 * @param node Node to find the chunk for
+	 * @param sigma Sigma layer to find the chunk for
+	 * @param time Time slice to find the chunk for
+	 * @return Chunk which contains the data for the specified node
+	 */
+	int getChunkForNode(int node, int siglay, int time);
+
+	/**
+	 * Gets the chunk that contains the (triangle, sigma, time) tuple
+	 * @param triangle Triangle to find the chunk for
+	 * @param sigma Sigma layer to find the chunk for
+	 * @param time Time slice to find the chunk for
+	 * @return Chunk which contains the data for the specified triangle
+	 */
+	int getChunkForTriangle(int triangle, int siglay, int time);
+
+
+
+	/**
 	 * Retrieves data from a specific node
 	 * If the needed data is not loaded this function will call all the necessary functions to load it 
 	 * @param node Node number of get data from
@@ -97,12 +138,10 @@ private:
 private:
 	const netCDF::NcFile dataFile;
 
-	//Size of chunks in different dimensions
-	int xChunkSize;
-	int yChunkSize;
-	int siglayChunkSize;
-	int timeChunkSize;
-
+	/**
+	 * Number of sigma layers
+	 */
+	unsigned int siglayDim;
 
 	/**
 	 * x,y for each node
@@ -117,7 +156,7 @@ private:
 	/**
 	 * The times corresponding to each time index
 	 */
-	std::vector<float> time;
+	std::vector<float> times;
 
 	/**
 	 * List of nodes in each triangle
@@ -139,7 +178,23 @@ private:
 	 */
 	std::vector<int> nodeToChunk;
 
-	
+	// X,Y extent of the model
+	float minX;
+	float minY;
+	float maxX;
+	float maxY;
+
+	//Size of chunks in different dimensions
+	int xChunkSize; //in meters
+	int yChunkSize; //in meters
+	int siglayChunkSize; //in siglay indices
+	int timeChunkSize; //in time indicies
+
+	//Number of chunks for each dimension
+	int siglayDimChunks;
+	int timeDimChunks;
+	int yDimChunks;
+	int xDimChunks;
 };
 
 #endif

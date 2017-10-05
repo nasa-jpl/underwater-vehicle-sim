@@ -7,12 +7,13 @@
 
 FVCOM::FVCOM(std::string filename) :
 	dataFile(netCDF::NcFile(filename, netCDF::NcFile::read)),
-	xChunkSize(100),
-	yChunkSize(100),
+	xChunkSize(500),
+	yChunkSize(500),
 	siglayChunkSize(10),
 	timeChunkSize(10)
 {
 	loadStructureData();
+	splitIntoChunks();
 }
 
 FVCOM::FVCOM(std::string filename, int xChunkSize, int yChunkSize, int siglayChunkSize, int timeChunkSize) :
@@ -21,7 +22,8 @@ FVCOM::FVCOM(std::string filename, int xChunkSize, int yChunkSize, int siglayChu
 	siglayChunkSize(siglayChunkSize),
 	timeChunkSize(timeChunkSize)
 {
-
+	loadStructureData();
+	splitIntoChunks();
 }
 
 void FVCOM::loadStructureData()
@@ -30,6 +32,7 @@ void FVCOM::loadStructureData()
 	unsigned int nodeDim = dataFile.getDim("node").getSize();
 	unsigned int neleDim = dataFile.getDim("nele").getSize();
 	unsigned int timeDim = dataFile.getDim("time").getSize();
+	siglayDim = dataFile.getDim("siglay").getSize();
 
 	//Load all variables for the structure of the model
 	netCDF::NcVar xVar = dataFile.getVar("x");
@@ -56,7 +59,7 @@ void FVCOM::loadStructureData()
 	triangleY.resize(neleDim);
 	nodeH.resize(nodeDim);
 	triangleH.resize(neleDim);
-	time.resize(timeDim);
+	times.resize(timeDim);
 
 	//resize for multidimensional array
 	triangleToNodes.resize(3);
@@ -73,7 +76,7 @@ void FVCOM::loadStructureData()
 	ycVar.getVar(triangleY.data());
 	hVar.getVar(nodeH.data());
 	centerHVar.getVar(triangleH.data());
-	timeVar.getVar(time.data());
+	timeVar.getVar(times.data());
 
 	//load nvVar into a multidimensional vector
 	for(unsigned int i = 0; i < 3; i++)
@@ -122,6 +125,44 @@ void FVCOM::loadStructureData()
 			int node = triangleToNodes[j][i];
 
 			nodeToTriangles[node].push_back(triangle);
+		}
+	}
+}
+
+void FVCOM::splitIntoChunks()
+{
+	getModelExtent();
+
+	siglayDimChunks = std::ceil(siglayDim / (double)siglayChunkSize);
+	timeDimChunks = std::ceil(times.size() / (double)timeChunkSize);
+	yDimChunks = std::ceil((maxY - minY) / (double)yChunkSize);
+	xDimChunks = std::ceil((maxX - minX) / (double)xChunkSize);
+}
+
+void FVCOM::getModelExtent()
+{
+	for(int i = 0; i < nodes.size(); i++)
+	{
+		point node = nodes[i];
+		
+		if(node.x > maxX)
+		{
+			maxX = node.x;
+		}
+
+		if(node.x < minX)
+		{
+			minX = node.x;
+		}
+
+		if(node.y > maxY)
+		{
+			maxY = node.y;
+		}
+
+		if(node.y < minY)
+		{
+			minY = node.y;
 		}
 	}
 }
@@ -196,4 +237,44 @@ int FVCOM::getClosestNode(point testPoint)
 float FVCOM::distance(point p0, point p1)
 {
 	return std::sqrt( (p0.x - p1.x)*(p0.x - p1.x) + (p0.y - p1.y)*(p0.y - p1.y) );
+}
+
+
+int FVCOM::getChunkForNode(int node, int siglay, int time)
+{
+	//Chunk ids based on this ordering (x,y,sigma,time)
+
+	int nodeX = nodes[node].x;
+	int nodeY = nodes[node].y;
+
+	//calculate the chunks for each individual dimension
+	int xChunk = (nodeX / (maxX - minX)) * xDimChunks;
+	int yChunk = (nodeX / (maxY - minY)) * yDimChunks;
+	int siglayChunk = ((double)siglay / siglayDim) * siglayDimChunks;
+	int timeChunk = ((double)time / times.size()) * timeDimChunks;
+
+	return timeChunk +
+		   (siglayChunk * timeDimChunks) +
+		   (yChunk * timeDimChunks * siglayDimChunks) +
+		   (xChunk * timeDimChunks * siglayDimChunks * yDimChunks);
+}
+
+
+int FVCOM::getChunkForTriangle(int triangle, int siglay, int time)
+{
+	//Chunk ids based on this ordering (x,y,sigma,time)
+
+	int triangleX = triangles[triangle].x;
+	int triangleY = triangles[node].y;
+
+	//calculate the chunks for each individual dimension
+	int xChunk = (triangleX / (maxX - minX)) * xDimChunks;
+	int yChunk = (triangleY / (maxY - minY)) * yDimChunks;
+	int siglayChunk = ((double)siglay / siglayDim) * siglayDimChunks;
+	int timeChunk = ((double)time / times.size()) * timeDimChunks;
+
+	return timeChunk +
+		   (siglayChunk * timeDimChunks) +
+		   (yChunk * timeDimChunks * siglayDimChunks) +
+		   (xChunk * timeDimChunks * siglayDimChunks * yDimChunks);
 }
