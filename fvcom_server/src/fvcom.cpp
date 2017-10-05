@@ -6,7 +6,25 @@
 #include <limits>
 
 FVCOM::FVCOM(std::string filename) :
-	dataFile(netCDF::NcFile(filename, netCDF::NcFile::read))
+	dataFile(netCDF::NcFile(filename, netCDF::NcFile::read)),
+	xChunkSize(100),
+	yChunkSize(100),
+	siglayChunkSize(10),
+	timeChunkSize(10)
+{
+	loadStructureData();
+}
+
+FVCOM::FVCOM(std::string filename, int xChunkSize, int yChunkSize, int siglayChunkSize, int timeChunkSize) :
+	xChunkSize(xChunkSize),
+	yChunkSize(yChunkSize),
+	siglayChunkSize(siglayChunkSize),
+	timeChunkSize(timeChunkSize)
+{
+
+}
+
+void FVCOM::loadStructureData()
 {
 	//Get dimensions of structure elements
 	unsigned int nodeDim = dataFile.getDim("node").getSize();
@@ -55,7 +73,7 @@ FVCOM::FVCOM(std::string filename) :
 	ycVar.getVar(triangleY.data());
 	hVar.getVar(nodeH.data());
 	centerHVar.getVar(triangleH.data());
-	timeVar.getVar(time.data())
+	timeVar.getVar(time.data());
 
 	//load nvVar into a multidimensional vector
 	for(unsigned int i = 0; i < 3; i++)
@@ -108,7 +126,7 @@ FVCOM::FVCOM(std::string filename) :
 	}
 }
 
-bool FVCOM::pointInTriangle(float px, float py, int triangle)
+bool FVCOM::pointInTriangle(point testPoint, int triangle)
 {
 	int p0Index = triangleToNodes[0][triangle];
 	int p1Index = triangleToNodes[1][triangle];
@@ -118,33 +136,38 @@ bool FVCOM::pointInTriangle(float px, float py, int triangle)
 	point p1 = nodes[p1Index];
 	point p2 = nodes[p2Index];
 
-	float alpha = ((p1.y - p2.y)*(px - p2.x) + (p2.x - p1.x)*(py - p2.y)) /
+	//Calculate barycentric coordinates
+	float alpha = ((p1.y - p2.y)*(testPoint.x - p2.x) + (p2.x - p1.x)*(testPoint.y - p2.y)) /
         ((p1.y - p2.y)*(p0.x - p2.x) + (p2.x - p1.x)*(p0.y - p2.y));
 
-	float beta = ((p2.y - p0.y)*(px - p2.x) + (p0.x - p2.x)*(py - p2.y)) /
+	float beta = ((p2.y - p0.y)*(testPoint.x - p2.x) + (p0.x - p2.x)*(testPoint.y - p2.y)) /
        	((p1.y - p2.y)*(p0.x - p2.x) + (p2.x - p1.x)*(p0.y - p2.y));
 
 	float gamma = 1.0f - alpha - beta;
 
+	//if all coordinates are none negative then the point is in the triangle
 	return alpha >= 0 && beta >= 0 && gamma >= 0;
 }
 
-int FVCOM::getContainingTriangle(float x, float y)
+int FVCOM::getContainingTriangle(point testPoint)
 {
-	int closestNode = getClosestNode(x,y);
+	//Get the closest node to start the search for the containing triangle
+	int closestNode = getClosestNode(testPoint);
 
-	std::cout << closestNode << std::endl;
+	//Search all triangles that are connected to the closest node
 	for(int i = 0; i < nodeToTriangles[closestNode].size(); i++)
 	{
-		if(pointInTriangle(x, y, nodeToTriangles[closestNode][i]))
+		//return the triangle for which the point is inside
+		if(pointInTriangle(testPoint, nodeToTriangles[closestNode][i]))
 		{
 			return nodeToTriangles[closestNode][i];
 		}
 	}
 
+	//if the point is not inside any of those triangles search all the triangles
 	for(int i = 0; i < triangles.size(); i++)
 	{
-		if(pointInTriangle(x, y, i))
+		if(pointInTriangle(testPoint, i))
 		{
 			return i;
 		}
@@ -153,15 +176,16 @@ int FVCOM::getContainingTriangle(float x, float y)
 	return -1;
 }
 
-int FVCOM::getClosestNode(float x, float y)
+int FVCOM::getClosestNode(point testPoint)
 {
+	//Checks distance between testPoint and every node, this is slow and will probably need to be improved
 	float closestDistance = std::numeric_limits<float>::max();
 	int node = -1;
 	for(int i = 0; i < nodes.size(); i++)
 	{
-		if(distance(x, y, nodes[i]) < closestDistance)
+		if(distance(testPoint, nodes[i]) < closestDistance)
 		{
-			closestDistance = distance(x, y, nodes[i]);
+			closestDistance = distance(testPoint, nodes[i]);
 			node = i;
 		}
 	}
@@ -169,7 +193,7 @@ int FVCOM::getClosestNode(float x, float y)
 	return node;
 }
 
-float FVCOM::distance(float p0X, float p0Y, point p1)
+float FVCOM::distance(point p0, point p1)
 {
-	return std::sqrt( (p0X - p1.x)*(p0X - p1.x) + (p0Y - p1.y)*(p0Y - p1.y) );
+	return std::sqrt( (p0.x - p1.x)*(p0.x - p1.x) + (p0.y - p1.y)*(p0.y - p1.y) );
 }

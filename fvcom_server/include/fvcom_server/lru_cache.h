@@ -8,7 +8,9 @@
 
 
 
-//! Generic implementation of an LRUCache
+/**
+ * Generic implementation of an LRUCache
+ */
 template <class K, class V>
 class LRUCache
 {
@@ -24,11 +26,11 @@ public:
         max_size(max_size)
     {}
 
-    //!Put a value into the cache with a key
-    /*!
-    * param key key corresponding to the value
-    * param value value to add to the list
-    */
+    /**
+     * Put a value into the cache with a key
+     * @param key key corresponding to the value
+     * @param value value to add to the list
+     */
     void put(const K &key, const V &value)
     {
         //find the key in the map
@@ -57,10 +59,10 @@ public:
         }
     }
 
-    //!Get a value from the cache
-    /*!
-    * param key key corresponding to the value to retrieve
-    */
+    /**
+     * Get a value from the cache
+     * @param key key corresponding to the value to retrieve
+     */
     const V& get(const K &key)
     {
         //find the key
@@ -78,10 +80,10 @@ public:
 
     }
 
-    //!Check if a key is in the cache
-    /*!
-    * param key key to check for
-    */
+    /**
+     * Check if a key is in the cache
+     * @param key key to check for
+     */
     bool exists(const K &key) const
     {
         return item_map.find(key) != item_map.end();
