@@ -1,4 +1,4 @@
-#include "fvcom_server/lru_cache.h"
+#include "fvcom_server/LRUCache.h"
 #include <gtest/gtest.h>
 
 

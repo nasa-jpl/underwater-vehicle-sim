@@ -25,7 +25,7 @@ public:
      * @param siglayChunkSize Size of a chunk in the siglay direction
      * @param timeChunkSize Size of a chunk in the time direction
      */
-	FVCOMStructure(const netCDF::NcFile dataFile, int xChunkSize, int yChunkSize, int siglayChunkSize, int timeChunkSize);
+	FVCOMStructure(const netCDF::NcFile& dataFile, int xChunkSize, int yChunkSize, int siglayChunkSize, int timeChunkSize);
 
 	/**
 	 * Struct to group a (x, y, height) point
@@ -75,21 +75,6 @@ public:
 	float distance(point p0, point p1);
 
 	/**
-	 * Helper function which loads all the model structure data from the model file
-	 */
-	void loadStructureData(const netCDF::NcFile dataFile);
-
-	/**
-	 * Helper function that determines the extent of the model
-	 */
-	void getModelExtent();
-
-	/**
-	 * Helper function which splits the model into chunks which can be individually loaded
-	 */
-	void splitIntoChunks();
-
-	/**
 	 * Gets the chunk that contains the (node, sigma, time) tuple
 	 * @param node Node to find the chunk for
 	 * @param sigma Sigma layer to find the chunk for
@@ -106,6 +91,22 @@ public:
 	 * @return Chunk which contains the data for the specified triangle
 	 */
 	int getChunkForTriangle(int triangle, int siglay, int time);
+private:
+
+	/**
+	 * Helper function which loads all the model structure data from the model file
+	 */
+	void loadStructureData(const netCDF::NcFile& dataFile);
+
+	/**
+	 * Helper function that determines the extent of the model
+	 */
+	void getModelExtent();
+
+	/**
+	 * Helper function which splits the model into chunks which can be individually loaded
+	 */
+	void splitIntoChunks();
 
 private:
 	/**

@@ -6,7 +6,7 @@
 #include <limits>
 
 
-FVCOMStructure::FVCOMStructure(const netCDF::NcFile dataFile, int xChunkSize, int yChunkSize, int siglayChunkSize, int timeChunkSize) :
+FVCOMStructure::FVCOMStructure(const netCDF::NcFile& dataFile, int xChunkSize, int yChunkSize, int siglayChunkSize, int timeChunkSize) :
 	xChunkSize(xChunkSize),
 	yChunkSize(yChunkSize),
 	siglayChunkSize(siglayChunkSize),
@@ -16,7 +16,7 @@ FVCOMStructure::FVCOMStructure(const netCDF::NcFile dataFile, int xChunkSize, in
 	splitIntoChunks();
 }
 
-void FVCOMStructure::loadStructureData(const netCDF::NcFile dataFile)
+void FVCOMStructure::loadStructureData(const netCDF::NcFile& dataFile)
 {
 	//Get dimensions of structure elements
 	unsigned int nodeDim = dataFile.getDim("node").getSize();
@@ -31,7 +31,7 @@ void FVCOMStructure::loadStructureData(const netCDF::NcFile dataFile)
 	netCDF::NcVar ycVar = dataFile.getVar("yc");
 	netCDF::NcVar nvVar = dataFile.getVar("nv");
 	netCDF::NcVar hVar = dataFile.getVar("h");
-	netCDF::NcVar centerHVar = dataFile.getVar("center_h");
+	netCDF::NcVar centerHVar = dataFile.getVar("h_center");
 	netCDF::NcVar timeVar = dataFile.getVar("time");
 
 	std::vector<float> nodeX;
@@ -53,6 +53,7 @@ void FVCOMStructure::loadStructureData(const netCDF::NcFile dataFile)
 
 	//resize for multidimensional array
 	triangleToNodes.resize(3);
+	
 	for(int i = 0; i < 3; i++)
 	{
 		triangleToNodes[i].resize(neleDim);
@@ -234,12 +235,12 @@ int FVCOMStructure::getChunkForNode(int node, int siglay, int time)
 {
 	//Chunk ids based on this ordering (x,y,sigma,time)
 
-	int nodeX = nodes[node].x;
-	int nodeY = nodes[node].y;
+	float nodeX = nodes[node].x;
+	float nodeY = nodes[node].y;
 
 	//calculate the chunks for each individual dimension
-	int xChunk = (nodeX / (maxX - minX)) * xDimChunks;
-	int yChunk = (nodeX / (maxY - minY)) * yDimChunks;
+	int xChunk = ((nodeX - minX) / (maxX - minX)) * xDimChunks;
+	int yChunk = ((nodeY - minY) / (maxY - minY)) * yDimChunks;
 	int siglayChunk = ((double)siglay / siglayDim) * siglayDimChunks;
 	int timeChunk = ((double)time / times.size()) * timeDimChunks;
 
@@ -254,12 +255,13 @@ int FVCOMStructure::getChunkForTriangle(int triangle, int siglay, int time)
 {
 	//Chunk ids based on this ordering (x,y,sigma,time)
 
-	int triangleX = triangles[triangle].x;
-	int triangleY = triangles[triangle].y;
+	float triangleX = triangles[triangle].x;
+	float triangleY = triangles[triangle].y;
 
 	//calculate the chunks for each individual dimension
-	int xChunk = (triangleX / (maxX - minX)) * xDimChunks;
-	int yChunk = (triangleY / (maxY - minY)) * yDimChunks;
+
+	int xChunk = ((triangleX - minX) / (maxX - minX)) * xDimChunks;
+	int yChunk = ((triangleY - minY) / (maxY - minY)) * yDimChunks;
 	int siglayChunk = ((double)siglay / siglayDim) * siglayDimChunks;
 	int timeChunk = ((double)time / times.size()) * timeDimChunks;
 
