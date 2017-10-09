@@ -48,31 +48,51 @@ public:
 		float h;
 	};
 
+	struct ChunkInfo
+	{
+		unsigned int id;
+		unsigned int xChunk;
+		unsigned int yChunk;
+		unsigned int siglayChunk;
+		unsigned int timeChunk;
+
+		unsigned int xStart;
+		unsigned int yStart;
+		unsigned int siglayStart;
+		unsigned int timeStart;
+
+		unsigned int xSize;
+		unsigned int ySize;
+		unsigned int siglaySize;
+		unsigned int timeSize;
+
+	};
+
 	/**
 	 * Determines if a point is in the specified triangle
 	 * @param testPoint Point to test with
 	 * @param triangle Triangle to test with
 	 */
-	bool pointInTriangle(point testPoint, int triangle);
+	bool pointInTriangle(point testPoint, int triangle) const;
 
 	/**
 	 * Finds the triangle which contains the specified point
 	 * @param testPoint Point to get containing triangle for
 	 */
-	int getContainingTriangle(point testPoint);
+	int getContainingTriangle(point testPoint) const;
 
 	/**
 	 * Finds the closest node to a point
 	 * @param testPoint Point to get the closest node for
 	 */
-	int getClosestNode(point testPoint);
+	int getClosestNode(point testPoint) const;
 
 	/**
 	 * Gets the distance between two points
 	 * @param p0 Point 0 for which to get the distance
 	 * @param p1 Point 1 for which  to get the distance
 	 */
-	float distance(point p0, point p1);
+	float distance(point p0, point p1) const;
 
 	/**
 	 * Gets the chunk that contains the (node, sigma, time) tuple
@@ -81,7 +101,7 @@ public:
 	 * @param time Time slice to find the chunk for
 	 * @return Chunk which contains the data for the specified node
 	 */
-	int getChunkForNode(int node, int siglay, int time);
+	FVCOMStructure::ChunkInfo getChunkForNode(int node, int siglay, int time) const;
 
 	/**
 	 * Gets the chunk that contains the (triangle, sigma, time) tuple
@@ -90,8 +110,13 @@ public:
 	 * @param time Time slice to find the chunk for
 	 * @return Chunk which contains the data for the specified triangle
 	 */
-	int getChunkForTriangle(int triangle, int siglay, int time);
+	FVCOMStructure::ChunkInfo getChunkForTriangle(int triangle, int siglay, int time) const;
+
+	const std::vector<unsigned int>& getNodesInChunk(FVCOMStructure::ChunkInfo chunk) const;
+	const std::vector<unsigned int>& getTrianglesInChunk(FVCOMStructure::ChunkInfo chunk) const;
+
 private:
+
 
 	/**
 	 * Helper function which loads all the model structure data from the model file
@@ -148,6 +173,17 @@ private:
 	 * Chunk that a node is in
 	 */
 	std::vector<int> nodeToChunk;
+
+	/**
+	 * A list of all the nodes in each chunk for loading
+	 */
+	std::vector<std::vector<unsigned int>> nodesInChunk;
+
+	/**
+	 * A list of all the triangles in each chunk for loading
+	 */
+	std::vector<std::vector<unsigned int>> trianglesInChunk;
+
 
 	// X,Y extent of the model
 	float minX;

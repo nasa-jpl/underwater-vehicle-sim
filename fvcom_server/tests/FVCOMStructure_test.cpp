@@ -1,11 +1,10 @@
 #include "fvcom_server/FVCOMStructure.h"
 #include <gtest/gtest.h>
 
+const netCDF::NcFile dataFile("test_data/box_plume_0001.nc", netCDF::NcFile::read);
+const FVCOMStructure structure(dataFile, 10, 10, 10, 10);
 
 TEST(FCVOMStructureTest, PointInTriangle) {
-    netCDF::NcFile dataFile("test_data/box_plume_0001.nc", netCDF::NcFile::read);
-	FVCOMStructure structure(dataFile, 500, 500, 10, 10);
-
 	FVCOMStructure::point pIn;
 	FVCOMStructure::point pOut;
 	FVCOMStructure::point pEdge;
@@ -36,9 +35,6 @@ TEST(FCVOMStructureTest, PointInTriangle) {
 }
 
 TEST(FCVOMStructureTest, GetContainingTriangle) {
-    netCDF::NcFile dataFile("test_data/box_plume_0001.nc", netCDF::NcFile::read);
-	FVCOMStructure structure(dataFile, 500, 500, 10, 10);
-
 	FVCOMStructure::point pIn;
 	FVCOMStructure::point pOut;
 	FVCOMStructure::point pEdge;
@@ -67,9 +63,6 @@ TEST(FCVOMStructureTest, GetContainingTriangle) {
 
 
 TEST(FCVOMStructureTest, GetClosestNode) {
-    netCDF::NcFile dataFile("test_data/box_plume_0001.nc", netCDF::NcFile::read);
-	FVCOMStructure structure(dataFile, 500, 500, 10, 10);
-
 	FVCOMStructure::point p1;
 	FVCOMStructure::point p2;
 	FVCOMStructure::point p3;
@@ -98,9 +91,6 @@ TEST(FCVOMStructureTest, GetClosestNode) {
 
 
 TEST(FCVOMStructureTest, Distance) {
-    netCDF::NcFile dataFile("test_data/box_plume_0001.nc", netCDF::NcFile::read);
-	FVCOMStructure structure(dataFile, 500, 500, 10, 10);
-
 	FVCOMStructure::point p1;
 	FVCOMStructure::point p2;
 	FVCOMStructure::point p3;
@@ -124,9 +114,6 @@ TEST(FCVOMStructureTest, Distance) {
 
 
 TEST(FCVOMStructureTest, GetChunkForNode) {
-    netCDF::NcFile dataFile("test_data/box_plume_0001.nc", netCDF::NcFile::read);
-	FVCOMStructure structure(dataFile, 10, 10, 10, 10);
-
 
 	//model extent
 	////x: -100 , 100
@@ -151,17 +138,48 @@ TEST(FCVOMStructureTest, GetChunkForNode) {
 	//time: 80
 	//CHUNK: 10043
 
-	ASSERT_EQ(9990, structure.getChunkForNode(385, 0, 0));
-	ASSERT_EQ(9998, structure.getChunkForNode(385, 0, 80));
-	ASSERT_EQ(10043, structure.getChunkForNode(385, 54, 80));
+	FVCOMStructure::ChunkInfo chunk1 = structure.getChunkForNode(385, 0, 0);
+	FVCOMStructure::ChunkInfo chunk2 = structure.getChunkForNode(385, 0, 80);
+	FVCOMStructure::ChunkInfo chunk3 = structure.getChunkForNode(385, 54, 80);
+
+	FVCOMStructure::ChunkInfo chunk4 = structure.getChunkForNode(0, 0, 0);
+	FVCOMStructure::ChunkInfo chunk5 = structure.getChunkForNode(4, 0, 0);
+
+	ASSERT_EQ(9990, chunk1.id);
+	ASSERT_EQ(5, chunk1.xChunk);
+	ASSERT_EQ(11, chunk1.yChunk);
+	ASSERT_EQ(0, chunk1.siglayChunk);
+	ASSERT_EQ(0, chunk1.timeChunk);
+
+	ASSERT_EQ(9998, chunk2.id);
+	ASSERT_EQ(5, chunk2.xChunk);
+	ASSERT_EQ(11, chunk2.yChunk);
+	ASSERT_EQ(0, chunk2.siglayChunk);
+	ASSERT_EQ(8, chunk2.timeChunk);
+	
+
+	ASSERT_EQ(10043, chunk3.id);
+	ASSERT_EQ(5, chunk3.xChunk);
+	ASSERT_EQ(11, chunk3.yChunk);
+	ASSERT_EQ(5, chunk3.siglayChunk);
+	ASSERT_EQ(8, chunk3.timeChunk);
+
+	ASSERT_EQ(0, chunk4.id);
+	ASSERT_EQ(0, chunk4.xChunk);
+	ASSERT_EQ(0, chunk4.yChunk);
+	ASSERT_EQ(0, chunk4.siglayChunk);
+	ASSERT_EQ(0, chunk4.timeChunk);
+
+	ASSERT_EQ(34200, chunk5.id);
+	ASSERT_EQ(19, chunk5.xChunk);
+	ASSERT_EQ(0, chunk5.yChunk);
+	ASSERT_EQ(0, chunk5.siglayChunk);
+	ASSERT_EQ(0, chunk5.timeChunk);
 }
 
 
 
 TEST(FCVOMStructureTest, GetChunkForTriangle) {
-    netCDF::NcFile dataFile("test_data/box_plume_0001.nc", netCDF::NcFile::read);
-	FVCOMStructure structure(dataFile, 10, 10, 10, 10);
-
 	//model extent
 	////x: -100 , 100
 	////y: -100 , 100
@@ -185,9 +203,28 @@ TEST(FCVOMStructureTest, GetChunkForTriangle) {
 	//time: 80
 	//CHUNK: 8243
 
-	ASSERT_EQ(8190, structure.getChunkForTriangle(1, 0, 0));
-	ASSERT_EQ(8198, structure.getChunkForTriangle(1, 0, 80));
-	ASSERT_EQ(8243, structure.getChunkForTriangle(1, 54, 80));
+	FVCOMStructure::ChunkInfo chunk1 = structure.getChunkForTriangle(1, 0, 0);
+	FVCOMStructure::ChunkInfo chunk2 = structure.getChunkForTriangle(1, 0, 80);
+	FVCOMStructure::ChunkInfo chunk3 = structure.getChunkForTriangle(1, 54, 80);
+
+
+	ASSERT_EQ(8190, chunk1.id);
+	ASSERT_EQ(4, chunk1.xChunk);
+	ASSERT_EQ(11, chunk1.yChunk);
+	ASSERT_EQ(0, chunk1.siglayChunk);
+	ASSERT_EQ(0, chunk1.timeChunk);
+
+	ASSERT_EQ(8198, chunk2.id);
+	ASSERT_EQ(4, chunk2.xChunk);
+	ASSERT_EQ(11, chunk2.yChunk);
+	ASSERT_EQ(0, chunk2.siglayChunk);
+	ASSERT_EQ(8, chunk2.timeChunk);
+
+	ASSERT_EQ(8243, chunk3.id);
+	ASSERT_EQ(4, chunk3.xChunk);
+	ASSERT_EQ(11, chunk3.yChunk);
+	ASSERT_EQ(5, chunk3.siglayChunk);
+	ASSERT_EQ(8, chunk3.timeChunk);
 
 }
 

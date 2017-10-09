@@ -128,6 +128,31 @@ void FVCOMStructure::splitIntoChunks()
 	timeDimChunks = std::ceil(times.size() / (double)timeChunkSize);
 	yDimChunks = std::ceil((maxY - minY) / (double)yChunkSize);
 	xDimChunks = std::ceil((maxX - minX) / (double)xChunkSize);
+
+	nodesInChunk.resize(xDimChunks * yDimChunks);
+	trianglesInChunk.resize(xDimChunks * yDimChunks);
+
+	for(unsigned int i = 0; i < nodes.size(); i++)
+	{
+		FVCOMStructure::ChunkInfo chunk = getChunkForNode(i, 0, 0);
+
+		//This does not contain the siglay or time dimensions as the
+		//node locations do not change with depth or time.
+		int chunkId = chunk.yChunk + (chunk.xChunk * yDimChunks);
+
+		nodesInChunk[chunkId].push_back(i);
+	}
+
+	for(unsigned int i = 0; i < triangles.size(); i++)
+	{
+		FVCOMStructure::ChunkInfo chunk = getChunkForTriangle(i, 0, 0);
+
+		//This does not contain the siglay or time dimensions as the
+		//node locations do not change with depth or time.
+		int chunkId = chunk.yChunk + (chunk.xChunk * yDimChunks);
+
+		trianglesInChunk[chunkId].push_back(i);
+	}
 }
 
 void FVCOMStructure::getModelExtent()
@@ -158,7 +183,7 @@ void FVCOMStructure::getModelExtent()
 	}
 }
 
-bool FVCOMStructure::pointInTriangle(point testPoint, int triangle)
+bool FVCOMStructure::pointInTriangle(point testPoint, int triangle) const
 {
 	int p0Index = triangleToNodes[0][triangle];
 	int p1Index = triangleToNodes[1][triangle];
@@ -181,7 +206,7 @@ bool FVCOMStructure::pointInTriangle(point testPoint, int triangle)
 	return alpha >= 0 && beta >= 0 && gamma >= 0;
 }
 
-int FVCOMStructure::getContainingTriangle(point testPoint)
+int FVCOMStructure::getContainingTriangle(point testPoint) const
 {
 	//Get the closest node to start the search for the containing triangle
 	int closestNode = getClosestNode(testPoint);
@@ -208,7 +233,7 @@ int FVCOMStructure::getContainingTriangle(point testPoint)
 	return -1;
 }
 
-int FVCOMStructure::getClosestNode(point testPoint)
+int FVCOMStructure::getClosestNode(point testPoint) const
 {
 	//Checks distance between testPoint and every node, this is slow and will probably need to be improved
 	float closestDistance = std::numeric_limits<float>::max();
@@ -225,48 +250,122 @@ int FVCOMStructure::getClosestNode(point testPoint)
 	return node;
 }
 
-float FVCOMStructure::distance(point p0, point p1)
+float FVCOMStructure::distance(point p0, point p1) const
 {
 	return std::sqrt( (p0.x - p1.x)*(p0.x - p1.x) + (p0.y - p1.y)*(p0.y - p1.y) );
 }
 
 
-int FVCOMStructure::getChunkForNode(int node, int siglay, int time)
+FVCOMStructure::ChunkInfo FVCOMStructure::getChunkForNode(int node, int siglay, int time) const
 {
 	//Chunk ids based on this ordering (x,y,sigma,time)
+
+	FVCOMStructure::ChunkInfo chunk;
 
 	float nodeX = nodes[node].x;
 	float nodeY = nodes[node].y;
 
 	//calculate the chunks for each individual dimension
-	int xChunk = ((nodeX - minX) / (maxX - minX)) * xDimChunks;
-	int yChunk = ((nodeY - minY) / (maxY - minY)) * yDimChunks;
-	int siglayChunk = ((double)siglay / siglayDim) * siglayDimChunks;
-	int timeChunk = ((double)time / times.size()) * timeDimChunks;
+	chunk.xChunk = (nodeX - minX) / xChunkSize;
+	chunk.yChunk = (nodeY - minY) / yChunkSize;
+	chunk.siglayChunk = siglay / siglayChunkSize;
+	chunk.timeChunk = time / timeChunkSize;
 
-	return timeChunk +
-		   (siglayChunk * timeDimChunks) +
-		   (yChunk * timeDimChunks * siglayDimChunks) +
-		   (xChunk * timeDimChunks * siglayDimChunks * yDimChunks);
+	//Check to insure that the chunks are valid.  If not this node is in the last chunk dimension.
+	//NOTE: This should only occur if the x/y extent is divisible by x/y chunk dimension.
+	//In this case maxX and maxY will give a chunk# as 1 more than the last chunk index.
+	//It seems like a waste to have the a chunk only be these single nodes so they are included
+	//in the last chunk.
+	if(chunk.xChunk >= xDimChunks)
+	{
+		chunk.xChunk = xDimChunks - 1;
+	}
+
+	if(chunk.yChunk >= yDimChunks)
+	{
+		chunk.yChunk = yDimChunks - 1;
+	}
+
+	chunk.id = chunk.timeChunk +
+		   (chunk.siglayChunk * timeDimChunks) +
+		   (chunk.yChunk * timeDimChunks * siglayDimChunks) +
+		   (chunk.xChunk * timeDimChunks * siglayDimChunks * yDimChunks);
+
+
+	chunk.xStart = chunk.xChunk * xChunkSize - minX;
+	chunk.yStart = chunk.yChunk * yChunkSize - minX;
+	chunk.siglayStart = chunk.siglayChunk * siglayChunkSize;
+	chunk.timeStart = chunk.timeChunk * timeChunkSize;
+
+	chunk.xSize = xChunkSize;
+	chunk.ySize = yChunkSize;
+	chunk.siglaySize = siglayChunkSize;
+	chunk.timeSize = timeChunkSize;
+
+	return chunk;
 }
 
 
-int FVCOMStructure::getChunkForTriangle(int triangle, int siglay, int time)
+FVCOMStructure::ChunkInfo FVCOMStructure::getChunkForTriangle(int triangle, int siglay, int time) const
 {
 	//Chunk ids based on this ordering (x,y,sigma,time)
+
+	FVCOMStructure::ChunkInfo chunk;
 
 	float triangleX = triangles[triangle].x;
 	float triangleY = triangles[triangle].y;
 
 	//calculate the chunks for each individual dimension
 
-	int xChunk = ((triangleX - minX) / (maxX - minX)) * xDimChunks;
-	int yChunk = ((triangleY - minY) / (maxY - minY)) * yDimChunks;
-	int siglayChunk = ((double)siglay / siglayDim) * siglayDimChunks;
-	int timeChunk = ((double)time / times.size()) * timeDimChunks;
 
-	return timeChunk +
-		   (siglayChunk * timeDimChunks) +
-		   (yChunk * timeDimChunks * siglayDimChunks) +
-		   (xChunk * timeDimChunks * siglayDimChunks * yDimChunks);
+	chunk.xChunk = (triangleX - minX) / xChunkSize;
+	chunk.yChunk = (triangleY - minY) / yChunkSize;
+	chunk.siglayChunk = siglay / siglayChunkSize;
+	chunk.timeChunk = time / timeChunkSize;
+
+	//Check to insure that the chunks are valid.  If not this node is in the last chunk dimension.
+	//NOTE: This should only occur if the x/y extent is divisible by x/y chunk dimension.
+	//In this case maxX and maxY will give a chunk# as 1 more than the last chunk index.
+	//It seems like a waste to have the a chunk only be these single nodes so they are included
+	//in the last chunk.
+	if(chunk.xChunk >= xDimChunks)
+	{
+		chunk.xChunk = xDimChunks - 1;
+	}
+
+	if(chunk.yChunk >= yDimChunks)
+	{
+		chunk.yChunk = yDimChunks - 1;
+	}
+
+	chunk.id = chunk.timeChunk +
+		   (chunk.siglayChunk * timeDimChunks) +
+		   (chunk.yChunk * timeDimChunks * siglayDimChunks) +
+		   (chunk.xChunk * timeDimChunks * siglayDimChunks * yDimChunks);
+
+	chunk.xStart = chunk.xChunk * xChunkSize - minX;
+	chunk.yStart = chunk.yChunk * yChunkSize - minX;
+	chunk.siglayStart = chunk.siglayChunk * siglayChunkSize;
+	chunk.timeStart = chunk.timeChunk * timeChunkSize;
+
+	chunk.xSize = xChunkSize;
+	chunk.ySize = yChunkSize;
+	chunk.siglaySize = siglayChunkSize;
+	chunk.timeSize = timeChunkSize;
+
+	return chunk;
+}
+
+const std::vector<unsigned int>& FVCOMStructure::getNodesInChunk(FVCOMStructure::ChunkInfo chunk) const
+{
+	int chunkId = chunk.yChunk + (chunk.xChunk * yDimChunks);
+
+	return nodesInChunk[chunkId];
+}
+
+const std::vector<unsigned int>& FVCOMStructure::getTrianglesInChunk(FVCOMStructure::ChunkInfo chunk) const
+{
+	int chunkId = chunk.yChunk + (chunk.xChunk * yDimChunks);
+
+	return trianglesInChunk[chunkId];
 }

@@ -119,6 +119,7 @@ catkin_package(
 add_library(fvcom
    src/FVCOM.cpp
    src/FVCOMStructure.cpp
+   src/FVCOMChunk.cpp
  )
 target_link_libraries(fvcom ${catkin_LIBRARIES} ${NETCDF_LIBRARIES})
 
@@ -197,8 +198,10 @@ include_directories(
 if (CATKIN_ENABLE_TESTING)
  catkin_add_gtest(lru_cache_test tests/lru_cache_test.cpp)
  catkin_add_gtest(fvcom_structure_test tests/FVCOMStructure_test.cpp WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+ catkin_add_gtest(fvcom_chunk_test tests/FVCOMChunk_test.cpp WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
  target_link_libraries(lru_cache_test ${catkin_LIBRARIES})
  target_link_libraries(fvcom_structure_test fvcom ${catkin_LIBRARIES} ${NETCDF_LIBRARIES})
+ target_link_libraries(fvcom_chunk_test fvcom ${catkin_LIBRARIES} ${NETCDF_LIBRARIES})
 endif()
 
 ## Add folders to be run by python nosetests
