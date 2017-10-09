@@ -27,7 +27,7 @@ FVCOMChunk::FVCOMChunk(const netCDF::NcFile& dataFile, std::vector<unsigned int>
 	netCDF::NcVar saltVar = dataFile.getVar("salinity");
 
 
-	for(int i = 0; i < nodesToLoad.size(); i++)
+	for(unsigned int i = 0; i < nodesToLoad.size(); i++)
 	{		
 		tempLoad.resize(chunkInfo.timeSize * chunkInfo.siglaySize);
 		saltLoad.resize(chunkInfo.timeSize * chunkInfo.siglaySize);
@@ -37,23 +37,22 @@ FVCOMChunk::FVCOMChunk(const netCDF::NcFile& dataFile, std::vector<unsigned int>
 		tempVar.getVar(start, count, tempLoad.data());
 		saltVar.getVar(start, count, saltLoad.data());
 
-
 		//Make new vector for all the NodeData objects
 		nodes.insert(std::make_pair(nodesToLoad[i], std::vector<FVCOMChunk::NodeData>()));
 		std::vector<FVCOMChunk::NodeData>& dataList = nodes[nodesToLoad[i]];
 		dataList.resize(tempLoad.size());
 
 		//populate vector of NodeData objects
-		for(int i = 0 ; i < tempLoad.size(); i++)
+		for(unsigned int j = 0; j < tempLoad.size(); j++)
 		{
 			FVCOMChunk::NodeData data;
-			data.temp = tempLoad[i];
-			data.salt = saltLoad[i];
-			dataList.push_back(data);
+			data.temp = tempLoad[j];
+			data.salt = saltLoad[j];
+			dataList[j] = data;
 		}
 	}
 
-	for(int i = 0; i < trianglesToLoad.size(); i++)
+	for(unsigned int i = 0; i < trianglesToLoad.size(); i++)
 	{		
 		uLoad.resize(chunkInfo.timeSize * chunkInfo.siglaySize);
 		vLoad.resize(chunkInfo.timeSize * chunkInfo.siglaySize);
@@ -67,15 +66,15 @@ FVCOMChunk::FVCOMChunk(const netCDF::NcFile& dataFile, std::vector<unsigned int>
 		//Make new vector for all the NodeData objects
 		triangles.insert(std::make_pair(trianglesToLoad[i], std::vector<FVCOMChunk::TriangleData>()));
 		std::vector<FVCOMChunk::TriangleData>& dataList = triangles[trianglesToLoad[i]];
-		dataList.resize(tempLoad.size());
+		dataList.resize(uLoad.size());
 
 		//populate vector of NodeData objects
-		for(int i = 0 ; i < tempLoad.size(); i++)
+		for(unsigned int j = 0 ; j < uLoad.size(); j++)
 		{
 			FVCOMChunk::TriangleData data;
-			data.u = tempLoad[i];
-			data.v = saltLoad[i];
-			dataList.push_back(data);
+			data.u = uLoad[j];
+			data.v = vLoad[j];
+			dataList[j] = data;
 		}
 	}
 }
