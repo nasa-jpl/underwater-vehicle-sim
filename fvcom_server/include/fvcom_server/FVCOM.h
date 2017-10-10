@@ -9,6 +9,8 @@
 #include <netcdf>
 
 #include "fvcom_server/FVCOMStructure.h"
+#include "fvcom_server/FVCOMChunk.h"
+#include "fvcom_server/LRUCache.h"
 
 /**
  * Class used to load and query FVCOM data
@@ -16,6 +18,15 @@
 class FVCOM
 {
 public:
+
+	struct FVCOMData
+	{
+		float u;
+		float v;
+		float temp;
+		float salt;
+	};
+
 	/**
 	 * Initalize FVCOM class with data from file,
      * @param filename File to load
@@ -30,7 +41,13 @@ public:
      * @param siglayChunkSize Size of a chunk in the siglay direction
      * @param timeChunkSize Size of a chunk in the time direction
      */
-	FVCOM(std::string filename, int xChunkSize, int yChunkSize, int siglayChunkSize, int timeChunkSize);
+	FVCOM(std::string filename, unsigned int xChunkSize, 
+								unsigned int yChunkSize,
+								unsigned int siglayChunkSize, 
+								unsigned int timeChunkSize, 
+								unsigned int cacheSize);
+
+	const FVCOM::FVCOMData getData(float x, float y, float height, float time);
 
 private:
 
@@ -41,7 +58,7 @@ private:
 	 * @param sigma Sigma layer to get the data from
 	 * @param time Time index to get the data from
 	 */
-	float getDataFromNode(int node, int sigma, int time);
+	float getDataForNode(int node, int sigma, int time);
 
 	/**
 	 * Retrieves data from a specific triangle
@@ -50,12 +67,14 @@ private:
 	 * @param sigma Sigma layer to get the data from
 	 * @param time Time index to get the data from
 	 */
-
-	float getDataFromTriangle(int triangle, int sigma, int time);
+	float getDataForTriangle(int triangle, int sigma, int time);
 
 private:
 	const netCDF::NcFile dataFile;
 	const FVCOMStructure structure;
+
+	LRUCache<unsigned int, FVCOMChunk> chunkCache;
+
 };
 
 #endif

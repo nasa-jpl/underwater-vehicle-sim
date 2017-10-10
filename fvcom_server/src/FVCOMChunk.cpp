@@ -81,8 +81,8 @@ FVCOMChunk::FVCOMChunk(const netCDF::NcFile& dataFile, std::vector<unsigned int>
 
 const FVCOMChunk::NodeData& FVCOMChunk::getNodeData(const unsigned int node, const unsigned int siglay, const unsigned int time)
 {
-	const std::vector<FVCOMChunk::NodeData>& data = nodes[node];
-	unsigned int index = siglay + time * chunkInfo.siglaySize;
+	std::vector<FVCOMChunk::NodeData>& data = nodes[node];
+	unsigned int index = (siglay - chunkInfo.siglayStart) + (time - chunkInfo.timeStart) * chunkInfo.siglaySize;
 
 	return data[index];
 }
@@ -90,7 +90,7 @@ const FVCOMChunk::NodeData& FVCOMChunk::getNodeData(const unsigned int node, con
 const FVCOMChunk::TriangleData& FVCOMChunk::getTriangleData(const unsigned int triangle, const unsigned int siglay, const unsigned int time)
 {
 	const std::vector<FVCOMChunk::TriangleData>& data = triangles[triangle];
-	unsigned int index = siglay + time * chunkInfo.siglaySize;
+	unsigned int index = (siglay - chunkInfo.siglayStart) + (time - chunkInfo.timeStart) * chunkInfo.siglaySize;
 
 	return data[index];
 }

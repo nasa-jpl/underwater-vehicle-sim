@@ -63,7 +63,7 @@ public:
      * Get a value from the cache
      * @param key key corresponding to the value to retrieve
      */
-    const V& get(const K &key)
+    V& get(const K &key)
     {
         //find the key
         auto it = item_map.find(key);

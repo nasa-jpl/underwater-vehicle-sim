@@ -88,6 +88,27 @@ public:
 	int getClosestNode(point testPoint) const;
 
 	/**
+	 * Gets the time index that is closest to the given time
+	 * @param time time to find the closest index for
+	 * @return index for the closest time
+	 */
+	 int getClosestTime(float time) const;
+
+	/**
+	 * Gets the siglay that is closest to the given location
+	 * @param testPoint location to find the closest siglay for
+	 * @return index for the closest siglay
+	 */
+	int getClosestNodeSiglay(point testPoint) const;
+
+	/**
+	 * Gets the siglay that is closest to the given location
+	 * @param testPoint location to find the closest siglay for
+	 * @return index for the closest siglay
+	 */
+	int getClosestTriangleSiglay(point testPoint) const;
+
+	/**
 	 * Gets the distance between two points
 	 * @param p0 Point 0 for which to get the distance
 	 * @param p1 Point 1 for which  to get the distance
@@ -116,7 +137,6 @@ public:
 	const std::vector<unsigned int>& getTrianglesInChunk(FVCOMStructure::ChunkInfo chunk) const;
 
 private:
-
 
 	/**
 	 * Helper function which loads all the model structure data from the model file
@@ -148,6 +168,16 @@ private:
 	 * x,y for each triangle
 	 */
 	std::vector<point> triangles;
+
+	/**
+	 * siglay for nodes
+	 */
+	std::vector<std::vector<float>> nodeSiglay;
+
+	/**
+	 * siglay for triangles
+	 */
+	std::vector<std::vector<float>> triangleSiglay;
 
 	/**
 	 * The times corresponding to each time index
@@ -192,16 +222,16 @@ private:
 	float maxY;
 
 	//Size of chunks in different dimensions
-	int xChunkSize; //in meters
-	int yChunkSize; //in meters
-	int siglayChunkSize; //in siglay indices
-	int timeChunkSize; //in time indicies
+	unsigned int xChunkSize; //in meters
+	unsigned int yChunkSize; //in meters
+	unsigned int siglayChunkSize; //in siglay indices
+	unsigned int timeChunkSize; //in time indicies
 
 	//Number of chunks for each dimension
-	int siglayDimChunks;
-	int timeDimChunks;
-	int yDimChunks;
-	int xDimChunks;
+	unsigned int siglayDimChunks;
+	unsigned int timeDimChunks;
+	unsigned int yDimChunks;
+	unsigned int xDimChunks;
 };
 
 #endif

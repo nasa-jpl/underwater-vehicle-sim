@@ -4,7 +4,8 @@
 #include <memory>
 #include <cmath>
 #include <limits>
-
+#include <algorithm>
+#include <iterator>
 
 FVCOMStructure::FVCOMStructure(const netCDF::NcFile& dataFile, int xChunkSize, int yChunkSize, int siglayChunkSize, int timeChunkSize) :
 	xChunkSize(xChunkSize),
@@ -33,6 +34,8 @@ void FVCOMStructure::loadStructureData(const netCDF::NcFile& dataFile)
 	netCDF::NcVar hVar = dataFile.getVar("h");
 	netCDF::NcVar centerHVar = dataFile.getVar("h_center");
 	netCDF::NcVar timeVar = dataFile.getVar("time");
+	netCDF::NcVar siglayVar = dataFile.getVar("siglay");
+	netCDF::NcVar centerSiglayVar = dataFile.getVar("siglay_center");
 
 	std::vector<float> nodeX;
 	std::vector<float> nodeY;
@@ -50,6 +53,20 @@ void FVCOMStructure::loadStructureData(const netCDF::NcFile& dataFile)
 	nodeH.resize(nodeDim);
 	triangleH.resize(neleDim);
 	times.resize(timeDim);
+
+	//Resize siglay 2d vectors
+	nodeSiglay.resize(nodeDim);
+	triangleSiglay.resize(neleDim);
+
+	for(int i = 0; i < nodeSiglay.size(); i++)
+	{
+		nodeSiglay[i].resize(siglayDim);
+	}
+
+	for(int i = 0; i < triangleSiglay.size(); i++)
+	{
+		triangleSiglay[i].resize(siglayDim);
+	}
 
 	//resize for multidimensional array
 	triangleToNodes.resize(3);
@@ -75,6 +92,22 @@ void FVCOMStructure::loadStructureData(const netCDF::NcFile& dataFile)
 		std::vector<size_t> start = {i, 0};
 		std::vector<size_t> count = {1, neleDim};
 		nvVar.getVar(start, count, triangleToNodes[i].data());
+	}
+
+	//load node siglay into a multidimensional vector
+	for(unsigned int i = 0; i < nodeSiglay.size(); i++)
+	{
+		std::vector<size_t> start = {0, i};
+		std::vector<size_t> count = {siglayDim, 1};
+		siglayVar.getVar(start, count, nodeSiglay[i].data());
+	}
+
+	//load node siglay into a multidimensional vector
+	for(unsigned int i = 0; i < triangleSiglay.size(); i++)
+	{
+		std::vector<size_t> start = {0, i};
+		std::vector<size_t> count = {siglayDim, 1};
+		centerSiglayVar.getVar(start, count, triangleSiglay[i].data());
 	}
 
 	//Convert to use point struct
@@ -250,6 +283,64 @@ int FVCOMStructure::getClosestNode(point testPoint) const
 	return node;
 }
 
+
+int FVCOMStructure::getClosestTime(float time) const
+{
+	auto lower = std::lower_bound(times.begin(), times.end(), time);
+
+	int index1 = std::distance(times.begin(), lower);
+	int index2 = index1 - 1;
+
+
+	if(std::abs(times[index1] - time) > std::abs(times[index2] - time))
+	{
+		return index2;
+	}
+	else
+	{
+		return index1;
+	}
+
+}
+
+
+int FVCOMStructure::getClosestNodeSiglay(point testPoint) const
+{
+	int nodeIndex = getClosestNode(testPoint);
+	int closestSiglay = -1;
+	float closest = std::numeric_limits<float>::max();
+
+	for(int i = 0; i < nodeSiglay[nodeIndex].size(); i++)
+	{
+		if(std::abs((nodeSiglay[nodeIndex][i] * nodes[nodeIndex].h) - testPoint.h) < closest)
+		{
+			closest = std::abs((nodeSiglay[nodeIndex][i] * nodes[nodeIndex].h) - testPoint.h);
+			closestSiglay = i;
+		}
+	}
+
+	return closestSiglay;
+}
+
+int FVCOMStructure::getClosestTriangleSiglay(point testPoint) const
+{
+	int triangleIndex = getClosestNode(testPoint);
+	int closestSiglay = -1;
+	float closest = std::numeric_limits<float>::max();
+
+	for(int i = 0; i < triangleSiglay[triangleIndex].size(); i++)
+	{
+		if(std::abs((triangleSiglay[triangleIndex][i] * triangles[triangleIndex].h) - testPoint.h) < closest)
+		{
+			closest = std::abs((triangleSiglay[triangleIndex][i] * triangles[triangleIndex].h) - testPoint.h);
+			closestSiglay = i;
+		}
+	}
+
+	return closestSiglay;
+
+}
+
 float FVCOMStructure::distance(point p0, point p1) const
 {
 	return std::sqrt( (p0.x - p1.x)*(p0.x - p1.x) + (p0.y - p1.y)*(p0.y - p1.y) );
@@ -299,8 +390,10 @@ FVCOMStructure::ChunkInfo FVCOMStructure::getChunkForNode(int node, int siglay, 
 
 	chunk.xSize = xChunkSize;
 	chunk.ySize = yChunkSize;
-	chunk.siglaySize = siglayChunkSize;
-	chunk.timeSize = timeChunkSize;
+
+	unsigned int timeSize = times.size();
+	chunk.siglaySize = std::min(siglayChunkSize, siglayDim - chunk.siglayStart);
+	chunk.timeSize = std::min(timeChunkSize, timeSize - chunk.timeStart);
 
 	return chunk;
 }
