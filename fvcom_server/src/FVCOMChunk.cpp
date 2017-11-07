@@ -30,8 +30,7 @@ FVCOMChunk::FVCOMChunk(const std::vector<FVCOMStructure::ModelFile> modelFiles, 
 		tempLoad.resize(chunkInfo.timeSize * chunkInfo.siglaySize);
 		saltLoad.resize(chunkInfo.timeSize * chunkInfo.siglaySize);
 
-		nodes.insert(std::make_pair(nodesToLoad[i], std::vector<FVCOMChunk::NodeData>()));
-		nodes[nodesToLoad[i]].resize(tempLoad.size());
+		nodes.insert(std::make_pair(nodesToLoad[i], std::vector<FVCOMChunk::NodeData>(tempLoad.size())));
 	}
 
 	//Initalize triange data storage
@@ -40,29 +39,22 @@ FVCOMChunk::FVCOMChunk(const std::vector<FVCOMStructure::ModelFile> modelFiles, 
 		uLoad.resize(chunkInfo.timeSize * chunkInfo.siglaySize);
 		vLoad.resize(chunkInfo.timeSize * chunkInfo.siglaySize);
 
-		triangles.insert(std::make_pair(trianglesToLoad[i], std::vector<FVCOMChunk::TriangleData>()));
-		triangles[trianglesToLoad[i]].resize(uLoad.size());
+		triangles.insert(std::make_pair(trianglesToLoad[i], std::vector<FVCOMChunk::TriangleData>(uLoad.size())));
 	}
-
-	std::vector<netCDF::NcFile> dataFiles;
-
-	for(unsigned int i = startModelFile; i <= endModelFile; i++)
-	{
-		dataFiles.push_back(netCDF::NcFile(modelFiles[i].filename, netCDF::NcFile::read));
-	}
-
 
 	for(unsigned int i = 0; i < nodesToLoad.size(); i++)
 	{
 		unsigned int timeIndex = chunkInfo.timeStart;
 		unsigned int dataIndex = 0;
 
-		for(unsigned int i = startModelFile; i <= endModelFile; i++)
+		for(unsigned int f = startModelFile; f <= endModelFile; f++)
 		{
-			netCDF::NcVar tempVar = dataFiles[i - startModelFile].getVar("temp");
-			netCDF::NcVar saltVar = dataFiles[i - startModelFile].getVar("salinity");
+			netCDF::NcFile dataFile = netCDF::NcFile(modelFiles[f].filename, netCDF::NcFile::read);
+			netCDF::NcVar tempVar = dataFile.getVar("temp");
+			netCDF::NcVar saltVar = dataFile.getVar("salinity");
+			
 			//calculate the size of the time dimension that needs to be loaded
-			unsigned int timeCount = std::min(chunkInfo.timeSize, modelFiles[i].timeDim);
+			unsigned int timeCount = std::min(chunkInfo.timeSize, modelFiles[f].timeDim);
 
 			//set start and count variables
 			std::vector<size_t> start = {timeIndex, chunkInfo.siglayStart, nodesToLoad[i]};
@@ -95,16 +87,18 @@ FVCOMChunk::FVCOMChunk(const std::vector<FVCOMStructure::ModelFile> modelFiles, 
 		unsigned int timeIndex = chunkInfo.timeStart;
 		unsigned int dataIndex = 0;
 
-		for(unsigned int i = startModelFile; i <= endModelFile; i++)
+		for(unsigned int f = startModelFile; f <= endModelFile; f++)
 		{
-			netCDF::NcVar uVar = dataFiles[i - startModelFile].getVar("u");
-			netCDF::NcVar vVar = dataFiles[i - startModelFile].getVar("v");
+			netCDF::NcFile dataFile = netCDF::NcFile(modelFiles[f].filename, netCDF::NcFile::read);
+			netCDF::NcVar uVar = dataFile.getVar("u");
+			netCDF::NcVar vVar = dataFile.getVar("v");
 
 			//calculate the size of the time dimension that needs to be loaded
-			unsigned int timeCount = std::min(chunkInfo.timeSize, modelFiles[i].timeDim);
+			unsigned int timeCount = std::min(chunkInfo.timeSize, modelFiles[f].timeDim);
 
 			//set start and count variables
 			std::vector<size_t> start = {timeIndex, chunkInfo.siglayStart, trianglesToLoad[i]};
+
 			std::vector<size_t> count = {timeCount, chunkInfo.siglaySize, 1};
 
 			uVar.getVar(start, count, uLoad.data() + dataIndex);
@@ -117,7 +111,7 @@ FVCOMChunk::FVCOMChunk(const std::vector<FVCOMStructure::ModelFile> modelFiles, 
 
 		std::vector<FVCOMChunk::TriangleData>& dataList = triangles[trianglesToLoad[i]];
 
-		//populate vector of NodeData objects
+		//populate vector of TriangleData objects
 		for(unsigned int j = 0 ; j < uLoad.size(); j++)
 		{
 			FVCOMChunk::TriangleData data;
@@ -130,14 +124,13 @@ FVCOMChunk::FVCOMChunk(const std::vector<FVCOMStructure::ModelFile> modelFiles, 
 
 const unsigned int FVCOMChunk::getFileIndexForTimeIndex(const std::vector<FVCOMStructure::ModelFile> modelFiles, const unsigned int timeIndex) const
 {
-	for(int i = 0; i < modelFiles.size(); i++)
+	for(int i = modelFiles.size() - 1; i >= 0; i--)
 	{
-		if(modelFiles[0].startTimeIndex >= timeIndex)
+		if(modelFiles[i].startTimeIndex <= timeIndex)
 		{
 			return i;
 		}
 	}
-
 	return modelFiles.size();
 }
 
