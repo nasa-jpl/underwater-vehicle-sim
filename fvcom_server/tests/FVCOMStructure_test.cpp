@@ -3,7 +3,38 @@
 
 const FVCOMStructure structure("test_data/box_plume_0001.nc", 10, 10, 10, 10);
 
-TEST(FCVOMStructureTest, PointInTriangle) {
+
+TEST(FVCOMStructureTest, GetClosestTime) {
+	int timeExact1 = structure.getClosestTime(0.0020833334); //Index 1
+	int timeExact2 = structure.getClosestTime(0.05); //Index 24
+
+	int timeNotExact1 = structure.getClosestTime(0.048957333); //Index 23
+	int timeNotExact2 = structure.getClosestTime(0.048959333); //Index 24
+
+	int timeSmallerThanZero = structure.getClosestTime(-0.1);
+	int timeGreaterThanMax = structure.getClosestTime(1);
+
+
+	ASSERT_EQ(1, timeExact1);
+	ASSERT_EQ(24, timeExact2);
+
+	ASSERT_EQ(23, timeNotExact1);
+	ASSERT_EQ(24, timeNotExact2);
+
+	ASSERT_EQ(0, timeSmallerThanZero);
+	ASSERT_EQ(80, timeGreaterThanMax);
+}
+
+/*
+TEST(FCVOMStructureTest, GetClosestNodeSiglay) {
+
+}
+
+TEST(FCVOMStructureTest, GetClosestTriangleSiglay) {
+
+}*/
+
+TEST(FVCOMStructureTest, PointInTriangle) {
 	FVCOMStructure::point pIn;
 	FVCOMStructure::point pOut;
 	FVCOMStructure::point pEdge;
@@ -33,7 +64,7 @@ TEST(FCVOMStructureTest, PointInTriangle) {
 	ASSERT_TRUE(pEdgeResults);
 }
 
-TEST(FCVOMStructureTest, GetContainingTriangle) {
+TEST(FVCOMStructureTest, GetContainingTriangle) {
 	FVCOMStructure::point pIn;
 	FVCOMStructure::point pOut;
 	FVCOMStructure::point pEdge;
@@ -61,7 +92,7 @@ TEST(FCVOMStructureTest, GetContainingTriangle) {
 }
 
 
-TEST(FCVOMStructureTest, GetClosestNode) {
+TEST(FVCOMStructureTest, GetClosestNode) {
 	FVCOMStructure::point p1;
 	FVCOMStructure::point p2;
 	FVCOMStructure::point p3;
@@ -89,7 +120,7 @@ TEST(FCVOMStructureTest, GetClosestNode) {
 }
 
 
-TEST(FCVOMStructureTest, Distance) {
+TEST(FVCOMStructureTest, Distance) {
 	FVCOMStructure::point p1;
 	FVCOMStructure::point p2;
 	FVCOMStructure::point p3;
@@ -112,7 +143,7 @@ TEST(FCVOMStructureTest, Distance) {
 }
 
 
-TEST(FCVOMStructureTest, GetChunkForNode) {
+TEST(FVCOMStructureTest, GetChunkForNode) {
 
 	//model extent
 	////x: -100 , 100
@@ -178,7 +209,7 @@ TEST(FCVOMStructureTest, GetChunkForNode) {
 
 
 
-TEST(FCVOMStructureTest, GetChunkForTriangle) {
+TEST(FVCOMStructureTest, GetChunkForTriangle) {
 	//model extent
 	////x: -100 , 100
 	////y: -100 , 100
