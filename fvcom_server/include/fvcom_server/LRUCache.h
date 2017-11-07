@@ -22,6 +22,10 @@ public:
     typedef typename std::list<key_value_pair_t>::iterator list_iterator_t;
 
 
+    LRUCache() :
+        max_size(10)
+    {}
+
     LRUCache(size_t max_size) :
         max_size(max_size)
     {}

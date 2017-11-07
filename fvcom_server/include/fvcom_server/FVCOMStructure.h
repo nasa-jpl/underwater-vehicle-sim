@@ -25,7 +25,7 @@ public:
      * @param siglayChunkSize Size of a chunk in the siglay direction
      * @param timeChunkSize Size of a chunk in the time direction
      */
-	FVCOMStructure(const netCDF::NcFile& dataFile, int xChunkSize, int yChunkSize, int siglayChunkSize, int timeChunkSize);
+	FVCOMStructure(const std::string filename, int xChunkSize, int yChunkSize, int siglayChunkSize, int timeChunkSize);
 
 	/**
 	 * Struct to group a (x, y, height) point
@@ -65,7 +65,31 @@ public:
 		unsigned int ySize;
 		unsigned int siglaySize;
 		unsigned int timeSize;
+	};
 
+	struct ModelFile
+	{
+		/**
+		 * String of the filename for this file
+		 */
+		std::string filename;
+
+		/**
+		 * Start time for this file
+		 */
+		float startTime;
+
+		/**
+		 * Time index for the start time of this file
+		 */
+		unsigned int startTimeIndex;
+
+		/**
+		 * The Time dimension for this file
+		 */
+		unsigned int timeDim;
+
+		bool operator<(const ModelFile& rhs) const { startTime < rhs.startTime; }
 	};
 
 	/**
@@ -136,12 +160,20 @@ public:
 	const std::vector<unsigned int>& getNodesInChunk(FVCOMStructure::ChunkInfo chunk) const;
 	const std::vector<unsigned int>& getTrianglesInChunk(FVCOMStructure::ChunkInfo chunk) const;
 
+	const std::vector<ModelFile> getModelFiles() const;
 private:
+
+	/**
+	 * Loads all the data files
+	 * @param filename Directory to load the files for
+	 * @return List of filenames containing the model
+	 */
+	std::vector<std::string> traverseDataFiles(std::string filename);
 
 	/**
 	 * Helper function which loads all the model structure data from the model file
 	 */
-	void loadStructureData(const netCDF::NcFile& dataFile);
+	void loadStructureData(const std::string filename);
 
 	/**
 	 * Helper function that determines the extent of the model
@@ -154,6 +186,12 @@ private:
 	void splitIntoChunks();
 
 private:
+
+	/**
+	 * File information for all the model files
+	 */
+	std::vector<ModelFile> modelFiles;
+
 	/**
 	 * Number of sigma layers
 	 */

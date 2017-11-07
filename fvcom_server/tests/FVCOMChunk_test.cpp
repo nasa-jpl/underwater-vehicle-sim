@@ -3,8 +3,7 @@
 #include <gtest/gtest.h>
 
 
-const netCDF::NcFile dataFile("test_data/box_plume_0001.nc", netCDF::NcFile::read);
-const FVCOMStructure structure(dataFile, 50, 50, 10, 10);
+const FVCOMStructure structure("test_data/box_plume_0001.nc", 50, 50, 10, 10);
 
 
 TEST(FCVOMChunkTest, GetNodeData) {
@@ -12,7 +11,7 @@ TEST(FCVOMChunkTest, GetNodeData) {
 	const std::vector<unsigned int>& nodes = structure.getNodesInChunk(chunkInfo);
 	const std::vector<unsigned int>& triangles = structure.getTrianglesInChunk(chunkInfo);
 
-	FVCOMChunk chunk(dataFile, nodes, triangles, chunkInfo);
+	FVCOMChunk chunk(structure.getModelFiles(), nodes, triangles, chunkInfo);
 	const FVCOMChunk::NodeData& data1 = chunk.getNodeData(1, 0, 0);
 	const FVCOMChunk::NodeData& data2 = chunk.getNodeData(1, 9, 0);
 	const FVCOMChunk::NodeData& data3 = chunk.getNodeData(1, 9, 9);
@@ -47,7 +46,7 @@ TEST(FCVOMChunkTest, GetTriangleData) {
 	const std::vector<unsigned int>& nodes = structure.getNodesInChunk(chunkInfo);
 	const std::vector<unsigned int>& triangles = structure.getTrianglesInChunk(chunkInfo);
 
-	FVCOMChunk chunk(dataFile, nodes, triangles, chunkInfo);
+	FVCOMChunk chunk(structure.getModelFiles(), nodes, triangles, chunkInfo);
 	const FVCOMChunk::TriangleData& data1 = chunk.getTriangleData(51, 0, 0);
 	const FVCOMChunk::TriangleData& data2 = chunk.getTriangleData(51, 9, 0);
 	const FVCOMChunk::TriangleData& data3 = chunk.getTriangleData(51, 9, 9);

@@ -29,7 +29,7 @@ public:
 	typedef std::vector<FVCOMChunk::NodeData> NodeVector;
 	typedef std::vector<FVCOMChunk::TriangleData> TriangleVector;
 
-	FVCOMChunk(const netCDF::NcFile& dataFile, std::vector<unsigned int> nodesToLoad,
+	FVCOMChunk(const std::vector<FVCOMStructure::ModelFile> modelFiles, std::vector<unsigned int> nodesToLoad,
 											   std::vector<unsigned int> trianglesToLoad,
 											   FVCOMStructure::ChunkInfo chunkInfo);
 
@@ -37,6 +37,9 @@ public:
 
 	const FVCOMChunk::NodeData& getNodeData(const unsigned int node, const unsigned int siglay, const unsigned int time);
 	const FVCOMChunk::TriangleData& getTriangleData(const unsigned int triangle, const unsigned int siglay, const unsigned int time);
+
+private:
+	const unsigned int getFileIndexForTimeIndex(const std::vector<FVCOMStructure::ModelFile> modelFiles, const unsigned int timeIndex) const;
 
 private:
 	std::unordered_map<unsigned int, FVCOMChunk::NodeVector> nodes;

@@ -1,15 +1,14 @@
 #include "fvcom_server/FVCOM.h"
 
+
 FVCOM::FVCOM(std::string filename) :
-	dataFile(netCDF::NcFile(filename, netCDF::NcFile::read)),
-	structure(FVCOMStructure(dataFile, 500, 500, 10, 10)),
-	chunkCache(LRUCache<unsigned int, FVCOMChunk>(10))
+	chunkCache(LRUCache<unsigned int, FVCOMChunk>(10)),
+	structure(FVCOMStructure(filename, 500, 500, 10, 10))
 {}
 
 FVCOM::FVCOM(std::string filename, unsigned int xChunkSize, unsigned int yChunkSize, unsigned int siglayChunkSize, unsigned int timeChunkSize, unsigned int cacheSize) :
-	dataFile(netCDF::NcFile(filename, netCDF::NcFile::read)),
-	structure(FVCOMStructure(dataFile, xChunkSize, yChunkSize, siglayChunkSize, timeChunkSize)),
-	chunkCache(LRUCache<unsigned int, FVCOMChunk>(cacheSize))
+	chunkCache(LRUCache<unsigned int, FVCOMChunk>(cacheSize)),
+	structure(FVCOMStructure(filename, xChunkSize, yChunkSize, siglayChunkSize, timeChunkSize))
 {}
 
 const FVCOM::FVCOMData FVCOM::getData(float x, float y, float height, float time)
@@ -39,7 +38,7 @@ const FVCOM::FVCOMData FVCOM::getData(float x, float y, float height, float time
 		const std::vector<unsigned int>& nodesToLoad = structure.getNodesInChunk(nodeChunkInfo);
 		const std::vector<unsigned int>& trianglesToLoad = structure.getTrianglesInChunk(nodeChunkInfo);
 
-		chunkCache.put(nodeChunkInfo.id, FVCOMChunk(dataFile, nodesToLoad, trianglesToLoad, nodeChunkInfo));
+		chunkCache.put(nodeChunkInfo.id, FVCOMChunk(structure.getModelFiles(), nodesToLoad, trianglesToLoad, nodeChunkInfo));
 	}
 
 	if(!chunkCache.exists(triangleChunkInfo.id))
@@ -47,7 +46,7 @@ const FVCOM::FVCOMData FVCOM::getData(float x, float y, float height, float time
 		const std::vector<unsigned int>& nodesToLoad = structure.getNodesInChunk(triangleChunkInfo);
 		const std::vector<unsigned int>& trianglesToLoad = structure.getTrianglesInChunk(triangleChunkInfo);
 
-		chunkCache.put(triangleChunkInfo.id, FVCOMChunk(dataFile, nodesToLoad, trianglesToLoad, triangleChunkInfo));
+		chunkCache.put(triangleChunkInfo.id, FVCOMChunk(structure.getModelFiles(), nodesToLoad, trianglesToLoad, triangleChunkInfo));
 	}
 
 	//Get chunks from cache
@@ -66,4 +65,4 @@ const FVCOM::FVCOMData FVCOM::getData(float x, float y, float height, float time
 	returnData.v = triangleData.v;
 
 	return returnData;
-}	
+}

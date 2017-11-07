@@ -6,23 +6,94 @@
 #include <limits>
 #include <algorithm>
 #include <iterator>
+#include <experimental/filesystem>
 
-FVCOMStructure::FVCOMStructure(const netCDF::NcFile& dataFile, int xChunkSize, int yChunkSize, int siglayChunkSize, int timeChunkSize) :
+namespace fs = std::experimental::filesystem;
+
+FVCOMStructure::FVCOMStructure(const std::string filename, int xChunkSize, int yChunkSize, int siglayChunkSize, int timeChunkSize) :
 	xChunkSize(xChunkSize),
 	yChunkSize(yChunkSize),
 	siglayChunkSize(siglayChunkSize),
 	timeChunkSize(timeChunkSize)
 {
-	loadStructureData(dataFile);
+	loadStructureData(filename);
+
 	splitIntoChunks();
 }
 
-void FVCOMStructure::loadStructureData(const netCDF::NcFile& dataFile)
+std::vector<std::string> FVCOMStructure::traverseDataFiles(const std::string filename)
 {
+	std::vector<std::string> filenames;
+	fs::path p1 = filename;
+
+	if(fs::is_directory(p1))
+	{
+		for(auto& p: fs::directory_iterator(p1))
+		{
+			if(!fs::is_directory(p))
+			{
+				filenames.push_back(p.path().string());
+			}
+		}
+	}
+	else
+	{
+		filenames.push_back(filename);
+	}
+	return filenames;
+}
+
+void FVCOMStructure::loadStructureData(const std::string filename)
+{
+
+	unsigned int timeDim = 0;
+	std::vector<std::string> filenames = traverseDataFiles(filename);
+
+	//Set start times and time dimensions from files
+	for(auto &filename : filenames)
+	{
+		netCDF::NcFile dataFile = netCDF::NcFile(filename, netCDF::NcFile::read);
+		timeDim += dataFile.getDim("time").getSize();
+		
+		std::vector<float> tempTimes;
+		tempTimes.resize(dataFile.getDim("time").getSize());
+
+		netCDF::NcVar timeVar = dataFile.getVar("time");
+		timeVar.getVar(tempTimes.data());
+
+		ModelFile modelFile;
+		modelFile.filename = filename;
+		modelFile.startTime = tempTimes[0];
+		modelFile.timeDim = dataFile.getDim("time").getSize();
+		modelFiles.push_back(modelFile);
+	}
+
+	//sort filenames based on start ties
+	std::sort(modelFiles.begin(), modelFiles.end());
+
+	//load time variables into one vector
+	times.resize(timeDim);
+	unsigned int currentIndex = 0;
+	for(auto &modelFile : modelFiles)
+	{
+		netCDF::NcFile dataFile = netCDF::NcFile(filename, netCDF::NcFile::read);
+		netCDF::NcVar timeVar = dataFile.getVar("time");
+
+		//Set the start time index for this file
+		modelFile.startTimeIndex = currentIndex;
+
+		//Load times from this file
+		timeVar.getVar(times.data() + currentIndex);
+
+		//move current index for next files
+		currentIndex += dataFile.getDim("time").getSize();
+	}
+
+
+	netCDF::NcFile dataFile = netCDF::NcFile(modelFiles[0].filename, netCDF::NcFile::read);
 	//Get dimensions of structure elements
 	unsigned int nodeDim = dataFile.getDim("node").getSize();
 	unsigned int neleDim = dataFile.getDim("nele").getSize();
-	unsigned int timeDim = dataFile.getDim("time").getSize();
 	siglayDim = dataFile.getDim("siglay").getSize();
 
 	//Load all variables for the structure of the model
@@ -33,7 +104,6 @@ void FVCOMStructure::loadStructureData(const netCDF::NcFile& dataFile)
 	netCDF::NcVar nvVar = dataFile.getVar("nv");
 	netCDF::NcVar hVar = dataFile.getVar("h");
 	netCDF::NcVar centerHVar = dataFile.getVar("h_center");
-	netCDF::NcVar timeVar = dataFile.getVar("time");
 	netCDF::NcVar siglayVar = dataFile.getVar("siglay");
 	netCDF::NcVar centerSiglayVar = dataFile.getVar("siglay_center");
 
@@ -52,8 +122,7 @@ void FVCOMStructure::loadStructureData(const netCDF::NcFile& dataFile)
 	triangleY.resize(neleDim);
 	nodeH.resize(nodeDim);
 	triangleH.resize(neleDim);
-	times.resize(timeDim);
-
+	
 	//Resize siglay 2d vectors
 	nodeSiglay.resize(nodeDim);
 	triangleSiglay.resize(neleDim);
@@ -84,7 +153,6 @@ void FVCOMStructure::loadStructureData(const netCDF::NcFile& dataFile)
 	ycVar.getVar(triangleY.data());
 	hVar.getVar(nodeH.data());
 	centerHVar.getVar(triangleH.data());
-	timeVar.getVar(times.data());
 
 	//load nvVar into a multidimensional vector
 	for(unsigned int i = 0; i < 3; i++)
@@ -264,6 +332,11 @@ int FVCOMStructure::getContainingTriangle(point testPoint) const
 	}
 
 	return -1;
+}
+
+const std::vector<FVCOMStructure::ModelFile> FVCOMStructure::getModelFiles() const
+{
+	return modelFiles;
 }
 
 int FVCOMStructure::getClosestNode(point testPoint) const

@@ -1,8 +1,7 @@
 #include "fvcom_server/FVCOMStructure.h"
 #include <gtest/gtest.h>
 
-const netCDF::NcFile dataFile("test_data/box_plume_0001.nc", netCDF::NcFile::read);
-const FVCOMStructure structure(dataFile, 10, 10, 10, 10);
+const FVCOMStructure structure("test_data/box_plume_0001.nc", 10, 10, 10, 10);
 
 TEST(FCVOMStructureTest, PointInTriangle) {
 	FVCOMStructure::point pIn;

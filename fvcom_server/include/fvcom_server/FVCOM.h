@@ -26,7 +26,7 @@ public:
 		float temp;
 		float salt;
 	};
-
+	
 	/**
 	 * Initalize FVCOM class with data from file,
      * @param filename File to load
@@ -70,8 +70,8 @@ private:
 	float getDataForTriangle(int triangle, int sigma, int time);
 
 private:
-	const netCDF::NcFile dataFile;
-	const FVCOMStructure structure;
+	
+	FVCOMStructure structure;
 
 	LRUCache<unsigned int, FVCOMChunk> chunkCache;
 

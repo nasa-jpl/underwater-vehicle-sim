@@ -3,7 +3,6 @@ project(fvcom_server)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
  add_compile_options(-std=c++11)
-
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
@@ -155,6 +154,7 @@ include_directories(
  target_link_libraries(${PROJECT_NAME}_node
    ${catkin_LIBRARIES}
    ${NETCDF_LIBRARIES}
+   stdc++fs
  )
 #############
 ## Install ##
@@ -200,10 +200,10 @@ if (CATKIN_ENABLE_TESTING)
  catkin_add_gtest(fvcom_structure_test tests/FVCOMStructure_test.cpp WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
  catkin_add_gtest(fvcom_chunk_test tests/FVCOMChunk_test.cpp WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
  catkin_add_gtest(fvcom_test tests/FVCOM_test.cpp WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
- target_link_libraries(lru_cache_test ${catkin_LIBRARIES})
- target_link_libraries(fvcom_structure_test fvcom ${catkin_LIBRARIES} ${NETCDF_LIBRARIES})
- target_link_libraries(fvcom_chunk_test fvcom ${catkin_LIBRARIES} ${NETCDF_LIBRARIES})
- target_link_libraries(fvcom_test fvcom ${catkin_LIBRARIES} ${NETCDF_LIBRARIES})
+ target_link_libraries(lru_cache_test ${catkin_LIBRARIES} stdc++fs)
+ target_link_libraries(fvcom_structure_test fvcom ${catkin_LIBRARIES} ${NETCDF_LIBRARIES} stdc++fs)
+ target_link_libraries(fvcom_chunk_test fvcom ${catkin_LIBRARIES} ${NETCDF_LIBRARIES} stdc++fs)
+ target_link_libraries(fvcom_test fvcom ${catkin_LIBRARIES} ${NETCDF_LIBRARIES} stdc++fs)
 endif()
 
 ## Add folders to be run by python nosetests
