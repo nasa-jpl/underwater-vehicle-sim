@@ -23,12 +23,14 @@ FVCOMChunk::FVCOMChunk(const std::vector<FVCOMStructure::ModelFile> modelFiles, 
 	std::vector<float> vLoad;
 	std::vector<float> tempLoad;
 	std::vector<float> saltLoad;	
+	std::vector<float> dyeLoad;
 
 	//Initalize node data storage
 	for(unsigned int i = 0; i < nodesToLoad.size(); i++)
 	{
 		tempLoad.resize(chunkInfo.timeSize * chunkInfo.siglaySize);
 		saltLoad.resize(chunkInfo.timeSize * chunkInfo.siglaySize);
+		dyeLoad.resize(chunkInfo.timeSize * chunkInfo.siglaySize);
 
 		nodes.insert(std::make_pair(nodesToLoad[i], std::vector<FVCOMChunk::NodeData>(tempLoad.size())));
 	}
@@ -42,6 +44,7 @@ FVCOMChunk::FVCOMChunk(const std::vector<FVCOMStructure::ModelFile> modelFiles, 
 		triangles.insert(std::make_pair(trianglesToLoad[i], std::vector<FVCOMChunk::TriangleData>(uLoad.size())));
 	}
 
+	bool dyeVarExists = true;
 	for(unsigned int i = 0; i < nodesToLoad.size(); i++)
 	{
 		unsigned int timeIndex = chunkInfo.timeStart;
@@ -52,7 +55,10 @@ FVCOMChunk::FVCOMChunk(const std::vector<FVCOMStructure::ModelFile> modelFiles, 
 			netCDF::NcFile dataFile = netCDF::NcFile(modelFiles[f].filename, netCDF::NcFile::read);
 			netCDF::NcVar tempVar = dataFile.getVar("temp");
 			netCDF::NcVar saltVar = dataFile.getVar("salinity");
+			netCDF::NcVar dyeVar = dataFile.getVar("DYE");
+
 			
+
 			//PROBLEM: cannot just take timeDim when loading the timeCount.  The entire file might not be loaded
 			//Cannot just take timeSize as part of it might have been loaded already.
 
@@ -70,6 +76,17 @@ FVCOMChunk::FVCOMChunk(const std::vector<FVCOMStructure::ModelFile> modelFiles, 
 			tempVar.getVar(start, count, tempLoad.data() + dataIndex);
 			saltVar.getVar(start, count, saltLoad.data() + dataIndex);
 
+			//Load the dye variable if it exists
+			if(!dyeVar.isNull())
+			{
+				dyeVar.getVar(start, count, dyeLoad.data() + dataIndex);
+			}
+			else
+			{
+				dyeVarExists = false;
+			}
+			
+
 			//Update time and data indicies
 			timeIndex += timeCount;
 			dataIndex += timeCount * chunkInfo.siglaySize;
@@ -84,6 +101,15 @@ FVCOMChunk::FVCOMChunk(const std::vector<FVCOMStructure::ModelFile> modelFiles, 
 			FVCOMChunk::NodeData data;
 			data.temp = tempLoad[j];
 			data.salt = saltLoad[j];
+
+			if(dyeVarExists)
+			{
+				data.dye = dyeLoad[j];
+			}
+			else
+			{
+				data.dye = 0;
+			}
 			dataList[j] = data;
 		}
 	}

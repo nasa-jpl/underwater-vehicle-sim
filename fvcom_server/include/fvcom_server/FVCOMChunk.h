@@ -18,6 +18,7 @@ public:
 	{
 		float temp;
 		float salt;
+		float dye;
 	};
 
 	struct TriangleData
