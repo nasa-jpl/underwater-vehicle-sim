@@ -29,7 +29,6 @@ TEST(FCVOMChunkTest, GetNodeData) {
 	ASSERT_FLOAT_EQ(3.2328043, data3.temp);
 	ASSERT_FLOAT_EQ(34.714607, data3.salt);
 
-
 	ASSERT_FLOAT_EQ(3.2964647, data4.temp);
 	ASSERT_FLOAT_EQ(34.71025, data4.salt);
 

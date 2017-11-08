@@ -25,14 +25,81 @@ TEST(FVCOMStructureTest, GetClosestTime) {
 	ASSERT_EQ(80, timeGreaterThanMax);
 }
 
-/*
-TEST(FCVOMStructureTest, GetClosestNodeSiglay) {
 
+TEST(FCVOMStructureTest, GetClosestNodeSiglay) {
+	FVCOMStructure::point p1;
+	FVCOMStructure::point p2;
+	FVCOMStructure::point p3;
+
+	//Node 51
+	//h = 300
+	//siglay = 0
+	p1.x = 70;
+	p1.y = -100;
+	p1.h = 0;
+
+	//Node 51
+	//h = 300
+	//siglay = 69
+	p2.x = 70;
+	p2.y = -100;
+	p2.h = -210.606051;
+
+	//Node 51
+	//h = 300
+	//siglay = 70
+	p3.x = 70;
+	p3.y = -100;
+	p3.h = -212.1212905;
+
+
+	int surfaceExact = structure.getClosestNodeSiglay(p1);
+	int depthExact = structure.getClosestNodeSiglay(p2);
+
+	int depthNotExact = structure.getClosestNodeSiglay(p3);
+
+	ASSERT_EQ(0, surfaceExact);
+	ASSERT_EQ(69, depthExact);
+	ASSERT_EQ(70, depthNotExact);
 }
 
-TEST(FCVOMStructureTest, GetClosestTriangleSiglay) {
 
-}*/
+TEST(FCVOMStructureTest, GetClosestTriangleSiglay) {
+	FVCOMStructure::point p1;
+	FVCOMStructure::point p2;
+	FVCOMStructure::point p3;
+
+	//Node 81
+	//h = 300
+	//siglay = 0
+	p1.x = -15.735039;
+	p1.y = -17.163147;
+	p1.h = 0;
+
+	//Node 81
+	//h = 300
+	//siglay = 69
+	p2.x = -15.735039;
+	p2.y = -17.163147;
+	p2.h = -210.606051;
+
+	//Node 81
+	//h = 300
+	//siglay = 70
+	p3.x = -15.735039;
+	p3.y = -17.163147;
+	p3.h = -212.1212905;
+
+
+	int surfaceExact = structure.getClosestTriangleSiglay(p1);
+	int depthExact = structure.getClosestTriangleSiglay(p2);
+
+	int depthNotExact = structure.getClosestTriangleSiglay(p3);
+
+	ASSERT_EQ(0, surfaceExact);
+	ASSERT_EQ(69, depthExact);
+	ASSERT_EQ(70, depthNotExact);
+}
 
 TEST(FVCOMStructureTest, PointInTriangle) {
 	FVCOMStructure::point pIn;
