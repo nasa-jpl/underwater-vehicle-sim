@@ -15,7 +15,7 @@ FVCOMChunk::FVCOMChunk(const std::vector<FVCOMStructure::ModelFile> modelFiles, 
 
 	unsigned int startModelFile = getFileIndexForTimeIndex(modelFiles, chunkInfo.timeStart);
 	unsigned int endModelFile = getFileIndexForTimeIndex(modelFiles, chunkInfo.timeStart + chunkInfo.timeSize);
-
+	
 	nodes.reserve(nodesToLoad.size());
 	triangles.reserve(trianglesToLoad.size());
 
@@ -53,11 +53,17 @@ FVCOMChunk::FVCOMChunk(const std::vector<FVCOMStructure::ModelFile> modelFiles, 
 			netCDF::NcVar tempVar = dataFile.getVar("temp");
 			netCDF::NcVar saltVar = dataFile.getVar("salinity");
 			
+			//PROBLEM: cannot just take timeDim when loading the timeCount.  The entire file might not be loaded
+			//Cannot just take timeSize as part of it might have been loaded already.
+
+			//Adjust time index for this file 
+			unsigned int adjustedTimeIndex = timeIndex - modelFiles[f].startTimeIndex;
+
 			//calculate the size of the time dimension that needs to be loaded
-			unsigned int timeCount = std::min(chunkInfo.timeSize, modelFiles[f].timeDim);
+			unsigned int timeCount = std::min(chunkInfo.timeSize - (timeIndex - chunkInfo.timeStart), modelFiles[f].timeDim - adjustedTimeIndex);
 
 			//set start and count variables
-			std::vector<size_t> start = {timeIndex, chunkInfo.siglayStart, nodesToLoad[i]};
+			std::vector<size_t> start = {adjustedTimeIndex, chunkInfo.siglayStart, nodesToLoad[i]};
 			std::vector<size_t> count = {timeCount, chunkInfo.siglaySize, 1};
 
 			//load data
@@ -93,12 +99,14 @@ FVCOMChunk::FVCOMChunk(const std::vector<FVCOMStructure::ModelFile> modelFiles, 
 			netCDF::NcVar uVar = dataFile.getVar("u");
 			netCDF::NcVar vVar = dataFile.getVar("v");
 
+			//Adjust time index for this file 
+			unsigned int adjustedTimeIndex = timeIndex - modelFiles[f].startTimeIndex;
+
 			//calculate the size of the time dimension that needs to be loaded
-			unsigned int timeCount = std::min(chunkInfo.timeSize, modelFiles[f].timeDim);
+			unsigned int timeCount = std::min(chunkInfo.timeSize - (timeIndex - chunkInfo.timeStart), modelFiles[f].timeDim - adjustedTimeIndex);
 
 			//set start and count variables
-			std::vector<size_t> start = {timeIndex, chunkInfo.siglayStart, trianglesToLoad[i]};
-
+			std::vector<size_t> start = {adjustedTimeIndex, chunkInfo.siglayStart, trianglesToLoad[i]};
 			std::vector<size_t> count = {timeCount, chunkInfo.siglaySize, 1};
 
 			uVar.getVar(start, count, uLoad.data() + dataIndex);

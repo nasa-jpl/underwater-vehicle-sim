@@ -45,7 +45,6 @@ std::vector<std::string> FVCOMStructure::traverseDataFiles(const std::string fil
 
 void FVCOMStructure::loadStructureData(const std::string filename)
 {
-
 	unsigned int timeDim = 0;
 	std::vector<std::string> filenames = traverseDataFiles(filename);
 
@@ -53,6 +52,7 @@ void FVCOMStructure::loadStructureData(const std::string filename)
 	for(auto &filename : filenames)
 	{
 		netCDF::NcFile dataFile = netCDF::NcFile(filename, netCDF::NcFile::read);
+
 		timeDim += dataFile.getDim("time").getSize();
 		
 		std::vector<float> tempTimes;
@@ -76,7 +76,7 @@ void FVCOMStructure::loadStructureData(const std::string filename)
 	unsigned int currentIndex = 0;
 	for(auto &modelFile : modelFiles)
 	{
-		netCDF::NcFile dataFile = netCDF::NcFile(filename, netCDF::NcFile::read);
+		netCDF::NcFile dataFile = netCDF::NcFile(modelFile.filename, netCDF::NcFile::read);
 		netCDF::NcVar timeVar = dataFile.getVar("time");
 
 		//Set the start time index for this file
@@ -89,8 +89,8 @@ void FVCOMStructure::loadStructureData(const std::string filename)
 		currentIndex += dataFile.getDim("time").getSize();
 	}
 
-
 	netCDF::NcFile dataFile = netCDF::NcFile(modelFiles[0].filename, netCDF::NcFile::read);
+
 	//Get dimensions of structure elements
 	unsigned int nodeDim = dataFile.getDim("node").getSize();
 	unsigned int neleDim = dataFile.getDim("nele").getSize();
@@ -114,7 +114,6 @@ void FVCOMStructure::loadStructureData(const std::string filename)
 	std::vector<float> triangleX;
 	std::vector<float> triangleY;
 	std::vector<float> triangleH;
-	
 
 	nodeX.resize(nodeDim);
 	nodeY.resize(nodeDim);
@@ -122,7 +121,7 @@ void FVCOMStructure::loadStructureData(const std::string filename)
 	triangleY.resize(neleDim);
 	nodeH.resize(nodeDim);
 	triangleH.resize(neleDim);
-	
+
 	//Resize siglay 2d vectors
 	nodeSiglay.resize(nodeDim);
 	triangleSiglay.resize(neleDim);
@@ -139,7 +138,7 @@ void FVCOMStructure::loadStructureData(const std::string filename)
 
 	//resize for multidimensional array
 	triangleToNodes.resize(3);
-	
+
 	for(int i = 0; i < 3; i++)
 	{
 		triangleToNodes[i].resize(neleDim);
@@ -205,7 +204,7 @@ void FVCOMStructure::loadStructureData(const std::string filename)
 			triangleToNodes[j][i]--;
 		}
 	}
-	
+
 	//Pre Processes model to get node to triangle conversion
 	nodeToTriangles.resize(nodeDim);
 
