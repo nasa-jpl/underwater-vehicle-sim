@@ -3,11 +3,12 @@
 #include <gtest/gtest.h>
 
 
-const FVCOMStructure structure("test_data/box_plume_0001.nc", 50, 50, 10, 10);
+const FVCOMStructure structure("test_data/box_plume_split", 50, 50, 10, 10);
 
 
 TEST(FCVOMChunkTest, GetNodeData) {
 	FVCOMStructure::ChunkInfo chunkInfo = structure.getChunkForNode(1,0,0);
+
 	const std::vector<unsigned int>& nodes = structure.getNodesInChunk(chunkInfo);
 	const std::vector<unsigned int>& triangles = structure.getTrianglesInChunk(chunkInfo);
 
@@ -73,7 +74,6 @@ TEST(FCVOMChunkTest, GetTriangleData) {
 	ASSERT_FLOAT_EQ(0.000052855106, data6.u);
 	ASSERT_FLOAT_EQ(0.00016515434, data6.v);
 }
-
 
 int main(int argc, char **argv)
 {

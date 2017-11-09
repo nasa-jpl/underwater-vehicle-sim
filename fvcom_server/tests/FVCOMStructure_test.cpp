@@ -1,7 +1,7 @@
 #include "fvcom_server/FVCOMStructure.h"
 #include <gtest/gtest.h>
 
-const FVCOMStructure structure("test_data/box_plume_0001.nc", 10, 10, 10, 10);
+const FVCOMStructure structure("test_data/box_plume_split", 10, 10, 10, 10);
 
 
 TEST(FVCOMStructureTest, GetClosestTime) {
