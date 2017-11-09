@@ -5,131 +5,35 @@
 #include <gtest/gtest.h>
 
 
-FVCOM fvcom("test_data/box_plume_0001.nc", 10, 10, 10, 10, 10);
-
-FVCOM fvcomMultiple("test_data/box_plume_split", 10, 10, 10, 30, 10);
+FVCOM fvcomMultiple("test_data/axial_data_test", 1000, 1000, 10, 3, 10);
 
 TEST(FCVOMTest, GetDataMultipleFiles) {
-	//Node 345
-	FVCOM::FVCOMData data1 = fvcomMultiple.getData(56.69873, 25.0, 0, 0);
-	FVCOM::FVCOMData data2 = fvcomMultiple.getData(56.69873, 25.0, -300, 0);
 
-	
+	//Test node with times in two files
+	//Node: 1000
+	//h: 2737.259485
+	//siglay: 15
+	//time: 4 in 0001_1
+	FVCOM::FVCOMData data1 = fvcomMultiple.getData(8545.73568, -132697.938, 0, 0);
+	FVCOM::FVCOMData data2 = fvcomMultiple.getData(8545.73568, -132697.938, -334.07498037, 0);
+	FVCOM::FVCOMData data3 = fvcomMultiple.getData(8545.73568, -132697.938, -334.07498037, 0.375);
 
-	//Node 17
-	FVCOM::FVCOMData data3 = fvcomMultiple.getData(-50.0, -100.0, 0, 0);
-	FVCOM::FVCOMData data4 = fvcomMultiple.getData(-50.0, -100.0, -28.78788, 0);
-	FVCOM::FVCOMData data5 = fvcomMultiple.getData(-50.0, -100.0, -28.78788, 0.01875);
-
-	FVCOM::FVCOMData data6 = fvcomMultiple.getData(-40.0, -100.0, 0, 0);
-	FVCOM::FVCOMData data7 = fvcomMultiple.getData(-40.0, -100.0, -28.78788, 0);
-	FVCOM::FVCOMData data8 = fvcomMultiple.getData(-40.0, -100.0, -28.78788, 0.01875);
-
-
-	FVCOM::FVCOMData data9 = fvcomMultiple.getData(-40.0, -100.0, 0, 0.15833333);
-	FVCOM::FVCOMData data10 = fvcomMultiple.getData(-40.0, -100.0, -28.78788, 0.15833333);
-
-	FVCOM::FVCOMData data11 = fvcomMultiple.getData(-40.0, -100.0, -28.78788, 0.083333336);
-
-	FVCOM::FVCOMData data12 = fvcomMultiple.getData(100.0, 100.0, -28.78788, 0.083333336);
-
-	FVCOM::FVCOMData data13 = fvcomMultiple.getData(-100.0, -100.0, -28.78788, 0.083333336);
+	//Test node at edge of model
+	//Node: 180
+	FVCOM::FVCOMData data4 = fvcomMultiple.getData(150000, 150000, 0, 0);
 
 
-	ASSERT_FLOAT_EQ(3.2964647, data1.temp);
-	ASSERT_FLOAT_EQ(34.71025, data1.salt);
+	ASSERT_FLOAT_EQ(3.8386462639531507, data1.temp);
+	ASSERT_FLOAT_EQ(34.3129397553773, data1.salt);
 
-	ASSERT_FLOAT_EQ(2.6035352, data2.temp);
-	ASSERT_FLOAT_EQ(34.759747, data2.salt);
+	ASSERT_FLOAT_EQ(3.552034178027694, data2.temp);
+	ASSERT_FLOAT_EQ(34.3561324173774, data2.salt);
 
+	ASSERT_FLOAT_EQ(3.5520324460792474, data3.temp);
+	ASSERT_FLOAT_EQ(34.35613267838961, data3.salt);
 
-
-	ASSERT_FLOAT_EQ(3.2964647, data3.temp);
-	ASSERT_FLOAT_EQ(34.71025, data3.salt);
-
-	ASSERT_FLOAT_EQ(3.2328281, data4.temp);
-	ASSERT_FLOAT_EQ(34.714798, data4.salt);
-
-	ASSERT_FLOAT_EQ(3.2328043, data5.temp);
-	ASSERT_FLOAT_EQ(34.714607, data5.salt);
-
-	ASSERT_FLOAT_EQ(3.2964647, data6.temp);
-	ASSERT_FLOAT_EQ(34.71025, data6.salt);
-
-	ASSERT_FLOAT_EQ(3.2328281, data7.temp);
-	ASSERT_FLOAT_EQ(34.714798, data7.salt);
-
-	ASSERT_FLOAT_EQ(3.2328043, data8.temp);
-	ASSERT_FLOAT_EQ(34.714607, data8.salt);
-
-	ASSERT_FLOAT_EQ(3.2962615, data9.temp);
-	ASSERT_FLOAT_EQ(34.708626, data9.salt);
-
-	ASSERT_FLOAT_EQ(3.2337134, data10.temp);
-	ASSERT_FLOAT_EQ(34.713173, data10.salt);
-
-	ASSERT_FLOAT_EQ(3.2337518, data11.temp);
-	ASSERT_FLOAT_EQ(34.713943, data11.salt);
-
-	ASSERT_FLOAT_EQ(3.2301795, data12.temp);
-	ASSERT_FLOAT_EQ(34.713943, data12.salt);
-
-	ASSERT_FLOAT_EQ(3.230265, data13.temp);
-	ASSERT_FLOAT_EQ(34.713943, data13.salt);
-}
-
-TEST(FCVOMTest, GetData) {
-
-	//Node 345
-	FVCOM::FVCOMData data1 = fvcom.getData(56.69873, 25.0, 0, 0);
-	FVCOM::FVCOMData data2 = fvcom.getData(56.69873, 25.0, -300, 0);
-
-	ASSERT_FLOAT_EQ(3.2964647, data1.temp);
-	ASSERT_FLOAT_EQ(34.71025, data1.salt);
-
-	ASSERT_FLOAT_EQ(2.6035352, data2.temp);
-	ASSERT_FLOAT_EQ(34.759747, data2.salt);
-
-	//Node 17
-	FVCOM::FVCOMData data3 = fvcom.getData(-50.0, -100.0, 0, 0);
-	FVCOM::FVCOMData data4 = fvcom.getData(-50.0, -100.0, -28.78788, 0);
-	FVCOM::FVCOMData data5 = fvcom.getData(-50.0, -100.0, -28.78788, 0.01875);
-
-	FVCOM::FVCOMData data6 = fvcom.getData(-40.0, -100.0, 0, 0);
-	FVCOM::FVCOMData data7 = fvcom.getData(-40.0, -100.0, -28.78788, 0);
-	FVCOM::FVCOMData data8 = fvcom.getData(-40.0, -100.0, -28.78788, 0.01875);
-
-	FVCOM::FVCOMData data9 = fvcom.getData(-40.0, -100.0, 0, 0.15833333);
-	FVCOM::FVCOMData data10 = fvcom.getData(-40.0, -100.0, -28.78788, 0.15833333);
-
-	FVCOM::FVCOMData data11 = fvcomMultiple.getData(-40.0, -100.0, -28.78788, 0.083333336);
-
-	ASSERT_FLOAT_EQ(3.2964647, data3.temp);
-	ASSERT_FLOAT_EQ(34.71025, data3.salt);
-
-	ASSERT_FLOAT_EQ(3.2328281, data4.temp);
-	ASSERT_FLOAT_EQ(34.714798, data4.salt);
-
-	ASSERT_FLOAT_EQ(3.2328043, data5.temp);
-	ASSERT_FLOAT_EQ(34.714607, data5.salt);
-
-	ASSERT_FLOAT_EQ(3.2964647, data6.temp);
-	ASSERT_FLOAT_EQ(34.71025, data6.salt);
-
-	ASSERT_FLOAT_EQ(3.2328281, data7.temp);
-	ASSERT_FLOAT_EQ(34.714798, data7.salt);
-
-	ASSERT_FLOAT_EQ(3.2328043, data8.temp);
-	ASSERT_FLOAT_EQ(34.714607, data8.salt);
-
-	ASSERT_FLOAT_EQ(3.2962615, data9.temp);
-	ASSERT_FLOAT_EQ(34.708626, data9.salt);
-
-	ASSERT_FLOAT_EQ(3.2337134, data10.temp);
-	ASSERT_FLOAT_EQ(34.713173, data10.salt);
-
-	ASSERT_FLOAT_EQ(3.2337518, data11.temp);
-	ASSERT_FLOAT_EQ(34.713943, data11.salt);
+	ASSERT_FLOAT_EQ(3.8387627679688694, data4.temp);
+	ASSERT_FLOAT_EQ(34.31292219813244, data4.salt);
 }
 
 int main(int argc, char **argv)

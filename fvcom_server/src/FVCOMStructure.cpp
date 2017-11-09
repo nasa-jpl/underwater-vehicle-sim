@@ -144,7 +144,6 @@ void FVCOMStructure::loadStructureData(const std::string filename)
 		triangleToNodes[i].resize(neleDim);
 	}
 
-
 	//Assign all arrays for the structure variables
 	xVar.getVar(nodeX.data());
 	yVar.getVar(nodeY.data());
@@ -218,6 +217,7 @@ void FVCOMStructure::loadStructureData(const std::string filename)
 			nodeToTriangles[node].push_back(triangle);
 		}
 	}
+
 }
 
 void FVCOMStructure::splitIntoChunks()
@@ -306,6 +306,7 @@ bool FVCOMStructure::pointInTriangle(point testPoint, int triangle) const
 	return alpha >= 0 && beta >= 0 && gamma >= 0;
 }
 
+//TODO: SOMETHING HERE
 int FVCOMStructure::getContainingTriangle(point testPoint) const
 {
 	//Get the closest node to start the search for the containing triangle
@@ -345,6 +346,7 @@ int FVCOMStructure::getClosestNode(point testPoint) const
 	int node = -1;
 	for(int i = 0; i < nodes.size(); i++)
 	{
+
 		if(distance(testPoint, nodes[i]) < closestDistance)
 		{
 			closestDistance = distance(testPoint, nodes[i]);

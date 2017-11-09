@@ -13,6 +13,7 @@ FVCOM::FVCOM(std::string filename, unsigned int xChunkSize, unsigned int yChunkS
 
 const FVCOM::FVCOMData FVCOM::getData(float x, float y, float height, float time)
 {
+
 	FVCOMStructure::point p;
 	p.x = x;
 	p.y = y;
@@ -23,14 +24,11 @@ const FVCOM::FVCOMData FVCOM::getData(float x, float y, float height, float time
 
 	unsigned int siglayNodeIndex = structure.getClosestNodeSiglay(p);
 	unsigned int siglayTriangleIndex = structure.getClosestTriangleSiglay(p);
-	unsigned int timeIndex = structure.getClosestTime(time);
-	
-
+	unsigned int timeIndex = structure.getClosestTime(time); 
 
 	//Get the chunk info for the need points
 	FVCOMStructure::ChunkInfo nodeChunkInfo = structure.getChunkForNode(node, siglayNodeIndex, timeIndex);
 	FVCOMStructure::ChunkInfo triangleChunkInfo = structure.getChunkForTriangle(triangle, siglayTriangleIndex, timeIndex);
-
 
 	//Load chunks if they do not exist
 	if(!chunkCache.exists(nodeChunkInfo.id))
@@ -57,10 +55,12 @@ const FVCOM::FVCOMData FVCOM::getData(float x, float y, float height, float time
 	const FVCOMChunk::NodeData& nodeData = nodeChunk.getNodeData(node, siglayNodeIndex, timeIndex);
 	const FVCOMChunk::TriangleData& triangleData = triangleChunk.getTriangleData(triangle, siglayTriangleIndex, timeIndex);
 
-
 	FVCOM::FVCOMData returnData;
 	returnData.temp = nodeData.temp;
 	returnData.salt = nodeData.salt;
+	returnData.dye = nodeData.dye;
+
+	//ISSUE HERE
 	returnData.u = triangleData.u;
 	returnData.v = triangleData.v;
 

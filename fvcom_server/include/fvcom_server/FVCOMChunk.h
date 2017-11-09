@@ -12,7 +12,6 @@
 class FVCOMChunk
 {
 	
-
 public:
 	struct NodeData
 	{

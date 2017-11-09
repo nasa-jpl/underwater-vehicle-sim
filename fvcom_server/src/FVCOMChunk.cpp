@@ -12,7 +12,6 @@ FVCOMChunk::FVCOMChunk(const std::vector<FVCOMStructure::ModelFile> modelFiles, 
 											   FVCOMStructure::ChunkInfo chunkInfo) :
 	chunkInfo(chunkInfo)
 {
-
 	unsigned int startModelFile = getFileIndexForTimeIndex(modelFiles, chunkInfo.timeStart);
 	unsigned int endModelFile = getFileIndexForTimeIndex(modelFiles, chunkInfo.timeStart + chunkInfo.timeSize);
 	
@@ -172,7 +171,6 @@ const FVCOMChunk::NodeData& FVCOMChunk::getNodeData(const unsigned int node, con
 {
 	std::vector<FVCOMChunk::NodeData>& data = nodes[node];
 	unsigned int index = (siglay - chunkInfo.siglayStart) + (time - chunkInfo.timeStart) * chunkInfo.siglaySize;
-
 	return data[index];
 }
 

@@ -25,6 +25,7 @@ public:
 		float v;
 		float temp;
 		float salt;
+		float dye;
 	};
 	
 	/**
