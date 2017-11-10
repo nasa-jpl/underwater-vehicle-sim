@@ -325,6 +325,45 @@ TEST(FVCOMStructureTest, GetChunkForTriangle) {
 
 }
 
+TEST(FVCOMStructureTest, PointInModel) {
+	FVCOMStructure::point inside;
+	FVCOMStructure::point positionOutside1;
+	FVCOMStructure::point depthOutside1;
+	FVCOMStructure::point positionOutside2;
+	FVCOMStructure::point depthOutside2;
+
+	inside.x = 0;
+	inside.y = 0;
+	inside.h = 0;
+
+	positionOutside1.x = 101;
+	positionOutside1.y = 0;
+	positionOutside1.h = 0;
+
+	positionOutside2.x = -101;
+	positionOutside2.y = 0;
+	positionOutside2.h = 0;
+
+	depthOutside1.x = 0;
+	depthOutside1.y = 0;
+	depthOutside1.h = -301;
+
+	depthOutside2.x = 0;
+	depthOutside2.y = 0;
+	depthOutside2.h = 1;
+
+	ASSERT_TRUE(structure.pointInModel(inside, 0));
+
+	ASSERT_FALSE(structure.pointInModel(inside, -1));
+	ASSERT_FALSE(structure.pointInModel(inside, 1));
+
+	ASSERT_FALSE(structure.pointInModel(positionOutside1, 0));
+	ASSERT_FALSE(structure.pointInModel(positionOutside2, 0));
+	
+	ASSERT_FALSE(structure.pointInModel(depthOutside1, 0));
+	ASSERT_FALSE(structure.pointInModel(depthOutside2, 0));
+}
+
 int main(int argc, char **argv)
 {
   testing::InitGoogleTest(&argc, argv);

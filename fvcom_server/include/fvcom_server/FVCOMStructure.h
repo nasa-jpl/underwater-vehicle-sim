@@ -161,6 +161,8 @@ public:
 	const std::vector<unsigned int>& getTrianglesInChunk(FVCOMStructure::ChunkInfo chunk) const;
 
 	const std::vector<ModelFile> getModelFiles() const;
+
+	const bool pointInModel(point p, float time) const;
 private:
 
 	/**

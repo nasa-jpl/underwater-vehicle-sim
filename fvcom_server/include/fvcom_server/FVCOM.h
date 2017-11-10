@@ -7,10 +7,21 @@
 #include <stdexcept>
 #include <memory>
 #include <netcdf>
+#include <exception>
 
 #include "fvcom_server/FVCOMStructure.h"
 #include "fvcom_server/FVCOMChunk.h"
 #include "fvcom_server/LRUCache.h"
+
+
+/**
+ *Exception used when FVCOM is asked for something outside of the model extent
+ */
+struct FVCOMOutOfBounds : public std::exception {
+	const char * what () const throw () {
+		return "FVCOM Out of Bounds Exception";
+	}
+};
 
 /**
  * Class used to load and query FVCOM data

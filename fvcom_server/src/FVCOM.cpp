@@ -19,6 +19,12 @@ const FVCOM::FVCOMData FVCOM::getData(float x, float y, float height, float time
 	p.y = y;
 	p.h = height;
 
+	//Throw an exception if the requested point is outside of the model extent
+	if(!structure.pointInModel(p, time))
+	{
+		throw FVCOMOutOfBounds();
+	}
+
 	unsigned int node = structure.getClosestNode(p);
 	unsigned int triangle = structure.getContainingTriangle(p);
 

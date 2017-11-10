@@ -1,4 +1,5 @@
 #include "fvcom_server/FVCOMStructure.h"
+#include "fvcom_server/FVCOM.h"
 
 #include <netcdf>
 #include <memory>
@@ -306,7 +307,6 @@ bool FVCOMStructure::pointInTriangle(point testPoint, int triangle) const
 	return alpha >= 0 && beta >= 0 && gamma >= 0;
 }
 
-//TODO: SOMETHING HERE
 int FVCOMStructure::getContainingTriangle(point testPoint) const
 {
 	//Get the closest node to start the search for the containing triangle
@@ -331,7 +331,8 @@ int FVCOMStructure::getContainingTriangle(point testPoint) const
 		}
 	}
 
-	return -1;
+
+	throw FVCOMOutOfBounds();
 }
 
 const std::vector<FVCOMStructure::ModelFile> FVCOMStructure::getModelFiles() const
@@ -424,7 +425,6 @@ float FVCOMStructure::distance(point p0, point p1) const
 FVCOMStructure::ChunkInfo FVCOMStructure::getChunkForNode(int node, int siglay, int time) const
 {
 	//Chunk ids based on this ordering (x,y,sigma,time)
-
 	FVCOMStructure::ChunkInfo chunk;
 
 	float nodeX = nodes[node].x;
@@ -521,6 +521,16 @@ FVCOMStructure::ChunkInfo FVCOMStructure::getChunkForTriangle(int triangle, int 
 	chunk.timeSize = timeChunkSize;
 
 	return chunk;
+}
+
+const bool FVCOMStructure::pointInModel(point p, float time) const
+{
+	unsigned int closestNode = getClosestNode(p);
+
+	return p.x >= minX && p.x <= maxX && 
+	       p.y >= minY && p.y <= maxY && 
+	       time >= times[0] && time <= times[times.size() - 1] &&
+	       p.h <= 0 && p.h >= -nodes[closestNode].h;
 }
 
 const std::vector<unsigned int>& FVCOMStructure::getNodesInChunk(FVCOMStructure::ChunkInfo chunk) const
