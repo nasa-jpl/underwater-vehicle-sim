@@ -399,7 +399,7 @@ int FVCOMStructure::getClosestNodeSiglay(point testPoint) const
 
 int FVCOMStructure::getClosestTriangleSiglay(point testPoint) const
 {
-	int triangleIndex = getClosestNode(testPoint);
+	int triangleIndex = getContainingTriangle(testPoint);
 	int closestSiglay = -1;
 	float closest = std::numeric_limits<float>::max();
 
@@ -495,6 +495,7 @@ FVCOMStructure::ChunkInfo FVCOMStructure::getChunkForTriangle(int triangle, int 
 	//In this case maxX and maxY will give a chunk# as 1 more than the last chunk index.
 	//It seems like a waste to have the a chunk only be these single nodes so they are included
 	//in the last chunk.
+
 	if(chunk.xChunk >= xDimChunks)
 	{
 		chunk.xChunk = xDimChunks - 1;
