@@ -1,6 +1,8 @@
 #include "fvcom_server/FVCOM.h"
 
 
+FVCOM::FVCOM() {}
+
 FVCOM::FVCOM(std::string filename) :
 	chunkCache(LRUCache<unsigned int, FVCOMChunk>(10)),
 	structure(FVCOMStructure(filename, 500, 500, 10, 10))

@@ -11,6 +11,8 @@
 
 namespace fs = std::experimental::filesystem;
 
+FVCOMStructure::FVCOMStructure() {}
+
 FVCOMStructure::FVCOMStructure(const std::string filename, int xChunkSize, int yChunkSize, int siglayChunkSize, int timeChunkSize) :
 	xChunkSize(xChunkSize),
 	yChunkSize(yChunkSize),

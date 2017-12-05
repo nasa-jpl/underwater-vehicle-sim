@@ -28,6 +28,11 @@ public:
 	FVCOMStructure(const std::string filename, int xChunkSize, int yChunkSize, int siglayChunkSize, int timeChunkSize);
 
 	/**
+	 * Initalize FVCOMStructure class with no data
+     */
+	FVCOMStructure();
+
+	/**
 	 * Struct to group a (x, y, height) point
      */
 	struct point

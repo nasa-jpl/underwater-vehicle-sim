@@ -9,6 +9,7 @@ project(fvcom_server)
 find_package(catkin REQUIRED COMPONENTS
   roscpp
   std_msgs
+  message_generation
 )
 
 ## System dependencies are found with CMake's conventions
@@ -50,16 +51,14 @@ find_package(NetCDF REQUIRED)
 ## Generate messages in the 'msg' folder
 # add_message_files(
 #   FILES
-#   Message1.msg
-#   Message2.msg
+#   QueryModel.msg
 # )
 
 ## Generate services in the 'srv' folder
-# add_service_files(
-#   FILES
-#   Service1.srv
-#   Service2.srv
-# )
+ add_service_files(
+   FILES
+   GetFVCOMData.srv
+ )
 
 ## Generate actions in the 'action' folder
 # add_action_files(
@@ -69,10 +68,10 @@ find_package(NetCDF REQUIRED)
 # )
 
 ## Generate added messages and services with any dependencies listed here
-# generate_messages(
-#   DEPENDENCIES
-#   std_msgs
-# )
+ generate_messages(
+   DEPENDENCIES
+   std_msgs
+ )
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##
@@ -106,7 +105,7 @@ find_package(NetCDF REQUIRED)
 catkin_package(
   INCLUDE_DIRS include
 #  LIBRARIES fvcom_server
-  CATKIN_DEPENDS roscpp std_msgs
+  CATKIN_DEPENDS roscpp std_msgs message_runtime
 #  DEPENDS system_lib
 )
 
@@ -196,10 +195,10 @@ include_directories(
 #############
 ## Add gtest based cpp test target and link libraries
 if (CATKIN_ENABLE_TESTING)
- catkin_add_gtest(lru_cache_test tests/lru_cache_test.cpp)
- catkin_add_gtest(fvcom_structure_test tests/FVCOMStructure_test.cpp WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
- catkin_add_gtest(fvcom_chunk_test tests/FVCOMChunk_test.cpp WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
- catkin_add_gtest(fvcom_test tests/FVCOM_test.cpp WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+ catkin_add_gtest(lru_cache_test src/tests/lru_cache_test.cpp)
+ catkin_add_gtest(fvcom_structure_test src/tests/FVCOMStructure_test.cpp WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+ catkin_add_gtest(fvcom_chunk_test src/tests/FVCOMChunk_test.cpp WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+ catkin_add_gtest(fvcom_test src/tests/FVCOM_test.cpp WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
  target_link_libraries(lru_cache_test ${catkin_LIBRARIES} stdc++fs)
  target_link_libraries(fvcom_structure_test fvcom ${catkin_LIBRARIES} ${NETCDF_LIBRARIES} stdc++fs)
  target_link_libraries(fvcom_chunk_test fvcom ${catkin_LIBRARIES} ${NETCDF_LIBRARIES} stdc++fs)

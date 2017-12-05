@@ -40,6 +40,11 @@ public:
 	};
 	
 	/**
+	 * Initalize FVCOM class with no data file,
+     */
+	FVCOM();
+
+	/**
 	 * Initalize FVCOM class with data from file,
      * @param filename File to load
      */
@@ -58,6 +63,7 @@ public:
 								unsigned int siglayChunkSize, 
 								unsigned int timeChunkSize, 
 								unsigned int cacheSize);
+
 
 	const FVCOM::FVCOMData getData(float x, float y, float height, float time);
 
