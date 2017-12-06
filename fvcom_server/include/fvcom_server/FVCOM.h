@@ -15,15 +15,6 @@
 
 
 /**
- *Exception used when FVCOM is asked for something outside of the model extent
- */
-struct FVCOMOutOfBounds : public std::exception {
-	const char * what () const throw () {
-		return "FVCOM Out of Bounds Exception";
-	}
-};
-
-/**
  * Class used to load and query FVCOM data
  */
 class FVCOM

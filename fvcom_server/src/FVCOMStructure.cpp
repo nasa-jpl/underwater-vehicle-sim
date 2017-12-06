@@ -334,7 +334,7 @@ int FVCOMStructure::getContainingTriangle(point testPoint) const
 	}
 
 
-	throw FVCOMOutOfBounds();
+	throw std::out_of_range("FVCOM request outside of model extent");
 }
 
 const std::vector<FVCOMStructure::ModelFile> FVCOMStructure::getModelFiles() const

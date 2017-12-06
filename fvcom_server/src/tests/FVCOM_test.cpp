@@ -52,6 +52,73 @@ TEST(FVCOMTest, GetDataMultipleFiles) {
 
 }
 
+TEST(FVCOMTest, OutOfModelBounds)
+{
+	try {
+        FVCOM::FVCOMData data = fvcomMultiple.getData(300000, 0, 0, 0);
+        FAIL() << "Expected std::out_of_range";
+    }
+    catch(std::out_of_range const & err) {
+        EXPECT_EQ(err.what(),std::string("FVCOM request outside of model extent"));
+    }
+
+    try {
+        FVCOM::FVCOMData data = fvcomMultiple.getData(-300000, 0, 0, 0);
+        FAIL() << "Expected std::out_of_range";
+    }
+    catch(std::out_of_range const & err) {
+        EXPECT_EQ(err.what(),std::string("FVCOM request outside of model extent"));
+    }
+
+    try {
+        FVCOM::FVCOMData data = fvcomMultiple.getData(0, 300000, 0, 0);
+        FAIL() << "Expected std::out_of_range";
+    }
+    catch(std::out_of_range const & err) {
+        EXPECT_EQ(err.what(),std::string("FVCOM request outside of model extent"));
+    }
+
+    try {
+        FVCOM::FVCOMData data = fvcomMultiple.getData(0, -300000, 0, 0);
+        FAIL() << "Expected std::out_of_range";
+    }
+    catch(std::out_of_range const & err) {
+        EXPECT_EQ(err.what(),std::string("FVCOM request outside of model extent"));
+    }
+
+    try {
+        FVCOM::FVCOMData data = fvcomMultiple.getData(0, 0, 1, 0);
+        FAIL() << "Expected std::out_of_range";
+    }
+    catch(std::out_of_range const & err) {
+        EXPECT_EQ(err.what(),std::string("FVCOM request outside of model extent"));
+    }
+
+    try {
+        FVCOM::FVCOMData data = fvcomMultiple.getData(0, 0, 10000, 0);
+        FAIL() << "Expected std::out_of_range";
+    }
+    catch(std::out_of_range const & err) {
+        EXPECT_EQ(err.what(),std::string("FVCOM request outside of model extent"));
+    }
+
+    try {
+        FVCOM::FVCOMData data = fvcomMultiple.getData(0, 0, 0, -0.1);
+        FAIL() << "Expected std::out_of_range";
+    }
+    catch(std::out_of_range const & err) {
+        EXPECT_EQ(err.what(),std::string("FVCOM request outside of model extent"));
+    }
+
+    try {
+        FVCOM::FVCOMData data = fvcomMultiple.getData(0, 0, 0, 1.0);
+        FAIL() << "Expected std::out_of_range";
+    }
+    catch(std::out_of_range const & err) {
+        EXPECT_EQ(err.what(),std::string("FVCOM request outside of model extent"));
+    }
+}
+
 TEST(FVCOMTest, ModelEdge) {
 	//Test node at edge of model
 	//Node: 180

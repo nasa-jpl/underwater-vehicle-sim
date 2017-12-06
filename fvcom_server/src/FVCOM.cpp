@@ -1,5 +1,7 @@
 #include "fvcom_server/FVCOM.h"
 
+#include <stdexcept>
+
 FVCOM::FVCOM() {}
 
 FVCOM::FVCOM(std::string filename) :
@@ -22,7 +24,7 @@ const FVCOM::FVCOMData FVCOM::getData(float x, float y, float height, float time
 	//Throw an exception if the requested point is outside of the model extent
 	if(!structure.pointInModel(p, time))
 	{
-		throw FVCOMOutOfBounds();
+		throw std::out_of_range("FVCOM request outside of model extent");
 	}
 
 	unsigned int node = structure.getClosestNode(p);
