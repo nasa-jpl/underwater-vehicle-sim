@@ -1,0 +1,4 @@
+<launch>
+ <node pkg="fvcom_server" type="fvcom_server_node" name="fvcom_server_node" output="screen" args="$(find fvcom_server)/test_data/axial_data_test"/>
+ <test test-name="fvcom_node_interface_test" pkg="fvcom_server" type="fvcom_node_interface_test" />
+</launch>

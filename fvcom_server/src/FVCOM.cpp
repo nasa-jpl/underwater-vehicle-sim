@@ -1,6 +1,5 @@
 #include "fvcom_server/FVCOM.h"
 
-
 FVCOM::FVCOM() {}
 
 FVCOM::FVCOM(std::string filename) :
@@ -15,7 +14,6 @@ FVCOM::FVCOM(std::string filename, unsigned int xChunkSize, unsigned int yChunkS
 
 const FVCOM::FVCOMData FVCOM::getData(float x, float y, float height, float time)
 {
-
 	FVCOMStructure::point p;
 	p.x = x;
 	p.y = y;

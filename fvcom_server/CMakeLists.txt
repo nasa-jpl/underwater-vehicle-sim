@@ -143,7 +143,7 @@ include_directories(
 ## The above recommended prefix causes long target names, the following renames the
 ## target back to the shorter version for ease of user use
 ## e.g. "rosrun someones_pkg node" instead of "rosrun someones_pkg someones_pkg_node"
- set_target_properties(${PROJECT_NAME}_node PROPERTIES OUTPUT_NAME node PREFIX "")
+# set_target_properties(${PROJECT_NAME}_node PROPERTIES OUTPUT_NAME node PREFIX "")
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
@@ -195,6 +195,8 @@ include_directories(
 #############
 ## Add gtest based cpp test target and link libraries
 if (CATKIN_ENABLE_TESTING)
+ find_package(rostest REQUIRED)
+
  catkin_add_gtest(lru_cache_test src/tests/lru_cache_test.cpp)
  catkin_add_gtest(fvcom_structure_test src/tests/FVCOMStructure_test.cpp WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
  catkin_add_gtest(fvcom_chunk_test src/tests/FVCOMChunk_test.cpp WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
@@ -203,6 +205,10 @@ if (CATKIN_ENABLE_TESTING)
  target_link_libraries(fvcom_structure_test fvcom ${catkin_LIBRARIES} ${NETCDF_LIBRARIES} stdc++fs)
  target_link_libraries(fvcom_chunk_test fvcom ${catkin_LIBRARIES} ${NETCDF_LIBRARIES} stdc++fs)
  target_link_libraries(fvcom_test fvcom ${catkin_LIBRARIES} ${NETCDF_LIBRARIES} stdc++fs)
+
+ add_rostest_gtest(fvcom_node_interface_test tests/NodeInterface.test src/tests/NodeInterface_test.cpp)
+ target_link_libraries(fvcom_node_interface_test fvcom ${catkin_LIBRARIES} ${NETCDF_LIBRARIES} stdc++fs)
+
 endif()
 
 ## Add folders to be run by python nosetests
