@@ -23,8 +23,15 @@ int main(int argc, char **argv)
     ros::init(argc, argv, "fvcom_server");
     ros::NodeHandle n;
 
+    std::string fvcom_directory;
 
-    fvcom = FVCOM(argv[1], 1000, 1000, 10, 10, 100);
+    if(!n.getParam("fvcom_directory", fvcom_directory))
+    {
+    	ROS_FATAL("Parameter \"fvcom_directory\" not present in the parameter server.");
+    	exit(1);
+    }
+
+    fvcom = FVCOM(fvcom_directory, 1000, 1000, 10, 10, 100);
 
     ros::ServiceServer service = n.advertiseService("get_fvcom_data", getFVCOMData);
   	ROS_INFO("FVCOM Model Loaded");
