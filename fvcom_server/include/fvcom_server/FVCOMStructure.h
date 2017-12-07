@@ -6,6 +6,7 @@
 #include <cstddef>
 #include <stdexcept>
 #include <memory>
+#include <limits>
 
 #include <netcdf>
 
@@ -261,10 +262,10 @@ private:
 
 
 	// X,Y extent of the model
-	float minX;
-	float minY;
-	float maxX;
-	float maxY;
+	float minX = std::numeric_limits<float>::max();
+	float minY = std::numeric_limits<float>::max();;
+	float maxX = -std::numeric_limits<float>::max();;
+	float maxY = -std::numeric_limits<float>::max();;
 
 	//Size of chunks in different dimensions
 	unsigned int xChunkSize; //in meters

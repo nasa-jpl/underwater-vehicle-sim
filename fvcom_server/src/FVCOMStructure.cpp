@@ -260,9 +260,9 @@ void FVCOMStructure::splitIntoChunks()
 
 void FVCOMStructure::getModelExtent()
 {
-	for(int i = 0; i < nodes.size(); i++)
+	for(unsigned int i = 0; i < nodes.size(); i++)
 	{
-		point node = nodes[i];
+		point& node = nodes[i];
 		
 		if(node.x > maxX)
 		{
