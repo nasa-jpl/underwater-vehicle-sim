@@ -1,0 +1,5 @@
+<launch>
+ <rosparam param="fvcom_directory" subst_value="True">$(find fvcom_server)/test_data/axial_data_test</rosparam>
+ <node pkg="fvcom_server" type="fvcom_server_node" name="fvcom_server" output="screen" />
+ <test test-name="fvcom_node_interface_test" pkg="fvcom_server" type="fvcom_node_interface_test" />
+</launch>
