@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(vehicle_simulation)
+project(underwater_vehicle_sim)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
  add_compile_options(-std=gnu++11 -fext-numeric-literals)
@@ -134,7 +134,7 @@ include_directories(
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
  add_executable(clock_server_node src/clock_server/ClockServerNode.cpp)
-
+ add_executable(${PROJECT_NAME}_node src/underwater_vehicle_sim/UnderwaterVehicleSimNode.cpp src/underwater_vehicle_sim/UnderwaterVehicleSim.cpp)
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
 ## target back to the shorter version for ease of user use
@@ -147,6 +147,10 @@ include_directories(
 
 ## Specify libraries to link a library or executable target against
  target_link_libraries(clock_server_node
+   ${catkin_LIBRARIES}
+ )
+
+ target_link_libraries(${PROJECT_NAME}_node
    ${catkin_LIBRARIES}
  )
 
