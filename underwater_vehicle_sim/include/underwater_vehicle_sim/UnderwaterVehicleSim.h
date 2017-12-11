@@ -3,15 +3,12 @@
 
 
 /**
- * Class used to load and query FVCOM data
+ * Class used to simulate underwater vehicles using a model
  */
 class UnderwaterVehicleSim
 {
 public:
 
-	/**
-	 * Initalize FVCOM class with no data file,
-     */
 	UnderwaterVehicleSim();
 
 
