@@ -2,6 +2,8 @@
 #define VEHICLE_H
 
 #include <vector>
+
+#include "ros/ros.h"
 #include "vehicles/Module.h"
 
 /**
@@ -11,13 +13,14 @@ class Vehicle
 {
 public:
 
-	Vehicle();
+	Vehicle(std::string name, float startX, float startY, float startZ);
 
 
 	void simCycle();
 private:
 	
 	std::vector<Module> modules;
+	std::string name;
 };
 
 #endif
