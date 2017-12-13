@@ -8,6 +8,7 @@ project(underwater_vehicle_sim)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
+  tf
   roscpp
   std_msgs
   message_generation
@@ -158,6 +159,7 @@ catkin_package(
  )
 
  target_link_libraries(${PROJECT_NAME}_node
+   underwater_vehicles
    ${catkin_LIBRARIES}
  )
 
