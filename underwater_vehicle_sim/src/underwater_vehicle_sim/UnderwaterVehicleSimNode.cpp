@@ -12,6 +12,7 @@ int main(int argc, char **argv)
 
     UnderwaterVehicleSim sim;
 
+    //Run the simulation loop
     while(ros::ok())
     {
     	sim.update();

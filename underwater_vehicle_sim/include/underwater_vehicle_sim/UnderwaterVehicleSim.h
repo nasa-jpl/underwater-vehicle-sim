@@ -12,8 +12,14 @@ public:
 
 	UnderwaterVehicleSim();
 
+	/**
+	* The update method for the simulation that runs once per sim cycle
+	*/
 	void update();
 private:
+	/**
+	* All the vehicles in the simulation
+	*/
 	std::vector<Vehicle> vehicles;
 };
 

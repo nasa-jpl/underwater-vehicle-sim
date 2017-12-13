@@ -12,6 +12,7 @@
 Vehicle::Vehicle(std::string name, float startX, float startY, float startZ) :
 	name(name)
 {
+	//broadcast the inital frame for this vehicle
 	tf::Transform transform;
   	transform.setOrigin( tf::Vector3(startX, startY, startZ) );
   	tf::Quaternion q;
@@ -22,7 +23,7 @@ Vehicle::Vehicle(std::string name, float startX, float startY, float startZ) :
 
 void Vehicle::update()
 {
-
+	//move the frame using the propulsion module and broadcast it
 	tf::StampedTransform movedTransform = propulsionModule->move(getVehicleFrame());
 	broadcastTransform(movedTransform);
 

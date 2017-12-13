@@ -5,6 +5,7 @@ UnderwaterVehicleSim::UnderwaterVehicleSim() {}
 
 void UnderwaterVehicleSim::update() 
 {
+	//Update all vehicles in this simulation
 	for(Vehicle& vehicle : vehicles)
 	{
 		vehicle.update();
