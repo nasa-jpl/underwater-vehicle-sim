@@ -10,7 +10,7 @@ class UnderwaterVehicleSim
 {
 public:
 
-	UnderwaterVehicleSim();
+	UnderwaterVehicleSim(ros::NodeHandle& parentNH);
 
 	/**
 	* The update method for the simulation that runs once per sim cycle
@@ -21,6 +21,8 @@ private:
 	* All the vehicles in the simulation
 	*/
 	std::vector<Vehicle> vehicles;
+
+	ros::NodeHandle& nh;
 };
 
 #endif

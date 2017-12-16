@@ -18,10 +18,13 @@
 class Vehicle
 {
 public:
-	Vehicle(std::string name, float startX, float startY, float startZ);
-
-
+	Vehicle(std::string name, ros::NodeHandle& parentNH);
+	Vehicle(Vehicle&& other);
+	
 	void update();
+
+	static void makeVehicle(std::string name, ros::NodeHandle parentNH);
+
 private:
 
 	/**
@@ -35,6 +38,22 @@ private:
 	* @return The frame from this vehicle
 	*/
 	tf::StampedTransform getVehicleFrame();
+
+	/**
+	* Initalizes the propulsion module the propulsion module
+	*/
+	void initalizePropulsionModule();
+
+	/**
+	* Initalizes the general modules
+	*/
+	void initalizeGeneralModules();
+
+	/**
+	* Initalizes the vehicle frame using tf
+	*/
+	void initalizeVehicleFrame();
+
 private:
 	tf::TransformListener transformListener;
 
@@ -52,6 +71,11 @@ private:
 	 * name of the vehicle
 	 */
 	std::string name;
+
+	/**
+	 * ros node handle for this vehicle
+	 */
+	ros::NodeHandle nh;
 };
 
 #endif
