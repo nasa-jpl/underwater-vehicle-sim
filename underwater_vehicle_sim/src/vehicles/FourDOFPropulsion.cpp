@@ -12,6 +12,14 @@ FourDOFPropulsion::FourDOFPropulsion(std::string name, ros::NodeHandle& parentNH
 
 
 	nh.subscribe("command_velocity", 1, &FourDOFPropulsion::commandVelocityCallback, this);
+
+	rotVelocity.setX(0);
+	rotVelocity.setY(0);
+	rotVelocity.setZ(0);
+
+	linVelocity.setX(0);
+	linVelocity.setY(0);
+	linVelocity.setZ(0);
 }
 
 
@@ -25,27 +33,27 @@ void FourDOFPropulsion::commandVelocityCallback(const geometry_msgs::Twist::Cons
 }
 
 
-tf::Transform FourDOFPropulsion::move(tf::StampedTransform currentLocation) 
+void FourDOFPropulsion::move(ros::Time& lastTime, tf::Quaternion& rotation, tf::Vector3& position) 
 {
 	//Get the elapsed time since the last vehicle location update
-	ros::Duration elapsedTime = (ros::Time::now() - currentLocation.stamp_);
+	ros::Duration elapsedTime = (ros::Time::now() - lastTime);
 
 	//Get the total linear movement in the vehicle frame
 	tf::Vector3 totalLinMovement = linVelocity * elapsedTime.toSec(); 
 	
 	//rotate the total linear movement to be in the world frame
-	totalLinMovement = totalLinMovement.rotate(currentLocation.getRotation().getAxis(), currentLocation.getRotation().getAngle());
+	totalLinMovement = totalLinMovement.rotate(rotation.getAxis(), rotation.getAngle());
 
 	//apply the linear movement
-	tf::Vector3 finalLinLocation = currentLocation.getOrigin() + (totalLinMovement * elapsedTime.toSec());
-
+	position += (totalLinMovement * elapsedTime.toSec());
 
 	//create a Quaternion to represent rotation using the axis of rotation and angle of rotation
-	tf::Quaternion totalRotMovement(rotVelocity, rotVelocity.length() * elapsedTime.toSec());
+	tf::Quaternion totalRotMovement;
+
+	totalRotMovement.setRPY(rotVelocity.getX() * elapsedTime.toSec(),
+							rotVelocity.getY() * elapsedTime.toSec(),
+							rotVelocity.getZ() * elapsedTime.toSec());
 	
 	//Apply the rotation to the current rotation of the vehicle
-	tf::Quaternion finalRotLocation = currentLocation.getRotation() * totalRotMovement;
-
-	//return updated location
-	return tf::Transform(finalRotLocation, finalLinLocation);
+	rotation *= totalRotMovement;
 }

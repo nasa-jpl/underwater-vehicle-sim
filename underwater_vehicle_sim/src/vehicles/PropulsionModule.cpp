@@ -8,6 +8,7 @@
 #include "vehicles/FourDOFPropulsion.h"
 
 PropulsionModule::PropulsionModule(std::string name, ros::NodeHandle& parentNH) :
+	name(name),
 	nh(ros::NodeHandle(parentNH, name))
 {
 

@@ -15,7 +15,7 @@ public:
 	* @param currentLocaion The old vehicle frame relative to the world frame
 	* @return The new vehicle frame relative to the world frame
 	*/
-	virtual tf::Transform move(tf::StampedTransform currentLocation)=0;
+	virtual void move(ros::Time& lastTime, tf::Quaternion& rotation, tf::Vector3& position)=0;
 
 	/**
 	* Creates a propulsion module using the parameters from the parameter server
@@ -25,6 +25,7 @@ public:
 	*/
 	static std::unique_ptr<PropulsionModule> makePropulsionModule(std::string moduleName, ros::NodeHandle& parentNH);
 protected:
+	std::string name;
 	ros::NodeHandle nh;
 };
 

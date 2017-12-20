@@ -11,10 +11,10 @@
 
 Vehicle::Vehicle(std::string name, ros::NodeHandle& parentNH) :
 	name(name),
-	nh(ros::NodeHandle(parentNH, name))
+	nh(ros::NodeHandle(parentNH, "vehicles/" + name))
 {
 	initalizeVehicleFrame();
-
+  	
 	initalizePropulsionModule();
 	initalizeGeneralModules();
 }
@@ -23,7 +23,10 @@ Vehicle::Vehicle(Vehicle&& other)
 	: propulsionModule(std::move(other.propulsionModule)), 
       modules(std::move(other.modules)),
       name(std::move(other.name)),
-      nh(std::move(other.nh))
+      nh(std::move(other.nh)),
+      position(std::move(other.position)),
+      rotation(std::move(other.rotation)),
+      lastTransformTime(std::move(other.lastTransformTime))
 {}
 
 void Vehicle::initalizeVehicleFrame()
@@ -38,12 +41,14 @@ void Vehicle::initalizeVehicleFrame()
 	nh.getParam("start_z", startZ);
 
 	//broadcast the inital frame for this vehicle
-	tf::Transform transform;
-  	transform.setOrigin(tf::Vector3(startX, startY, startZ));
-  	tf::Quaternion q;
-  	q.setRPY(0, 0, 0);
-  	transform.setRotation(q);
-  	broadcastTransform(transform);
+  	
+  	rotation.setRPY(0, 0, 0);
+
+  	position.setX(startX);
+  	position.setY(startY);
+  	position.setZ(startZ);
+  	broadcastTransform();
+  	
 }
 
 void Vehicle::initalizePropulsionModule()
@@ -51,8 +56,11 @@ void Vehicle::initalizePropulsionModule()
 	std::string propModuleName;
 
 	//get the name of the propulsion module and create the needed 
-	nh.getParam("propModuleName", propModuleName);
-	propulsionModule = PropulsionModule::makePropulsionModule(propModuleName, nh);
+	if(nh.hasParam("propModuleName"))
+	{
+		nh.getParam("propModuleName", propModuleName);
+		propulsionModule = PropulsionModule::makePropulsionModule(propModuleName, nh);
+	}
 }
 
 void Vehicle::initalizeGeneralModules()
@@ -63,8 +71,12 @@ void Vehicle::initalizeGeneralModules()
 void Vehicle::update()
 {
 	//move the frame using the propulsion module and broadcast it
-	tf::Transform movedTransform = propulsionModule->move(getVehicleFrame());
-	broadcastTransform(movedTransform);
+	if(propulsionModule)
+	{
+		propulsionModule->move(lastTransformTime, rotation, position);
+	}
+
+	broadcastTransform();
 
 	//update all modules
 	for(GeneralModule& module : modules)
@@ -73,25 +85,14 @@ void Vehicle::update()
 	}
 }
 
-tf::StampedTransform Vehicle::getVehicleFrame()
-{
-	tf::StampedTransform transform;
-	try
-	{
-  		transformListener.lookupTransform(name, "/world",  
-                                  ros::Time(0), transform);
-    }
-    catch (tf::TransformException ex)
-    {
-    	ROS_ERROR("%s",ex.what());
-        ros::Duration(1.0).sleep();
-    }
-
-    return transform;
-}
-
-void Vehicle::broadcastTransform(tf::Transform transform)
+void Vehicle::broadcastTransform()
 {
 	static tf::TransformBroadcaster br;
-  	br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "world", name));
+	lastTransformTime = ros::Time::now();
+  	br.sendTransform(tf::StampedTransform(tf::Transform(rotation, position), lastTransformTime, "world", name));
+}
+
+std::string Vehicle::getName()
+{
+	return name;
 }

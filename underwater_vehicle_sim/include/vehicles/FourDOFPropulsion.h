@@ -23,7 +23,7 @@ public:
 	* @param currentLocaion The old vehicle frame relative to the world frame
 	* @return The new vehicle frame relative to the world frame
 	*/
-	tf::Transform move(tf::StampedTransform currentLocation);
+	void move(ros::Time& lastTime, tf::Quaternion& rotation, tf::Vector3& position);
 
 
 	

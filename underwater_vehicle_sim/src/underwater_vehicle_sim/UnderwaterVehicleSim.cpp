@@ -10,8 +10,9 @@ UnderwaterVehicleSim::UnderwaterVehicleSim(ros::NodeHandle& parentNH) :
 
 	for(std::string& name : vehicleNames)
 	{
-		vehicles.emplace_back(name, nh);	
+		vehicles.emplace_back(name, nh);
 	}
+
 }
 
 void UnderwaterVehicleSim::update()

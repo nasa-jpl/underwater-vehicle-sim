@@ -23,22 +23,15 @@ public:
 	
 	void update();
 
-	static void makeVehicle(std::string name, ros::NodeHandle parentNH);
-
+	std::string getName();
 private:
 
 	/**
 	* Broadcast this vehicles pose relative to the world frame using tf transforms
 	* @param transform Transform to broadcast
 	*/
-	void broadcastTransform(tf::Transform transform);
+	void broadcastTransform();
 	
-	/**
-	* Get this vehicles frame relative to the world frame using tf
-	* @return The frame from this vehicle
-	*/
-	tf::StampedTransform getVehicleFrame();
-
 	/**
 	* Initalizes the propulsion module the propulsion module
 	*/
@@ -56,6 +49,21 @@ private:
 
 private:
 	tf::TransformListener transformListener;
+
+	/**
+	* Current vehicle rotation expressed as a tf quaternion
+	*/
+	tf::Quaternion rotation;
+
+	/**
+	* Current vehicle position espressed as a tf vector
+	*/
+	tf::Vector3 position;
+
+	/**
+	* Time the last transform was sent
+	*/
+	ros::Time lastTransformTime;
 
 	/**
 	 * Module that handles the vehicles propulsion system
