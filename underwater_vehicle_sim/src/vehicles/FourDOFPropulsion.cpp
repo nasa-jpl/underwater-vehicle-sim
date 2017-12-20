@@ -11,7 +11,7 @@ FourDOFPropulsion::FourDOFPropulsion(std::string name, ros::NodeHandle& parentNH
 	nh.getParam("max_rotate_velocity", maxRotVelocity);
 
 
-	nh.subscribe("command_velocity", 1, &FourDOFPropulsion::commandVelocityCallback, this);
+	commandVelocitySub = nh.subscribe("command_velocity", 1, &FourDOFPropulsion::commandVelocityCallback, this);
 
 	rotVelocity.setX(0);
 	rotVelocity.setY(0);
@@ -37,6 +37,7 @@ void FourDOFPropulsion::move(ros::Time& lastTime, tf::Quaternion& rotation, tf::
 {
 	//Get the elapsed time since the last vehicle location update
 	ros::Duration elapsedTime = (ros::Time::now() - lastTime);
+	lastTime = ros::Time::now();
 
 	//Get the total linear movement in the vehicle frame
 	tf::Vector3 totalLinMovement = linVelocity * elapsedTime.toSec(); 
@@ -45,8 +46,7 @@ void FourDOFPropulsion::move(ros::Time& lastTime, tf::Quaternion& rotation, tf::
 	totalLinMovement = totalLinMovement.rotate(rotation.getAxis(), rotation.getAngle());
 
 	//apply the linear movement
-	position += (totalLinMovement * elapsedTime.toSec());
-
+	position += totalLinMovement;
 	//create a Quaternion to represent rotation using the axis of rotation and angle of rotation
 	tf::Quaternion totalRotMovement;
 
@@ -56,4 +56,7 @@ void FourDOFPropulsion::move(ros::Time& lastTime, tf::Quaternion& rotation, tf::
 	
 	//Apply the rotation to the current rotation of the vehicle
 	rotation *= totalRotMovement;
+
+
+
 }

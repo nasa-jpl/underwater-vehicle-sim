@@ -2,21 +2,23 @@
 #include <chrono>
 #include <iostream>
 #include <thread>
+#include <math.h>
 
 #include "ros/ros.h"
 #include "tf/transform_listener.h"
 
 ros::ServiceClient client;
 
-TEST(InitVehicles, InitVehiclesLocationTest){
+TEST(FourDOFPropulsion, TestVehicleLinearMovement){
         //Initalize ROS node handle
         ros::NodeHandle n;
 
         tf::TransformListener transformListener;
-/*        
-        tf::StampedTransform transformV1;
-        tf::StampedTransform transformV2;
-        tf::StampedTransform transformV3;
+        ros::Publisher velocityV1Pub = n.advertise<geometry_msgs::Twist>("/vehicles/v1/prop_v1/command_velocity", 1000);
+        
+        tf::StampedTransform transformV1Start;
+
+        tf::StampedTransform transformV1End;
 
         bool transformsRecieved = false;
 
@@ -25,11 +27,7 @@ TEST(InitVehicles, InitVehiclesLocationTest){
 			try
 			{
 		  		transformListener.lookupTransform("/world", "/v1",  
-		                                  ros::Time(0), transformV1);
-		  		transformListener.lookupTransform("/world", "/v2",  
-		                                  ros::Time(0), transformV2);
-		  		transformListener.lookupTransform("/world", "/v3",  
-		                                  ros::Time(0), transformV3);
+		                                  ros::Time(0), transformV1Start);
 		  		transformsRecieved = true;
 		    }
 		    catch (tf::TransformException ex)
@@ -39,20 +37,227 @@ TEST(InitVehicles, InitVehiclesLocationTest){
 		    }
 		}
 
+        geometry_msgs::Twist msg;
+        geometry_msgs::Vector3 lin;
+        geometry_msgs::Vector3 rot;
 
-        ASSERT_FLOAT_EQ(-100, transformV1.getOrigin().getX());
-        ASSERT_FLOAT_EQ(100, transformV1.getOrigin().getY());
-        ASSERT_FLOAT_EQ(-100, transformV1.getOrigin().getZ());
+        lin.x = 1.5;
+        lin.y = -0.5;
+        lin.z = -0.25;
 
-        ASSERT_FLOAT_EQ(521.25, transformV2.getOrigin().getX());
-        ASSERT_FLOAT_EQ(-434.5, transformV2.getOrigin().getY());
-        ASSERT_FLOAT_EQ(0, transformV2.getOrigin().getZ());
+        rot.x = 0;
+        rot.y = 0;
+        rot.z = 0;
 
-        ASSERT_FLOAT_EQ(200, transformV3.getOrigin().getX());
-        ASSERT_FLOAT_EQ(-100, transformV3.getOrigin().getY());
-        ASSERT_FLOAT_EQ(-234, transformV3.getOrigin().getZ());
-*/}
+        msg.linear = lin;
+        msg.angular = rot;
 
+        velocityV1Pub.publish(msg);
+        ros::spinOnce();
+
+        ros::Time startSleep = ros::Time::now();
+        ros::Duration(2).sleep();
+        try
+            {
+                transformListener.lookupTransform("/world", "/v1",  
+                                          ros::Time(0), transformV1End);
+                transformsRecieved = true;
+            }
+            catch (tf::TransformException ex)
+            {
+                ROS_ERROR("%s",ex.what());
+                ros::Duration(1.0).sleep();
+            }
+
+        float sleepDuration = (transformV1End.stamp_ - startSleep).toSec();
+
+        //Due to timing issues they are not exact, however they are acceptably close
+        bool xCorrect = (1.5 * sleepDuration) + 0.02 > (transformV1End.getOrigin().getX() - transformV1Start.getOrigin().getX()) &&
+                        (1.5 * sleepDuration) - 0.02 < (transformV1End.getOrigin().getX() - transformV1Start.getOrigin().getX());
+
+        bool yCorrect = (-0.5 * sleepDuration) + 0.02 > (transformV1End.getOrigin().getY() - transformV1Start.getOrigin().getY()) &&
+                        (-0.5 * sleepDuration) - 0.02 < (transformV1End.getOrigin().getY() - transformV1Start.getOrigin().getY());
+
+        bool zCorrect = (-0.25 * sleepDuration) + 0.02 > (transformV1End.getOrigin().getZ() - transformV1Start.getOrigin().getZ()) &&
+                        (-0.25 * sleepDuration) - 0.02 < (transformV1End.getOrigin().getZ() - transformV1Start.getOrigin().getZ());
+         
+        ASSERT_TRUE(xCorrect);
+        ASSERT_TRUE(yCorrect);
+        ASSERT_TRUE(zCorrect);
+}
+
+TEST(FourDOFPropulsion, TestVehicleRotationalMovement) {
+        //Initalize ROS node handle
+        ros::NodeHandle n;
+
+        tf::TransformListener transformListener;
+        ros::Publisher velocityV1Pub = n.advertise<geometry_msgs::Twist>("/vehicles/v2/prop_v2/command_velocity", 1000);
+        
+        tf::StampedTransform transformV2Start;
+
+        tf::StampedTransform transformV2End;
+
+        bool transformsRecieved = false;
+
+        while(!transformsRecieved)
+        {
+            try
+            {
+                transformListener.lookupTransform("/world", "/v2",  
+                                          ros::Time(0), transformV2Start);
+                transformsRecieved = true;
+            }
+            catch (tf::TransformException ex)
+            {
+                ROS_ERROR("%s",ex.what());
+                ros::Duration(1.0).sleep();
+            }
+        }
+
+        geometry_msgs::Twist msg;
+        geometry_msgs::Vector3 lin;
+        geometry_msgs::Vector3 rot;
+
+        lin.x = 0;
+        lin.y = 0;
+        lin.z = 0;
+
+        rot.x = 0;
+        rot.y = 0;
+        rot.z = -0.125;
+
+        msg.linear = lin;
+        msg.angular = rot;
+
+        velocityV1Pub.publish(msg);
+        ros::spinOnce();
+
+        ros::Time startSleep = ros::Time::now();
+        ros::Duration(2).sleep();
+        try
+            {
+                transformListener.lookupTransform("/world", "/v2",  
+                                          ros::Time(0), transformV2End);
+                transformsRecieved = true;
+            }
+            catch (tf::TransformException ex)
+            {
+                ROS_ERROR("%s",ex.what());
+                ros::Duration(1.0).sleep();
+            }
+
+        float sleepDuration = (transformV2End.stamp_ - startSleep).toSec();
+
+        //Due to timing issues they are not exact, however they are acceptably close
+
+        tf::Vector3 axis = transformV2End.getRotation().getAxis();
+
+        bool angleCorrect = (-0.125 * sleepDuration * axis.getZ()) + 0.02 > (transformV2End.getRotation().getAngle() - transformV2Start.getRotation().getAngle()) &&
+                        (-0.125 * sleepDuration * axis.getZ()) - 0.02 < (transformV2End.getRotation().getAngle() - transformV2Start.getRotation().getAngle());
+         
+        
+        ASSERT_FLOAT_EQ(0, axis.getX());
+        ASSERT_FLOAT_EQ(0, axis.getY());
+        ASSERT_FLOAT_EQ(-1, axis.getZ());
+        ASSERT_TRUE(angleCorrect);
+}
+
+TEST(FourDOFPropulsion, TestVehicleRotationalThenLinearMovement) {
+        //Initalize ROS node handle
+        ros::NodeHandle n;
+
+        tf::TransformListener transformListener;
+        ros::Publisher velocityV3Pub = n.advertise<geometry_msgs::Twist>("/vehicles/v3/prop_v3/command_velocity", 1000);
+        
+        tf::StampedTransform transformV3Start;
+
+        tf::StampedTransform transformV3End;
+
+        bool transformsRecieved = false;
+
+        while(!transformsRecieved)
+        {
+            try
+            {
+                transformListener.lookupTransform("/world", "/v3",  
+                                          ros::Time(0), transformV3Start);
+                transformsRecieved = true;
+            }
+            catch (tf::TransformException ex)
+            {
+                ROS_ERROR("%s",ex.what());
+                ros::Duration(1.0).sleep();
+            }
+        }
+
+        geometry_msgs::Twist rotMsg;
+        geometry_msgs::Vector3 rotLin;
+        geometry_msgs::Vector3 rotRot;
+        rotLin.x = 0;
+        rotLin.y = 0;
+        rotLin.z = 0;
+        rotRot.x = 0;
+        rotRot.y = 0;
+        rotRot.z = -M_PI / 4;
+        rotMsg.linear = rotLin;
+        rotMsg.angular = rotRot;
+
+
+        geometry_msgs::Twist linMsg;
+        geometry_msgs::Vector3 linLin;
+        geometry_msgs::Vector3 linRot;
+        linLin.x = 1.5;
+        linLin.y = 0;
+        linLin.z = 0;
+        linRot.x = 0;
+        linRot.y = 0;
+        linRot.z = 0;
+        linMsg.linear = linLin;
+        linMsg.angular = linRot;
+
+        velocityV3Pub.publish(rotMsg);
+        ros::spinOnce();
+        ros::Duration(2).sleep();
+
+
+        velocityV3Pub.publish(linMsg);
+        ros::spinOnce();
+
+        ros::Time startSleep = ros::Time::now();
+        ros::Duration(2).sleep();
+
+
+        try
+        {
+            transformListener.lookupTransform("/world", "/v3",  
+                                      ros::Time(0), transformV3End);
+            transformsRecieved = true;
+        }
+        catch (tf::TransformException ex)
+        {
+            ROS_ERROR("%s",ex.what());
+            ros::Duration(1.0).sleep();
+        }
+
+
+        float sleepDuration = (transformV3End.stamp_ - startSleep).toSec();
+
+        //Due to timing issues they are not exact, however they are acceptably close
+
+        //Due to timing issues they are not exact, however they are acceptably close
+        bool xCorrect = (0 * sleepDuration) + 0.02 > (transformV3End.getOrigin().getX() - transformV3Start.getOrigin().getX()) &&
+                        (0 * sleepDuration) - 0.02 < (transformV3End.getOrigin().getX() - transformV3Start.getOrigin().getX());
+
+        bool yCorrect = (-1.5 * sleepDuration) + 0.02 > (transformV3End.getOrigin().getY() - transformV3Start.getOrigin().getY()) &&
+                        (-1.5 * sleepDuration) - 0.02 < (transformV3End.getOrigin().getY() - transformV3Start.getOrigin().getY());
+
+        bool zCorrect = (0 * sleepDuration) + 0.02 > (transformV3End.getOrigin().getZ() - transformV3Start.getOrigin().getZ()) &&
+                        (0 * sleepDuration) - 0.02 < (transformV3End.getOrigin().getZ() - transformV3Start.getOrigin().getZ());     
+        
+        ASSERT_TRUE(xCorrect);
+        ASSERT_TRUE(yCorrect);
+        ASSERT_TRUE(zCorrect);
+}
 
 int main(int argc, char** argv){
   testing::InitGoogleTest(&argc, argv);

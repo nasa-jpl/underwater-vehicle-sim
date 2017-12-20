@@ -58,6 +58,7 @@ void Vehicle::initalizePropulsionModule()
 	//get the name of the propulsion module and create the needed 
 	if(nh.hasParam("propModuleName"))
 	{
+
 		nh.getParam("propModuleName", propModuleName);
 		propulsionModule = PropulsionModule::makePropulsionModule(propModuleName, nh);
 	}
@@ -88,7 +89,6 @@ void Vehicle::update()
 void Vehicle::broadcastTransform()
 {
 	static tf::TransformBroadcaster br;
-	lastTransformTime = ros::Time::now();
   	br.sendTransform(tf::StampedTransform(tf::Transform(rotation, position), lastTransformTime, "world", name));
 }
 

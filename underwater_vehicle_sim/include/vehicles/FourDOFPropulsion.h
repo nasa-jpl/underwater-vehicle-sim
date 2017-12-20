@@ -9,7 +9,7 @@
 
 /**
 *Propulson module which provides the vehicle with 4 degrees of freedom
-* Heave/Sway/Surge/Yaw
+* Heave/Sway/Surge/Yaw (Linear X/Y/Z, Rotational Z)
 */
 class FourDOFPropulsion : public PropulsionModule
 {
@@ -54,6 +54,8 @@ private:
 	*Current rotation velocity for this module
 	*/
 	tf::Vector3 rotVelocity;
+
+	ros::Subscriber commandVelocitySub;
 };
 
 
