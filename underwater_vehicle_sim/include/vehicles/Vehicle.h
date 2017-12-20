@@ -14,6 +14,8 @@
 
 /**
  * Class used to represent a vehicle in the simulation
+ * Vehicle front is the position x-axis in the vehicle frame
+ * Vehicle rotation follows the standard right-hand rule with 0 degrees on the positive x-axis in the world frame
  */
 class Vehicle
 {
