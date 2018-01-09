@@ -209,11 +209,11 @@ if (CATKIN_ENABLE_TESTING)
  find_package(rostest REQUIRED)
 
  add_rostest_gtest(clock_server_test tests/clock_server/ClockServer.test src/tests/clock_server/ClockServer_test.cpp)
- add_rostest_gtest(init_vehicles_test tests/vehicles/InitVehicles.test src/tests/vehicles/InitVehicles_test.cpp)
+ add_rostest_gtest(init_underwater_vehicle_sim_test tests/vehicles/InitVehicles.test src/tests/vehicles/InitVehicles_test.cpp)
  add_rostest_gtest(four_dof_propulsion_test tests/vehicles/FourDOFPropulsion.test src/tests/vehicles/FourDOFPropulsion_test.cpp)
  
  target_link_libraries(clock_server_test ${catkin_LIBRARIES} ${NETCDF_LIBRARIES} stdc++fs)
- target_link_libraries(init_vehicles_test underwater_vehicles ${catkin_LIBRARIES} ${NETCDF_LIBRARIES} stdc++fs)
+ target_link_libraries(init_underwater_vehicle_sim_test underwater_vehicles ${catkin_LIBRARIES} ${NETCDF_LIBRARIES} stdc++fs)
  target_link_libraries(four_dof_propulsion_test underwater_vehicles ${catkin_LIBRARIES} ${NETCDF_LIBRARIES} stdc++fs)
 endif()
 

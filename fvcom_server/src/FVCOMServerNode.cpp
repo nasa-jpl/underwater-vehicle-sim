@@ -7,7 +7,7 @@ FVCOM fvcom;
 
 bool getFVCOMData(fvcom_server::GetFVCOMData::Request &req,
 				  fvcom_server::GetFVCOMData::Response &res)
-{
+{    
     FVCOM::FVCOMData data = fvcom.getData(req.x, req.y, req.h, req.time);
     res.u = data.u;
 	res.v = data.v;

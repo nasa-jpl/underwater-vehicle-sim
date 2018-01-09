@@ -1,5 +1,6 @@
 #include "fvcom_server/FVCOMStructure.h"
 #include "fvcom_server/FVCOM.h"
+#include "ros/ros.h"
 
 #include <netcdf>
 #include <memory>
@@ -46,31 +47,28 @@ std::vector<std::string> FVCOMStructure::traverseDataFiles(const std::string fil
 	return filenames;
 }
 
-void FVCOMStructure::loadStructureData(const std::string filename)
+void FVCOMStructure::loadStructureData(const std::string directory)
 {
 	unsigned int timeDim = 0;
-	std::vector<std::string> filenames = traverseDataFiles(filename);
+	std::vector<std::string> filenames = traverseDataFiles(directory);
 
 	//Set start times and time dimensions from files
 	for(auto &filename : filenames)
 	{
 		netCDF::NcFile dataFile = netCDF::NcFile(filename, netCDF::NcFile::read);
-
 		timeDim += dataFile.getDim("time").getSize();
 		
 		std::vector<float> tempTimes;
 		tempTimes.resize(dataFile.getDim("time").getSize());
-
 		netCDF::NcVar timeVar = dataFile.getVar("time");
 		timeVar.getVar(tempTimes.data());
-
 		ModelFile modelFile;
 		modelFile.filename = filename;
 		modelFile.startTime = tempTimes[0];
 		modelFile.timeDim = dataFile.getDim("time").getSize();
 		modelFiles.push_back(modelFile);
 	}
-
+	
 	//sort filenames based on start ties
 	std::sort(modelFiles.begin(), modelFiles.end());
 
@@ -91,7 +89,6 @@ void FVCOMStructure::loadStructureData(const std::string filename)
 		//move current index for next files
 		currentIndex += dataFile.getDim("time").getSize();
 	}
-
 	netCDF::NcFile dataFile = netCDF::NcFile(modelFiles[0].filename, netCDF::NcFile::read);
 
 	//Get dimensions of structure elements
@@ -140,11 +137,11 @@ void FVCOMStructure::loadStructureData(const std::string filename)
 	}
 
 	//resize for multidimensional array
-	triangleToNodes.resize(3);
-
-	for(int i = 0; i < 3; i++)
+	triangleToNodes.resize(neleDim);
+	
+	for(int i = 0; i < neleDim; i++)
 	{
-		triangleToNodes[i].resize(neleDim);
+		triangleToNodes[i].resize(3);
 	}
 
 	//Assign all arrays for the structure variables
@@ -156,10 +153,10 @@ void FVCOMStructure::loadStructureData(const std::string filename)
 	centerHVar.getVar(triangleH.data());
 
 	//load nvVar into a multidimensional vector
-	for(unsigned int i = 0; i < 3; i++)
+	for(unsigned int i = 0; i < neleDim; i++)
 	{
-		std::vector<size_t> start = {i, 0};
-		std::vector<size_t> count = {1, neleDim};
+		std::vector<size_t> start = {0, i};
+		std::vector<size_t> count = {3, 1};
 		nvVar.getVar(start, count, triangleToNodes[i].data());
 	}
 
@@ -203,7 +200,7 @@ void FVCOMStructure::loadStructureData(const std::string filename)
 	{
 		for(unsigned int j = 0; j < 3; j++)
 		{
-			triangleToNodes[j][i]--;
+			triangleToNodes[i][j]--;
 		}
 	}
 
@@ -215,7 +212,7 @@ void FVCOMStructure::loadStructureData(const std::string filename)
 		for(unsigned int j = 0; j < 3; j++)
 		{
 			int triangle = i;
-			int node = triangleToNodes[j][i];
+			int node = triangleToNodes[i][j];
 
 			nodeToTriangles[node].push_back(triangle);
 		}
@@ -288,9 +285,9 @@ void FVCOMStructure::getModelExtent()
 
 bool FVCOMStructure::pointInTriangle(point testPoint, int triangle) const
 {
-	int p0Index = triangleToNodes[0][triangle];
-	int p1Index = triangleToNodes[1][triangle];
-	int p2Index = triangleToNodes[2][triangle];
+	int p0Index = triangleToNodes[triangle][0];
+	int p1Index = triangleToNodes[triangle][1];
+	int p2Index = triangleToNodes[triangle][2];
 
 	point p0 = nodes[p0Index];
 	point p1 = nodes[p1Index];
@@ -337,6 +334,11 @@ int FVCOMStructure::getContainingTriangle(point testPoint) const
 	throw std::out_of_range("FVCOM request outside of model extent");
 }
 
+const std::vector<int>& FVCOMStructure::getNodesInTriangle(int triangle) const
+{
+	return triangleToNodes[triangle];
+}
+
 const std::vector<FVCOMStructure::ModelFile> FVCOMStructure::getModelFiles() const
 {
 	return modelFiles;
@@ -380,6 +382,24 @@ int FVCOMStructure::getClosestTime(float time) const
 
 }
 
+int FVCOMStructure::getPreviousTimeIndex(float time) const
+{
+	auto lower = std::lower_bound(times.begin(), times.end(), time);
+	int index = std::distance(times.begin(), lower);
+
+	if(times[index] == time)
+ 	{
+ 		return index;
+	}
+
+	return index - 1;
+}
+
+float FVCOMStructure::getTime(int timeIndex) const
+{
+	return times[timeIndex];
+}
+
 
 int FVCOMStructure::getClosestNodeSiglay(point testPoint) const
 {
@@ -397,6 +417,39 @@ int FVCOMStructure::getClosestNodeSiglay(point testPoint) const
 	}
 
 	return closestSiglay;
+}
+
+FVCOMStructure::Plane FVCOMStructure::getTriangleSiglayPlane(int triangle, unsigned int siglay)
+{
+	const std::vector<int>& surroundingNodes = triangleToNodes[triangle];
+
+	FVCOMStructure::point p0 = getNodePoint(surroundingNodes[0], siglay);
+	FVCOMStructure::point p1 = getNodePoint(surroundingNodes[1], siglay);
+	FVCOMStructure::point p2 = getNodePoint(surroundingNodes[2], siglay);
+	double ab[3];
+	double ac[3];
+
+	ab[0] = p1.x - p0.x;
+	ab[1] = p1.y - p0.y;
+	ab[2] = p1.h - p0.h;
+
+	ac[0] = p2.x - p0.x;
+	ac[1] = p2.y - p0.y;
+	ac[2] = p2.h - p0.h;
+
+	FVCOMStructure::Plane plane;
+	plane.a = (ab[1] * ac[2]) - (ab[2] * ac[1]);
+	plane.b = (ab[2] * ac[0]) - (ab[0] * ac[2]);
+	plane.c = (ab[0] * ac[1]) - (ab[1] * ac[0]);
+
+	double magnitude = sqrt(plane.a * plane.a +  plane.b * plane.b +  plane.c * plane.c);
+	plane.a /= magnitude;
+	plane.b /= magnitude;
+	plane.c /= magnitude;
+
+	plane.d = -(p0.x * plane.a + p0.y * plane.b + p0.h * plane.c);
+
+	return plane;
 }
 
 int FVCOMStructure::getClosestTriangleSiglay(point testPoint) const
@@ -421,6 +474,18 @@ int FVCOMStructure::getClosestTriangleSiglay(point testPoint) const
 float FVCOMStructure::distance(point p0, point p1) const
 {
 	return std::sqrt( (p0.x - p1.x)*(p0.x - p1.x) + (p0.y - p1.y)*(p0.y - p1.y) );
+}
+
+const FVCOMStructure::point& FVCOMStructure::getNodePoint(int node) const
+{
+	return nodes[node];
+}
+
+const FVCOMStructure::point FVCOMStructure::getNodePoint(int node, int siglay) const
+{
+	FVCOMStructure::point returnPoint = nodes[node];
+	returnPoint.h = returnPoint.h * nodeSiglay[node][siglay];
+	return returnPoint;
 }
 
 
@@ -470,6 +535,7 @@ FVCOMStructure::ChunkInfo FVCOMStructure::getChunkForNode(int node, int siglay, 
 	unsigned int timeSize = times.size();
 	chunk.siglaySize = std::min(siglayChunkSize, siglayDim - chunk.siglayStart);
 	chunk.timeSize = std::min(timeChunkSize, timeSize - chunk.timeStart);
+//	ROS_INFO("GET CHUNK: chunk_size: %i timeSize: %i timeStart: %i", timeChunkSize, timeSize, chunk.timeStart);
 
 	return chunk;
 }
@@ -548,4 +614,9 @@ const std::vector<unsigned int>& FVCOMStructure::getTrianglesInChunk(FVCOMStruct
 	int chunkId = chunk.yChunk + (chunk.xChunk * yDimChunks);
 
 	return trianglesInChunk[chunkId];
+}
+
+const int FVCOMStructure::getNumSiglays() const
+{
+	return siglayDim;
 }

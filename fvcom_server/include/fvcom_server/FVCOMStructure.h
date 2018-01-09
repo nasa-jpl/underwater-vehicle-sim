@@ -33,6 +33,14 @@ public:
      */
 	FVCOMStructure();
 
+	struct Plane
+	{
+		float a;
+		float b;
+		float c;
+		float d;
+	};
+
 	/**
 	 * Struct to group a (x, y, height) point
      */
@@ -112,17 +120,32 @@ public:
 	int getContainingTriangle(point testPoint) const;
 
 	/**
+	 * Gets the nodes that form the specified triangle
+	 * @param triangle Triangle to get the nodes for
+	 * @return Vector of the nodes
+	 */
+	const std::vector<int>& getNodesInTriangle(int triangle) const;
+
+	/**
+	 * Gets the equation for the plane defined by a siglay heights of the three nodes of a triangle
+	 * @param triangle triangle to get the siglay for
+	 * @param siglay to get the plane for
+	 * @return parameters defining the plane
+	 */
+	FVCOMStructure::Plane getTriangleSiglayPlane(int triange, unsigned int siglay);
+
+	/**
+	 * Gets the siglay that is closest to the given location
+	 * @param testPoint location to find the closest siglay for
+	 * @return index for the closest siglay
+	 */
+	int getClosestTriangleSiglay(point testPoint) const;
+
+	/**
 	 * Finds the closest node to a point
 	 * @param testPoint Point to get the closest node for
 	 */
 	int getClosestNode(point testPoint) const;
-
-	/**
-	 * Gets the time index that is closest to the given time
-	 * @param time time to find the closest index for
-	 * @return index for the closest time
-	 */
-	 int getClosestTime(float time) const;
 
 	/**
 	 * Gets the siglay that is closest to the given location
@@ -132,11 +155,33 @@ public:
 	int getClosestNodeSiglay(point testPoint) const;
 
 	/**
-	 * Gets the siglay that is closest to the given location
-	 * @param testPoint location to find the closest siglay for
-	 * @return index for the closest siglay
+	 *Gets the point of a node with seafloor depth as height
 	 */
-	int getClosestTriangleSiglay(point testPoint) const;
+	const FVCOMStructure::point& getNodePoint(int node) const;
+
+	/**
+	 *Gets the point of a node at a specific siglay
+	 */
+	const FVCOMStructure::point getNodePoint(int node, int siglay) const;
+
+	/**
+	 * Gets the time index that is closest to the given time
+	 * @param time time to find the closest index for
+	 * @return index for the closest time
+	 */
+	 int getClosestTime(float time) const;
+
+	 /**
+	 * Gets the time index that is previous to the given time
+	 * @param time time to find the previous index for
+	 * @return index for the previous time
+	 */
+	 int getPreviousTimeIndex(float time) const;
+
+	 /**
+	  *Gets time for a specific index
+	  */
+	 float getTime(int timeIndex) const;
 
 	/**
 	 * Gets the distance between two points
@@ -169,6 +214,9 @@ public:
 	const std::vector<ModelFile> getModelFiles() const;
 
 	const bool pointInModel(point p, float time) const;
+
+	const int getNumSiglays() const;
+
 private:
 
 	/**
@@ -181,7 +229,7 @@ private:
 	/**
 	 * Helper function which loads all the model structure data from the model file
 	 */
-	void loadStructureData(const std::string filename);
+	void loadStructureData(const std::string directory);
 
 	/**
 	 * Helper function that determines the extent of the model

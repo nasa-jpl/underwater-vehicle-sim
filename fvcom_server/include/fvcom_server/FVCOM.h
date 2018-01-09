@@ -67,7 +67,7 @@ private:
 	 * @param sigma Sigma layer to get the data from
 	 * @param time Time index to get the data from
 	 */
-	float getDataForNode(int node, int sigma, int time);
+	const FVCOMChunk::NodeData& getNodeData(int node, int siglayNodeIndex, int timeIndex);
 
 	/**
 	 * Retrieves data from a specific triangle
@@ -76,7 +76,13 @@ private:
 	 * @param sigma Sigma layer to get the data from
 	 * @param time Time index to get the data from
 	 */
-	float getDataForTriangle(int triangle, int sigma, int time);
+	const FVCOMChunk::TriangleData& getTriangleData(int triangle, int siglayTriangleIndex, int timeIndex);
+
+	FVCOM::FVCOMData interpolate(FVCOMStructure::point p, float time);
+	void timeInterpolation(float time, int& time1Index, int& time2Index, double& time1Percent);
+	void siglayInterpolation(FVCOMStructure::point& interpolatePoint, int& siglay1Index, int& siglay2Index, double& siglay1Percent);
+	FVCOMChunk::NodeData barycentricInterpolation(const FVCOMStructure::point& interpolatedPoint, int siglayIndex, int timeIndex);
+	const double areaOfTriangle(const FVCOMStructure::point& p1, const FVCOMStructure::point& p2, const FVCOMStructure::point& p3);
 
 private:
 	

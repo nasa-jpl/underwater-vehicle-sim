@@ -1,6 +1,6 @@
 #include "fvcom_server/FVCOMChunk.h"
 #include "fvcom_server/FVCOMStructure.h"
-
+#include "ros/ros.h"
 
 #include <unordered_map>
 #include <vector>
@@ -12,6 +12,7 @@ FVCOMChunk::FVCOMChunk(const std::vector<FVCOMStructure::ModelFile> modelFiles, 
 											   FVCOMStructure::ChunkInfo chunkInfo) :
 	chunkInfo(chunkInfo)
 {
+//	ROS_INFO("NEW CHUNK");
 	unsigned int startModelFile = getFileIndexForTimeIndex(modelFiles, chunkInfo.timeStart);
 	unsigned int endModelFile = getFileIndexForTimeIndex(modelFiles, chunkInfo.timeStart + chunkInfo.timeSize);
 	
@@ -42,8 +43,9 @@ FVCOMChunk::FVCOMChunk(const std::vector<FVCOMStructure::ModelFile> modelFiles, 
 
 		triangles.insert(std::make_pair(trianglesToLoad[i], std::vector<FVCOMChunk::TriangleData>(uLoad.size())));
 	}
-
 	bool dyeVarExists = true;
+//	ROS_INFO("Nodes to Load: %u", nodesToLoad.size());
+//	ROS_INFO("Triangles to Load: %u", trianglesToLoad.size());
 	for(unsigned int i = 0; i < nodesToLoad.size(); i++)
 	{
 		unsigned int timeIndex = chunkInfo.timeStart;
@@ -56,14 +58,10 @@ FVCOMChunk::FVCOMChunk(const std::vector<FVCOMStructure::ModelFile> modelFiles, 
 			netCDF::NcVar saltVar = dataFile.getVar("salinity");
 			netCDF::NcVar dyeVar = dataFile.getVar("DYE");
 
-			
-
-			//PROBLEM: cannot just take timeDim when loading the timeCount.  The entire file might not be loaded
-			//Cannot just take timeSize as part of it might have been loaded already.
-
 			//Adjust time index for this file 
 			unsigned int adjustedTimeIndex = timeIndex - modelFiles[f].startTimeIndex;
 
+	//		ROS_INFO("index: %i model_start_index: %i chunk_size: %i model_size: %i",timeIndex, modelFiles[f].startTimeIndex, chunkInfo.timeSize, modelFiles[f].timeDim);
 			//calculate the size of the time dimension that needs to be loaded
 			unsigned int timeCount = std::min(chunkInfo.timeSize - (timeIndex - chunkInfo.timeStart), modelFiles[f].timeDim - adjustedTimeIndex);
 
@@ -71,10 +69,12 @@ FVCOMChunk::FVCOMChunk(const std::vector<FVCOMStructure::ModelFile> modelFiles, 
 			std::vector<size_t> start = {adjustedTimeIndex, chunkInfo.siglayStart, nodesToLoad[i]};
 			std::vector<size_t> count = {timeCount, chunkInfo.siglaySize, 1};
 
+		//	ROS_INFO("HERE8 start: %i %i %i", adjustedTimeIndex, chunkInfo.siglayStart, nodesToLoad[i]);
+		//	ROS_INFO("HERE8 count: %i %i %i",timeCount,chunkInfo.siglaySize,1);
+
 			//load data
 			tempVar.getVar(start, count, tempLoad.data() + dataIndex);
 			saltVar.getVar(start, count, saltLoad.data() + dataIndex);
-
 			//Load the dye variable if it exists
 			if(!dyeVar.isNull())
 			{
@@ -90,7 +90,6 @@ FVCOMChunk::FVCOMChunk(const std::vector<FVCOMStructure::ModelFile> modelFiles, 
 			timeIndex += timeCount;
 			dataIndex += timeCount * chunkInfo.siglaySize;
 		}
-
 
 		std::vector<FVCOMChunk::NodeData>& dataList = nodes[nodesToLoad[i]];
 
@@ -112,7 +111,6 @@ FVCOMChunk::FVCOMChunk(const std::vector<FVCOMStructure::ModelFile> modelFiles, 
 			dataList[j] = data;
 		}
 	}
-
 	for(unsigned int i = 0; i < trianglesToLoad.size(); i++)
 	{
 		unsigned int timeIndex = chunkInfo.timeStart;
@@ -136,7 +134,6 @@ FVCOMChunk::FVCOMChunk(const std::vector<FVCOMStructure::ModelFile> modelFiles, 
 
 			uVar.getVar(start, count, uLoad.data() + dataIndex);
 			vVar.getVar(start, count, vLoad.data() + dataIndex);
-
 			//Update time and data indicies
 			timeIndex += timeCount;
 			dataIndex += timeCount * chunkInfo.siglaySize;
@@ -153,6 +150,7 @@ FVCOMChunk::FVCOMChunk(const std::vector<FVCOMStructure::ModelFile> modelFiles, 
 			dataList[j] = data;
 		}
 	}
+	
 }
 
 const unsigned int FVCOMChunk::getFileIndexForTimeIndex(const std::vector<FVCOMStructure::ModelFile> modelFiles, const unsigned int timeIndex) const
