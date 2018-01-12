@@ -26,8 +26,8 @@ FVCOM::FVCOMData FVCOM::interpolate(FVCOMStructure::point interpolatePoint, floa
 
 
 	//Get indicies and ratio of time and siglay
-	timeInterpolation(time, time1Index, time2Index, time1Percent);
-	siglayInterpolation(interpolatePoint, siglay1Index, siglay2Index, siglay1Percent);
+	structure.timeInterpolation(time, time1Index, time2Index, time1Percent);
+	structure.siglayInterpolation(interpolatePoint, siglay1Index, siglay2Index, siglay1Percent);
 
 
 	//Interpolate X, Y
@@ -74,96 +74,6 @@ FVCOM::FVCOMData FVCOM::interpolate(FVCOMStructure::point interpolatePoint, floa
 
 	return returnData;
 }
-
-void FVCOM::timeInterpolation(float time, int& time1Index, int& time2Index, double& time1Percent)
-{
-	time1Index = structure.getPreviousTimeIndex(time);
-	float previousTime = structure.getTime(time1Index);
-
-	//Time is exactly on a time division, no interpolation needed.
-	if(previousTime == time)
-	{
-		time2Index = time1Index;
-		time1Percent = 1;
-	}
-	else //time is spilt between divisions so it needs interpolation
-	{
-		float nextTime = structure.getTime(time2Index);
-		time1Percent = (nextTime - time) / (nextTime - previousTime);
-	}
-}
-
-void FVCOM::siglayInterpolation(FVCOMStructure::point& interpolatePoint, int& siglay1Index, int& siglay2Index, double& siglay1Percent)
-{
-	int containingTriangle = structure.getContainingTriangle(interpolatePoint);
-
-
-	siglay1Index = siglay2Index = -1;
-
-	double prevDot = 0;
-	for(unsigned int i = 0; i < structure.getNumSiglays(); i++)
-	{
-		FVCOMStructure::Plane plane = structure.getTriangleSiglayPlane(containingTriangle, i);
-
-		//calculate the dot product with the plane and the point to determine which side of the plane it is on
-		double dot = plane.a * interpolatePoint.x + plane.b * interpolatePoint.y + plane.c * interpolatePoint.h + plane.d;
-
-		if(i != 0)
-		{
-			if(dot == 0) //point is in the plane, use current siglayIndex and no interpolation needed
-			{
-				siglay1Index = i;
-				siglay2Index = i;
-				break;
-			}
-			else if(dot > 0 && prevDot < 0 || //The sign of dot has changed so the siglay has been found
-				    dot < 0 && prevDot > 0)
-			{
-				siglay1Index = i - 1;
-				siglay2Index = i;
-				break;
-			}
-			else if(prevDot > 0 && prevDot < dot || //The distance from the plane to the point is increasing so we have passed it.
-					prevDot < 0 && prevDot > dot)   //If this occurs then it means the point is above the 0th siglay, use the 0th siglay
-			{
-				siglay1Index = 0;
-				siglay2Index = 0;
-				break;
-			}
-		}
-
-		prevDot = dot;
-	}
-
-
-	//The dot product was always decreasings however it never changed sign.
-	//Therefore the point is below the final siglay, so use the final siglay.
-	if(siglay1Index == siglay2Index && siglay2Index == -1)
-	{
-		siglay1Index = structure.getNumSiglays() -1;
-		siglay2Index = structure.getNumSiglays() -1;
-	}
-
-
-	float upperH, lowerH;
-
-	if(siglay1Index == siglay2Index) //The point is above the 0th siglay so and there is no data there
-	{
-		siglay1Percent = 1.0;
-	}
-	else
-	{
-		FVCOMStructure::Plane upperPlane = structure.getTriangleSiglayPlane(containingTriangle, siglay1Index);
-		FVCOMStructure::Plane lowerPlane = structure.getTriangleSiglayPlane(containingTriangle, siglay2Index);
-
-		float upperH = (-upperPlane.d - upperPlane.a * interpolatePoint.x - upperPlane.b * interpolatePoint.y) / upperPlane.c;
-		float lowerH = (-lowerPlane.d - lowerPlane.a * interpolatePoint.x - lowerPlane.b * interpolatePoint.y) / lowerPlane.c;
-
-		siglay1Percent = (lowerH - interpolatePoint.h) / (lowerH - upperH);
-	}
-	
-}
-
 
 FVCOMChunk::NodeData FVCOM::barycentricInterpolation(const FVCOMStructure::point& interpolatePoint, int siglayIndex, int timeIndex)
 {

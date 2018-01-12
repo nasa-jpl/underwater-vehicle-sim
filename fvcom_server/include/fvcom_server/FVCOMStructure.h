@@ -217,6 +217,25 @@ public:
 
 	const int getNumSiglays() const;
 
+	/**
+	 * Gets the index and percentage for linear interpolation of time
+	 * @param time Time to interpolate with
+	 * @param time1Index Output for the first time index for interpolation
+	 * @param time2Index Output for the second time index for the interpolation
+	 * @param time1Percent Output for the percent for time1Index for interpolation
+	 */
+	void timeInterpolation(float time, int& time1Index, int& time2Index, double& time1Percent);
+
+	/**
+	 * Gets the index and percentage for linear interpolation of time
+	 * @param interpolatePoint Point to interpolate with
+	 * @param siglay1Index Output for the first siglay index for interpolation
+	 * @param siglay2Index Output for the second siglay index for the interpolation
+	 * @param siglay1Percent Output for the percent for siglay1Index for interpolation
+	 */
+	void siglayInterpolation(FVCOMStructure::point& interpolatePoint, int& siglay1Index, int& siglay2Index, double& siglay1Percent);
+
+
 private:
 
 	/**
