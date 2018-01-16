@@ -1,6 +1,5 @@
 #include "fvcom/FVCOMStructure.h"
 #include "fvcom/FVCOM.h"
-#include "ros/ros.h"
 
 #include <netcdf>
 #include <memory>

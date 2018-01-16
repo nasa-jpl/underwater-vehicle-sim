@@ -1,5 +1,8 @@
 #include "ros/ros.h"
+
 #include "model_server/GetModelData.h"
+#include "model_server/ModelData.h"
+
 #include "fvcom/FVCOM.h"
 
 
@@ -8,7 +11,7 @@ FVCOM fvcom;
 bool getModelData(model_server::GetModelData::Request &req,
 				  model_server::GetModelData::Response &res)
 {    
-    FVCOM::FVCOMData data = fvcom.getData(req.x, req.y, req.h, req.time);
+    ModelData data = fvcom.getData(req.x, req.y, req.h, req.time);
     res.u = data.u;
 	res.v = data.v;
 	res.dye = data.dye;

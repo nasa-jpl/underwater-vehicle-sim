@@ -1,6 +1,5 @@
 #include "fvcom/FVCOMChunk.h"
 #include "fvcom/FVCOMStructure.h"
-#include "ros/ros.h"
 
 #include <unordered_map>
 #include <vector>

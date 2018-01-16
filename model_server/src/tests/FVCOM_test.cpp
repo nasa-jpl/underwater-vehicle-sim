@@ -2,6 +2,8 @@
 #include "fvcom/FVCOMChunk.h"
 #include "fvcom/FVCOM.h"
 
+#include "model_server/ModelData.h"
+
 #include <gtest/gtest.h>
 
 
@@ -42,12 +44,12 @@ TEST(FVCOMTest, XYInterpolation)
     p1.y = -9648;
     p1.h = 0;
 
-    FVCOM::FVCOMData data1 = fvcomMultiple.getData(12314, -9648, 0, 0);
+    ModelData data1 = fvcomMultiple.getData(12314, -9648, 0, 0);
     FVCOMStructure::Plane plane1 = structure.getTriangleSiglayPlane(9152, 3);
     float height = (-plane1.d - plane1.a * p1.x - plane1.b * p1.y) / plane1.c;
 
-    FVCOM::FVCOMData data2 = fvcomMultiple.getData(12314, -9648, height, 0);
-    FVCOM::FVCOMData data3 = fvcomMultiple.getData(12314, -9648, height, 0.125);
+    ModelData data2 = fvcomMultiple.getData(12314, -9648, height, 0);
+    ModelData data3 = fvcomMultiple.getData(12314, -9648, height, 0.125);
 
     ASSERT_FLOAT_EQ(3.84160121445, data1.temp);
     ASSERT_FLOAT_EQ(34.312494441, data1.salt);
@@ -88,8 +90,8 @@ TEST(FVCOMTest, TimeInterpolation)
     
     FVCOMStructure::Plane plane1 = structure.getTriangleSiglayPlane(13325, 3);
     float height = (-plane1.d - plane1.a * p1.x - plane1.b * p1.y) / plane1.c;
-    FVCOM::FVCOMData data1 = fvcomMultiple.getData(-96.5869768, 50.2484645, 0, 0.11);
-    FVCOM::FVCOMData data2 = fvcomMultiple.getData(-96.5869768, 50.2484645, height, 0.11);
+    ModelData data1 = fvcomMultiple.getData(-96.5869768, 50.2484645, 0, 0.11);
+    ModelData data2 = fvcomMultiple.getData(-96.5869768, 50.2484645, height, 0.11);
 
 
     ASSERT_FLOAT_EQ(3.84275123598, data1.temp);
@@ -116,7 +118,7 @@ TEST(FVCOMTest, DepthInterpolation)
     //temp: 3.788272445380895, 3.7773765263592396
     //salt: 34.32053112861692, 34.32217315200182
     //dye: 0, 0
-    FVCOM::FVCOMData data1 = fvcomMultiple.getData(-96.5869768, 50.2484645, -70, 0);
+    ModelData data1 = fvcomMultiple.getData(-96.5869768, 50.2484645, -70, 0);
 
     ASSERT_FLOAT_EQ(3.78614325, data1.temp);
     ASSERT_FLOAT_EQ(34.320852, data1.salt);
@@ -147,7 +149,7 @@ TEST(FVCOMTest, AllInterpolation)
     //siglay 6: -0.05118110217154026
 
 
-    FVCOM::FVCOMData data1 = fvcomMultiple.getData(12314, -9648, -89, 0.11);
+    ModelData data1 = fvcomMultiple.getData(12314, -9648, -89, 0.11);
     FVCOMStructure::Plane siglay5 = structure.getTriangleSiglayPlane(9152, 5);
     FVCOMStructure::Plane siglay6 = structure.getTriangleSiglayPlane(9152, 6);
 
@@ -201,18 +203,18 @@ TEST(FVCOMTest, GetDataMultipleFiles) {
 	//h: 2737.259485
 	//siglay: 15
 	//time: 4 in 0001_1
-	FVCOM::FVCOMData data1 = fvcomMultiple.getData(8545.73568, -132697.938, 0, 0);
-	FVCOM::FVCOMData data2 = fvcomMultiple.getData(8545.73568, -132697.938, -334.07498037, 0);
-	FVCOM::FVCOMData data3 = fvcomMultiple.getData(8545.73568, -132697.938, -334.07498037, 0.375);
+	ModelData data1 = fvcomMultiple.getData(8545.73568, -132697.938, 0, 0);
+	ModelData data2 = fvcomMultiple.getData(8545.73568, -132697.938, -334.07498037, 0);
+	ModelData data3 = fvcomMultiple.getData(8545.73568, -132697.938, -334.07498037, 0.375);
 
 	//Test triangle with times in two files
 	//Triangle: 1000
 	//h: 3123.6463423333335
 	//siglay: 15
 	//time: 4 in 0001_1
-	FVCOM::FVCOMData data4 = fvcomMultiple.getData(-138453.56466666667, -25886.79643333335, 0, 0);
-	FVCOM::FVCOMData data5 = fvcomMultiple.getData(-138453.56466666667, -25886.79643333335, -381.232432006, 0);
-	FVCOM::FVCOMData data6 = fvcomMultiple.getData(-138453.56466666667, -25886.79643333335, -381.232432006, 0.375);
+	ModelData data4 = fvcomMultiple.getData(-138453.56466666667, -25886.79643333335, 0, 0);
+	ModelData data5 = fvcomMultiple.getData(-138453.56466666667, -25886.79643333335, -381.232432006, 0);
+	ModelData data6 = fvcomMultiple.getData(-138453.56466666667, -25886.79643333335, -381.232432006, 0.375);
 
 
 	ASSERT_FLOAT_EQ(3.8386462639531507, data1.temp);
@@ -242,7 +244,7 @@ TEST(FVCOMTest, GetDataMultipleFiles) {
 TEST(FVCOMTest, OutOfModelBounds)
 {
 	try {
-        FVCOM::FVCOMData data = fvcomMultiple.getData(300000, 0, 0, 0);
+        ModelData data = fvcomMultiple.getData(300000, 0, 0, 0);
         FAIL() << "Expected std::out_of_range";
     }
     catch(std::out_of_range const & err) {
@@ -250,7 +252,7 @@ TEST(FVCOMTest, OutOfModelBounds)
     }
 
     try {
-        FVCOM::FVCOMData data = fvcomMultiple.getData(-300000, 0, 0, 0);
+        ModelData data = fvcomMultiple.getData(-300000, 0, 0, 0);
         FAIL() << "Expected std::out_of_range";
     }
     catch(std::out_of_range const & err) {
@@ -258,7 +260,7 @@ TEST(FVCOMTest, OutOfModelBounds)
     }
 
     try {
-        FVCOM::FVCOMData data = fvcomMultiple.getData(0, 300000, 0, 0);
+        ModelData data = fvcomMultiple.getData(0, 300000, 0, 0);
         FAIL() << "Expected std::out_of_range";
     }
     catch(std::out_of_range const & err) {
@@ -266,7 +268,7 @@ TEST(FVCOMTest, OutOfModelBounds)
     }
 
     try {
-        FVCOM::FVCOMData data = fvcomMultiple.getData(0, -300000, 0, 0);
+        ModelData data = fvcomMultiple.getData(0, -300000, 0, 0);
         FAIL() << "Expected std::out_of_range";
     }
     catch(std::out_of_range const & err) {
@@ -274,7 +276,7 @@ TEST(FVCOMTest, OutOfModelBounds)
     }
 
     try {
-        FVCOM::FVCOMData data = fvcomMultiple.getData(0, 0, 1, 0);
+        ModelData data = fvcomMultiple.getData(0, 0, 1, 0);
         FAIL() << "Expected std::out_of_range";
     }
     catch(std::out_of_range const & err) {
@@ -282,7 +284,7 @@ TEST(FVCOMTest, OutOfModelBounds)
     }
 
     try {
-        FVCOM::FVCOMData data = fvcomMultiple.getData(0, 0, 10000, 0);
+        ModelData data = fvcomMultiple.getData(0, 0, 10000, 0);
         FAIL() << "Expected std::out_of_range";
     }
     catch(std::out_of_range const & err) {
@@ -290,7 +292,7 @@ TEST(FVCOMTest, OutOfModelBounds)
     }
 
     try {
-        FVCOM::FVCOMData data = fvcomMultiple.getData(0, 0, 0, -0.1);
+        ModelData data = fvcomMultiple.getData(0, 0, 0, -0.1);
         FAIL() << "Expected std::out_of_range";
     }
     catch(std::out_of_range const & err) {
@@ -298,7 +300,7 @@ TEST(FVCOMTest, OutOfModelBounds)
     }
 
     try {
-        FVCOM::FVCOMData data = fvcomMultiple.getData(0, 0, 0, 1.0);
+        ModelData data = fvcomMultiple.getData(0, 0, 0, 1.0);
         FAIL() << "Expected std::out_of_range";
     }
     catch(std::out_of_range const & err) {
@@ -309,7 +311,7 @@ TEST(FVCOMTest, OutOfModelBounds)
 TEST(FVCOMTest, ModelEdge) {
 	//Test node at edge of model
 	//Node: 180
-	FVCOM::FVCOMData data = fvcomMultiple.getData(150000, 150000, 0, 0);
+	ModelData data = fvcomMultiple.getData(150000, 150000, 0, 0);
 	ASSERT_FLOAT_EQ(3.8387627679688694, data.temp);
 	ASSERT_FLOAT_EQ(34.31292219813244, data.salt);
 	ASSERT_FLOAT_EQ(0.0, data.dye);

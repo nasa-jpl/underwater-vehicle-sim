@@ -13,23 +13,15 @@
 #include "fvcom/FVCOMChunk.h"
 #include "fvcom/LRUCache.h"
 
-
+#include "model_server/ModelInterface.h"
+#include "model_server/ModelData.h"
 /**
  * Class used to load and query FVCOM data
  */
-class FVCOM
+class FVCOM : public ModelInterface
 {
 public:
 
-	struct FVCOMData
-	{
-		float u;
-		float v;
-		float temp;
-		float salt;
-		float dye;
-	};
-	
 	/**
 	 * Initalize FVCOM class with no data file,
      */
@@ -56,7 +48,7 @@ public:
 								unsigned int cacheSize);
 
 
-	const FVCOM::FVCOMData getData(float x, float y, float height, float time);
+	const ModelData getData(float x, float y, float height, float time);
 
 private:
 
@@ -78,7 +70,7 @@ private:
 	 */
 	const FVCOMChunk::TriangleData& getTriangleData(int triangle, int siglayTriangleIndex, int timeIndex);
 
-	FVCOM::FVCOMData interpolate(FVCOMStructure::point p, float time);
+	ModelData interpolate(FVCOMStructure::point p, float time);
 	FVCOMChunk::NodeData barycentricInterpolation(const FVCOMStructure::point& interpolatedPoint, int siglayIndex, int timeIndex);
 	const double areaOfTriangle(const FVCOMStructure::point& p1, const FVCOMStructure::point& p2, const FVCOMStructure::point& p3);
 

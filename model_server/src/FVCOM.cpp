@@ -1,4 +1,5 @@
 #include "fvcom/FVCOM.h"
+#include "model_server/ModelData.h"
 #include "ros/ros.h"
 
 #include <stdexcept>
@@ -16,7 +17,7 @@ FVCOM::FVCOM(std::string filename, unsigned int xChunkSize, unsigned int yChunkS
 	structure(FVCOMStructure(filename, xChunkSize, yChunkSize, siglayChunkSize, timeChunkSize))
 {}
 
-FVCOM::FVCOMData FVCOM::interpolate(FVCOMStructure::point interpolatePoint, float time)
+ModelData FVCOM::interpolate(FVCOMStructure::point interpolatePoint, float time)
 {	
 	int time1Index, time2Index;
 	double time1Percent;
@@ -57,7 +58,7 @@ FVCOM::FVCOMData FVCOM::interpolate(FVCOMStructure::point interpolatePoint, floa
 
 
 	//Interpolate siglay
-	FVCOM::FVCOMData returnData;
+	ModelData returnData;
 
 	returnData.dye = siglay1Data.dye * siglay1Percent + siglay2Data.dye * (1 - siglay1Percent);
 	returnData.temp = siglay1Data.temp * siglay1Percent + siglay2Data.temp * (1 - siglay1Percent);
@@ -114,7 +115,7 @@ const double FVCOM::areaOfTriangle(const FVCOMStructure::point& p1, const FVCOMS
 	return sqrt(s * (s - a) * (s - b) * (s - c));
 }
 
-const FVCOM::FVCOMData FVCOM::getData(float x, float y, float height, float time)
+const ModelData FVCOM::getData(float x, float y, float height, float time)
 {
 	FVCOMStructure::point interpolatePoint;
 	interpolatePoint.x = x;
