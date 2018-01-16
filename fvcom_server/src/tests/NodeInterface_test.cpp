@@ -14,6 +14,8 @@ TEST(NodeInterface, GetFVCOMDataTest){
 	fvcom_server::GetFVCOMData srv5;
 	fvcom_server::GetFVCOMData srv6;
 
+	fvcom_server::GetFVCOMData srv7;
+	fvcom_server::GetFVCOMData srv8;
 
 	srv1.request.x = 8545.73568;
 	srv1.request.y = -132697.938;
@@ -45,6 +47,16 @@ TEST(NodeInterface, GetFVCOMDataTest){
 	srv6.request.h = -381.232432006;
 	srv6.request.time = 0.375;
 
+	srv7.request.x = 12314;
+	srv7.request.y = -9648;
+	srv7.request.h = -89;
+	srv7.request.time = 0.11;
+
+	srv8.request.x = -96.5869768;
+	srv8.request.y = 50.2484645;
+	srv8.request.h = -70;
+	srv8.request.time = 0;
+
 
 	bool exists = client.waitForExistence(ros::Duration(5));
 
@@ -58,6 +70,8 @@ TEST(NodeInterface, GetFVCOMDataTest){
 	client.call(srv5);
 	client.call(srv6);
 
+	client.call(srv7);
+	client.call(srv8);
 
 	ASSERT_FLOAT_EQ(3.8386462639531507, srv1.response.temp);
 	ASSERT_FLOAT_EQ(34.3129397553773, srv1.response.salt);
@@ -80,6 +94,17 @@ TEST(NodeInterface, GetFVCOMDataTest){
 	ASSERT_FLOAT_EQ(0.00038683573810392144, srv6.response.u);
 	ASSERT_FLOAT_EQ(-0.0019926347599095754, srv6.response.v);
 
+	ASSERT_FLOAT_EQ(3.7692957782, srv7.response.temp);
+	ASSERT_FLOAT_EQ(34.3233909259, srv7.response.salt);
+	ASSERT_FLOAT_EQ(0.0, srv7.response.dye);
+	EXPECT_NEAR(-5.013343914645146E-4, srv7.response.u, 0.0000000001);
+	EXPECT_NEAR(8.049376608763285E-4 , srv7.response.v, 0.0000000001);
+    
+
+	ASSERT_FLOAT_EQ(3.78614325, srv8.response.temp);
+    ASSERT_FLOAT_EQ(34.320852, srv8.response.salt);
+    ASSERT_FLOAT_EQ(0.0, srv8.response.dye);
+   
 }
 
 

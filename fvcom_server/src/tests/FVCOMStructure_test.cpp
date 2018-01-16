@@ -2,6 +2,167 @@
 #include <gtest/gtest.h>
 
 const FVCOMStructure structure("test_data/box_plume_split", 10, 10, 10, 10);
+FVCOMStructure structureAxial("test_data/axial_data_test", 1000, 1000, 10, 10);
+
+TEST(FVCOMStructureTest, InterpolateTime)
+{
+
+	int time1IndexExact = 0;
+	int time2IndexExact = 0;
+	double time1PercentExact = 0.0;
+	structureAxial.timeInterpolation(0.125, time1IndexExact, time2IndexExact, time1PercentExact);
+
+
+	//Inbetween indicies
+	int time1IndexBetween = 0;
+	int time2IndexBetween = 0;
+	double time1PercentBetween = 0.0;
+	structureAxial.timeInterpolation(0.22, time1IndexBetween, time2IndexBetween, time1PercentBetween);
+
+	//Exactly on index
+	ASSERT_EQ(3, time1IndexExact);
+	ASSERT_EQ(3, time2IndexExact);
+	ASSERT_FLOAT_EQ(1.0, time1PercentExact);
+
+	//Inbetween indicies
+	ASSERT_EQ(5, time1IndexBetween);
+	ASSERT_EQ(6, time2IndexBetween);
+	ASSERT_FLOAT_EQ(0.72, time1PercentBetween);
+}
+
+TEST(FVCOMStructureTest, GetTriangleSiglayPlane)
+{
+	//100
+	//51, 290, 291
+	//h: 3200.0, 3200.0, 3200.0
+	// (-150000.0, -105000.0), (-145675.094, -103157.913), (-145675.008, -108157.064)
+	//siglay 0: -0.003937007859349251
+	//siglay 1: -0.027559055015444756
+	FVCOMStructure::Plane plane0 = structureAxial.getTriangleSiglayPlane(100, 0);
+	FVCOMStructure::Plane plane1 = structureAxial.getTriangleSiglayPlane(100, 3);
+
+	ASSERT_FLOAT_EQ(0, plane0.a);
+	ASSERT_FLOAT_EQ(0, plane0.b);
+	ASSERT_FLOAT_EQ(-1, plane0.c);
+	ASSERT_FLOAT_EQ(-12.5984251499, plane0.d);
+
+	ASSERT_FLOAT_EQ(0, plane1.a);
+	ASSERT_FLOAT_EQ(0, plane1.b);
+	ASSERT_FLOAT_EQ(-1, plane1.c);
+	ASSERT_FLOAT_EQ(-88.1889760494, plane1.d);
+}
+
+TEST(FVCOMStructureTest, CreatePlane)
+{
+	FVCOMStructure::point p0;
+	FVCOMStructure::point p1;
+	FVCOMStructure::point p2;
+
+	p0.x = 10;
+	p0.y = 10;
+	p0.h = -10;
+	p1.x = -5;
+	p1.y = -3;
+	p1.h = -5;
+	p2.x = -1;
+	p2.y = -7;
+	p2.h = -2;
+
+	//v1: 15,13,-5
+	//v2: 11,17,-8
+	//cross: -19; 65; 112
+	//cross normalized: -0.235244, 0.794745, -0.5595
+	FVCOMStructure::Plane plane0(p0, p1, p2);
+	
+	ASSERT_FLOAT_EQ(-0.14516935, plane0.a);
+	ASSERT_FLOAT_EQ(0.496632, plane0.b);
+	ASSERT_FLOAT_EQ(0.855735, plane0.c);
+	ASSERT_FLOAT_EQ(5.0427235, plane0.d);
+}
+
+
+TEST(FVCOMStructureTest, InterpolateSiglay)
+{
+
+	//Above first siglay
+	FVCOMStructure::point p0;
+	p0.x = 0;
+	p0.y = 0;
+	p0.h = -5;
+
+	int siglay1IndexP0 = 1;
+	int siglay2IndexP0 = 1;
+	double siglay1PercentP0 = 0;
+
+	structureAxial.siglayInterpolation(p0, siglay1IndexP0, siglay2IndexP0, siglay1PercentP0);
+
+	//Below last siglay
+	FVCOMStructure::point p1;
+	p1.x = 50000.0;
+	p1.y = -150000.0;
+	p1.h = -2798;
+
+	int siglay1IndexP1 = 0;
+	int siglay2IndexP1 = 0;
+	double siglay1PercentP1 = 0;
+
+	structureAxial.siglayInterpolation(p1, siglay1IndexP1, siglay2IndexP1, siglay1PercentP1);
+
+
+	ASSERT_EQ(29, siglay1IndexP1);
+	ASSERT_EQ(29, siglay2IndexP1);
+	ASSERT_FLOAT_EQ(1.0, siglay1PercentP1);
+
+
+	//On siglay
+	FVCOMStructure::point p2;
+	p2.x = 0;
+	p2.y = 0;
+	p2.h = 0;
+
+	int siglay1IndexP2 = 0;
+	int siglay2IndexP2 = 0;
+	double siglay1PercentP2 = 0;
+
+	
+	int triangle2 = structureAxial.getContainingTriangle(p2);
+	FVCOMStructure::Plane plane2 = structureAxial.getTriangleSiglayPlane(triangle2, 18);
+	p2.h = (-plane2.d - plane2.a * p2.x - plane2.b * p2.y) / plane2.c;
+
+	structureAxial.siglayInterpolation(p2, siglay1IndexP2, siglay2IndexP2, siglay1PercentP2);
+
+	ASSERT_EQ(18, siglay1IndexP2);
+	ASSERT_EQ(18, siglay2IndexP2);
+	ASSERT_FLOAT_EQ(1.0, siglay1PercentP1);
+
+
+	//Middle siglay	
+	//6781, 6783, 6782 (index)
+	//1555.529154
+	// siglay 7,8
+	FVCOMStructure::point p3;
+	p3.x = 0;
+	p3.y = 0;
+	p3.h = -100;
+
+	int siglay1IndexP3 = 0;
+	int siglay2IndexP3 = 0;
+	double siglay1PercentP3 = 0;
+
+	structureAxial.siglayInterpolation(p3, siglay1IndexP3, siglay2IndexP3, siglay1PercentP3);
+
+	FVCOMStructure::Plane plane3a = structureAxial.getTriangleSiglayPlane(13325, 7);
+	FVCOMStructure::Plane plane3b = structureAxial.getTriangleSiglayPlane(13325, 8);
+
+	float upperH = (-plane3a.d - plane3a.a * p3.x - plane3a.b * p3.y) / plane3a.c;
+	float lowerH = (-plane3b.d - plane3b.a * p3.x - plane3b.b * p3.y) / plane3b.c;
+
+
+
+	ASSERT_EQ(7, siglay1IndexP3);
+	ASSERT_EQ(8, siglay2IndexP3);
+	ASSERT_FLOAT_EQ((lowerH - p3.h) / (lowerH - upperH), siglay1PercentP3);
+}
 
 
 TEST(FVCOMStructureTest, GetClosestTime) {

@@ -25,6 +25,33 @@ FVCOMStructure::FVCOMStructure(const std::string filename, int xChunkSize, int y
 	splitIntoChunks();
 }
 
+FVCOMStructure::Plane::Plane() {}
+
+FVCOMStructure::Plane::Plane(FVCOMStructure::point& p0, FVCOMStructure::point& p1, FVCOMStructure::point& p2)
+{
+	double ab[3];
+	double ac[3];
+
+	ab[0] = p1.x - p0.x;
+	ab[1] = p1.y - p0.y;
+	ab[2] = p1.h - p0.h;
+
+	ac[0] = p2.x - p0.x;
+	ac[1] = p2.y - p0.y;
+	ac[2] = p2.h - p0.h;
+
+	a = (ab[1] * ac[2]) - (ab[2] * ac[1]);
+	b = (ab[2] * ac[0]) - (ab[0] * ac[2]);
+	c = (ab[0] * ac[1]) - (ab[1] * ac[0]);
+
+	double magnitude = sqrt(a * a +  b * b +  c * c);
+	a /= magnitude;
+	b /= magnitude;
+	c /= magnitude;
+
+	d = -(p0.x * a + p0.y * b + p0.h * c);
+}
+
 std::vector<std::string> FVCOMStructure::traverseDataFiles(const std::string filename)
 {
 	std::vector<std::string> filenames;
@@ -231,7 +258,6 @@ void FVCOMStructure::splitIntoChunks()
 
 	nodesInChunk.resize(xDimChunks * yDimChunks);
 	trianglesInChunk.resize(xDimChunks * yDimChunks);
-
 	for(unsigned int i = 0; i < nodes.size(); i++)
 	{
 		FVCOMStructure::ChunkInfo chunk = getChunkForNode(i, 0, 0);
@@ -426,28 +452,8 @@ FVCOMStructure::Plane FVCOMStructure::getTriangleSiglayPlane(int triangle, unsig
 	FVCOMStructure::point p0 = getNodePoint(surroundingNodes[0], siglay);
 	FVCOMStructure::point p1 = getNodePoint(surroundingNodes[1], siglay);
 	FVCOMStructure::point p2 = getNodePoint(surroundingNodes[2], siglay);
-	double ab[3];
-	double ac[3];
-
-	ab[0] = p1.x - p0.x;
-	ab[1] = p1.y - p0.y;
-	ab[2] = p1.h - p0.h;
-
-	ac[0] = p2.x - p0.x;
-	ac[1] = p2.y - p0.y;
-	ac[2] = p2.h - p0.h;
-
-	FVCOMStructure::Plane plane;
-	plane.a = (ab[1] * ac[2]) - (ab[2] * ac[1]);
-	plane.b = (ab[2] * ac[0]) - (ab[0] * ac[2]);
-	plane.c = (ab[0] * ac[1]) - (ab[1] * ac[0]);
-
-	double magnitude = sqrt(plane.a * plane.a +  plane.b * plane.b +  plane.c * plane.c);
-	plane.a /= magnitude;
-	plane.b /= magnitude;
-	plane.c /= magnitude;
-
-	plane.d = -(p0.x * plane.a + p0.y * plane.b + p0.h * plane.c);
+	
+	FVCOMStructure::Plane plane(p0, p1, p2);
 
 	return plane;
 }
@@ -605,6 +611,7 @@ void FVCOMStructure::timeInterpolation(float time, int& time1Index, int& time2In
 	}
 	else //time is spilt between divisions so it needs interpolation
 	{
+		time2Index = time1Index + 1;
 		float nextTime = getTime(time2Index);
 		time1Percent = (nextTime - time) / (nextTime - previousTime);
 	}

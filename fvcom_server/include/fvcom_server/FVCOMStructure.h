@@ -33,14 +33,6 @@ public:
      */
 	FVCOMStructure();
 
-	struct Plane
-	{
-		float a;
-		float b;
-		float c;
-		float d;
-	};
-
 	/**
 	 * Struct to group a (x, y, height) point
      */
@@ -61,6 +53,20 @@ public:
 		 */
 		float h;
 	};
+
+	struct Plane
+	{
+		float a;
+		float b;
+		float c;
+		float d;
+
+		Plane();
+		Plane(FVCOMStructure::point& p0, FVCOMStructure::point& p1, FVCOMStructure::point& p2);
+	};
+
+	
+	
 
 	struct ChunkInfo
 	{
