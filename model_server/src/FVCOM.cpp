@@ -1,4 +1,4 @@
-#include "fvcom_server/FVCOM.h"
+#include "fvcom/FVCOM.h"
 #include "ros/ros.h"
 
 #include <stdexcept>

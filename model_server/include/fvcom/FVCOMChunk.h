@@ -7,7 +7,7 @@
 
 #include <netcdf>
 
-#include "fvcom_server/FVCOMStructure.h"
+#include "fvcom/FVCOMStructure.h"
 
 class FVCOMChunk
 {

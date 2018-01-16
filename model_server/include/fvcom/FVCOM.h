@@ -9,9 +9,9 @@
 #include <netcdf>
 #include <exception>
 
-#include "fvcom_server/FVCOMStructure.h"
-#include "fvcom_server/FVCOMChunk.h"
-#include "fvcom_server/LRUCache.h"
+#include "fvcom/FVCOMStructure.h"
+#include "fvcom/FVCOMChunk.h"
+#include "fvcom/LRUCache.h"
 
 
 /**

@@ -1,4 +1,4 @@
-#include "fvcom_server/FVCOMStructure.h"
+#include "fvcom/FVCOMStructure.h"
 #include <gtest/gtest.h>
 
 const FVCOMStructure structure("test_data/box_plume_split", 10, 10, 10, 10);

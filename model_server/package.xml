@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>fvcom_server</name>
+  <name>model_server</name>
   <version>0.0.0</version>
-  <description>The fvcom_loader package</description>
+  <description>The model_server package</description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag -->
   <!-- Example:  -->

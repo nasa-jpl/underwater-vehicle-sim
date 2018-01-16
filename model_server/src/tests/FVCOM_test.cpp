@@ -1,6 +1,6 @@
-#include "fvcom_server/FVCOMStructure.h"
-#include "fvcom_server/FVCOMChunk.h"
-#include "fvcom_server/FVCOM.h"
+#include "fvcom/FVCOMStructure.h"
+#include "fvcom/FVCOMChunk.h"
+#include "fvcom/FVCOM.h"
 
 #include <gtest/gtest.h>
 
@@ -190,8 +190,6 @@ TEST(FVCOMTest, AllInterpolation)
     unsigned int triangle = structure.getContainingTriangle(p1);
     unsigned int siglayTriangleIndex = structure.getClosestTriangleSiglay(p1);
     unsigned int closestTimeIndex = structure.getClosestTime(0.11);
-    std::cout << triangle << " " << siglayTriangleIndex << " " << closestTimeIndex << std::endl;
-
 }
 
 

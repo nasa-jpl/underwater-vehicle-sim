@@ -1,12 +1,12 @@
 #include "ros/ros.h"
-#include "fvcom_server/GetFVCOMData.h"
-#include "fvcom_server/FVCOM.h"
+#include "model_server/GetModelData.h"
+#include "fvcom/FVCOM.h"
 
 
 FVCOM fvcom;
 
-bool getFVCOMData(fvcom_server::GetFVCOMData::Request &req,
-				  fvcom_server::GetFVCOMData::Response &res)
+bool getModelData(model_server::GetModelData::Request &req,
+				  model_server::GetModelData::Response &res)
 {    
     FVCOM::FVCOMData data = fvcom.getData(req.x, req.y, req.h, req.time);
     res.u = data.u;
@@ -33,7 +33,7 @@ int main(int argc, char **argv)
 
     fvcom = FVCOM(fvcom_directory, 1000, 1000, 10, 10, 100);
 
-    ros::ServiceServer service = n.advertiseService("get_fvcom_data", getFVCOMData);
+    ros::ServiceServer service = n.advertiseService("get_model_data", getModelData);
   	ROS_INFO("FVCOM Model Loaded");
 
     ros::spin();

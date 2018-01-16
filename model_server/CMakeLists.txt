@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(fvcom_server)
+project(model_server)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
  add_compile_options(-std=c++11)
@@ -57,7 +57,7 @@ find_package(NetCDF REQUIRED)
 ## Generate services in the 'srv' folder
  add_service_files(
    FILES
-   GetFVCOMData.srv
+   GetModelData.srv
  )
 
 ## Generate actions in the 'action' folder
@@ -104,7 +104,7 @@ find_package(NetCDF REQUIRED)
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
   INCLUDE_DIRS include
-#  LIBRARIES fvcom_server
+  LIBRARIES fvcom
   CATKIN_DEPENDS roscpp std_msgs message_runtime
 #  DEPENDS system_lib
 )
@@ -137,7 +137,7 @@ include_directories(
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
- add_executable(${PROJECT_NAME}_node src/FVCOMServerNode.cpp src/FVCOM.cpp src/FVCOMStructure.cpp src/FVCOMChunk.cpp)
+ add_executable(${PROJECT_NAME}_node src/ModelServerNode.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -151,6 +151,7 @@ include_directories(
 
 ## Specify libraries to link a library or executable target against
  target_link_libraries(${PROJECT_NAME}_node
+   fvcom
    ${catkin_LIBRARIES}
    ${NETCDF_LIBRARIES}
    stdc++fs
@@ -201,13 +202,14 @@ if (CATKIN_ENABLE_TESTING)
  catkin_add_gtest(fvcom_structure_test src/tests/FVCOMStructure_test.cpp WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
  catkin_add_gtest(fvcom_chunk_test src/tests/FVCOMChunk_test.cpp WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
  catkin_add_gtest(fvcom_test src/tests/FVCOM_test.cpp WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+
  target_link_libraries(lru_cache_test ${catkin_LIBRARIES} stdc++fs)
  target_link_libraries(fvcom_structure_test fvcom ${catkin_LIBRARIES} ${NETCDF_LIBRARIES} stdc++fs)
  target_link_libraries(fvcom_chunk_test fvcom ${catkin_LIBRARIES} ${NETCDF_LIBRARIES} stdc++fs)
  target_link_libraries(fvcom_test fvcom ${catkin_LIBRARIES} ${NETCDF_LIBRARIES} stdc++fs)
 
- add_rostest_gtest(fvcom_node_interface_test tests/NodeInterface.test src/tests/NodeInterface_test.cpp)
- target_link_libraries(fvcom_node_interface_test fvcom ${catkin_LIBRARIES} ${NETCDF_LIBRARIES} stdc++fs)
+ add_rostest_gtest(model_node_interface_test tests/NodeInterface.test src/tests/NodeInterface_test.cpp)
+ target_link_libraries(model_node_interface_test fvcom ${catkin_LIBRARIES} ${NETCDF_LIBRARIES} stdc++fs)
 
 endif()
 

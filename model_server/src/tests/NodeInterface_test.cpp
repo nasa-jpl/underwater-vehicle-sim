@@ -1,21 +1,21 @@
 #include <gtest/gtest.h>
 
 #include "ros/ros.h"
-#include "fvcom_server/GetFVCOMData.h"
+#include "model_server/GetModelData.h"
 
 ros::ServiceClient client;
 
 TEST(NodeInterface, GetFVCOMDataTest){
-	fvcom_server::GetFVCOMData srv1;
-	fvcom_server::GetFVCOMData srv2;
-	fvcom_server::GetFVCOMData srv3;
+	model_server::GetModelData srv1;
+	model_server::GetModelData srv2;
+	model_server::GetModelData srv3;
 
-	fvcom_server::GetFVCOMData srv4;
-	fvcom_server::GetFVCOMData srv5;
-	fvcom_server::GetFVCOMData srv6;
+	model_server::GetModelData srv4;
+	model_server::GetModelData srv5;
+	model_server::GetModelData srv6;
 
-	fvcom_server::GetFVCOMData srv7;
-	fvcom_server::GetFVCOMData srv8;
+	model_server::GetModelData srv7;
+	model_server::GetModelData srv8;
 
 	srv1.request.x = 8545.73568;
 	srv1.request.y = -132697.938;
@@ -116,7 +116,7 @@ int main(int argc, char** argv){
 
   ros::NodeHandle n;
 
-  client = n.serviceClient<fvcom_server::GetFVCOMData>("get_fvcom_data");
+  client = n.serviceClient<model_server::GetModelData>("get_model_data");
 
   return RUN_ALL_TESTS();
 }
