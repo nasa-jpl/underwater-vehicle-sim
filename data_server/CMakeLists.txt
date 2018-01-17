@@ -9,6 +9,7 @@ project(data_server)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED
   roscpp
+  underwater_vehicle_sim
 )
 
 ## System dependencies are found with CMake's conventions
@@ -68,7 +69,7 @@ find_package(catkin REQUIRED
 ## Generate added messages and services with any dependencies listed here
 # generate_messages(
 #   DEPENDENCIES
-#   std_msgs  # Or other packages containing msgs
+#   underwater_vehicle_sim  # Or other packages containing msgs
 # )
 
 ################################################
@@ -102,8 +103,8 @@ find_package(catkin REQUIRED
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
   INCLUDE_DIRS include
-#  LIBRARIES data_server
-#  CATKIN_DEPENDS other_catkin_pkg
+  LIBRARIES data_server
+  CATKIN_DEPENDS roscpp message_runtime
 #  DEPENDS system_lib
 )
 
