@@ -3,6 +3,9 @@
 
 #include "ros/ros.h"
 
+#include "tf/transform_broadcaster.h"
+#include "tf/transform_listener.h"
+
 class GeneralModule
 {
 public:
@@ -10,9 +13,9 @@ public:
 
 	virtual ~GeneralModule(){}
 
-	virtual void update()=0;
+	virtual void update(const ros::Time& lastTime, const tf::Vector3& position)=0;
 
-private:
+protected:
 	ros::NodeHandle nh;
 };
 

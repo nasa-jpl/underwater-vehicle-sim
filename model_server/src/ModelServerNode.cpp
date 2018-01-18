@@ -27,7 +27,7 @@ bool getModelData(model_server::GetModelData::Request &req,
 
 int main(int argc, char **argv)
 {
-    ros::init(argc, argv, "fvcom_server");
+    ros::init(argc, argv, "model_server");
     ros::NodeHandle n;
 
     
@@ -75,7 +75,7 @@ int main(int argc, char **argv)
     
 
     ros::ServiceServer service = n.advertiseService("get_model_data", getModelData);
-  	ROS_INFO("FVCOM Model Loaded");
+  	ROS_INFO("Model Loaded");
 
     ros::spin();
 }

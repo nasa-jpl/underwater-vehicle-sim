@@ -109,7 +109,7 @@ public:
 		 */
 		unsigned int timeDim;
 
-		bool operator<(const ModelFile& rhs) const { startTime < rhs.startTime; }
+		bool operator<(const ModelFile& rhs) const { return startTime < rhs.startTime; }
 	};
 
 	/**

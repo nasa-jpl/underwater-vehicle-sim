@@ -124,8 +124,10 @@ catkin_package(
 ##Declare a C++ library
  add_library(underwater_vehicles
    src/vehicles/Vehicle.cpp
+   src/vehicles/GeneralModule.cpp
    src/vehicles/PropulsionModule.cpp
    src/vehicles/FourDOFPropulsion.cpp
+   src/vehicles/DataRecorderModule.cpp
  )
 
  target_link_libraries(underwater_vehicles ${catkin_LIBRARIES})

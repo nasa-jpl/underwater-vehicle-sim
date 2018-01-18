@@ -75,7 +75,7 @@ private:
 	/**
 	 * Modules to handle all other vehicle tasks
 	 */
-	std::vector<GeneralModule> modules;
+	std::vector<std::unique_ptr<GeneralModule>> modules;
 
 	/**
 	 * name of the vehicle

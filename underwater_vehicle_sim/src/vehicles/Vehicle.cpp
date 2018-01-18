@@ -7,6 +7,7 @@
 #include "vehicles/GeneralModule.h"
 #include "vehicles/PropulsionModule.h"
 
+#include "vehicles/DataRecorderModule.h"
 #include "vehicles/FourDOFPropulsion.h"
 
 Vehicle::Vehicle(std::string name, ros::NodeHandle& parentNH) :
@@ -66,7 +67,8 @@ void Vehicle::initalizePropulsionModule()
 
 void Vehicle::initalizeGeneralModules()
 {
-
+	std::unique_ptr<GeneralModule> module(new DataRecorderModule("data_recorder", nh));
+	modules.push_back(std::move(module));
 }
 
 void Vehicle::update()
@@ -80,9 +82,9 @@ void Vehicle::update()
 	broadcastTransform();
 
 	//update all modules
-	for(GeneralModule& module : modules)
+	for(std::unique_ptr<GeneralModule>& module : modules)
 	{
-		module.update();
+		module->update(lastTransformTime, position);
 	}
 }
 
