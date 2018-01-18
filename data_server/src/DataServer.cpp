@@ -23,7 +23,6 @@ DataServer::DataServer(std::string filename)
 	{
 		throw DataServer::SaveError("Invalid file type");
 	}
-	
 }
 
 void DataServer::putData(std::string sourceName, DataServer::DataServerEntry entry)
@@ -131,7 +130,7 @@ void DataServer::loadFromCSVFile(std::string filename)
 				newEntry.salt = std::stof(splitLine[6]);
 				newEntry.dye = std::stof(splitLine[7]);
 				putData(splitLine[0], newEntry);
-				
+
 	    	}
     	}
 		file.close();
