@@ -67,8 +67,13 @@ void Vehicle::initalizePropulsionModule()
 
 void Vehicle::initalizeGeneralModules()
 {
-	std::unique_ptr<GeneralModule> module(new DataRecorderModule("data_recorder", nh));
-	modules.push_back(std::move(module));
+	std::vector<std::string> moduleNames;
+	nh.getParam("moduleNames", moduleNames);
+
+	for(std::string& name : moduleNames)
+	{
+		modules.push_back(GeneralModule::makeGeneralModule(name, nh));
+	}
 }
 
 void Vehicle::update()

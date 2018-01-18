@@ -15,6 +15,8 @@ public:
 
 	virtual void update(const ros::Time& lastTime, const tf::Vector3& position)=0;
 
+	static std::unique_ptr<GeneralModule> makeGeneralModule(std::string moduleName, ros::NodeHandle& parentNH);
+
 protected:
 	ros::NodeHandle nh;
 };

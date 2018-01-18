@@ -8,6 +8,8 @@
 #include "underwater_vehicle_sim/VehicleData.h"
 #include "vehicles/DataRecorderModule.h"
 
+#define SECONDS_IN_DAY 86400
+
 DataRecorderModule::DataRecorderModule(std::string name, ros::NodeHandle& parentNH) :
 	GeneralModule(name, parentNH)
 {
@@ -22,8 +24,7 @@ void DataRecorderModule::update(const ros::Time& lastTime, const tf::Vector3& po
 	srv.request.x = position.getX();
 	srv.request.y = position.getY();
 	srv.request.h = position.getZ();
-	srv.request.time = lastTime.toSec() / 86400; //convert from seconds to days
-
+	srv.request.time = lastTime.toSec() / SECONDS_IN_DAY; //convert from seconds to days
 
 	client.call(srv);
 
@@ -32,7 +33,7 @@ void DataRecorderModule::update(const ros::Time& lastTime, const tf::Vector3& po
 	data.x = position.getX();
 	data.y = position.getY();
 	data.h = position.getZ();
-	data.time = lastTime.toSec() / 86400;
+	data.time = lastTime.toSec() / SECONDS_IN_DAY;
 	data.temp = srv.response.temp;
 	data.salt = srv.response.salt;
 	data.dye = srv.response.dye;
