@@ -17,6 +17,8 @@ public:
 	*/
 	virtual void move(ros::Time& lastTime, tf::Quaternion& rotation, tf::Vector3& position)=0;
 
+	void moveAtRate(ros::Time& lastTime, tf::Quaternion& rotation, tf::Vector3& position);
+
 	/**
 	* Creates a propulsion module using the parameters from the parameter server
 	* @oaram moduleName The name of the module which is used for parameters
@@ -27,6 +29,10 @@ public:
 protected:
 	std::string name;
 	ros::NodeHandle nh;
+
+	ros::Time lastUpdate;
+	bool useHertz;
+	float hertz;
 };
 
 #endif

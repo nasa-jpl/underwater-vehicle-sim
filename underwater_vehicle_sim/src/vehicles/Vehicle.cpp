@@ -81,7 +81,7 @@ void Vehicle::update()
 	//move the frame using the propulsion module and broadcast it
 	if(propulsionModule)
 	{
-		propulsionModule->move(lastTransformTime, rotation, position);
+		propulsionModule->moveAtRate(lastTransformTime, rotation, position);
 	}
 
 	broadcastTransform();
@@ -89,7 +89,7 @@ void Vehicle::update()
 	//update all modules
 	for(std::unique_ptr<GeneralModule>& module : modules)
 	{
-		module->update(name, lastTransformTime, position);
+		module->updateAtRate(name, lastTransformTime, position);
 	}
 }
 

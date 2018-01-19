@@ -41,7 +41,3 @@ void DataRecorderModule::update(std::string name, const ros::Time& lastTime, con
 
 	dataRecorder.publish(data);
 }
-
-
-
-
