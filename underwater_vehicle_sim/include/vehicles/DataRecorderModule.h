@@ -14,7 +14,7 @@ public:
 	DataRecorderModule(std::string name, ros::NodeHandle& parentNH);
 	~DataRecorderModule() {}
 
-	void update(const ros::Time& lastTime, const tf::Vector3& position);
+	void update(std::string name, const ros::Time& lastTime, const tf::Vector3& position);
 
 
 	

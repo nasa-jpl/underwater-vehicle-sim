@@ -49,7 +49,6 @@ std::vector<DataServer::DataServerEntry>::iterator DataServer::getStartTime(std:
 	{
 		throw DataServer::MissingKey(sourceName);
 	}
-
 	std::vector<DataServer::DataServerEntry>& dataList = data[sourceName];
 
 	//Search for time

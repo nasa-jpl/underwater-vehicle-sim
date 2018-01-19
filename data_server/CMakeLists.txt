@@ -198,6 +198,9 @@ target_link_libraries(data_server ${catkin_LIBRARIES} stdc++fs)
    catkin_add_gtest(data_server_test src/tests/DataServer_test.cpp WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 
    target_link_libraries(data_server_test data_server ${catkin_LIBRARIES} stdc++fs)
+
+   add_rostest_gtest(data_server_node_test tests/DataServerNode.test src/tests/DataServerNode_test.cpp)
+   target_link_libraries(data_server_node_test data_server ${catkin_LIBRARIES} ${NETCDF_LIBRARIES} stdc++fs)
  endif()
 
 ## Add folders to be run by python nosetests

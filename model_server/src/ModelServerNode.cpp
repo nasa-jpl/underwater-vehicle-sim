@@ -14,7 +14,7 @@ std::unique_ptr<ModelInterface> model;
 
 bool getModelData(model_server::GetModelData::Request &req,
 				  model_server::GetModelData::Response &res)
-{    
+{   
     ModelData data = model->getData(req.x, req.y, req.h, req.time);
     res.u = data.u;
 	res.v = data.v;
@@ -29,7 +29,6 @@ int main(int argc, char **argv)
 {
     ros::init(argc, argv, "model_server");
     ros::NodeHandle n;
-
     
     std::string model_type;
 

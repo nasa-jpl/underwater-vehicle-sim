@@ -89,7 +89,7 @@ void Vehicle::update()
 	//update all modules
 	for(std::unique_ptr<GeneralModule>& module : modules)
 	{
-		module->update(lastTransformTime, position);
+		module->update(name, lastTransformTime, position);
 	}
 }
 

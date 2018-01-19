@@ -17,7 +17,7 @@ DataRecorderModule::DataRecorderModule(std::string name, ros::NodeHandle& parent
 	client = nh.serviceClient<model_server::GetModelData>("/get_model_data");
 }
 
-void DataRecorderModule::update(const ros::Time& lastTime, const tf::Vector3& position) 
+void DataRecorderModule::update(std::string name, const ros::Time& lastTime, const tf::Vector3& position) 
 {
 	model_server::GetModelData srv;
 
@@ -30,10 +30,11 @@ void DataRecorderModule::update(const ros::Time& lastTime, const tf::Vector3& po
 
 	underwater_vehicle_sim::VehicleData data;
 
+	data.name = name;
 	data.x = position.getX();
 	data.y = position.getY();
 	data.h = position.getZ();
-	data.time = lastTime.toSec() / SECONDS_IN_DAY;
+	data.time = lastTime.toSec();
 	data.temp = srv.response.temp;
 	data.salt = srv.response.salt;
 	data.dye = srv.response.dye;
