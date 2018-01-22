@@ -42,7 +42,7 @@ void Vehicle::initalizeVehicleFrame()
 	nh.getParam("start_z", startZ);
 
 	//broadcast the inital frame for this vehicle
-  	
+
   	rotation.setRPY(0, 0, 0);
 
   	position.setX(startX);

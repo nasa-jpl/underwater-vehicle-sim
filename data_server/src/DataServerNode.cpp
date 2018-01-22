@@ -31,6 +31,8 @@ bool getData(data_server::GetData::Request &req,
 	std::vector<DataServer::DataServerEntry>::iterator start = server.getStartTime(req.name, req.start_time);
 	std::vector<DataServer::DataServerEntry>::iterator end = server.getEndTime(req.name, req.end_time);
 
+	
+
 	for(auto it = start; it != end; it++)
 	{
 		res.x.push_back(it->x);

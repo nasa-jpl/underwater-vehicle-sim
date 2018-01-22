@@ -13,6 +13,7 @@
 DataRecorderModule::DataRecorderModule(std::string name, ros::NodeHandle& parentNH) :
 	GeneralModule(name, parentNH)
 {
+
 	dataRecorder = nh.advertise<underwater_vehicle_sim::VehicleData>("/data_server/put", 1000);
 	client = nh.serviceClient<model_server::GetModelData>("/get_model_data");
 }
@@ -26,18 +27,22 @@ void DataRecorderModule::update(std::string name, const ros::Time& lastTime, con
 	srv.request.h = position.getZ();
 	srv.request.time = lastTime.toSec() / SECONDS_IN_DAY; //convert from seconds to days
 
-	client.call(srv);
 
-	underwater_vehicle_sim::VehicleData data;
+	if(client.exists())
+	{
+		client.call(srv);
 
-	data.name = name;
-	data.x = position.getX();
-	data.y = position.getY();
-	data.h = position.getZ();
-	data.time = lastTime.toSec();
-	data.temp = srv.response.temp;
-	data.salt = srv.response.salt;
-	data.dye = srv.response.dye;
+		underwater_vehicle_sim::VehicleData data;
 
-	dataRecorder.publish(data);
+		data.name = name;
+		data.x = position.getX();
+		data.y = position.getY();
+		data.h = position.getZ();
+		data.time = lastTime.toSec();
+		data.temp = srv.response.temp;
+		data.salt = srv.response.salt;
+		data.dye = srv.response.dye;
+
+		dataRecorder.publish(data);
+	}
 }
