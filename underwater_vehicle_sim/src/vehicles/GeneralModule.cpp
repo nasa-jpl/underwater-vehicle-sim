@@ -47,13 +47,14 @@ std::unique_ptr<GeneralModule> GeneralModule::makeGeneralModule(std::string modu
 	return NULL;
 }
 
-void GeneralModule::updateAtRate(std::string name, const ros::Time& lastTime, const tf::Vector3& position) 
+void GeneralModule::updateAtRate(std::string name, const ros::Time& lastTime, const tf::Vector3& position, 
+							double& powerCapacity, double &dataCapacity)
 {
 	ros::Duration rate(1 / hertz);
 
 	if(!useHertz || ros::Time::now() - lastUpdate >= rate)
 	{
 		lastUpdate = ros::Time::now();
-		update(name, lastTime, position);
+		update(name, lastTime, position, powerCapacity, dataCapacity);
 	}
 }
