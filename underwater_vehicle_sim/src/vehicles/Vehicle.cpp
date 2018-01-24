@@ -8,6 +8,8 @@
 #include "vehicles/PropulsionModule.h"
 
 #include "vehicles/DataRecorderModule.h"
+#include "vehicles/PowerCapacityModule.h"
+#include "vehicles/DataCapacityModule.h"
 #include "vehicles/FourDOFPropulsion.h"
 
 Vehicle::Vehicle(std::string name, ros::NodeHandle& parentNH) :
@@ -18,6 +20,9 @@ Vehicle::Vehicle(std::string name, ros::NodeHandle& parentNH) :
   	
 	initalizePropulsionModule();
 	initalizeGeneralModules();
+
+	powerCapacity = 100.0; //Placeholder Value
+	dataCapacity = 100.0; //Placeholder Value
 }
 
 Vehicle::Vehicle(Vehicle&& other)
@@ -89,7 +94,7 @@ void Vehicle::update()
 	//update all modules
 	for(std::unique_ptr<GeneralModule>& module : modules)
 	{
-		module->updateAtRate(name, lastTransformTime, position);
+		module->updateAtRate(name, lastTransformTime, position, powerCapacity, dataCapacity);
 	}
 }
 

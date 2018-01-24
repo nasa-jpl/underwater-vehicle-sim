@@ -1,5 +1,5 @@
-#ifndef DATA_RECORDER_MODULE_H
-#define DATA_RECORDER_MODULE_H
+#ifndef DATA_CAPACITY_MODULE_H
+#define DATA_CAPACITY_MODULE_H
 
 #include "tf/transform_broadcaster.h"
 #include "tf/transform_listener.h"
@@ -7,16 +7,14 @@
 
 #include "vehicles/GeneralModule.h"
 
-class DataRecorderModule : public GeneralModule
+class DataCapacityModule : public GeneralModule
 {
 
 public:
-	DataRecorderModule(std::string name, ros::NodeHandle& parentNH);
-	~DataRecorderModule() {}
+	DataCapacityModule(std::string name, ros::NodeHandle& parentNH);
+	~DataCapacityModule() {}
 
 	void update(std::string name, const ros::Time& lastTime, const tf::Vector3& position, double& powerCapacity, double& dataCapacity);
-
-
 	
 private:
 	/**
@@ -24,10 +22,6 @@ private:
 	*@param vel Twist message used to control this module
 	*/
 	void commandVelocityCallback(const geometry_msgs::Twist::ConstPtr& vel);
-
-private:
-	ros::Publisher dataRecorder;
-	ros::ServiceClient client;
 };
 
 
