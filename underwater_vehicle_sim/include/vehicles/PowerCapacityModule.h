@@ -25,6 +25,7 @@ private:
 	*/
 	void commandVelocityCallback(const geometry_msgs::Twist::ConstPtr& vel);
 
+	ros::Publisher pub;
 };
 
 

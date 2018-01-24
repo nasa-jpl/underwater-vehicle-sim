@@ -20,9 +20,6 @@ Vehicle::Vehicle(std::string name, ros::NodeHandle& parentNH) :
   	
 	initalizePropulsionModule();
 	initalizeGeneralModules();
-
-	powerCapacity = 100.0; //Placeholder Value
-	dataCapacity = 100.0; //Placeholder Value
 }
 
 Vehicle::Vehicle(Vehicle&& other)
@@ -45,6 +42,8 @@ void Vehicle::initalizeVehicleFrame()
 	nh.getParam("start_x", startX);
 	nh.getParam("start_y", startY);
 	nh.getParam("start_z", startZ);
+	nh.getParam("start_power", powerCapacity);
+	nh.getParam("start_dataCapacity", dataCapacity);
 
 	//broadcast the inital frame for this vehicle
 

@@ -22,6 +22,8 @@ private:
 	*@param vel Twist message used to control this module
 	*/
 	void commandVelocityCallback(const geometry_msgs::Twist::ConstPtr& vel);
+
+	ros::Publisher pub;
 };
 
 
