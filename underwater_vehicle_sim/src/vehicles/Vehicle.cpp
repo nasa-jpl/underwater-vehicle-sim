@@ -42,8 +42,6 @@ void Vehicle::initalizeVehicleFrame()
 	nh.getParam("start_x", startX);
 	nh.getParam("start_y", startY);
 	nh.getParam("start_z", startZ);
-	nh.getParam("start_power", powerCapacity);
-	nh.getParam("start_dataCapacity", dataCapacity);
 
 	//broadcast the inital frame for this vehicle
 
@@ -93,7 +91,7 @@ void Vehicle::update()
 	//update all modules
 	for(std::unique_ptr<GeneralModule>& module : modules)
 	{
-		module->updateAtRate(name, lastTransformTime, position, powerCapacity, dataCapacity);
+		module->updateAtRate(name, lastTransformTime, position);
 	}
 }
 

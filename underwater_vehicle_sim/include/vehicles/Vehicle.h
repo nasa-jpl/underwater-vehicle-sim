@@ -87,15 +87,6 @@ private:
 	 */
 	ros::NodeHandle nh;
 
-	/**
-	* Tracks power remaining for this vehicle
-	*/
-	double powerCapacity; 
-	
-	/**
-	* Tracks data storage remaining for this vehicle
-	*/
-	double dataCapacity;
 };
 
 #endif

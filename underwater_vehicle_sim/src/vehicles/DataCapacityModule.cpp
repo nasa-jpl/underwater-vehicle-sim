@@ -13,13 +13,14 @@
 DataCapacityModule::DataCapacityModule(std::string name, ros::NodeHandle& parentNH) :
 	GeneralModule(name, parentNH)
 {
+	nh.getParam("start_dataCapacity", capacity);
 	pub = nh.advertise<std_msgs::Float64>("/vehicle/dataCapacity", 1000);
 }
 
-void DataCapacityModule::update(std::string name, const ros::Time& lastTime, const tf::Vector3& position, double& powerCapacity, double& dataCapacity) 
+void DataCapacityModule::update(std::string name, const ros::Time& lastTime, const tf::Vector3& position)
 {
-	dataCapacity = dataCapacity - 0.1;
-	std_msgs::Float64 capacity;
-	capacity.data = dataCapacity;
-	pub.publish(capacity);
+	capacity = capacity - 0.1;
+	std_msgs::Float64 msg;
+	msg.data = capacity;
+	pub.publish(msg);
 }

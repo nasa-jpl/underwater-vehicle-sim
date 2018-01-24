@@ -18,7 +18,7 @@ DataRecorderModule::DataRecorderModule(std::string name, ros::NodeHandle& parent
 	client = nh.serviceClient<model_server::GetModelData>("/get_model_data");
 }
 
-void DataRecorderModule::update(std::string name, const ros::Time& lastTime, const tf::Vector3& position, double& powerCapacity, double& dataCapacity) 
+void DataRecorderModule::update(std::string name, const ros::Time& lastTime, const tf::Vector3& position) 
 {
 	model_server::GetModelData srv;
 

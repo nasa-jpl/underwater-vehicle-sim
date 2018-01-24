@@ -14,9 +14,11 @@ public:
 	DataCapacityModule(std::string name, ros::NodeHandle& parentNH);
 	~DataCapacityModule() {}
 
-	void update(std::string name, const ros::Time& lastTime, const tf::Vector3& position, double& powerCapacity, double& dataCapacity);
+	void update(std::string name, const ros::Time& lastTime, const tf::Vector3& position);
 	
 private:
+	double capacity;
+
 	/**
 	*Callback for the velocity message which is used to control this module
 	*@param vel Twist message used to control this module
