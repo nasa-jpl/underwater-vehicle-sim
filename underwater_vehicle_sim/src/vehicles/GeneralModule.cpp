@@ -6,6 +6,7 @@
 #include "vehicles/DataRecorderModule.h"
 #include "vehicles/PowerCapacityModule.h"
 #include "vehicles/DataCapacityModule.h"
+#include "vehicles/BaseStationModule.h"
 
 GeneralModule::GeneralModule(std::string name, ros::NodeHandle parentNH) :
 	nh(ros::NodeHandle(parentNH, name))
@@ -41,6 +42,11 @@ std::unique_ptr<GeneralModule> GeneralModule::makeGeneralModule(std::string modu
 	if(moduleType == "DataCapacity")
 	{
 		std::unique_ptr<GeneralModule> returnPtr(new DataCapacityModule(moduleName, parentNH));
+		return returnPtr;
+	}
+	if(moduleType == "BaseStation")
+	{
+		std::unique_ptr<GeneralModule> returnPtr(new BaseStationModule(moduleName, parentNH));
 		return returnPtr;
 	}
 
