@@ -85,7 +85,7 @@ void Vehicle::update()
 	//move the frame using the propulsion module and broadcast it
 	if(propulsionModule)
 	{
-		propulsionModule->moveAtRate(lastTransformTime, rotation, position);
+		propulsionModule->moveAtRate(lastTransformTime, rotation, position, powerCapacity, dataCapacity);
 	}
 
 	broadcastTransform();

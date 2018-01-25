@@ -33,7 +33,7 @@ void FourDOFPropulsion::commandVelocityCallback(const geometry_msgs::Twist::Cons
 }
 
 
-void FourDOFPropulsion::move(ros::Time& lastTime, tf::Quaternion& rotation, tf::Vector3& position) 
+void FourDOFPropulsion::move(ros::Time& lastTime, tf::Quaternion& rotation, tf::Vector3& position, double& powerCapacity, double& dataCapacity) 
 {
 	//Get the elapsed time since the last vehicle location update
 	ros::Duration elapsedTime = (ros::Time::now() - lastTime);
@@ -56,6 +56,9 @@ void FourDOFPropulsion::move(ros::Time& lastTime, tf::Quaternion& rotation, tf::
 	
 	//Apply the rotation to the current rotation of the vehicle
 	rotation *= totalRotMovement;
+
+	//Use power PLACEHOLDER
+	powerCapacity -= 1;
 
 
 

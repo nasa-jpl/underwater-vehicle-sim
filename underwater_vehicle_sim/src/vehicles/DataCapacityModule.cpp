@@ -18,7 +18,6 @@ DataCapacityModule::DataCapacityModule(std::string name, ros::NodeHandle& parent
 
 void DataCapacityModule::update(std::string name, const ros::Time& lastTime, const tf::Vector3& position, double& powerCapacity, double& dataCapacity) 
 {
-	dataCapacity = dataCapacity - 0.1;
 	std_msgs::Float64 capacity;
 	capacity.data = dataCapacity;
 	pub.publish(capacity);

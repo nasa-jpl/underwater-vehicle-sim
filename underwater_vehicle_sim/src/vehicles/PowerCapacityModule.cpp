@@ -14,7 +14,6 @@ PowerCapacityModule::PowerCapacityModule(std::string name, ros::NodeHandle& pare
 
 void PowerCapacityModule::update(std::string name, const ros::Time& lastTime, const tf::Vector3& position, double& powerCapacity, double& dataCapacity) 
 {
-	powerCapacity = powerCapacity - 0.1;
 	std_msgs::Float64 power_msg;
 	power_msg.data = powerCapacity;
 	pub.publish(power_msg);

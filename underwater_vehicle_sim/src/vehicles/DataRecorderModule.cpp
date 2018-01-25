@@ -1,4 +1,5 @@
 #include "ros/ros.h"
+#include <iostream>
 
 #include "tf/transform_broadcaster.h"
 #include "tf/transform_listener.h"
@@ -44,5 +45,8 @@ void DataRecorderModule::update(std::string name, const ros::Time& lastTime, con
 		data.dye = srv.response.dye;
 
 		dataRecorder.publish(data);
+
+		//sizeof gives the size of data to be 64 Bytes
+		dataCapacity -= 64;
 	}
 }
