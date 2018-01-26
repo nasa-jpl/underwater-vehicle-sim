@@ -1,0 +1,3 @@
+float64 horizontalVelocity
+float64 verticalVelocity
+float64 rotationalVelocity

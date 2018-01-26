@@ -56,7 +56,4 @@ void FourDOFPropulsion::move(ros::Time& lastTime, tf::Quaternion& rotation, tf::
 	
 	//Apply the rotation to the current rotation of the vehicle
 	rotation *= totalRotMovement;
-
-
-
 }

@@ -12,7 +12,6 @@ UnderwaterVehicleSim::UnderwaterVehicleSim(ros::NodeHandle& parentNH) :
 	{
 		vehicles.emplace_back(name, nh);
 	}
-
 }
 
 void UnderwaterVehicleSim::update()
