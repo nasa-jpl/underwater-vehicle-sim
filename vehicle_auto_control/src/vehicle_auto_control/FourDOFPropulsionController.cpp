@@ -91,7 +91,7 @@ void FourDOFPropulsionController::pointPathController()
 
 	if(currentPoint < pointPath.size())
 	{
-		if(isAtPoint(transform, pointPath[currentPoint]))
+		if(isAtPoint(transform, pointPath[currentPoint], true))
 		{
 			currentPoint++;
 		}
@@ -159,7 +159,7 @@ void FourDOFPropulsionController::yoyoPointPathController()
 
 	if(currentPoint < pointPath.size())
 	{
-		if(isAtPoint(transform, pointPath[currentPoint]))
+		if(isAtPoint(transform, pointPath[currentPoint], false))
 		{
 			currentPoint++;
 		}
@@ -197,9 +197,10 @@ void FourDOFPropulsionController::yoyoPointPathController()
 
 		double angle = vehicleForward.angle(targetPoint);		
 
+		ROS_INFO("%f %f %f %f %f ", angle, rotationalError, cross.getZ(), pointOut.point.x, pointOut.point.y);
 		if(angle >= rotationalError)
 		{
-			if(cross.getZ() > 0)
+			if(cross.getZ() >= 0)
 			{
 				newRotVel = targetRotVelocity;
 			}
@@ -231,13 +232,13 @@ void FourDOFPropulsionController::transformPointToVehicleFrame(geometry_msgs::Po
 	listener.transformPoint("/" + vehicleName, pointIn, pointOut);
 }
 
-bool FourDOFPropulsionController::isAtPoint(tf::Transform& location, tf::Vector3& point)
+bool FourDOFPropulsionController::isAtPoint(tf::Transform& location, tf::Vector3& point, bool useZ)
 {
 	double xDifference = fabs(location.getOrigin().getX() - point.getX());
 	double yDifference = fabs(location.getOrigin().getY() - point.getY());
 	double zDifference = fabs(location.getOrigin().getZ() - point.getZ());
 
-	return zDifference <= verticalError && sqrt(yDifference * yDifference + xDifference * xDifference) <= lateralError;
+	return (!useZ || zDifference <= verticalError) && sqrt(yDifference * yDifference + xDifference * xDifference) <= lateralError;
 }
 
 void FourDOFPropulsionController::sendVelocityCommand(double cmdForwardVelocity, double cmdLateralVelocity, double cmdRotVelocity, double cmdVertVelocity)

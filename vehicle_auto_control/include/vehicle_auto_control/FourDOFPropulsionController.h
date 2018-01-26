@@ -43,7 +43,7 @@ private:
 	* @param location Location of the vehicle
 	* @param point Point to check
 	*/
-	bool isAtPoint(tf::Transform& location, tf::Vector3& point);
+	bool isAtPoint(tf::Transform& location, tf::Vector3& point, bool useZ);
 
  	/**
 	*Transforms the current point into the vehicle frame
