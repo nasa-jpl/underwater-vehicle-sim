@@ -197,7 +197,6 @@ void FourDOFPropulsionController::yoyoPointPathController()
 
 		double angle = vehicleForward.angle(targetPoint);		
 
-		ROS_INFO("%f %f %f %f %f ", angle, rotationalError, cross.getZ(), pointOut.point.x, pointOut.point.y);
 		if(angle >= rotationalError)
 		{
 			if(cross.getZ() >= 0)

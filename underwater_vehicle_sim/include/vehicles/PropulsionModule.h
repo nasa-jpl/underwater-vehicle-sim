@@ -7,7 +7,7 @@ class PropulsionModule
 {
 
 public:
-	PropulsionModule(std::string name, ros::NodeHandle& parentNH);
+	PropulsionModule(std::string name, std::string type, ros::NodeHandle& parentNH);
 	virtual ~PropulsionModule() {}
 
 	/**
@@ -26,8 +26,12 @@ public:
 	* @return A pointer to the newly created module
 	*/
 	static std::unique_ptr<PropulsionModule> makePropulsionModule(std::string moduleName, ros::NodeHandle& parentNH);
+
+	std::string& getName();
+	std::string& getType();
 protected:
 	std::string name;
+	std::string type;
 	ros::NodeHandle nh;
 
 	ros::Time lastUpdate;

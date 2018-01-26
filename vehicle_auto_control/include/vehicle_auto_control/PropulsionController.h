@@ -18,7 +18,7 @@ public:
 	
 	virtual void update()=0;
 
-	static std::unique_ptr<PropulsionController> makePropulsionController(std::string vehicleName, std::string moduleName, ros::NodeHandle& parentNH);	
+	static std::unique_ptr<PropulsionController> makePropulsionController(std::string vehicleName, std::string moduleName, std::string moduleType, ros::NodeHandle& parentNH);	
 
 protected:
 	ros::NodeHandle controlNode;

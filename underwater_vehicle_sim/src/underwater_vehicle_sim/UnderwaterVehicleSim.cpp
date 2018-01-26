@@ -1,9 +1,12 @@
 #include "underwater_vehicle_sim/UnderwaterVehicleSim.h"
+#include "underwater_vehicle_sim/GetVehicleInfo.h"
+
 #include "vehicles/Vehicle.h"
 
 UnderwaterVehicleSim::UnderwaterVehicleSim(ros::NodeHandle& parentNH) :
 	nh(parentNH)
 {
+	service = nh.advertiseService("vehicles/get_info", &UnderwaterVehicleSim::getVehicleInfo, this);
 	//Create the vehicle objects
 	std::vector<std::string> vehicleNames;
 	nh.getParam("vehicles/names", vehicleNames);
@@ -21,4 +24,18 @@ void UnderwaterVehicleSim::update()
 	{
 		vehicle.update();
 	}
+}
+
+bool UnderwaterVehicleSim::getVehicleInfo(underwater_vehicle_sim::GetVehicleInfo::Request &req,
+				  						  underwater_vehicle_sim::GetVehicleInfo::Response &res)
+{
+	for(Vehicle& vehicle : vehicles)
+	{
+		if(vehicle.getName() == req.name)
+		{
+			vehicle.getInfo(res);
+		}
+	}
+	
+	return true;
 }

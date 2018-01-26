@@ -5,7 +5,7 @@
 #include "tf/transform_listener.h"
 
 FourDOFPropulsion::FourDOFPropulsion(std::string name, ros::NodeHandle& parentNH) :
-	PropulsionModule(name, parentNH)
+	PropulsionModule(name, "FourDOFPropulsion", parentNH)
 {
 	nh.getParam("max_linear_velocity", maxLinVelocity);
 	nh.getParam("max_rotate_velocity", maxRotVelocity);

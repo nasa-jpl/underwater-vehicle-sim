@@ -12,11 +12,8 @@ PropulsionController::PropulsionController(ros::NodeHandle controlNode, ros::Nod
 	vehicleName(vehicleName)
 {}
 
-std::unique_ptr<PropulsionController> PropulsionController::makePropulsionController(std::string vehicleName, std::string moduleName, ros::NodeHandle& parentNH)
+std::unique_ptr<PropulsionController> PropulsionController::makePropulsionController(std::string vehicleName, std::string moduleName, std::string moduleType, ros::NodeHandle& parentNH)
 {
-	std::string moduleType;
-	parentNH.getParam("vehicles/" + vehicleName + "/" + moduleName + "/type", moduleType);
-
 	if(moduleType == "FourDOFPropulsion")
 	{
 		std::unique_ptr<PropulsionController> returnPtr(new FourDOFPropulsionController(ros::NodeHandle(parentNH, "vehicle_controller/" + vehicleName),

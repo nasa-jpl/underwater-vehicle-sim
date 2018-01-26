@@ -7,8 +7,9 @@
 #include "vehicles/PropulsionModule.h"
 #include "vehicles/FourDOFPropulsion.h"
 
-PropulsionModule::PropulsionModule(std::string name, ros::NodeHandle& parentNH) :
+PropulsionModule::PropulsionModule(std::string name, std::string type, ros::NodeHandle& parentNH) :
 	name(name),
+	type(type),
 	nh(ros::NodeHandle(parentNH, name))
 {
 	if(nh.hasParam("hertz"))
@@ -46,4 +47,14 @@ void PropulsionModule::moveAtRate(ros::Time& lastTime, tf::Quaternion& rotation,
 		lastUpdate = ros::Time::now();
 		move(lastTime, rotation, position);
 	}
+}
+
+std::string& PropulsionModule::getName()
+{
+	return name;
+}
+
+std::string& PropulsionModule::getType()
+{
+	return type;
 }

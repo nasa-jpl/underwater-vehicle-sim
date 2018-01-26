@@ -17,6 +17,7 @@ public:
 
 private:
 	ros::NodeHandle& nh;
+	ros::ServiceClient infoClient;
 	std::vector<std::unique_ptr<PropulsionController>> propControllers;
 };
 

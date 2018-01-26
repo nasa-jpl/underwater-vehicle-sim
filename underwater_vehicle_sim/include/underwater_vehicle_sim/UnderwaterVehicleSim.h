@@ -2,6 +2,7 @@
 #define UNDERWATER_VEHICLE_SIM_H
 
 #include "vehicles/Vehicle.h"
+#include "underwater_vehicle_sim/GetVehicleInfo.h"
 
 /**
  * Class used to simulate underwater vehicles using a model
@@ -16,6 +17,10 @@ public:
 	* The update method for the simulation that runs once per sim cycle
 	*/
 	void update();
+
+private:
+	bool getVehicleInfo(underwater_vehicle_sim::GetVehicleInfo::Request &req,
+				  						  underwater_vehicle_sim::GetVehicleInfo::Response &res);
 private:
 	/**
 	* All the vehicles in the simulation
@@ -23,6 +28,7 @@ private:
 	std::vector<Vehicle> vehicles;
 
 	ros::NodeHandle& nh;
+	ros::ServiceServer service;
 };
 
 #endif

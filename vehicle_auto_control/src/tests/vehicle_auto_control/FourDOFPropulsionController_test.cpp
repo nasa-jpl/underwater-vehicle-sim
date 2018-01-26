@@ -50,7 +50,7 @@ TEST(FourDOFPropulsionController, PointPathController){
     //Wait for vehicle_auto_control node to start
     ros::Time startWait = ros::Time::now();
     while((targetVelPub.getNumSubscribers() == 0 || pointPathPub.getNumSubscribers() == 0) &&
-          (ros::Time::now() - startWait).toSec() <= 5);
+          (ros::Time::now() - startWait).toSec() <= 200.0);
 
     if(targetVelPub.getNumSubscribers() == 0 || pointPathPub.getNumSubscribers() == 0)
     {

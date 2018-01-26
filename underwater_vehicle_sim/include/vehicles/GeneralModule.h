@@ -9,7 +9,7 @@
 class GeneralModule
 {
 public:
-	GeneralModule(std::string name, ros::NodeHandle parentNH);
+	GeneralModule(std::string name, std::string type, ros::NodeHandle parentNH);
 
 	virtual ~GeneralModule(){}
 
@@ -19,7 +19,13 @@ public:
 
 	static std::unique_ptr<GeneralModule> makeGeneralModule(std::string moduleName, ros::NodeHandle& parentNH);
 
+	std::string& getName();
+	std::string& getType();
 protected:
+
+	std::string name;
+	std::string type;
+
 	ros::NodeHandle nh;
 
 	ros::Time lastUpdate;
