@@ -39,7 +39,7 @@ TEST(FVCOMTest, XYInterpolation)
     //temp: 3.801572406374122, 3.8022022400180635, 3.803271680277034
     //salinity: 34.31852681425481, 34.318431897839325, 34.31827073237096
     //dye: 0, 0, 0
-    FVCOMStructure::point p1;
+    FVCOMStructure::Point p1;
     p1.x = 12314;
     p1.y = -9648;
     p1.h = 0;
@@ -83,7 +83,7 @@ TEST(FVCOMTest, TimeInterpolation)
     //salinity: 34.31724704864192, 34.31724689708151
     //dye: 0,0,0
 
-    FVCOMStructure::point p1;
+    FVCOMStructure::Point p1;
     p1.x = -96.5869768;
     p1.y = 50.2484645;
     p1.h = 0;
@@ -184,7 +184,7 @@ TEST(FVCOMTest, AllInterpolation)
     ASSERT_FLOAT_EQ(34.3233909259, data1.salt);
     ASSERT_FLOAT_EQ(0.0, data1.dye);
 
- FVCOMStructure::point p1;
+ FVCOMStructure::Point p1;
     p1.x = 12314;
     p1.y = -9648;
     p1.h = -89;

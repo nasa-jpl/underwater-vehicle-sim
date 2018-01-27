@@ -54,9 +54,9 @@ TEST(FVCOMStructureTest, GetTriangleSiglayPlane)
 
 TEST(FVCOMStructureTest, CreatePlane)
 {
-	FVCOMStructure::point p0;
-	FVCOMStructure::point p1;
-	FVCOMStructure::point p2;
+	FVCOMStructure::Point p0;
+	FVCOMStructure::Point p1;
+	FVCOMStructure::Point p2;
 
 	p0.x = 10;
 	p0.y = 10;
@@ -85,7 +85,7 @@ TEST(FVCOMStructureTest, InterpolateSiglay)
 {
 
 	//Above first siglay
-	FVCOMStructure::point p0;
+	FVCOMStructure::Point p0;
 	p0.x = 0;
 	p0.y = 0;
 	p0.h = -5;
@@ -97,7 +97,7 @@ TEST(FVCOMStructureTest, InterpolateSiglay)
 	structureAxial.siglayInterpolation(p0, siglay1IndexP0, siglay2IndexP0, siglay1PercentP0);
 
 	//Below last siglay
-	FVCOMStructure::point p1;
+	FVCOMStructure::Point p1;
 	p1.x = 50000.0;
 	p1.y = -150000.0;
 	p1.h = -2798;
@@ -115,7 +115,7 @@ TEST(FVCOMStructureTest, InterpolateSiglay)
 
 
 	//On siglay
-	FVCOMStructure::point p2;
+	FVCOMStructure::Point p2;
 	p2.x = 0;
 	p2.y = 0;
 	p2.h = 0;
@@ -140,7 +140,7 @@ TEST(FVCOMStructureTest, InterpolateSiglay)
 	//6781, 6783, 6782 (index)
 	//1555.529154
 	// siglay 7,8
-	FVCOMStructure::point p3;
+	FVCOMStructure::Point p3;
 	p3.x = 0;
 	p3.y = 0;
 	p3.h = -100;
@@ -188,9 +188,9 @@ TEST(FVCOMStructureTest, GetClosestTime) {
 
 
 TEST(FCVOMStructureTest, GetClosestNodeSiglay) {
-	FVCOMStructure::point p1;
-	FVCOMStructure::point p2;
-	FVCOMStructure::point p3;
+	FVCOMStructure::Point p1;
+	FVCOMStructure::Point p2;
+	FVCOMStructure::Point p3;
 
 	//Node 51
 	//h = 300
@@ -226,9 +226,9 @@ TEST(FCVOMStructureTest, GetClosestNodeSiglay) {
 
 
 TEST(FCVOMStructureTest, GetClosestTriangleSiglay) {
-	FVCOMStructure::point p1;
-	FVCOMStructure::point p2;
-	FVCOMStructure::point p3;
+	FVCOMStructure::Point p1;
+	FVCOMStructure::Point p2;
+	FVCOMStructure::Point p3;
 
 	//Node 81
 	//h = 300
@@ -263,9 +263,9 @@ TEST(FCVOMStructureTest, GetClosestTriangleSiglay) {
 }
 
 TEST(FVCOMStructureTest, PointInTriangle) {
-	FVCOMStructure::point pIn;
-	FVCOMStructure::point pOut;
-	FVCOMStructure::point pEdge;
+	FVCOMStructure::Point pIn;
+	FVCOMStructure::Point pOut;
+	FVCOMStructure::Point pEdge;
 
 
 	//Triangle 1
@@ -293,9 +293,9 @@ TEST(FVCOMStructureTest, PointInTriangle) {
 }
 
 TEST(FVCOMStructureTest, GetContainingTriangle) {
-	FVCOMStructure::point pIn;
-	FVCOMStructure::point pOut;
-	FVCOMStructure::point pEdge;
+	FVCOMStructure::Point pIn;
+	FVCOMStructure::Point pOut;
+	FVCOMStructure::Point pEdge;
 
 	//Triangle 1
 	////Nodes: 385, 329,342
@@ -321,9 +321,9 @@ TEST(FVCOMStructureTest, GetContainingTriangle) {
 
 
 TEST(FVCOMStructureTest, GetClosestNode) {
-	FVCOMStructure::point p1;
-	FVCOMStructure::point p2;
-	FVCOMStructure::point p3;
+	FVCOMStructure::Point p1;
+	FVCOMStructure::Point p2;
+	FVCOMStructure::Point p3;
 
 	//Triangle 1
 	////Nodes: 385, 329,342
@@ -349,9 +349,9 @@ TEST(FVCOMStructureTest, GetClosestNode) {
 
 
 TEST(FVCOMStructureTest, Distance) {
-	FVCOMStructure::point p1;
-	FVCOMStructure::point p2;
-	FVCOMStructure::point p3;
+	FVCOMStructure::Point p1;
+	FVCOMStructure::Point p2;
+	FVCOMStructure::Point p3;
 
 	p1.x = 0;
 	p1.y = 0;
@@ -487,11 +487,11 @@ TEST(FVCOMStructureTest, GetChunkForTriangle) {
 }
 
 TEST(FVCOMStructureTest, PointInModel) {
-	FVCOMStructure::point inside;
-	FVCOMStructure::point positionOutside1;
-	FVCOMStructure::point depthOutside1;
-	FVCOMStructure::point positionOutside2;
-	FVCOMStructure::point depthOutside2;
+	FVCOMStructure::Point inside;
+	FVCOMStructure::Point positionOutside1;
+	FVCOMStructure::Point depthOutside1;
+	FVCOMStructure::Point positionOutside2;
+	FVCOMStructure::Point depthOutside2;
 
 	inside.x = 0;
 	inside.y = 0;

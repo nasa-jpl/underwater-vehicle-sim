@@ -17,7 +17,7 @@ FVCOM::FVCOM(std::string filename, unsigned int xChunkSize, unsigned int yChunkS
 	structure(FVCOMStructure(filename, xChunkSize, yChunkSize, siglayChunkSize, timeChunkSize))
 {}
 
-ModelData FVCOM::interpolate(FVCOMStructure::point interpolatePoint, float time)
+ModelData FVCOM::interpolate(FVCOMStructure::Point interpolatePoint, float time)
 {	
 	int time1Index, time2Index;
 	double time1Percent;
@@ -76,15 +76,15 @@ ModelData FVCOM::interpolate(FVCOMStructure::point interpolatePoint, float time)
 	return returnData;
 }
 
-FVCOMChunk::NodeData FVCOM::barycentricInterpolation(const FVCOMStructure::point& interpolatePoint, int siglayIndex, int timeIndex)
+FVCOMChunk::NodeData FVCOM::barycentricInterpolation(const FVCOMStructure::Point& interpolatePoint, int siglayIndex, int timeIndex)
 {
 	FVCOMChunk::NodeData interpolatedData;
 	int containingTriangle = structure.getContainingTriangle(interpolatePoint);
 	const std::vector<int>& surroundingNodes = structure.getNodesInTriangle(containingTriangle);
 
-	FVCOMStructure::point p1 = structure.getNodePoint(surroundingNodes[0]);
-	FVCOMStructure::point p2 = structure.getNodePoint(surroundingNodes[1]);
-	FVCOMStructure::point p3 = structure.getNodePoint(surroundingNodes[2]);
+	FVCOMStructure::Point p1 = structure.getNodePoint(surroundingNodes[0]);
+	FVCOMStructure::Point p2 = structure.getNodePoint(surroundingNodes[1]);
+	FVCOMStructure::Point p3 = structure.getNodePoint(surroundingNodes[2]);
 
 	const FVCOMChunk::NodeData& p1Data = getNodeData(surroundingNodes[0], siglayIndex, timeIndex);
 	const FVCOMChunk::NodeData& p2Data = getNodeData(surroundingNodes[1], siglayIndex, timeIndex);
@@ -105,7 +105,7 @@ FVCOMChunk::NodeData FVCOM::barycentricInterpolation(const FVCOMStructure::point
 	return interpolatedData;
 }
 
-const double FVCOM::areaOfTriangle(const FVCOMStructure::point& p1, const FVCOMStructure::point& p2, const FVCOMStructure::point& p3)
+const double FVCOM::areaOfTriangle(const FVCOMStructure::Point& p1, const FVCOMStructure::Point& p2, const FVCOMStructure::Point& p3)
 {
 	double a = sqrt((p1.x - p2.x) * (p1.x - p2.x) + (p1.y - p2.y) * (p1.y - p2.y));
 	double b = sqrt((p1.x - p3.x) * (p1.x - p3.x) + (p1.y - p3.y) * (p1.y - p3.y));
@@ -117,7 +117,7 @@ const double FVCOM::areaOfTriangle(const FVCOMStructure::point& p1, const FVCOMS
 
 const ModelData FVCOM::getData(float x, float y, float height, float time)
 {
-	FVCOMStructure::point interpolatePoint;
+	FVCOMStructure::Point interpolatePoint;
 	interpolatePoint.x = x;
 	interpolatePoint.y = y;
 	interpolatePoint.h = height;
