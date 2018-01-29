@@ -40,9 +40,9 @@ void FourDOFPropulsionController::getPointPathCommand(const vehicle_auto_control
 
 void FourDOFPropulsionController::getTargetVelocityCommand(const vehicle_auto_control::Velocity vel)
 {
-	targetHorzVelocity = vel.horizontalVelocity;
-	targetRotVelocity = vel.rotationalVelocity;
-	targetVertVelocity = vel.verticalVelocity;
+	targetHorzVelocity = fabs(vel.horizontalVelocity);
+	targetRotVelocity = fabs(vel.rotationalVelocity);
+	targetVertVelocity = fabs(vel.verticalVelocity);
 }
 
 void FourDOFPropulsionController::getYoYoPointPathCommand(const vehicle_auto_control::YoYoPointPath vel)
