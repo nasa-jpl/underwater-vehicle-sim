@@ -25,8 +25,19 @@ public:
 
 	std::unique_ptr<Action> clone() const override;
 
+	/**
+	*Executes the action using the provided executor
+	*/
 	void executeAction();
+
+	/**
+	* Allows the action to trigger a replan
+	*/
 	bool triggerReplan();
+
+	/**
+	* Monitors the state of the action and updates it as needed
+	*/
 	void monitor();
 
 private:

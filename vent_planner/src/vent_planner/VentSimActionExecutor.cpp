@@ -65,6 +65,7 @@ void VentSimActionExecutor::executeYoYoPointPathAction(double targetHorizontalVe
 		return;
 	}
 
+	//Creates an action goal and sends it to the action server for point path movement
 	pointPathGoal = vehicle_auto_control::PointPathGoal();
 
 	for(auto point : points)
@@ -85,6 +86,7 @@ void VentSimActionExecutor::executeYoYoPointPathAction(double targetHorizontalVe
 
 void VentSimActionExecutor::monitorYoYoPointPathAction(Action::State& state)
 {
+	//Determines the state of the action based on the state of the goal in the action server
 	if(pointPathClient.getState() == actionlib::SimpleClientGoalState::RECALLED ||
 	   pointPathClient.getState() == actionlib::SimpleClientGoalState::PREEMPTED)
 	{

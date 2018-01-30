@@ -20,6 +20,9 @@ public:
 	VentSimActionExecutor(ros::NodeHandle& nh, std::string vehicleName);
 	~VentSimActionExecutor() {}
 
+	/**
+	* Executes the yoyo action in the ros simulation with the given parameters
+	*/
 	void executeYoYoPointPathAction(double targetHorizontalVelocity, 
 									double targetRotationalVelocity,
 									double targetSlope, 
@@ -27,7 +30,14 @@ public:
 									double lowerDepth,
 									std::vector<tf::Vector3>& points);
 	
+	/**
+	* Monitors and updates the state of the yoyo action in the ros simulation 
+	*/
 	void monitorYoYoPointPathAction(Action::State& state);
+
+	/**
+	* Allows the yoyo action to trigger a replan in the ros simulation 
+	*/
 	bool triggerReplanYoYoPointPathAction();
 private:
 

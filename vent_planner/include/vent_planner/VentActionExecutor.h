@@ -19,6 +19,9 @@ public:
 
 	virtual ~VentActionExecutor() {}
 
+	/**
+	* Executes the yoyo action with the given parameters
+	*/
 	virtual void executeYoYoPointPathAction(double targetHorizontalVelocity, 
 											double targetRotationalVelocity, 
 											double targetSlope, 
@@ -26,7 +29,14 @@ public:
 											double lowerDepth,
 											std::vector<tf::Vector3>& points)=0;
 
+	/**
+	* Monitors and updates the state of the yoyo action
+	*/
 	virtual void monitorYoYoPointPathAction(Action::State& state)=0;
+
+	/**
+	* Allows the yoyo action to trigger a replan
+	*/
 	virtual bool triggerReplanYoYoPointPathAction()=0;
 	
 protected:
