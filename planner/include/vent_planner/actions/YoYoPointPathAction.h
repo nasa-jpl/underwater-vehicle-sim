@@ -11,28 +11,26 @@
 class YoYoPointPathAction : public Action
 {
 public:
-	YoYoPointPathAction(std::shared_ptr<VentActionExecutor> executor, 
-						const std::string vehicleName, 
+	YoYoPointPathAction(VentActionExecutor& executor, 
 						const double targetHorizontalVelocity, 
 						const double targetRotationalVelocity,
 						const double targetSlope,
-						const double minDepth,
-						const double maxDepth,
+						const double upperDepth,
+						const double lowerDepth,
 						std::vector<tf::Vector3>& points);
 	~YoYoPointPathAction() {}
 
 	void execute();
 	bool tiggerReplan();
-	void updateState();
+	void monitor();
 
 private:
-	std::shared_ptr<VentActionExecutor> executor;
-	const std::string vehicleName;
+	VentActionExecutor& executor;
 	const double targetHorizontalVelocity;
 	const double targetRotationalVelocity;
 	const double targetSlope;
-	const double minDepth;
-	const double maxDepth;
+	const double upperDepth;
+	const double lowerDepth;
 	
 	std::vector<tf::Vector3> points;
 };

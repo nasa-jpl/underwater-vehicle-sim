@@ -10,29 +10,36 @@
 #include "vent_planner/VentActionExecutor.h"
 #include "underwater_vehicle_sim/GetVehicleInfo.h"
 
+#include "actionlib/client/simple_action_client.h"
+#include "vehicle_auto_control/PointPathAction.h"
 
-class VentSimActionExecutor : VentActionExecutor
+
+class VentSimActionExecutor : public VentActionExecutor
 {
 public:
-	VentSimActionExecutor(ros::NodeHandle& nh);
+	VentSimActionExecutor(ros::NodeHandle& nh, std::string vehicleName);
 	~VentSimActionExecutor() {}
 
-	void executeYoYoPointPathAction(std::string vehicleName, 
-									double targetHorizontalVelocity, 
+	void executeYoYoPointPathAction(double targetHorizontalVelocity, 
 									double targetRotationalVelocity,
 									double targetSlope, 
-									double minDepth,
-									double maxDepth,
+									double uperDepth,
+									double lowerDepth,
 									std::vector<tf::Vector3>& points);
 	
+	void monitorYoYoPointPathAction(Action::State& state);
+	bool triggerReplanYoYoPointPathAction();
 private:
 
 	bool hasPublisher(std::string topic);
 
 private:
 	ros::ServiceClient infoClient;
-	std::unordered_map<std::string, underwater_vehicle_sim::GetVehicleInfo::Response> vehicleInfo;
+	underwater_vehicle_sim::GetVehicleInfo::Response vehicleInfo;
 	std::unordered_map<std::string, ros::Publisher> publishers;
+
+	actionlib::SimpleActionClient<vehicle_auto_control::PointPathAction> pointPathClient;
+	vehicle_auto_control::PointPathGoal pointPathGoal;
 };
 
 #endif

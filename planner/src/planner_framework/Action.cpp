@@ -3,7 +3,7 @@
 
 void Action::reset()
 {
-	state = Action::State::planned;
+	state = Action::State::PLANNED;
 }
 
 Action::State Action::getState()

@@ -4,40 +4,38 @@
 
 #include "vent_planner/actions/YoYoPointPathAction.h"
 
-YoYoPointPathAction::YoYoPointPathAction(std::shared_ptr<VentActionExecutor> executor, 
-										 const std::string vehicleName, 
+YoYoPointPathAction::YoYoPointPathAction(VentActionExecutor& executor, 
 										 const double targetHorizontalVelocity, 
 										 const double targetRotationalVelocity,
 										 const double targetSlope, 
-										 const double minDepth,
-										 const double maxDepth,
+										 const double upperDepth,
+										 const double lowerDepth,
 										 std::vector<tf::Vector3>& points) :
-  executor(executor),
-  vehicleName(vehicleName),
-  targetHorizontalVelocity(targetHorizontalVelocity),
-  targetRotationalVelocity(targetRotationalVelocity),
-  targetSlope(targetSlope),
-  minDepth(minDepth),
-  maxDepth(maxDepth),
-  points(points)
+	executor(executor),
+  	targetHorizontalVelocity(targetHorizontalVelocity),
+  	targetRotationalVelocity(targetRotationalVelocity),
+  	targetSlope(targetSlope),
+  	upperDepth(upperDepth),
+  	lowerDepth(lowerDepth),
+  	points(points)
 {}
 
-void YoYoPointPathAction::execute() 
+void YoYoPointPathAction::execute()
 {
-	executor->executeYoYoPointPathAction(vehicleName, 
-										 targetHorizontalVelocity, 
+	executor.executeYoYoPointPathAction(targetHorizontalVelocity, 
 										 targetRotationalVelocity, 
 										 targetSlope, 
-										 minDepth, 
-										 maxDepth, 
+										 upperDepth, 
+										 lowerDepth, 
 										 points);
 }
 
 bool YoYoPointPathAction::tiggerReplan() 
 {
-	return false;
+	return executor.triggerReplanYoYoPointPathAction();
 }
 
-void YoYoPointPathAction::updateState()
+void YoYoPointPathAction::monitor()
 {
+	executor.monitorYoYoPointPathAction(state);
 }

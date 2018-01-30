@@ -66,6 +66,8 @@ TEST(FourDOFPropulsionController, PointPathController){
 
     unsigned currentPoint = 0;
     ros::Time start = ros::Time::now();
+
+    bool isActive = false;
     while(currentPoint < pointPathMsg.points.size() && (ros::Time::now() - start) <= ros::Duration(200.0))
     {
        tf::StampedTransform transform;
@@ -88,7 +90,18 @@ TEST(FourDOFPropulsionController, PointPathController){
         {
             currentPoint++;
         }
+
+        if(ac.getState() == actionlib::SimpleClientGoalState::ACTIVE)
+        {
+            isActive = true;
+        }
     }
+    
+    bool finishedBeforeTimeout = ac.waitForResult(ros::Duration(30.0));
+
+    ASSERT_EQ(true, finishedBeforeTimeout);
+    ASSERT_EQ(true, isActive);
+    ASSERT_EQ(actionlib::SimpleClientGoalState::SUCCEEDED, ac.getState().state_);
     ASSERT_EQ(pointPathMsg.points.size(), currentPoint);
 }
 
@@ -150,6 +163,7 @@ TEST(FourDOFPropulsionController, YoYoPointPathController){
 
     bool goingUp = true;
     unsigned yoyo = 0;
+    bool isActive = false;
     ros::Time start = ros::Time::now();
     while(currentPoint < pointPathMsg.points.size() && (ros::Time::now() - start) <= ros::Duration(200.0))
     {
@@ -189,7 +203,18 @@ TEST(FourDOFPropulsionController, YoYoPointPathController){
             goingUp = !goingUp;
             yoyo++;
         }
+
+        if(ac.getState() == actionlib::SimpleClientGoalState::ACTIVE)
+        {
+            isActive = true;
+        }
     }
+
+    bool finishedBeforeTimeout = ac.waitForResult(ros::Duration(30.0));
+
+    ASSERT_EQ(true, finishedBeforeTimeout);
+    ASSERT_EQ(true, isActive);
+    ASSERT_EQ(actionlib::SimpleClientGoalState::SUCCEEDED, ac.getState().state_);
     ASSERT_EQ(pointPathMsg.points.size(), currentPoint);
     ASSERT_TRUE(yoyo >= 4);
 }

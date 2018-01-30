@@ -223,10 +223,13 @@ include_directories(
 #############
 
 ## Add gtest based cpp test target and link libraries
-# catkin_add_gtest(${PROJECT_NAME}-test test/test_planner.cpp)
-# if(TARGET ${PROJECT_NAME}-test)
-#   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
-# endif()
+if (CATKIN_ENABLE_TESTING)
+ find_package(rostest REQUIRED)
+
+ add_rostest_gtest(yoyo_point_path_executor_test tests/vent_planner/YoYoPointPathExecutor.test src/tests/vent_planner/YoYoPointPathExecutor_test.cpp)
+
+ target_link_libraries(yoyo_point_path_executor_test planner_framework vent_planner ${catkin_LIBRARIES} ${NETCDF_LIBRARIES} stdc++fs)
+endif()
 
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
