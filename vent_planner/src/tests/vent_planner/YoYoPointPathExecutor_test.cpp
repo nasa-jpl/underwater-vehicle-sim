@@ -11,7 +11,7 @@
 #include "planner_framework/Action.h"
 #include "planner_framework/Plan.h"
 
-#include "plan_dispatcher/PlanDispatcher.h"
+#include "planner_framework/PlanDispatcher.h"
 
 #include "vent_planner/actions/YoYoPointPathAction.h"
 #include "vent_planner/VentSimActionExecutor.h"

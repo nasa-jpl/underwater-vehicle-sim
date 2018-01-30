@@ -1,6 +1,6 @@
 #include "planner_framework/Action.h"
 
-#include "plan_dispatcher/PlanDispatcher.h"
+#include "planner_framework/PlanDispatcher.h"
 
 PlanDispatcher::PlanDispatcher() :
 currentAction(0),
