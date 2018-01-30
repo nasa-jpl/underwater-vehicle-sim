@@ -1,7 +1,6 @@
 #include "ros/ros.h"
 
 #include "vehicle_auto_control/VehicleController.h"
-#include "vehicle_auto_control/PointPath.h"
 
 int main(int argc, char **argv)
 {
@@ -15,16 +14,8 @@ int main(int argc, char **argv)
         exit(1);
     }
 
-    VehicleController controller(nh);
+    VehicleController controller(nh, loopHertz);
 
-    ros::Rate r(loopHertz); //Hz at which to run the update loop
-
-    //Run the update loop
-    while(ros::ok())
-    {
-        controller.update();
-
-        ros::spinOnce();
-        r.sleep();
-    }
+    ros::spin();
+    return 0;
 }

@@ -3,36 +3,29 @@
 
 #include "tf/transform_listener.h"
 
-#include "vehicle_auto_control/PropulsionController.h"
+#include "actionlib/server/simple_action_server.h"
 
-#include "vehicle_auto_control/PointPath.h"
-#include "vehicle_auto_control/YoYoPointPath.h"
+#include "vehicle_auto_control/PropulsionController.h"
 #include "vehicle_auto_control/Velocity.h"
+#include "vehicle_auto_control/PointPathAction.h"
 
 class FourDOFPropulsionController : public PropulsionController
 {
 
 public:
-	FourDOFPropulsionController(ros::NodeHandle controlNode, ros::NodeHandle vehicleNode, std::string vehicleName);
-	virtual ~FourDOFPropulsionController() {}
+	FourDOFPropulsionController(ros::NodeHandle controlNode, ros::NodeHandle vehicleNode, std::string vehicleName, float loopHertz);
+	~FourDOFPropulsionController() {}
 
+	void update() {}
 
-	void update();
-
-	
 private:
+
 	/**
 	*Controls the vehicle when following a list of points
 	*/
-	void pointPathController();
+	void executePointPath(const vehicle_auto_control::PointPathGoalConstPtr& goal, 
+						  actionlib::SimpleActionServer<vehicle_auto_control::PointPathAction>* as);
 
-	/**
-	*Controls the vehicle when following a list of points while yoyoing
-	*/
-	void yoyoPointPathController();
-
-	void getPointPathCommand(const vehicle_auto_control::PointPath vel);
-	void getYoYoPointPathCommand(const vehicle_auto_control::YoYoPointPath vel);
 	void getTargetVelocityCommand(const vehicle_auto_control::Velocity vel);
 
 
@@ -50,25 +43,23 @@ private:
 	*@param pointOut Output point
 	*@param transform Latest vehicle transform
 	*/
-	void transformPointToVehicleFrame(geometry_msgs::PointStamped& pointOut, tf::StampedTransform& transform);
+	void transformPointToVehicleFrame(geometry_msgs::PointStamped& pointOut, tf::StampedTransform& transform, tf::Vector3& point);
 
 private:
 	//Subscribers, publishers, and listeners
-	ros::Subscriber commandPointPathSub;
-	ros::Subscriber commandYoYoPointPathSub;
-	ros::Subscriber commandTargetVelocitySub;
+	ros::Subscriber velocitySub;
 	ros::Publisher velocityPub;
+
+	actionlib::SimpleActionServer<vehicle_auto_control::PointPathAction> pointPathServer;
 	tf::TransformListener listener;
 
 	std::string currentTask;
 
 	std::vector<tf::Vector3> pointPath;
-	unsigned int currentPoint;
 
 	//YoYo Settings
 	double yoyoUpperDepth;
 	double yoyoLowerDepth;
-	bool goingUp;
 
 	//Error bars for claiming the vehicle is at a point
 	double lateralError;

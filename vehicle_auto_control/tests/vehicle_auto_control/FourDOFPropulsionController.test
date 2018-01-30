@@ -18,7 +18,7 @@
  <rosparam param="vehicles/v1/prop/type">FourDOFPropulsion</rosparam>
  <rosparam param="vehicles/v1/prop/hertz">10</rosparam>
 
- <rosparam param="vehicle_controller/hertz">5</rosparam>
+ <rosparam param="vehicle_controller/hertz">2</rosparam>
 
  <param name="use_sim_time" value="true" />
  <rosparam param="speed_up_factor">20</rosparam>

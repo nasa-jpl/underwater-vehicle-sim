@@ -12,15 +12,20 @@ class PropulsionController
 {
 
 public:
-	PropulsionController(ros::NodeHandle controlNode, ros::NodeHandle vehicleNode, std::string vehicleName);
+	PropulsionController(ros::NodeHandle controlNode, ros::NodeHandle vehicleNode, std::string vehicleName, float loopHertz);
 	virtual ~PropulsionController() {}
 
 	
 	virtual void update()=0;
 
-	static std::unique_ptr<PropulsionController> makePropulsionController(std::string vehicleName, std::string moduleName, std::string moduleType, ros::NodeHandle& parentNH);	
+	static std::unique_ptr<PropulsionController> makePropulsionController(std::string vehicleName, 
+																		  std::string moduleName, 
+																		  std::string moduleType, 
+																		  ros::NodeHandle& parentNH,
+																		  float loopHertz);	
 
 protected:
+	float loopHertz;
 	ros::NodeHandle controlNode;
 	ros::NodeHandle vehicleNode;
 	std::string vehicleName;

@@ -8,6 +8,7 @@ project(vehicle_auto_control)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
+ actionlib_msgs
  tf
  roscpp
  geometry_msgs
@@ -49,8 +50,6 @@ find_package(catkin REQUIRED COMPONENTS
 ## Generate messages in the 'msg' folder
  add_message_files(
    FILES
-   PointPath.msg
-   YoYoPointPath.msg
    Velocity.msg
  )
 
@@ -62,16 +61,17 @@ find_package(catkin REQUIRED COMPONENTS
 # )
 
 ## Generate actions in the 'action' folder
-# add_action_files(
-#   FILES
-#   Action1.action
+ add_action_files(
+   FILES
+   PointPath.action
 #   Action2.action
-# )
+ )
 
 ## Generate added messages and services with any dependencies listed here
  generate_messages(
    DEPENDENCIES
-   geometry_msgs  # Or other packages containing msgs
+   geometry_msgs
+   actionlib_msgs
  )
 
 ################################################
@@ -106,7 +106,7 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES vehicle_auto_control
-#  CATKIN_DEPENDS other_catkin_pkg
+  CATKIN_DEPENDS actionlib_msgs
 #  DEPENDS system_lib
 )
 

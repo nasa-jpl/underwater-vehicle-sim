@@ -6,26 +6,25 @@
 
 #include "ros/ros.h"
 #include "tf/transform_listener.h"
-
-#include "vehicle_auto_control/PointPath.h"
-#include "vehicle_auto_control/YoYoPointPath.h"
+#include "actionlib/client/simple_action_client.h"
+#include "vehicle_auto_control/PointPathAction.h"
 #include "vehicle_auto_control/Velocity.h"
 
 ros::ServiceClient client;
+
 
 TEST(FourDOFPropulsionController, PointPathController){
 
     ros::NodeHandle nh;
 
     ros::Publisher targetVelPub;
-    ros::Publisher pointPathPub;
     tf::TransformListener listener;
 
-    targetVelPub = nh.advertise<vehicle_auto_control::Velocity>("/vehicle_controller/v1/command_target_velocity", 1000);
-    pointPathPub = nh.advertise<vehicle_auto_control::PointPath>("/vehicle_controller/v1/command_point_path", 1000);
+    targetVelPub = nh.advertise<vehicle_auto_control::Velocity>("/vehicle_controller/v1/command_target_velocity", 1000);    
+    actionlib::SimpleActionClient<vehicle_auto_control::PointPathAction> ac("/vehicle_controller/v1/point_path", true);
 
     vehicle_auto_control::Velocity maxVelMsg;
-    vehicle_auto_control::PointPath pointPathMsg;
+    vehicle_auto_control::PointPathGoal pointPathMsg;
 
     maxVelMsg.horizontalVelocity = 1.0;
     maxVelMsg.verticalVelocity = 1.0;
@@ -43,28 +42,29 @@ TEST(FourDOFPropulsionController, PointPathController){
 
     pointPathMsg.points.push_back(point1);
     pointPathMsg.points.push_back(point2);
+    pointPathMsg.yoyo = false;
 
     //Wait for ros time to start
     while(ros::Time::now().toSec() == 0.0);
 
     //Wait for vehicle_auto_control node to start
     ros::Time startWait = ros::Time::now();
-    while((targetVelPub.getNumSubscribers() == 0 || pointPathPub.getNumSubscribers() == 0) &&
+    while((targetVelPub.getNumSubscribers() == 0) &&
           (ros::Time::now() - startWait).toSec() <= 200.0);
 
-    if(targetVelPub.getNumSubscribers() == 0 || pointPathPub.getNumSubscribers() == 0)
+    if(targetVelPub.getNumSubscribers() == 0 || !ac.waitForServer(ros::Duration(5)))
     {
         FAIL();
     }
 
     //Wait for transforms
-    listener.waitForTransform("/world", "/v1", ros::Time(0), ros::Duration(200.0));
+    listener.waitForTransform("/world", "/v1", ros::Time(0), ros::Duration(10.0));
 
     targetVelPub.publish(maxVelMsg);
-    pointPathPub.publish(pointPathMsg);
+    ac.sendGoal(pointPathMsg);
     
-    unsigned currentPoint = 0;
 
+    unsigned currentPoint = 0;
     ros::Time start = ros::Time::now();
     while(currentPoint < pointPathMsg.points.size() && (ros::Time::now() - start) <= ros::Duration(200.0))
     {
@@ -101,10 +101,10 @@ TEST(FourDOFPropulsionController, YoYoPointPathController){
     tf::TransformListener listener;
 
     targetVelPub = nh.advertise<vehicle_auto_control::Velocity>("/vehicle_controller/v0/command_target_velocity", 1000);
-    pointPathPub = nh.advertise<vehicle_auto_control::YoYoPointPath>("/vehicle_controller/v0/command_yoyo_point_path", 1000);
+    actionlib::SimpleActionClient<vehicle_auto_control::PointPathAction> ac("/vehicle_controller/v0/point_path", true);
 
     vehicle_auto_control::Velocity maxVelMsg;
-    vehicle_auto_control::YoYoPointPath pointPathMsg;
+    vehicle_auto_control::PointPathGoal pointPathMsg;
 
     maxVelMsg.horizontalVelocity = 1.0;
     maxVelMsg.verticalVelocity = 1.0;
@@ -124,16 +124,17 @@ TEST(FourDOFPropulsionController, YoYoPointPathController){
     pointPathMsg.points.push_back(point2);
     pointPathMsg.upperDepth = -95;
     pointPathMsg.lowerDepth = -105;
+    pointPathMsg.yoyo = true;
 
     //Wait for ros time to start
     while(ros::Time::now().toSec() == 0.0);
 
     //Wait for vehicle_auto_control node to start
     ros::Time startWait = ros::Time::now();
-    while((targetVelPub.getNumSubscribers() == 0 || pointPathPub.getNumSubscribers() == 0) &&
+    while((targetVelPub.getNumSubscribers() == 0) &&
           (ros::Time::now() - startWait).toSec() <= 5);
 
-    if(targetVelPub.getNumSubscribers() == 0 || pointPathPub.getNumSubscribers() == 0)
+    if(targetVelPub.getNumSubscribers() == 0 || !ac.waitForServer(ros::Duration(10.0)))
     {
         FAIL();
     }
@@ -142,8 +143,9 @@ TEST(FourDOFPropulsionController, YoYoPointPathController){
     listener.waitForTransform("/world", "/v0", ros::Time(0), ros::Duration(200.0));
 
     targetVelPub.publish(maxVelMsg);
-    pointPathPub.publish(pointPathMsg);
-    
+  //  ros::Duration(10).sleep();
+    ac.sendGoal(pointPathMsg);
+
     unsigned currentPoint = 0;
 
     bool goingUp = true;
