@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(planner)
+project(vent_planner)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
  add_compile_options(-std=c++11)
@@ -8,8 +8,10 @@ project(planner)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED
- roscpp
- tf)
+			 roscpp
+ 			 tf
+ 			 underwater_vehicle_sim REQUIRED
+ 			 planner REQUIRED)
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -68,7 +70,7 @@ find_package(catkin REQUIRED
 ## Generate added messages and services with any dependencies listed here
 # generate_messages(
 #   DEPENDENCIES
-#   underwater_vehicle_sim  # Or other packages containing msgs
+#   std_msgs  # Or other packages containing msgs
 # )
 
 ################################################
@@ -101,8 +103,8 @@ find_package(catkin REQUIRED
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-   INCLUDE_DIRS include
-   LIBRARIES planner_framework
+  INCLUDE_DIRS include
+#  LIBRARIES vent_planner
 #  CATKIN_DEPENDS other_catkin_pkg
 #  DEPENDS system_lib
 )
@@ -119,33 +121,40 @@ include_directories(
 )
 
 ## Declare a C++ library
- add_library(planner_framework
-   src/planner_framework/Plan.cpp
-   src/planner_framework/Action.cpp
+ add_library(vent_planner
+   src/vent_planner/actions/YoYoPointPathAction.cpp
+   src/vent_planner/VentSimActionExecutor.cpp
  )
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
 ## either from message generation or dynamic reconfigure
- add_dependencies(planner_framework ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-
-
+ add_dependencies(vent_planner ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
  
-
- ## Declare a C++ library
- add_library(plan_dispatcher
-   src/plan_dispatcher/PlanDispatcher.cpp
- )
-
-## Add cmake target dependencies of the library
-## as an example, code may need to be generated before libraries
-## either from message generation or dynamic reconfigure
- add_dependencies(plan_dispatcher ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
- 
- target_link_libraries(plan_dispatcher
+ target_link_libraries(vent_planner
    ${catkin_LIBRARIES}
    planner_framework
  )
+
+## Declare a C++ executable
+## With catkin_make all packages are built within a single CMake context
+## The recommended prefix ensures that target names across packages don't collide
+# add_executable(${PROJECT_NAME}_node src/vent_planner_node.cpp)
+
+## Rename C++ executable without prefix
+## The above recommended prefix causes long target names, the following renames the
+## target back to the shorter version for ease of user use
+## e.g. "rosrun someones_pkg node" instead of "rosrun someones_pkg someones_pkg_node"
+# set_target_properties(${PROJECT_NAME}_node PROPERTIES OUTPUT_NAME node PREFIX "")
+
+## Add cmake target dependencies of the executable
+## same as for the library above
+# add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+
+## Specify libraries to link a library or executable target against
+# target_link_libraries(${PROJECT_NAME}_node
+#   ${catkin_LIBRARIES}
+# )
 
 #############
 ## Install ##
@@ -169,11 +178,11 @@ include_directories(
 # )
 
 ## Mark cpp header files for installation
- install(DIRECTORY include/${PROJECT_NAME}/
-   DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
-   FILES_MATCHING PATTERN "*.h"
-   PATTERN ".svn" EXCLUDE
- )
+# install(DIRECTORY include/${PROJECT_NAME}/
+#   DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+#   FILES_MATCHING PATTERN "*.h"
+#   PATTERN ".svn" EXCLUDE
+# )
 
 ## Mark other files for installation (e.g. launch and bag files, etc.)
 # install(FILES
@@ -187,7 +196,14 @@ include_directories(
 #############
 
 ## Add gtest based cpp test target and link libraries
+# catkin_add_gtest(${PROJECT_NAME}-test test/test_vent_planner.cpp)
+if (CATKIN_ENABLE_TESTING)
+ find_package(rostest REQUIRED)
 
+ add_rostest_gtest(yoyo_point_path_executor_test tests/vent_planner/YoYoPointPathExecutor.test src/tests/vent_planner/YoYoPointPathExecutor_test.cpp)
+
+ target_link_libraries(yoyo_point_path_executor_test planner_framework vent_planner ${catkin_LIBRARIES} ${NETCDF_LIBRARIES} stdc++fs)
+endif()
 
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
