@@ -85,12 +85,8 @@ void VentSimActionExecutor::executeYoYoPointPathAction(double targetHorizontalVe
 
 void VentSimActionExecutor::monitorYoYoPointPathAction(Action::State& state)
 {
-	if(pointPathClient.getState() == actionlib::SimpleClientGoalState::PENDING)
-	{
-		state = Action::State::PLANNED;
-	}
-	else if(pointPathClient.getState() == actionlib::SimpleClientGoalState::RECALLED ||
-			pointPathClient.getState() == actionlib::SimpleClientGoalState::PREEMPTED)
+	if(pointPathClient.getState() == actionlib::SimpleClientGoalState::RECALLED ||
+	   pointPathClient.getState() == actionlib::SimpleClientGoalState::PREEMPTED)
 	{
 		state = Action::State::INTERRUPTED;
 	}

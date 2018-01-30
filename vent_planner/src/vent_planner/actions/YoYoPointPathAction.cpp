@@ -4,13 +4,13 @@
 
 #include "vent_planner/actions/YoYoPointPathAction.h"
 
-YoYoPointPathAction::YoYoPointPathAction(VentActionExecutor& executor, 
-										 const double targetHorizontalVelocity, 
+YoYoPointPathAction::YoYoPointPathAction(VentActionExecutor& executor,
+										 const double targetHorizontalVelocity,
 										 const double targetRotationalVelocity,
-										 const double targetSlope, 
+										 const double targetSlope,
 										 const double upperDepth,
 										 const double lowerDepth,
-										 std::vector<tf::Vector3>& points) :
+										 const std::vector<tf::Vector3>& points) :
 	executor(executor),
   	targetHorizontalVelocity(targetHorizontalVelocity),
   	targetRotationalVelocity(targetRotationalVelocity),
@@ -20,17 +20,34 @@ YoYoPointPathAction::YoYoPointPathAction(VentActionExecutor& executor,
   	points(points)
 {}
 
-void YoYoPointPathAction::execute()
+YoYoPointPathAction::YoYoPointPathAction(const YoYoPointPathAction& action) :
+	Action(action),
+	executor(action.executor),
+  	targetHorizontalVelocity(action.targetHorizontalVelocity),
+  	targetRotationalVelocity(action.targetRotationalVelocity),
+  	targetSlope(action.targetSlope),
+  	upperDepth(action.upperDepth),
+  	lowerDepth(action.lowerDepth),
+  	points(action.points)
+{}
+
+std::unique_ptr<Action> YoYoPointPathAction::clone() const
 {
-	executor.executeYoYoPointPathAction(targetHorizontalVelocity, 
-										 targetRotationalVelocity, 
-										 targetSlope, 
-										 upperDepth, 
+	std::unique_ptr<Action> a(new YoYoPointPathAction(*this));
+	return a;
+}
+
+void YoYoPointPathAction::executeAction()
+{
+	executor.executeYoYoPointPathAction(targetHorizontalVelocity,
+										 targetRotationalVelocity,
+										 targetSlope,
+										 upperDepth,
 										 lowerDepth, 
 										 points);
 }
 
-bool YoYoPointPathAction::tiggerReplan() 
+bool YoYoPointPathAction::triggerReplan() 
 {
 	return executor.triggerReplanYoYoPointPathAction();
 }

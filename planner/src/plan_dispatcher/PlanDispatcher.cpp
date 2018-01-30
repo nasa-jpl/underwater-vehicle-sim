@@ -1,0 +1,58 @@
+#include "planner_framework/Action.h"
+
+#include "plan_dispatcher/PlanDispatcher.h"
+
+PlanDispatcher::PlanDispatcher() :
+currentAction(0),
+running(false)
+{}
+
+void PlanDispatcher::runPlan()
+{
+	currentAction = 0;
+	running = true;
+}
+
+void PlanDispatcher::setPlan(const Plan& newPlan)
+{
+	currentAction = 0;
+	running = false;
+	plan = newPlan;
+}
+
+bool PlanDispatcher::triggerReplan()
+{
+	if(running)
+	{
+		Action& action = *(plan.getActions()[currentAction]);
+		if(action.getState() == Action::State::EXECUTING)
+		{
+			return action.triggerReplan();
+			
+		}
+	}
+	return false;
+}
+
+void PlanDispatcher::update()
+{
+	if(running && currentAction < plan.getActions().size())
+	{
+		Action& action = *(plan.getActions()[currentAction]);
+		if(action.getState() == Action::State::PLANNED)
+		{
+			action.execute();
+		}
+		else if(action.getState() == Action::State::EXECUTING)
+		{
+			action.monitor();
+			
+		}
+		else if(action.getState() == Action::State::INTERRUPTED ||
+				action.getState() == Action::State::COMPLETED ||
+				action.getState() == Action::State::FAILED)
+		{
+			currentAction++;
+		}
+	}
+}

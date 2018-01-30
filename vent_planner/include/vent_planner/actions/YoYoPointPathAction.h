@@ -17,11 +17,16 @@ public:
 						const double targetSlope,
 						const double upperDepth,
 						const double lowerDepth,
-						std::vector<tf::Vector3>& points);
+						const std::vector<tf::Vector3>& points);
+
+	YoYoPointPathAction(const YoYoPointPathAction& action);
+
 	~YoYoPointPathAction() {}
 
-	void execute();
-	bool tiggerReplan();
+	std::unique_ptr<Action> clone() const override;
+
+	void executeAction();
+	bool triggerReplan();
 	void monitor();
 
 private:

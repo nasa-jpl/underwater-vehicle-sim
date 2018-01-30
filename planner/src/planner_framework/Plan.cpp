@@ -1,5 +1,16 @@
 #include "planner_framework/Plan.h"
 
+Plan& Plan::operator=(const Plan& other)
+{
+	for(auto& action : other.actions)
+	{
+		std::unique_ptr<Action> newAction = action->clone();
+		actions.push_back(std::move(newAction));
+	}
+
+	return *this;
+}
+
 void Plan::addAction(std::unique_ptr<Action> action)
 {
 	actions.push_back(std::move(action));

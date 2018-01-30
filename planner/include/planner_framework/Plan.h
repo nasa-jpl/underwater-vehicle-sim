@@ -8,9 +8,12 @@
 
 class Plan
 {
+
 public:
 	Plan() {}
 	~Plan() {}
+
+	Plan& operator=(const Plan& other);
 
 	void addAction(std::unique_ptr<Action> action);
 	const std::vector<std::unique_ptr<Action>>& getActions();
