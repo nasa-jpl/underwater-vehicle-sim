@@ -39,12 +39,17 @@ std::unique_ptr<Action> YoYoPointPathAction::clone() const
 
 void YoYoPointPathAction::executeAction()
 {
-	executor.executeYoYoPointPathAction(targetHorizontalVelocity,
+	bool success = executor.executeYoYoPointPathAction(targetHorizontalVelocity,
 										 targetRotationalVelocity,
 										 targetSlope,
 										 upperDepth,
 										 lowerDepth, 
 										 points);
+
+	if(!success)
+	{
+		state = Action::State::FAILED;
+	}
 }
 
 bool YoYoPointPathAction::triggerReplan() 

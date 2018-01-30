@@ -22,7 +22,7 @@ public:
 	/**
 	* Executes the yoyo action with the given parameters
 	*/
-	virtual void executeYoYoPointPathAction(double targetHorizontalVelocity, 
+	virtual bool executeYoYoPointPathAction(double targetHorizontalVelocity, 
 											double targetRotationalVelocity, 
 											double targetSlope, 
 											double upperDepth,

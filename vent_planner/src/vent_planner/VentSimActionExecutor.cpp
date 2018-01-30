@@ -28,7 +28,7 @@ pointPathClient("/vehicle_controller/"  + vehicleName + "/point_path", true)
 }
 
 
-void VentSimActionExecutor::executeYoYoPointPathAction(double targetHorizontalVelocity, 
+bool VentSimActionExecutor::executeYoYoPointPathAction(double targetHorizontalVelocity, 
 													   double targetRotationalVelocity,
 													   double targetSlope, 
 													   double upperDepth,
@@ -38,7 +38,7 @@ void VentSimActionExecutor::executeYoYoPointPathAction(double targetHorizontalVe
 	//targetSlope can only be on the interval (0, 90) degrees
 	if(targetSlope >= M_PI / 2 || targetSlope <= 0)
 	{
-		return;
+		return false;
 	}
 
 	if(vehicleInfo.propModuleType == "FourDOFPropulsion")
@@ -62,7 +62,7 @@ void VentSimActionExecutor::executeYoYoPointPathAction(double targetHorizontalVe
 	}
 	else //If the prop module is not known then this cannot be completed
 	{
-		return;
+		return false;
 	}
 
 	//Creates an action goal and sends it to the action server for point path movement
@@ -82,6 +82,7 @@ void VentSimActionExecutor::executeYoYoPointPathAction(double targetHorizontalVe
 
 	pointPathClient.waitForServer();
 	pointPathClient.sendGoal(pointPathGoal);
+	return true;
 }
 
 void VentSimActionExecutor::monitorYoYoPointPathAction(Action::State& state)

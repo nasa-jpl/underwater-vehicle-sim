@@ -23,7 +23,7 @@ public:
 	/**
 	* Executes the yoyo action in the ros simulation with the given parameters
 	*/
-	void executeYoYoPointPathAction(double targetHorizontalVelocity, 
+	bool executeYoYoPointPathAction(double targetHorizontalVelocity, 
 									double targetRotationalVelocity,
 									double targetSlope, 
 									double uperDepth,
