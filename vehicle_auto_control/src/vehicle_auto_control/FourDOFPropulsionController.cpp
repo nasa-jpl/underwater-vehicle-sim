@@ -26,7 +26,6 @@ FourDOFPropulsionController::FourDOFPropulsionController(ros::NodeHandle control
 
 	velocitySub = controlNode.subscribe("command_target_velocity", 1, &FourDOFPropulsionController::getTargetVelocityCommand, this);
 	pointPathServer.start();
-	ROS_INFO("START: %s", vehicleName.c_str());
 }
 
 void FourDOFPropulsionController::getTargetVelocityCommand(const vehicle_auto_control::Velocity vel)
@@ -39,7 +38,6 @@ void FourDOFPropulsionController::getTargetVelocityCommand(const vehicle_auto_co
 void FourDOFPropulsionController::executePointPath(const vehicle_auto_control::PointPathGoalConstPtr& goal, 
 												   actionlib::SimpleActionServer<vehicle_auto_control::PointPathAction>* as)
 {
-	ROS_INFO("EXECUTE: %s", vehicleName.c_str());
 	//Feedback and Results for the action
 	vehicle_auto_control::PointPathFeedback feedback;
     vehicle_auto_control::PointPathResult result;
@@ -60,7 +58,6 @@ void FourDOFPropulsionController::executePointPath(const vehicle_auto_control::P
 	unsigned int currentPoint = 0;
 	bool goingUp = true;
 
-	//ROS_INFO("EXECUTE");
 	while(currentPoint < pathPoints.size() && ros::ok())
 	{
 		tf::StampedTransform transform;
