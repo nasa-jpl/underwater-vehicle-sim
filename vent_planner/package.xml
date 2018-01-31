@@ -41,9 +41,9 @@
   <!--   <test_depend>gtest</test_depend> -->
   <buildtool_depend>catkin</buildtool_depend>
   <build_depend>roscpp</build_depend>
-  <build_depend>underwater_vehicle_sim</build_depend>
   <build_depend>planner</build_depend>
 
+  <exec_depend>planner</exec_depend>
   <exec_depend>roscpp</exec_depend>
   <test_depend>rosunit</test_depend>
 

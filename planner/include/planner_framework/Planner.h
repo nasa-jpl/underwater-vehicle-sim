@@ -6,7 +6,7 @@
 class Planner
 {
 public:
-	Planner();
+	Planner() {}
 	~Planner() {}
 
 	virtual Plan plan()=0;

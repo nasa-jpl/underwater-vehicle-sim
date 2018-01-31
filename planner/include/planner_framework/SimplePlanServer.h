@@ -7,14 +7,15 @@
 class SimplePlanServer
 {
 public:
-	SimplePlanServer(PlanDispatcher planDispatcher, Planner& planner);
+	SimplePlanServer(std::unique_ptr<PlanDispatcher> planDispatcher, std::unique_ptr<Planner> planner);
+	SimplePlanServer(SimplePlanServer&& other);
 	~SimplePlanServer() {}
 
 	void update();
 
 private:
-	PlanDispatcher planDispatcher;
-	Planner& planner;
+	std::unique_ptr<PlanDispatcher> planDispatcher;
+	std::unique_ptr<Planner> planner;
 };
 
 #endif
