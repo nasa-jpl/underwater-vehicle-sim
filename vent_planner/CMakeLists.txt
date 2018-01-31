@@ -203,6 +203,9 @@ include_directories(
 if (CATKIN_ENABLE_TESTING)
  find_package(rostest REQUIRED)
 
+ catkin_add_gtest(pattern_generation_test src/tests/vent_planner/PatternGeneration_test.cpp)
+ target_link_libraries(pattern_generation_test vent_planner ${catkin_LIBRARIES})
+
  add_rostest_gtest(yoyo_point_path_executor_test tests/vent_planner/YoYoPointPathExecutor.test src/tests/vent_planner/YoYoPointPathExecutor_test.cpp)
 
  target_link_libraries(yoyo_point_path_executor_test planner_framework vent_planner ${catkin_LIBRARIES} ${NETCDF_LIBRARIES} stdc++fs)
