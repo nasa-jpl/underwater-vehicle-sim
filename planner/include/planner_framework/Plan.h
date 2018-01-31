@@ -11,6 +11,7 @@ class Plan
 
 public:
 	Plan() {}
+	Plan(const Plan& other);
 	~Plan() {}
 
 	Plan& operator=(const Plan& other);

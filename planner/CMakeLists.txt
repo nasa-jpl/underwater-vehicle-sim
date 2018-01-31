@@ -123,6 +123,7 @@ include_directories(
    src/planner_framework/Plan.cpp
    src/planner_framework/Action.cpp
    src/planner_framework/PlanDispatcher.cpp
+   src/planner_framework/SimplePlanServer.cpp
  )
 
 ## Add cmake target dependencies of the library
