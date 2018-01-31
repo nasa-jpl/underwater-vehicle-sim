@@ -7,6 +7,8 @@
 #include <experimental/filesystem>
 #include <iomanip>
 
+#include "ros/ros.h"
+
 #include "data_server/DataServer.h"
 
 namespace fs = std::experimental::filesystem;
@@ -42,7 +44,7 @@ void DataServer::putData(std::string sourceName, DataServer::DataServerEntry ent
 	}
 }
 
-std::vector<DataServer::DataServerEntry>::iterator DataServer::getStartTime(std::string sourceName, float time)
+std::vector<DataServer::DataServerEntry>::iterator DataServer::getStartTime(std::string sourceName, ros::Time time)
 {
 	//Check to see if sourceName is in the map
 	if(!data.count(sourceName))
@@ -57,7 +59,7 @@ std::vector<DataServer::DataServerEntry>::iterator DataServer::getStartTime(std:
 	return std::lower_bound(dataList.begin(), dataList.end(), searchEntry);
 }
 
-std::vector<DataServer::DataServerEntry>::iterator DataServer::getEndTime(std::string sourceName, float time)
+std::vector<DataServer::DataServerEntry>::iterator DataServer::getEndTime(std::string sourceName, ros::Time time)
 {
 	//Check to see if sourceName is in the map
 	if(!data.count(sourceName))
@@ -123,7 +125,7 @@ void DataServer::loadFromCSVFile(std::string filename)
 				newEntry.x = std::stof(splitLine[1]);
 				newEntry.y = std::stof(splitLine[2]);
 				newEntry.h = std::stof(splitLine[3]);
-				newEntry.time = std::stof(splitLine[4]);
+				newEntry.time = ros::Time(std::stof(splitLine[4]));
 
 				newEntry.temp = std::stof(splitLine[5]);
 				newEntry.salt = std::stof(splitLine[6]);
@@ -158,7 +160,7 @@ void DataServer::saveToCSVFile(std::string filename)
   			for(auto list_it = it->second.begin(); list_it != it->second.end(); ++list_it)
   			{
   				file << it->first << ",";
-  				file << std::setprecision(9) << list_it->x << "," << list_it->y << "," << list_it->h << "," << list_it->time << ",";
+  				file << std::setprecision(9) << list_it->x << "," << list_it->y << "," << list_it->h << "," << list_it->time.toSec() << ",";
   				file << std::setprecision(9) << list_it->temp << "," << list_it->salt << "," << list_it->dye << "\n";
   			}
   		}
