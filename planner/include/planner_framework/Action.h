@@ -46,6 +46,8 @@ public:
 	* Gets the state of this action.
 	*/
 	State getState();
+
+	void setState(State newState);
 	
 protected:
 	State state; 

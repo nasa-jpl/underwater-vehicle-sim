@@ -18,7 +18,13 @@ void Action::execute()
 	state = Action::State::EXECUTING;
 	executeAction();
 }
+
 Action::State Action::getState()
 {
 	return state;
+}
+
+void Action::setState(Action::State newState)
+{
+	state = newState;
 }

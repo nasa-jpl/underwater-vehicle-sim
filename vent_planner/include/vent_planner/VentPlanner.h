@@ -7,12 +7,10 @@
 
 #include "planner_framework/Planner.h"
 
-#include "vent_planner/VentActionExecutor.h"
-
 class VentPlanner : public Planner
 {
 public:
-	VentPlanner(std::unique_ptr<VentActionExecutor> executor);
+	VentPlanner();
 	~VentPlanner() {}
 
 	Plan plan();
@@ -30,7 +28,6 @@ public:
 		 								   		  double spacing);
 
 private:
-	std::unique_ptr<VentActionExecutor> executor;
 
 	
 };

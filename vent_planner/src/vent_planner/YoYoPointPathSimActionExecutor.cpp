@@ -7,16 +7,18 @@
 #include "geometry_msgs/Point.h"
 
 #include "planner_framework/Action.h"
-#include "vent_planner/VentActionExecutor.h"
-#include "vent_planner/VentSimActionExecutor.h"
+
+#include "vent_planner/YoYoPointPathSimActionExecutor.h"
+#include "vent_planner/actions/YoYoPointPathAction.h"
 #include "vehicle_auto_control/Velocity.h"
 
 #include "actionlib/client/simple_action_client.h"
 #include "vehicle_auto_control/PointPathAction.h"
 
-VentSimActionExecutor::VentSimActionExecutor(ros::NodeHandle& nh, std::string vehicleName) :
-VentActionExecutor(nh, vehicleName),
-pointPathClient("/vehicle_controller/"  + vehicleName + "/point_path", true)
+YoYoPointPathSimActionExecutor::YoYoPointPathSimActionExecutor(ros::NodeHandle& nh, std::string vehicleName) :
+	vehicleName(vehicleName),
+	nh(nh),
+	pointPathClient("/vehicle_controller/"  + vehicleName + "/point_path", true)
 {
 	infoClient = nh.serviceClient<underwater_vehicle_sim::GetVehicleInfo>("vehicles/get_info");
 	infoClient.waitForExistence();
@@ -28,15 +30,10 @@ pointPathClient("/vehicle_controller/"  + vehicleName + "/point_path", true)
 }
 
 
-bool VentSimActionExecutor::executeYoYoPointPathAction(double targetHorizontalVelocity, 
-													   double targetRotationalVelocity,
-													   double targetSlope, 
-													   double upperDepth,
-													   double lowerDepth,
-													   std::vector<tf::Vector3>& points)
+bool YoYoPointPathSimActionExecutor::execute(YoYoPointPathAction& action)
 {
 	//targetSlope can only be on the interval (0, 90) degrees
-	if(targetSlope >= M_PI / 2 || targetSlope <= 0)
+	if(action.targetSlope >= M_PI / 2 || action.targetSlope <= 0)
 	{
 		return false;
 	}
@@ -51,11 +48,11 @@ bool VentSimActionExecutor::executeYoYoPointPathAction(double targetHorizontalVe
 
 		//Send target velocities command
 		vehicle_auto_control::Velocity velMsg;
-		velMsg.horizontalVelocity = targetHorizontalVelocity;
+		velMsg.horizontalVelocity = action.targetHorizontalVelocity;
 
 		//Calculate the target vertical velocity based on target horizontal velocity and target slope
-		velMsg.verticalVelocity = targetHorizontalVelocity * (sin(targetSlope) / cos(targetSlope));
-		velMsg.rotationalVelocity = targetRotationalVelocity;
+		velMsg.verticalVelocity = action.targetHorizontalVelocity * (sin(action.targetSlope) / cos(action.targetSlope));
+		velMsg.rotationalVelocity = action.targetRotationalVelocity;
 	
 		auto publisher = publishers.find(velSub); 
 		publisher->second.publish(velMsg);
@@ -68,7 +65,7 @@ bool VentSimActionExecutor::executeYoYoPointPathAction(double targetHorizontalVe
 	//Creates an action goal and sends it to the action server for point path movement
 	pointPathGoal = vehicle_auto_control::PointPathGoal();
 
-	for(auto point : points)
+	for(auto point : action.points)
 	{
 		geometry_msgs::Point p;
 		p.x = point.getX();
@@ -76,8 +73,8 @@ bool VentSimActionExecutor::executeYoYoPointPathAction(double targetHorizontalVe
 		p.z = point.getZ();
 		pointPathGoal.points.push_back(p);
 	}
-	pointPathGoal.upperDepth = upperDepth;
-	pointPathGoal.lowerDepth = lowerDepth;
+	pointPathGoal.upperDepth = action.upperDepth;
+	pointPathGoal.lowerDepth = action.lowerDepth;
 	pointPathGoal.yoyo = true;
 
 	pointPathClient.waitForServer();
@@ -85,36 +82,36 @@ bool VentSimActionExecutor::executeYoYoPointPathAction(double targetHorizontalVe
 	return true;
 }
 
-void VentSimActionExecutor::monitorYoYoPointPathAction(Action::State& state)
+void YoYoPointPathSimActionExecutor::monitor(YoYoPointPathAction& action)
 {
 	//Determines the state of the action based on the state of the goal in the action server
 	if(pointPathClient.getState() == actionlib::SimpleClientGoalState::RECALLED ||
 	   pointPathClient.getState() == actionlib::SimpleClientGoalState::PREEMPTED)
 	{
-		state = Action::State::INTERRUPTED;
+		action.setState(Action::State::INTERRUPTED);
 	}
 	else if(pointPathClient.getState() == actionlib::SimpleClientGoalState::REJECTED ||
 			pointPathClient.getState() == actionlib::SimpleClientGoalState::ABORTED ||
 			pointPathClient.getState() == actionlib::SimpleClientGoalState::LOST)
 	{
-		state = Action::State::FAILED;
+		action.setState(Action::State::FAILED);
 	}
 	else if(pointPathClient.getState() == actionlib::SimpleClientGoalState::ACTIVE)
 	{
-		state = Action::State::EXECUTING;
+		action.setState(Action::State::EXECUTING);
 	}
 	else if(pointPathClient.getState() == actionlib::SimpleClientGoalState::SUCCEEDED)
 	{
-		state = Action::State::COMPLETED;
+		action.setState(Action::State::COMPLETED);
 	}
 }
 
-bool VentSimActionExecutor::triggerReplanYoYoPointPathAction()
+bool YoYoPointPathSimActionExecutor::triggerReplan(YoYoPointPathAction& action)
 {
 	return false;
 }
 
-bool VentSimActionExecutor::hasPublisher(std::string topic)
+bool YoYoPointPathSimActionExecutor::hasPublisher(std::string topic)
 {
 	return publishers.find(topic) != publishers.end();
 }

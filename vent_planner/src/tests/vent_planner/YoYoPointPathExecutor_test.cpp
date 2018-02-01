@@ -14,7 +14,7 @@
 #include "planner_framework/PlanDispatcher.h"
 
 #include "vent_planner/actions/YoYoPointPathAction.h"
-#include "vent_planner/VentSimActionExecutor.h"
+#include "vent_planner/YoYoPointPathSimActionExecutor.h"
 
 #include "vehicle_auto_control/Velocity.h"
 
@@ -23,8 +23,8 @@ TEST(FourDOFPropulsionController, YoYoPointPathController){
 
     ros::NodeHandle nh;
 
-    VentSimActionExecutor simExecutor(nh, "v0");
-    VentActionExecutor& executor = simExecutor;
+    YoYoPointPathSimActionExecutor simExecutor(nh, "v0");
+    ActionExecutor<YoYoPointPathAction>& executor = simExecutor;
 
     tf::TransformListener listener;
 

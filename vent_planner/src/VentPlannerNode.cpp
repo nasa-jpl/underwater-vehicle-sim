@@ -5,8 +5,6 @@
 #include "planner_framework/PlanDispatcher.h"
 
 #include "vent_planner/VentPlanner.h"
-#include "vent_planner/VentActionExecutor.h"
-#include "vent_planner/VentSimActionExecutor.h"
 
 int main(int argc, char **argv)
 {
@@ -28,16 +26,6 @@ int main(int argc, char **argv)
     }
 
     std::vector<SimplePlanServer> servers;
-
-    for(auto& name : vehicleNames)
-    {
-        std::unique_ptr<VentActionExecutor> executor(new VentSimActionExecutor(nh, name));
-        std::unique_ptr<PlanDispatcher> planDispatcher(new PlanDispatcher());
-        std::unique_ptr<Planner> planner(new VentPlanner(std::move(executor)));
-
-        servers.emplace_back(std::move(planDispatcher), std::move(planner));
-    }
-
     ros::Rate r(loopHertz);
 
     while(ros::ok())

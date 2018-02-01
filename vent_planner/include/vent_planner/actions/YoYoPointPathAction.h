@@ -6,12 +6,12 @@
 #include "tf/LinearMath/Vector3.h"
 
 #include "planner_framework/Action.h"
-#include "vent_planner/VentActionExecutor.h"
+#include "planner_framework/ActionExecutor.h"
 
 class YoYoPointPathAction : public Action
 {
 public:
-	YoYoPointPathAction(VentActionExecutor& executor, 
+	YoYoPointPathAction(ActionExecutor<YoYoPointPathAction>& executor,
 						const double targetHorizontalVelocity, 
 						const double targetRotationalVelocity,
 						const double targetSlope,
@@ -40,15 +40,17 @@ public:
 	*/
 	void monitor();
 
-private:
-	VentActionExecutor& executor;
+
+public:
 	const double targetHorizontalVelocity;
 	const double targetRotationalVelocity;
 	const double targetSlope;
 	const double upperDepth;
 	const double lowerDepth;
-	
-	std::vector<tf::Vector3> points;
+	const std::vector<tf::Vector3> points;
+
+private:
+	ActionExecutor<YoYoPointPathAction>& executor;
 };
 
 #endif

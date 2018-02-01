@@ -7,46 +7,46 @@
 #include "ros/ros.h"
 #include "tf/LinearMath/Vector3.h"
 
-#include "vent_planner/VentActionExecutor.h"
+#include "planner_framework/ActionExecutor.h"
+#include "vent_planner/actions/YoYoPointPathAction.h"
+
 #include "underwater_vehicle_sim/GetVehicleInfo.h"
 
 #include "actionlib/client/simple_action_client.h"
 #include "vehicle_auto_control/PointPathAction.h"
 
 
-class VentSimActionExecutor : public VentActionExecutor
+class YoYoPointPathSimActionExecutor : public ActionExecutor<YoYoPointPathAction>
 {
 public:
-	VentSimActionExecutor(ros::NodeHandle& nh, std::string vehicleName);
-	~VentSimActionExecutor() {}
+	YoYoPointPathSimActionExecutor(ros::NodeHandle& nh, std::string vehicleName);
+	~YoYoPointPathSimActionExecutor() {}
 
 	/**
 	* Executes the yoyo action in the ros simulation with the given parameters
 	*/
-	bool executeYoYoPointPathAction(double targetHorizontalVelocity, 
-									double targetRotationalVelocity,
-									double targetSlope, 
-									double uperDepth,
-									double lowerDepth,
-									std::vector<tf::Vector3>& points);
+	bool execute(YoYoPointPathAction& action) override;
 	
 	/**
 	* Monitors and updates the state of the yoyo action in the ros simulation 
 	*/
-	void monitorYoYoPointPathAction(Action::State& state);
+	void monitor(YoYoPointPathAction& action) override;
 
 	/**
 	* Allows the yoyo action to trigger a replan in the ros simulation 
 	*/
-	bool triggerReplanYoYoPointPathAction();
+	bool triggerReplan(YoYoPointPathAction& action) override;
 private:
 
 	bool hasPublisher(std::string topic);
 
 private:
+	ros::NodeHandle& nh;
 	ros::ServiceClient infoClient;
 	underwater_vehicle_sim::GetVehicleInfo::Response vehicleInfo;
 	std::unordered_map<std::string, ros::Publisher> publishers;
+
+	std::string vehicleName;
 
 	actionlib::SimpleActionClient<vehicle_auto_control::PointPathAction> pointPathClient;
 	vehicle_auto_control::PointPathGoal pointPathGoal;

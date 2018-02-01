@@ -1,10 +1,9 @@
 #include <memory>
 
-#include "vent_planner/VentActionExecutor.h"
-
 #include "vent_planner/actions/YoYoPointPathAction.h"
+#include "planner_framework/ActionExecutor.h"
 
-YoYoPointPathAction::YoYoPointPathAction(VentActionExecutor& executor,
+YoYoPointPathAction::YoYoPointPathAction(ActionExecutor<YoYoPointPathAction>& executor,
 										 const double targetHorizontalVelocity,
 										 const double targetRotationalVelocity,
 										 const double targetSlope,
@@ -39,12 +38,7 @@ std::unique_ptr<Action> YoYoPointPathAction::clone() const
 
 void YoYoPointPathAction::executeAction()
 {
-	bool success = executor.executeYoYoPointPathAction(targetHorizontalVelocity,
-										 targetRotationalVelocity,
-										 targetSlope,
-										 upperDepth,
-										 lowerDepth, 
-										 points);
+	bool success = executor.execute(*this);
 
 	if(!success)
 	{
@@ -52,12 +46,12 @@ void YoYoPointPathAction::executeAction()
 	}
 }
 
-bool YoYoPointPathAction::triggerReplan() 
+bool YoYoPointPathAction::triggerReplan()
 {
-	return executor.triggerReplanYoYoPointPathAction();
+	return executor.triggerReplan(*this);
 }
 
 void YoYoPointPathAction::monitor()
 {
-	executor.monitorYoYoPointPathAction(state);
+	executor.monitor(*this);
 }
