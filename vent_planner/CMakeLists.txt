@@ -124,6 +124,7 @@ include_directories(
  add_library(vent_planner
    src/vent_planner/actions/YoYoPointPathAction.cpp
    src/vent_planner/YoYoPointPathSimActionExecutor.cpp
+   src/vent_planner/SimVentActionFactory.cpp
    src/vent_planner/VentPlanner.cpp
  )
 

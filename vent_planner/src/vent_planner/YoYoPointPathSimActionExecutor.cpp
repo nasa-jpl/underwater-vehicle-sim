@@ -29,6 +29,19 @@ YoYoPointPathSimActionExecutor::YoYoPointPathSimActionExecutor(ros::NodeHandle& 
 	vehicleInfo = info.response;
 }
 
+YoYoPointPathSimActionExecutor::YoYoPointPathSimActionExecutor(const YoYoPointPathSimActionExecutor& other) :
+	vehicleName(other.vehicleName),
+	nh(other.nh),
+	pointPathClient("/vehicle_controller/"  + vehicleName + "/point_path", true)
+{
+	infoClient = nh.serviceClient<underwater_vehicle_sim::GetVehicleInfo>("vehicles/get_info");
+	infoClient.waitForExistence();
+
+	underwater_vehicle_sim::GetVehicleInfo info;
+	info.request.name = vehicleName;
+	infoClient.call(info);
+	vehicleInfo = info.response;
+}
 
 bool YoYoPointPathSimActionExecutor::execute(YoYoPointPathAction& action)
 {

@@ -20,6 +20,7 @@ class YoYoPointPathSimActionExecutor : public ActionExecutor<YoYoPointPathAction
 {
 public:
 	YoYoPointPathSimActionExecutor(ros::NodeHandle& nh, std::string vehicleName);
+	YoYoPointPathSimActionExecutor(const YoYoPointPathSimActionExecutor& other);
 	~YoYoPointPathSimActionExecutor() {}
 
 	/**

@@ -15,16 +15,15 @@
 
 #include "vent_planner/actions/YoYoPointPathAction.h"
 #include "vent_planner/YoYoPointPathSimActionExecutor.h"
-
+#include "vent_planner/SimVentActionFactory.h"
 #include "vehicle_auto_control/Velocity.h"
 
 
 TEST(FourDOFPropulsionController, YoYoPointPathController){
 
+    
     ros::NodeHandle nh;
-
-    YoYoPointPathSimActionExecutor simExecutor(nh, "v0");
-    ActionExecutor<YoYoPointPathAction>& executor = simExecutor;
+    SimVentActionFactory factory(nh);
 
     tf::TransformListener listener;
 
@@ -50,21 +49,21 @@ TEST(FourDOFPropulsionController, YoYoPointPathController){
     allPoints.push_back(point3);
     allPoints.push_back(point4);
 
-    std::unique_ptr<YoYoPointPathAction> pointPathAction1 = std::unique_ptr<YoYoPointPathAction>(new YoYoPointPathAction(executor,
-                                                                                                1.0,
-                                                                                                0.349066,
-                                                                                                0.785398, //45 deg
-                                                                                                -95.0,
-                                                                                                -105.0,
-                                                                                                points1));
+    std::unique_ptr<YoYoPointPathAction> pointPathAction1 = factory.createYoYoPointPathAction("v0",
+                                                                                              1.0,
+                                                                                              0.349066,
+                                                                                              0.785398, //45 deg
+                                                                                              -95.0,
+                                                                                              -105.0,
+                                                                                              points1);
 
-    std::unique_ptr<YoYoPointPathAction> pointPathAction2 = std::unique_ptr<YoYoPointPathAction>(new YoYoPointPathAction(executor,
-                                                                                                1.0,
-                                                                                                0.349066,
-                                                                                                0.785398, //45 deg
-                                                                                                -95.0,
-                                                                                                -105.0,
-                                                                                                points2));
+    std::unique_ptr<YoYoPointPathAction> pointPathAction2 = factory.createYoYoPointPathAction("v0",
+                                                                                              1.0,
+                                                                                              0.349066,
+                                                                                              0.785398, //45 deg
+                                                                                              -95.0,
+                                                                                              -105.0,
+                                                                                              points2);
 
     PlanDispatcher planDispatcher;
     Plan plan;
