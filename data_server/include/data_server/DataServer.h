@@ -6,6 +6,8 @@
 #include <vector>
 #include <exception>
 
+#include "ros/ros.h"
+
 class DataServer
 {
 
@@ -44,7 +46,7 @@ public:
 		float x;
 		float y;
 		float h;
-		float time;
+		ros::Time time;
 
 		float temp;
 		float salt;
@@ -70,7 +72,7 @@ public:
 	* @param time
 	* @return Iterator for the vector at the specified time
 	*/
-	std::vector<DataServerEntry>::iterator getStartTime(std::string sourceName, float time);
+	std::vector<DataServerEntry>::iterator getStartTime(std::string sourceName, ros::Time time);
 
 	/**
 	* Gets an iterator for the first data entry in a list larger than time
@@ -78,7 +80,7 @@ public:
 	* @param time
 	* @return Iterator for the vector at the specified time
 	*/
-	std::vector<DataServerEntry>::iterator getEndTime(std::string sourceName, float time);
+	std::vector<DataServerEntry>::iterator getEndTime(std::string sourceName, ros::Time time);
 
 	/**
 	*Puts data in a list in the data server

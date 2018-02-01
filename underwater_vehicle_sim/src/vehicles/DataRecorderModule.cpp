@@ -38,7 +38,7 @@ void DataRecorderModule::update(std::string name, const ros::Time& lastTime, con
 		data.x = position.getX();
 		data.y = position.getY();
 		data.h = position.getZ();
-		data.time = lastTime.toSec();
+		data.time = lastTime;
 		data.temp = srv.response.temp;
 		data.salt = srv.response.salt;
 		data.dye = srv.response.dye;

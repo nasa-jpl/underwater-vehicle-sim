@@ -2,7 +2,7 @@ string name
 float32 x
 float32 y
 float32 h
-float32 time
+time time
 float32 temp
 float32 salt
 float32 dye

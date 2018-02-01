@@ -16,7 +16,7 @@
 
  <rosparam param="vehicles/v1/moduleNames">[dataRecorder]</rosparam>
  <rosparam param="vehicles/v1/dataRecorder/type">DataRecorder</rosparam>
- <rosparam param="vehicles/v1/dataRecorder/hertz">2</rosparam>
+ <rosparam param="vehicles/v1/dataRecorder/hertz">1</rosparam>
 
  <param name="use_sim_time" value="true" />
  <rosparam param="speed_up_factor">1</rosparam>

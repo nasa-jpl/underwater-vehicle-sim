@@ -4,14 +4,14 @@
 
 #include "underwater_vehicle_sim/VehicleData.h"
 #include "data_server/GetData.h"
+#include "plume_detector/GetPlumeData.h"
 #include "std_msgs/String.h"
 
 ros::ServiceClient client;
 ros::Publisher dataRecorder;
-ros::Publisher saveData;
 
 
-TEST(DataServerNode, PutAndGetData)
+TEST(PlumeDetectorNode, GetPlumeDetections)
 {
   	underwater_vehicle_sim::VehicleData data1;
   	underwater_vehicle_sim::VehicleData data2;
@@ -63,12 +63,12 @@ TEST(DataServerNode, PutAndGetData)
 	dataRecorder.publish(data2);
 
 
-	data_server::GetData retrievedData1;
+	plume_detector::GetPlumeData retrievedData1;
 	retrievedData1.request.name = "v1";
 	retrievedData1.request.start_time = ros::Time(0);
 	retrievedData1.request.end_time = ros::Time(10);
 
-	data_server::GetData retrievedData2;
+	plume_detector::GetPlumeData retrievedData2;
 	retrievedData2.request.name = "v2";
 	retrievedData2.request.start_time = ros::Time(0);
 	retrievedData2.request.end_time = ros::Time(10);
@@ -79,6 +79,10 @@ TEST(DataServerNode, PutAndGetData)
 	client.call(retrievedData1);
 	client.call(retrievedData2);
 
+
+
+
+
 	ASSERT_EQ(2, retrievedData1.response.x.size());
 	ASSERT_EQ(3, retrievedData2.response.x.size());
 
@@ -88,9 +92,7 @@ TEST(DataServerNode, PutAndGetData)
 	ASSERT_FLOAT_EQ(data1.h, retrievedData1.response.h[0]);
 	ASSERT_FLOAT_EQ(data1.time.toSec(), retrievedData1.response.time[0].toSec());
 
-	ASSERT_FLOAT_EQ(data1.temp, retrievedData1.response.temp[0]);
-	ASSERT_FLOAT_EQ(data1.salt, retrievedData1.response.salt[0]);
-	ASSERT_FLOAT_EQ(data1.dye, retrievedData1.response.dye[0]);
+	ASSERT_FLOAT_EQ(data1.dye, retrievedData1.response.val[0]);
 
 
 	ASSERT_FLOAT_EQ(data2.x, retrievedData1.response.x[1]);
@@ -98,19 +100,14 @@ TEST(DataServerNode, PutAndGetData)
 	ASSERT_FLOAT_EQ(data2.h, retrievedData1.response.h[1]);
 	ASSERT_FLOAT_EQ(data2.time.toSec(), retrievedData1.response.time[1].toSec());
 
-	ASSERT_FLOAT_EQ(data2.temp, retrievedData1.response.temp[1]);
-	ASSERT_FLOAT_EQ(data2.salt, retrievedData1.response.salt[1]);
-	ASSERT_FLOAT_EQ(data2.dye, retrievedData1.response.dye[1]);
+	ASSERT_FLOAT_EQ(data2.dye, retrievedData1.response.val[1]);
 
 	//Data V2
 	ASSERT_FLOAT_EQ(data1.x, retrievedData2.response.x[0]);
 	ASSERT_FLOAT_EQ(data1.y, retrievedData2.response.y[0]);
 	ASSERT_FLOAT_EQ(data1.h, retrievedData2.response.h[0]);
 	ASSERT_FLOAT_EQ(data1.time.toSec(), retrievedData2.response.time[0].toSec());
-
-	ASSERT_FLOAT_EQ(data1.temp, retrievedData2.response.temp[0]);
-	ASSERT_FLOAT_EQ(data1.salt, retrievedData2.response.salt[0]);
-	ASSERT_FLOAT_EQ(data1.dye, retrievedData2.response.dye[0]);
+	ASSERT_FLOAT_EQ(data1.dye, retrievedData2.response.val[0]);
 
 
 	ASSERT_FLOAT_EQ(data3.x, retrievedData2.response.x[1]);
@@ -118,18 +115,14 @@ TEST(DataServerNode, PutAndGetData)
 	ASSERT_FLOAT_EQ(data3.h, retrievedData2.response.h[1]);
 	ASSERT_FLOAT_EQ(data3.time.toSec(), retrievedData2.response.time[1].toSec());
 
-	ASSERT_FLOAT_EQ(data3.temp, retrievedData2.response.temp[1]);
-	ASSERT_FLOAT_EQ(data3.salt, retrievedData2.response.salt[1]);
-	ASSERT_FLOAT_EQ(data3.dye, retrievedData2.response.dye[1]);
+	ASSERT_FLOAT_EQ(data3.dye, retrievedData2.response.val[1]);
 
 	ASSERT_FLOAT_EQ(data2.x, retrievedData2.response.x[2]);
 	ASSERT_FLOAT_EQ(data2.y, retrievedData2.response.y[2]);
 	ASSERT_FLOAT_EQ(data2.h, retrievedData2.response.h[2]);
 	ASSERT_FLOAT_EQ(data2.time.toSec(), retrievedData2.response.time[2].toSec());
 
-	ASSERT_FLOAT_EQ(data2.temp, retrievedData2.response.temp[2]);
-	ASSERT_FLOAT_EQ(data2.salt, retrievedData2.response.salt[2]);
-	ASSERT_FLOAT_EQ(data2.dye, retrievedData2.response.dye[2]);
+	ASSERT_FLOAT_EQ(data2.dye, retrievedData2.response.val[2]);
 }
 
 
@@ -141,9 +134,8 @@ int main(int argc, char** argv){
 
   ros::NodeHandle n;
 
-  client = n.serviceClient<data_server::GetData>("/data_server/get");
+  client = n.serviceClient<plume_detector::GetPlumeData>("/plume_detector/get");
   dataRecorder = n.advertise<underwater_vehicle_sim::VehicleData>("/data_server/put", 1000);
-  saveData = n.advertise<std_msgs::String>("/data_server/save", 1000);
 
   return RUN_ALL_TESTS();
 }
