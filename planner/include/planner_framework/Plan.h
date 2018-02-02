@@ -11,10 +11,7 @@ class Plan
 
 public:
 	Plan() {}
-	Plan(const Plan& other);
 	~Plan() {}
-
-	Plan& operator=(const Plan& other);
 
 	/**
 	* Adds an action to the end of the plan

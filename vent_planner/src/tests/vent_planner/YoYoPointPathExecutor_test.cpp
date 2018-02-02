@@ -49,7 +49,7 @@ TEST(FourDOFPropulsionController, YoYoPointPathController){
     allPoints.push_back(point3);
     allPoints.push_back(point4);
 
-    std::unique_ptr<YoYoPointPathAction> pointPathAction1 = factory.createYoYoPointPathAction("v0",
+    std::shared_ptr<YoYoPointPathAction> pointPathAction1 = factory.createYoYoPointPathAction("v0",
                                                                                               1.0,
                                                                                               0.349066,
                                                                                               0.785398, //45 deg
@@ -57,7 +57,7 @@ TEST(FourDOFPropulsionController, YoYoPointPathController){
                                                                                               -105.0,
                                                                                               points1);
 
-    std::unique_ptr<YoYoPointPathAction> pointPathAction2 = factory.createYoYoPointPathAction("v0",
+    std::shared_ptr<YoYoPointPathAction> pointPathAction2 = factory.createYoYoPointPathAction("v0",
                                                                                               1.0,
                                                                                               0.349066,
                                                                                               0.785398, //45 deg
@@ -67,8 +67,8 @@ TEST(FourDOFPropulsionController, YoYoPointPathController){
 
     PlanDispatcher planDispatcher;
     Plan plan;
-    plan.addAction(std::move(pointPathAction1));
-    plan.addAction(std::move(pointPathAction2));
+    plan.addAction(pointPathAction1);
+    plan.addAction(pointPathAction2);
 
     planDispatcher.setPlan(plan);
 
@@ -98,7 +98,7 @@ TEST(FourDOFPropulsionController, YoYoPointPathController){
     unsigned yoyo = 0;
     bool isActive = false;
     ros::Time start = ros::Time::now();
-    while(currentPoint < allPoints.size() && (ros::Time::now() - start) <= ros::Duration(400.0))
+    while(pointPathAction2->getState() != Action::State::COMPLETED && (ros::Time::now() - start) <= ros::Duration(400.0))
     {
        tf::StampedTransform transform;
         try
@@ -140,6 +140,8 @@ TEST(FourDOFPropulsionController, YoYoPointPathController){
         planDispatcher.update();
     }
 
+    ASSERT_EQ(Action::State::COMPLETED, pointPathAction1->getState());
+    ASSERT_EQ(2, pointPathAction2->getCurrentPoint());
     ASSERT_EQ(allPoints.size(), currentPoint);
     ASSERT_TRUE(yoyo >= 4);
 }

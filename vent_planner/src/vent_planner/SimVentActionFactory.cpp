@@ -12,7 +12,7 @@ SimVentActionFactory::SimVentActionFactory(ros::NodeHandle& nh) :
 	nh(nh)
 {}
 
-std::unique_ptr<YoYoPointPathAction> SimVentActionFactory::createYoYoPointPathAction(const std::string& vehicleName,
+std::shared_ptr<YoYoPointPathAction> SimVentActionFactory::createYoYoPointPathAction(const std::string& vehicleName,
 																				     const double targetHorizontalVelocity, 
 																				     const double targetRotationalVelocity,
 																				     const double targetSlope,

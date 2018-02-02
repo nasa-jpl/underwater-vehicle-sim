@@ -11,7 +11,7 @@ public:
 	VentActionFactory() {}
 	virtual ~VentActionFactory() {}
 
-	virtual std::unique_ptr<YoYoPointPathAction> createYoYoPointPathAction(const std::string& vehicleName,
+	virtual std::shared_ptr<YoYoPointPathAction> createYoYoPointPathAction(const std::string& vehicleName,
 																	   	   const double targetHorizontalVelocity, 
 															   		       const double targetRotationalVelocity,
 															   		   	   const double targetSlope,
