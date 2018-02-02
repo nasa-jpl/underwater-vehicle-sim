@@ -16,7 +16,8 @@ YoYoPointPathAction::YoYoPointPathAction(ActionExecutor<YoYoPointPathAction>& ex
   	targetSlope(targetSlope),
   	upperDepth(upperDepth),
   	lowerDepth(lowerDepth),
-  	points(points)
+  	points(points),
+  	currentPoint(0)
 {}
 
 YoYoPointPathAction::YoYoPointPathAction(const YoYoPointPathAction& action) :
@@ -30,15 +31,15 @@ YoYoPointPathAction::YoYoPointPathAction(const YoYoPointPathAction& action) :
   	points(action.points)
 {}
 
-std::unique_ptr<Action> YoYoPointPathAction::clone() const
+std::shared_ptr<Action> YoYoPointPathAction::clone() const
 {
-	std::unique_ptr<Action> a(new YoYoPointPathAction(*this));
+	std::shared_ptr<Action> a(new YoYoPointPathAction(*this));
 	return a;
 }
 
 void YoYoPointPathAction::executeAction()
 {
-	bool success = executor.execute(*this);
+	bool success = executor.execute(shared_from_this());
 
 	if(!success)
 	{
@@ -48,10 +49,31 @@ void YoYoPointPathAction::executeAction()
 
 bool YoYoPointPathAction::triggerReplan()
 {
-	return executor.triggerReplan(*this);
+	return executor.triggerReplan(shared_from_this());
 }
 
 void YoYoPointPathAction::monitor()
 {
-	executor.monitor(*this);
+	executor.monitor(shared_from_this());
+}
+
+
+void YoYoPointPathAction::setCurrentPoint(const int point)
+{
+	currentPoint = point;
+}
+
+const int YoYoPointPathAction::getCurrentPoint()
+{
+	return currentPoint;
+}
+
+void YoYoPointPathAction::addPointReachedTime(const ros::Time& time)
+{
+	pointReachedTimes.push_back(time);
+}
+
+const std::vector<ros::Time>& YoYoPointPathAction::getPointReachedTimes()
+{
+	return pointReachedTimes;
 }

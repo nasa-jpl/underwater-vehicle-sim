@@ -15,7 +15,7 @@ void Action::reset()
 
 void Action::execute()
 {
-	state = Action::State::EXECUTING;
+	state = Action::State::DISPATCHED;
 	executeAction();
 }
 

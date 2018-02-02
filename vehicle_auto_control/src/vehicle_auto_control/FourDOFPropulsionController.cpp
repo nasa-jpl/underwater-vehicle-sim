@@ -85,6 +85,7 @@ void FourDOFPropulsionController::executePointPath(const vehicle_auto_control::P
 		if(as->isPreemptRequested() || !ros::ok())
 		{
 			as->setPreempted();
+			break;
 		}
 
 		if(goal->yoyo)

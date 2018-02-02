@@ -6,7 +6,7 @@
 class Action
 {
 public:
-	enum State {PLANNED, EXECUTING, INTERRUPTED, COMPLETED, FAILED};
+	enum State {PLANNED, DISPATCHED, EXECUTING, INTERRUPTED, COMPLETED, FAILED};
 
 	Action();
 	Action(const Action& action);
@@ -15,7 +15,7 @@ public:
 	/**
 	* Clone in order to deep copy the action
 	*/
-	virtual std::unique_ptr<Action> clone() const = 0;
+	virtual std::shared_ptr<Action> clone() const = 0;
 
 	/**
 	* Executes this action

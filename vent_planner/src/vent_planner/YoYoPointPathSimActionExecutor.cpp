@@ -43,10 +43,10 @@ YoYoPointPathSimActionExecutor::YoYoPointPathSimActionExecutor(const YoYoPointPa
 	vehicleInfo = info.response;
 }
 
-bool YoYoPointPathSimActionExecutor::execute(YoYoPointPathAction& action)
+bool YoYoPointPathSimActionExecutor::execute(std::shared_ptr<YoYoPointPathAction> action)
 {
 	//targetSlope can only be on the interval (0, 90) degrees
-	if(action.targetSlope >= M_PI / 2 || action.targetSlope <= 0)
+	if(action->targetSlope >= M_PI / 2 || action->targetSlope <= 0)
 	{
 		return false;
 	}
@@ -61,11 +61,11 @@ bool YoYoPointPathSimActionExecutor::execute(YoYoPointPathAction& action)
 
 		//Send target velocities command
 		vehicle_auto_control::Velocity velMsg;
-		velMsg.horizontalVelocity = action.targetHorizontalVelocity;
+		velMsg.horizontalVelocity = action->targetHorizontalVelocity;
 
 		//Calculate the target vertical velocity based on target horizontal velocity and target slope
-		velMsg.verticalVelocity = action.targetHorizontalVelocity * (sin(action.targetSlope) / cos(action.targetSlope));
-		velMsg.rotationalVelocity = action.targetRotationalVelocity;
+		velMsg.verticalVelocity = action->targetHorizontalVelocity * (sin(action->targetSlope) / cos(action->targetSlope));
+		velMsg.rotationalVelocity = action->targetRotationalVelocity;
 	
 		auto publisher = publishers.find(velSub); 
 		publisher->second.publish(velMsg);
@@ -78,7 +78,7 @@ bool YoYoPointPathSimActionExecutor::execute(YoYoPointPathAction& action)
 	//Creates an action goal and sends it to the action server for point path movement
 	pointPathGoal = vehicle_auto_control::PointPathGoal();
 
-	for(auto point : action.points)
+	for(auto point : action->points)
 	{
 		geometry_msgs::Point p;
 		p.x = point.getX();
@@ -86,42 +86,59 @@ bool YoYoPointPathSimActionExecutor::execute(YoYoPointPathAction& action)
 		p.z = point.getZ();
 		pointPathGoal.points.push_back(p);
 	}
-	pointPathGoal.upperDepth = action.upperDepth;
-	pointPathGoal.lowerDepth = action.lowerDepth;
+	pointPathGoal.upperDepth = action->upperDepth;
+	pointPathGoal.lowerDepth = action->lowerDepth;
 	pointPathGoal.yoyo = true;
 
 	pointPathClient.waitForServer();
-	pointPathClient.sendGoal(pointPathGoal);
+	pointPathClient.sendGoal(pointPathGoal,
+							 boost::bind(&YoYoPointPathSimActionExecutor::actionDone, this, action, _1, _2),
+							 boost::bind(&YoYoPointPathSimActionExecutor::actionActive, this, action),
+							 boost::bind(&YoYoPointPathSimActionExecutor::actionFeedback, this, action, _1));
 	return true;
 }
 
-void YoYoPointPathSimActionExecutor::monitor(YoYoPointPathAction& action)
-{
-	//Determines the state of the action based on the state of the goal in the action server
-	if(pointPathClient.getState() == actionlib::SimpleClientGoalState::RECALLED ||
-	   pointPathClient.getState() == actionlib::SimpleClientGoalState::PREEMPTED)
-	{
-		action.setState(Action::State::INTERRUPTED);
-	}
-	else if(pointPathClient.getState() == actionlib::SimpleClientGoalState::REJECTED ||
-			pointPathClient.getState() == actionlib::SimpleClientGoalState::ABORTED ||
-			pointPathClient.getState() == actionlib::SimpleClientGoalState::LOST)
-	{
-		action.setState(Action::State::FAILED);
-	}
-	else if(pointPathClient.getState() == actionlib::SimpleClientGoalState::ACTIVE)
-	{
-		action.setState(Action::State::EXECUTING);
-	}
-	else if(pointPathClient.getState() == actionlib::SimpleClientGoalState::SUCCEEDED)
-	{
-		action.setState(Action::State::COMPLETED);
-	}
-}
-
-bool YoYoPointPathSimActionExecutor::triggerReplan(YoYoPointPathAction& action)
+bool YoYoPointPathSimActionExecutor::triggerReplan(std::shared_ptr<YoYoPointPathAction> action)
 {
 	return false;
+}
+
+void YoYoPointPathSimActionExecutor::actionDone(std::shared_ptr<YoYoPointPathAction> action,
+					const actionlib::SimpleClientGoalState& state,
+                	const vehicle_auto_control::PointPathResultConstPtr& result)
+{
+
+	if(state == actionlib::SimpleClientGoalState::RECALLED ||
+	   state == actionlib::SimpleClientGoalState::PREEMPTED)
+	{
+		action->setState(Action::State::INTERRUPTED);
+	}
+	else if(state == actionlib::SimpleClientGoalState::REJECTED ||
+			state == actionlib::SimpleClientGoalState::ABORTED ||
+			state == actionlib::SimpleClientGoalState::LOST)
+	{
+		action->setState(Action::State::FAILED);
+	}
+	else if(state == actionlib::SimpleClientGoalState::SUCCEEDED)
+	{
+		action->setState(Action::State::COMPLETED);
+	}
+	action->setCurrentPoint(result->totalPoints);
+}
+
+void YoYoPointPathSimActionExecutor::actionActive(std::shared_ptr<YoYoPointPathAction> action)
+{
+	action->setState(Action::State::EXECUTING);
+}
+
+void YoYoPointPathSimActionExecutor::actionFeedback(std::shared_ptr<YoYoPointPathAction> action,
+					const vehicle_auto_control::PointPathFeedbackConstPtr& feedback)
+{
+	if(feedback->currentPoint != action->getCurrentPoint())
+	{
+		action->setCurrentPoint(feedback->currentPoint);
+		action->addPointReachedTime(ros::Time::now());
+	}
 }
 
 bool YoYoPointPathSimActionExecutor::hasPublisher(std::string topic)

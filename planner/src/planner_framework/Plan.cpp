@@ -4,7 +4,7 @@ Plan::Plan(const Plan& other)
 {
 	for(auto& action : other.actions)
 	{
-		std::unique_ptr<Action> newAction = action->clone();
+		std::shared_ptr<Action> newAction = action->clone();
 		actions.push_back(std::move(newAction));
 	}
 }
@@ -13,16 +13,16 @@ Plan& Plan::operator=(const Plan& other)
 {
 	for(auto& action : other.actions)
 	{
-		std::unique_ptr<Action> newAction = action->clone();
+		std::shared_ptr<Action> newAction = action->clone();
 		actions.push_back(std::move(newAction));
 	}
 
 	return *this;
 }
 
-void Plan::addAction(std::unique_ptr<Action> action)
+void Plan::addAction(std::shared_ptr<Action> action)
 {
-	actions.push_back(std::move(action));
+	actions.push_back(action);
 }
 
 void Plan::reset()
@@ -33,7 +33,7 @@ void Plan::reset()
 	}
 }
 
-const std::vector<std::unique_ptr<Action>>& Plan::getActions()
+const std::vector<std::shared_ptr<Action>>& Plan::getActions()
 {
 	return actions;
 }

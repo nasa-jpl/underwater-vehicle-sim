@@ -1,6 +1,9 @@
-#include "planner_framework/Action.h"
+#include <memory>
 
+#include "planner_framework/Action.h"
 #include "planner_framework/PlanDispatcher.h"
+
+#include "ros/ros.h"
 
 PlanDispatcher::PlanDispatcher() :
 currentAction(0),
@@ -24,11 +27,11 @@ bool PlanDispatcher::triggerReplan()
 {
 	if(running)
 	{
-		Action& action = *(plan.getActions()[currentAction]);
-		if(action.getState() == Action::State::EXECUTING)
+		std::shared_ptr<Action> action = plan.getActions()[currentAction];
+		if(action->getState() == Action::State::EXECUTING)
 		{
 			//Check the current action to see if it should trigger a replan
-			return action.triggerReplan();
+			return action->triggerReplan();
 		}
 	}
 	return false;
@@ -38,19 +41,20 @@ void PlanDispatcher::update()
 {
 	if(running && currentAction < plan.getActions().size())
 	{
-		Action& action = *(plan.getActions()[currentAction]);
-		if(action.getState() == Action::State::PLANNED) //execute the next action
+		std::shared_ptr<Action> action = plan.getActions()[currentAction];
+		if(action->getState() == Action::State::PLANNED) //execute the next action
 		{
-			action.execute();
+			action->execute();
 		}
-		else if(action.getState() == Action::State::EXECUTING) //moniter the current action
+		else if(action->getState() == Action::State::DISPATCHED ||
+				action->getState() == Action::State::EXECUTING) //moniter the current action
 		{
-			action.monitor();
+			action->monitor();
 			
 		}
-		else if(action.getState() == Action::State::INTERRUPTED || //Move on to the next action
-				action.getState() == Action::State::COMPLETED ||
-				action.getState() == Action::State::FAILED)
+		else if(action->getState() == Action::State::INTERRUPTED || //Move on to the next action
+				action->getState() == Action::State::COMPLETED ||
+				action->getState() == Action::State::FAILED)
 		{
 			currentAction++;
 		}
