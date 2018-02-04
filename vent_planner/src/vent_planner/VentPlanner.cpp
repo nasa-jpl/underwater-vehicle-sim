@@ -1,4 +1,5 @@
 #include <vector>
+#include <memory>
 #include <math.h>
 #include <limits>
 
@@ -9,9 +10,9 @@
 VentPlanner::VentPlanner()
 {}
 
-Plan VentPlanner::plan()
+std::shared_ptr<Plan> VentPlanner::plan()
 {
-	Plan plan;
+	std::shared_ptr<Plan> plan;
 	return plan;
 }
 

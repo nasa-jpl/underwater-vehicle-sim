@@ -39,6 +39,8 @@ public:
 	*/
 	bool triggerReplan(std::shared_ptr<YoYoPointPathAction> action) override;
 
+	void cancel(std::shared_ptr<YoYoPointPathAction> action) override;
+
 
 
 

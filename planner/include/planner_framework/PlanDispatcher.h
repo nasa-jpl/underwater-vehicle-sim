@@ -17,7 +17,7 @@ public:
 	/**
 	* Sets the plan to be executed. Stops current plan.
 	*/
-	void setPlan(const Plan& plan);
+	void setPlan(std::shared_ptr<Plan> plan);
 
 	/**
 	* Updates the state of the current action and the overall plan
@@ -30,7 +30,7 @@ public:
 	bool triggerReplan();
 
 private:
-	Plan plan;
+	std::shared_ptr<Plan> plan;
 	bool running;
 	unsigned int currentAction;
 };

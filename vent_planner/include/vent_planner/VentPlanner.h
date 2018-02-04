@@ -2,7 +2,7 @@
 #define VENT_PLANNER_H
 
 #include <vector>
-
+#include <memory>
 #include "tf/LinearMath/Vector3.h"
 
 #include "planner_framework/Planner.h"
@@ -13,7 +13,7 @@ public:
 	VentPlanner();
 	~VentPlanner() {}
 
-	Plan plan();
+	std::shared_ptr<Plan> plan();
 
 	static std::vector<tf::Vector3> makeSpiral(tf::Vector3 startLocation, 
 									 	double startDirection, 

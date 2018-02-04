@@ -22,6 +22,8 @@ public:
 	*/
 	virtual bool triggerReplan(std::shared_ptr<T> action)=0;
 
+	virtual void cancel(std::shared_ptr<T> action)=0;
+
 private:
 
 };

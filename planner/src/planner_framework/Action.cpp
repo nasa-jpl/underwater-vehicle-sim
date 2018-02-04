@@ -8,11 +8,6 @@ Action::Action(const Action& action) :
 	state(action.state)
 {}
 
-void Action::reset()
-{
-	state = Action::State::PLANNED;
-}
-
 void Action::execute()
 {
 	state = Action::State::DISPATCHED;

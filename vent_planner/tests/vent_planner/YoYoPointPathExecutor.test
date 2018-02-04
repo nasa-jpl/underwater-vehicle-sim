@@ -20,5 +20,5 @@
 
  <node pkg="underwater_vehicle_sim" type="underwater_vehicle_sim_node" name="underwater_vehicle_sim" output="screen" />
  <node pkg="vehicle_auto_control" type="vehicle_auto_control_node" name="vehicle_auto_control" output="screen"/>
- <test test-name="yoyo_point_path_executor_test" pkg="vent_planner" type="yoyo_point_path_executor_test" />
+ <test test-name="yoyo_point_path_executor_test" pkg="vent_planner" type="yoyo_point_path_executor_test" launch-prefix=""/>
 </launch>

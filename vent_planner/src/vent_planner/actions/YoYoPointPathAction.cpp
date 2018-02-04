@@ -3,6 +3,7 @@
 #include "vent_planner/actions/YoYoPointPathAction.h"
 #include "planner_framework/ActionExecutor.h"
 
+
 YoYoPointPathAction::YoYoPointPathAction(ActionExecutor<YoYoPointPathAction>& executor,
 										 const double targetHorizontalVelocity,
 										 const double targetRotationalVelocity,
@@ -57,6 +58,18 @@ void YoYoPointPathAction::monitor()
 	executor.monitor(shared_from_this());
 }
 
+void YoYoPointPathAction::reset()
+{
+	currentPoint = 0;
+	pointReachedTimes.clear();
+	state = Action::State::PLANNED;
+}
+
+void YoYoPointPathAction::cancel()
+{
+	executor.cancel(shared_from_this());
+	state = Action::State::INTERRUPTED;
+}
 
 void YoYoPointPathAction::setCurrentPoint(const int point)
 {

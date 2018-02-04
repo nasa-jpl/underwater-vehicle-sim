@@ -5,7 +5,6 @@
 #include <memory>
 
 #include "planner_framework/Action.h"
-
 class Plan
 {
 
@@ -29,6 +28,13 @@ public:
 	* Resets the plan as if it has not been executed
 	*/
 	void reset();
+
+	/**
+	* Resets the interrupted actions to be continued
+	*/
+	void resetInterrupted();
+
+	unsigned int getNextAction();
 private:
 	std::vector<std::shared_ptr<Action>> actions;
 };

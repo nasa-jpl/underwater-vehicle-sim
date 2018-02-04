@@ -42,6 +42,13 @@ public:
 	*/
 	void monitor();
 
+	/**
+	*Resets this action to a state as if it has not been executed.
+	*/
+	void reset();
+
+	void cancel();
+
 	void setCurrentPoint(const int point);
 	const int getCurrentPoint();
 	

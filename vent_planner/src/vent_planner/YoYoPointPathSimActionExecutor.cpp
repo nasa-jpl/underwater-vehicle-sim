@@ -78,8 +78,9 @@ bool YoYoPointPathSimActionExecutor::execute(std::shared_ptr<YoYoPointPathAction
 	//Creates an action goal and sends it to the action server for point path movement
 	pointPathGoal = vehicle_auto_control::PointPathGoal();
 
-	for(auto point : action->points)
+	for(unsigned int i = action->getCurrentPoint(); i < action->points.size(); i++)
 	{
+		auto point = action->points[i];
 		geometry_msgs::Point p;
 		p.x = point.getX();
 		p.y = point.getY();
@@ -98,6 +99,11 @@ bool YoYoPointPathSimActionExecutor::execute(std::shared_ptr<YoYoPointPathAction
 	return true;
 }
 
+void YoYoPointPathSimActionExecutor::cancel(std::shared_ptr<YoYoPointPathAction> action)
+{
+	pointPathClient.cancelAllGoals();
+}
+
 bool YoYoPointPathSimActionExecutor::triggerReplan(std::shared_ptr<YoYoPointPathAction> action)
 {
 	return false;
@@ -114,8 +120,7 @@ void YoYoPointPathSimActionExecutor::actionDone(std::shared_ptr<YoYoPointPathAct
 		action->setState(Action::State::INTERRUPTED);
 	}
 	else if(state == actionlib::SimpleClientGoalState::REJECTED ||
-			state == actionlib::SimpleClientGoalState::ABORTED ||
-			state == actionlib::SimpleClientGoalState::LOST)
+			state == actionlib::SimpleClientGoalState::ABORTED)
 	{
 		action->setState(Action::State::FAILED);
 	}

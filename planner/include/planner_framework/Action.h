@@ -38,9 +38,11 @@ public:
 	virtual void monitor()=0;
 
 	/**
-	*Resets this action to a state as if it has not been executed.
+	*Resets the action to as if it has never been executed
 	*/
-	void reset();
+	virtual void reset()=0;
+
+	virtual void cancel()=0;
 
 	/**
 	* Gets the state of this action.
