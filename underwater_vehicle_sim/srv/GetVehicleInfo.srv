@@ -1,0 +1,6 @@
+string name
+---
+string propModuleType
+string propModuleName
+string[] moduleNames
+string[] moduleTypes

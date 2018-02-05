@@ -8,8 +8,10 @@
 #include "vehicles/DataCapacityModule.h"
 #include "vehicles/BaseStationModule.h"
 
-GeneralModule::GeneralModule(std::string name, ros::NodeHandle parentNH) :
-	nh(ros::NodeHandle(parentNH, name))
+GeneralModule::GeneralModule(std::string name, std::string type, ros::NodeHandle parentNH) :
+	nh(ros::NodeHandle(parentNH, name)),
+	name(name),
+	type(type)
 
 {
 	if(nh.hasParam("hertz"))
@@ -63,4 +65,14 @@ void GeneralModule::updateAtRate(std::string name, const ros::Time& lastTime, co
 		lastUpdate = ros::Time::now();
 		update(name, lastTime, position, powerCapacity, dataCapacity);
 	}
+}
+
+std::string& GeneralModule::getName()
+{
+	return name;
+}
+
+std::string& GeneralModule::getType()
+{
+	return type;
 }

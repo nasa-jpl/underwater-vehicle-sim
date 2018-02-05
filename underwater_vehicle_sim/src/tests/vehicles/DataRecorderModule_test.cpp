@@ -27,23 +27,23 @@ TEST(DataRecorderModule, TestDataRecording){
 
         data_server::GetData retrievedData;
         retrievedData.request.name = "v1";
-        retrievedData.request.start_time = 1728000;
-        retrievedData.request.end_time = 1728010;
+        retrievedData.request.start_time = ros::Time(1728000);
+        retrievedData.request.end_time = ros::Time(1728010);
 
         client.call(retrievedData);
 
 
         ASSERT_TRUE(retrievedData.response.time.size() > 0);
-        float prevTime = retrievedData.response.time[1];
+        float prevTime = retrievedData.response.time[1].toSec();
 
         for(unsigned int i = 2; i < retrievedData.response.time.size(); i++)
         {
-            ASSERT_FLOAT_EQ(0.5, retrievedData.response.time[i] - prevTime);
+            ASSERT_NEAR(1.0, retrievedData.response.time[i].toSec() - prevTime, 0.1);
 
             ASSERT_FLOAT_EQ(0, retrievedData.response.temp[i]);
             ASSERT_FLOAT_EQ(4.567, retrievedData.response.salt[i]);
             ASSERT_FLOAT_EQ(5.678, retrievedData.response.dye[i]);
-            prevTime = retrievedData.response.time[i];
+            prevTime = retrievedData.response.time[i].toSec();
         }
 }
 

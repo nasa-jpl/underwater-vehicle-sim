@@ -1,0 +1,11 @@
+#goal definition
+geometry_msgs/Point[] points
+bool yoyo
+float64 upperDepth
+float64 lowerDepth
+---
+#result definition
+int32 totalPoints
+---
+#feedback
+int32 currentPoint

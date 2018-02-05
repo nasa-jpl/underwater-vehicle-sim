@@ -1,0 +1,21 @@
+#include "ros/ros.h"
+
+#include "vehicle_auto_control/VehicleController.h"
+
+int main(int argc, char **argv)
+{
+    ros::init(argc, argv, "vehicle_auto_control");
+    ros::NodeHandle nh;
+
+    float loopHertz;
+    if(!nh.getParam("vehicle_controller/hertz", loopHertz))
+    {
+        ROS_FATAL("Parameter \"vehicle_controller/hertz\" not present in the parameter server.");
+        exit(1);
+    }
+
+    VehicleController controller(nh, loopHertz);
+
+    ros::spin();
+    return 0;
+}

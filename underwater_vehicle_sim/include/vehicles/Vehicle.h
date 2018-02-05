@@ -11,6 +11,7 @@
 #include "vehicles/GeneralModule.h"
 #include "vehicles/PropulsionModule.h"
 
+#include "underwater_vehicle_sim/GetVehicleInfo.h"
 
 /**
  * Class used to represent a vehicle in the simulation
@@ -26,6 +27,8 @@ public:
 	void update();
 
 	std::string getName();
+	void getInfo(underwater_vehicle_sim::GetVehicleInfo::Response &res);
+	
 private:
 
 	/**
@@ -48,6 +51,8 @@ private:
 	* Initalizes the vehicle frame using tf
 	*/
 	void initalizeVehicleFrame();
+
+	
 
 private:
 	tf::TransformListener transformListener;

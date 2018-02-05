@@ -36,7 +36,7 @@ public:
 	/**
 	 * Struct to group a (x, y, height) point
      */
-	struct point
+	struct Point
 	{
 		/**
 		 * x location in meters
@@ -62,7 +62,7 @@ public:
 		float d;
 
 		Plane();
-		Plane(FVCOMStructure::point& p0, FVCOMStructure::point& p1, FVCOMStructure::point& p2);
+		Plane(FVCOMStructure::Point& p0, FVCOMStructure::Point& p1, FVCOMStructure::Point& p2);
 	};
 
 	
@@ -117,13 +117,13 @@ public:
 	 * @param testPoint Point to test with
 	 * @param triangle Triangle to test with
 	 */
-	bool pointInTriangle(point testPoint, int triangle) const;
+	bool pointInTriangle(Point testPoint, int triangle) const;
 
 	/**
 	 * Finds the triangle which contains the specified point
 	 * @param testPoint Point to get containing triangle for
 	 */
-	int getContainingTriangle(point testPoint) const;
+	int getContainingTriangle(Point testPoint) const;
 
 	/**
 	 * Gets the nodes that form the specified triangle
@@ -145,30 +145,30 @@ public:
 	 * @param testPoint location to find the closest siglay for
 	 * @return index for the closest siglay
 	 */
-	int getClosestTriangleSiglay(point testPoint) const;
+	int getClosestTriangleSiglay(Point testPoint) const;
 
 	/**
 	 * Finds the closest node to a point
 	 * @param testPoint Point to get the closest node for
 	 */
-	int getClosestNode(point testPoint) const;
+	int getClosestNode(Point testPoint) const;
 
 	/**
 	 * Gets the siglay that is closest to the given location
 	 * @param testPoint location to find the closest siglay for
 	 * @return index for the closest siglay
 	 */
-	int getClosestNodeSiglay(point testPoint) const;
+	int getClosestNodeSiglay(Point testPoint) const;
 
 	/**
 	 *Gets the point of a node with seafloor depth as height
 	 */
-	const FVCOMStructure::point& getNodePoint(int node) const;
+	const FVCOMStructure::Point& getNodePoint(int node) const;
 
 	/**
 	 *Gets the point of a node at a specific siglay
 	 */
-	const FVCOMStructure::point getNodePoint(int node, int siglay) const;
+	const FVCOMStructure::Point getNodePoint(int node, int siglay) const;
 
 	/**
 	 * Gets the time index that is closest to the given time
@@ -194,7 +194,7 @@ public:
 	 * @param p0 Point 0 for which to get the distance
 	 * @param p1 Point 1 for which  to get the distance
 	 */
-	float distance(point p0, point p1) const;
+	float distance(Point p0, Point p1) const;
 
 	/**
 	 * Gets the chunk that contains the (node, sigma, time) tuple
@@ -219,7 +219,7 @@ public:
 
 	const std::vector<ModelFile> getModelFiles() const;
 
-	const bool pointInModel(point p, float time) const;
+	const bool pointInModel(Point p, float time) const;
 
 	const int getNumSiglays() const;
 
@@ -239,7 +239,7 @@ public:
 	 * @param siglay2Index Output for the second siglay index for the interpolation
 	 * @param siglay1Percent Output for the percent for siglay1Index for interpolation
 	 */
-	void siglayInterpolation(FVCOMStructure::point& interpolatePoint, int& siglay1Index, int& siglay2Index, double& siglay1Percent);
+	void siglayInterpolation(FVCOMStructure::Point& interpolatePoint, int& siglay1Index, int& siglay2Index, double& siglay1Percent);
 
 
 private:
@@ -281,12 +281,12 @@ private:
 	/**
 	 * x,y for each node
 	 */
-	std::vector<point> nodes;
+	std::vector<Point> nodes;
 
 	/**
 	 * x,y for each triangle
 	 */
-	std::vector<point> triangles;
+	std::vector<Point> triangles;
 
 	/**
 	 * siglay for nodes

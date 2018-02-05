@@ -12,7 +12,7 @@
 #define SECONDS_IN_DAY 86400
 
 DataRecorderModule::DataRecorderModule(std::string name, ros::NodeHandle& parentNH) :
-	GeneralModule(name, parentNH)
+	GeneralModule(name, "DataRecorder", parentNH)
 {
 
 	dataRecorder = nh.advertise<underwater_vehicle_sim::VehicleData>("/data_server/put", 1000);
@@ -39,7 +39,7 @@ void DataRecorderModule::update(std::string name, const ros::Time& lastTime, con
 		data.x = position.getX();
 		data.y = position.getY();
 		data.h = position.getZ();
-		data.time = lastTime.toSec();
+		data.time = lastTime;
 		data.temp = srv.response.temp;
 		data.salt = srv.response.salt;
 		data.dye = srv.response.dye;

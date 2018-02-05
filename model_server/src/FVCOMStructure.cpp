@@ -26,7 +26,7 @@ FVCOMStructure::FVCOMStructure(const std::string filename, int xChunkSize, int y
 
 FVCOMStructure::Plane::Plane() {}
 
-FVCOMStructure::Plane::Plane(FVCOMStructure::point& p0, FVCOMStructure::point& p1, FVCOMStructure::point& p2)
+FVCOMStructure::Plane::Plane(FVCOMStructure::Point& p0, FVCOMStructure::Point& p1, FVCOMStructure::Point& p2)
 {
 	double ab[3];
 	double ac[3];
@@ -284,7 +284,7 @@ void FVCOMStructure::getModelExtent()
 {
 	for(unsigned int i = 0; i < nodes.size(); i++)
 	{
-		point& node = nodes[i];
+		Point& node = nodes[i];
 		
 		if(node.x > maxX)
 		{
@@ -308,15 +308,15 @@ void FVCOMStructure::getModelExtent()
 	}
 }
 
-bool FVCOMStructure::pointInTriangle(point testPoint, int triangle) const
+bool FVCOMStructure::pointInTriangle(Point testPoint, int triangle) const
 {
 	int p0Index = triangleToNodes[triangle][0];
 	int p1Index = triangleToNodes[triangle][1];
 	int p2Index = triangleToNodes[triangle][2];
 
-	point p0 = nodes[p0Index];
-	point p1 = nodes[p1Index];
-	point p2 = nodes[p2Index];
+	Point p0 = nodes[p0Index];
+	Point p1 = nodes[p1Index];
+	Point p2 = nodes[p2Index];
 
 	//Calculate barycentric coordinates
 	float alpha = ((p1.y - p2.y)*(testPoint.x - p2.x) + (p2.x - p1.x)*(testPoint.y - p2.y)) /
@@ -331,7 +331,7 @@ bool FVCOMStructure::pointInTriangle(point testPoint, int triangle) const
 	return alpha >= 0 && beta >= 0 && gamma >= 0;
 }
 
-int FVCOMStructure::getContainingTriangle(point testPoint) const
+int FVCOMStructure::getContainingTriangle(Point testPoint) const
 {
 	//Get the closest node to start the search for the containing triangle
 	int closestNode = getClosestNode(testPoint);
@@ -369,7 +369,7 @@ const std::vector<FVCOMStructure::ModelFile> FVCOMStructure::getModelFiles() con
 	return modelFiles;
 }
 
-int FVCOMStructure::getClosestNode(point testPoint) const
+int FVCOMStructure::getClosestNode(Point testPoint) const
 {
 	//Checks distance between testPoint and every node, this is slow and will probably need to be improved
 	float closestDistance = std::numeric_limits<float>::max();
@@ -426,7 +426,7 @@ float FVCOMStructure::getTime(int timeIndex) const
 }
 
 
-int FVCOMStructure::getClosestNodeSiglay(point testPoint) const
+int FVCOMStructure::getClosestNodeSiglay(Point testPoint) const
 {
 	int nodeIndex = getClosestNode(testPoint);
 	int closestSiglay = -1;
@@ -448,16 +448,16 @@ FVCOMStructure::Plane FVCOMStructure::getTriangleSiglayPlane(int triangle, unsig
 {
 	const std::vector<int>& surroundingNodes = triangleToNodes[triangle];
 
-	FVCOMStructure::point p0 = getNodePoint(surroundingNodes[0], siglay);
-	FVCOMStructure::point p1 = getNodePoint(surroundingNodes[1], siglay);
-	FVCOMStructure::point p2 = getNodePoint(surroundingNodes[2], siglay);
+	FVCOMStructure::Point p0 = getNodePoint(surroundingNodes[0], siglay);
+	FVCOMStructure::Point p1 = getNodePoint(surroundingNodes[1], siglay);
+	FVCOMStructure::Point p2 = getNodePoint(surroundingNodes[2], siglay);
 	
 	FVCOMStructure::Plane plane(p0, p1, p2);
 
 	return plane;
 }
 
-int FVCOMStructure::getClosestTriangleSiglay(point testPoint) const
+int FVCOMStructure::getClosestTriangleSiglay(Point testPoint) const
 {
 	int triangleIndex = getContainingTriangle(testPoint);
 	int closestSiglay = -1;
@@ -476,19 +476,19 @@ int FVCOMStructure::getClosestTriangleSiglay(point testPoint) const
 
 }
 
-float FVCOMStructure::distance(point p0, point p1) const
+float FVCOMStructure::distance(Point p0, Point p1) const
 {
 	return std::sqrt( (p0.x - p1.x)*(p0.x - p1.x) + (p0.y - p1.y)*(p0.y - p1.y) );
 }
 
-const FVCOMStructure::point& FVCOMStructure::getNodePoint(int node) const
+const FVCOMStructure::Point& FVCOMStructure::getNodePoint(int node) const
 {
 	return nodes[node];
 }
 
-const FVCOMStructure::point FVCOMStructure::getNodePoint(int node, int siglay) const
+const FVCOMStructure::Point FVCOMStructure::getNodePoint(int node, int siglay) const
 {
-	FVCOMStructure::point returnPoint = nodes[node];
+	FVCOMStructure::Point returnPoint = nodes[node];
 	returnPoint.h = returnPoint.h * nodeSiglay[node][siglay];
 	return returnPoint;
 }
@@ -616,7 +616,7 @@ void FVCOMStructure::timeInterpolation(float time, int& time1Index, int& time2In
 	}
 }
 
-void FVCOMStructure::siglayInterpolation(FVCOMStructure::point& interpolatePoint, int& siglay1Index, int& siglay2Index, double& siglay1Percent)
+void FVCOMStructure::siglayInterpolation(FVCOMStructure::Point& interpolatePoint, int& siglay1Index, int& siglay2Index, double& siglay1Percent)
 {
 	int containingTriangle = getContainingTriangle(interpolatePoint);
 
@@ -687,7 +687,7 @@ void FVCOMStructure::siglayInterpolation(FVCOMStructure::point& interpolatePoint
 	
 }
 
-const bool FVCOMStructure::pointInModel(point p, float time) const
+const bool FVCOMStructure::pointInModel(Point p, float time) const
 {
 	unsigned int closestNode = getClosestNode(p);
 

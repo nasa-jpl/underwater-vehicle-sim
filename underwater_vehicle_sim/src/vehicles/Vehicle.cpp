@@ -97,6 +97,17 @@ void Vehicle::update()
 	}
 }
 
+void Vehicle::getInfo(underwater_vehicle_sim::GetVehicleInfo::Response &res)
+{
+	res.propModuleName = propulsionModule->getName();
+	res.propModuleType = propulsionModule->getType();
+	for(std::unique_ptr<GeneralModule>& module : modules)
+	{
+		res.moduleNames.push_back(module->getName());
+		res.moduleTypes.push_back(module->getType());
+	}
+}
+
 void Vehicle::broadcastTransform()
 {
 	static tf::TransformBroadcaster br;
