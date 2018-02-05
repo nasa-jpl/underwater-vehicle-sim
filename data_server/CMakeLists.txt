@@ -57,7 +57,7 @@ find_package(catkin REQUIRED
  add_service_files(
    FILES
    GetData.srv
-#   Service2.srv
+   GetLatestData.srv
  )
 
 ## Generate actions in the 'action' folder

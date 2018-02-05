@@ -8,6 +8,8 @@
 
 #include "ros/ros.h"
 
+#include "data_server/DataServerEntry.h"
+
 class DataServer
 {
 
@@ -41,22 +43,6 @@ public:
     	}
 	};
 
-	struct DataServerEntry
-	{
-		float x;
-		float y;
-		float h;
-		ros::Time time;
-
-		float temp;
-		float salt;
-		float dye;
-
-		bool operator<(const DataServerEntry& rhs) const { return time < rhs.time; }
-		bool operator==(const DataServerEntry& rhs) const { return time == rhs.time; }
-		bool operator>(const DataServerEntry& rhs) const { return time > rhs.time; }
-	};
-
 	/**
 	 *Constructor that loads data from the datafile into the DataServer object
 	 * @param filename File to load
@@ -82,6 +68,20 @@ public:
 	*/
 	std::vector<DataServerEntry>::iterator getEndTime(std::string sourceName, ros::Time time);
 
+	/**
+	* Gets an the latest data from a specific source
+	* @param sourceName List to get the data from
+	* @return The latest data point for the given source
+	*/
+	const DataServerEntry& getLatestData(std::string sourceName);
+
+	/**
+	 *Gets the amount of data entries for a specific source
+	 *@param sourceName List to get the data from
+	 *@return Amount of data for the given data source
+	 */
+	unsigned int size(std::string sourceName);
+	
 	/**
 	*Puts data in a list in the data server
 	*@param sourceName List to put the data in

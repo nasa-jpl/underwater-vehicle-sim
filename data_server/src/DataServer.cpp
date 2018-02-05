@@ -10,6 +10,7 @@
 #include "ros/ros.h"
 
 #include "data_server/DataServer.h"
+#include "data_server/DataServerEntry.h"
 
 namespace fs = std::experimental::filesystem;
 
@@ -27,15 +28,15 @@ DataServer::DataServer(std::string filename)
 	}
 }
 
-void DataServer::putData(std::string sourceName, DataServer::DataServerEntry entry)
+void DataServer::putData(std::string sourceName, DataServerEntry entry)
 {
 	//Add a vector if one does not exist in the map for this data source
 	if(!data.count(sourceName))
 	{
-		data.emplace(sourceName, std::vector<DataServer::DataServerEntry>());
+		data.emplace(sourceName, std::vector<DataServerEntry>());
 	}
 
-	std::vector<DataServer::DataServerEntry>& dataEntries = data[sourceName];
+	std::vector<DataServerEntry>& dataEntries = data[sourceName];
 
 	//Add the entry if it goes at the end of the list
 	if(dataEntries.size() == 0 || entry.time >= dataEntries[dataEntries.size() - 1].time)
@@ -44,14 +45,14 @@ void DataServer::putData(std::string sourceName, DataServer::DataServerEntry ent
 	}
 }
 
-std::vector<DataServer::DataServerEntry>::iterator DataServer::getStartTime(std::string sourceName, ros::Time time)
+std::vector<DataServerEntry>::iterator DataServer::getStartTime(std::string sourceName, ros::Time time)
 {
 	//Check to see if sourceName is in the map
 	if(!data.count(sourceName))
 	{
 		throw DataServer::MissingKey(sourceName);
 	}
-	std::vector<DataServer::DataServerEntry>& dataList = data[sourceName];
+	std::vector<DataServerEntry>& dataList = data[sourceName];
 
 	//Search for time
 	DataServerEntry searchEntry;
@@ -59,7 +60,7 @@ std::vector<DataServer::DataServerEntry>::iterator DataServer::getStartTime(std:
 	return std::lower_bound(dataList.begin(), dataList.end(), searchEntry);
 }
 
-std::vector<DataServer::DataServerEntry>::iterator DataServer::getEndTime(std::string sourceName, ros::Time time)
+std::vector<DataServerEntry>::iterator DataServer::getEndTime(std::string sourceName, ros::Time time)
 {
 	//Check to see if sourceName is in the map
 	if(!data.count(sourceName))
@@ -67,12 +68,24 @@ std::vector<DataServer::DataServerEntry>::iterator DataServer::getEndTime(std::s
 		throw DataServer::MissingKey(sourceName);
 	}
 
-	std::vector<DataServer::DataServerEntry>& dataList = data[sourceName];
+	std::vector<DataServerEntry>& dataList = data[sourceName];
 
 	//Search for time
 	DataServerEntry searchEntry;
 	searchEntry.time = time;
 	return std::upper_bound(dataList.begin(), dataList.end(), searchEntry);
+}
+
+const DataServerEntry& DataServer::getLatestData(std::string sourceName)
+{
+	std::vector<DataServerEntry>& dataList = data[sourceName];
+
+	return dataList[dataList.size() - 1];
+}
+
+unsigned int DataServer::size(std::string sourceName)
+{
+	return data[sourceName].size();
 }
 
 void DataServer::saveToFile(std::string filename)
@@ -121,7 +134,7 @@ void DataServer::loadFromCSVFile(std::string filename)
 				}
 				splitLine.push_back(line);
 
-				DataServer::DataServerEntry newEntry;
+				DataServerEntry newEntry;
 				newEntry.x = std::stof(splitLine[1]);
 				newEntry.y = std::stof(splitLine[2]);
 				newEntry.h = std::stof(splitLine[3]);

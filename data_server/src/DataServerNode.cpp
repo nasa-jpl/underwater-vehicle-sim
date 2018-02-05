@@ -1,17 +1,18 @@
 #include "data_server/DataServer.h"
+#include "data_server/DataServerEntry.h"
 #include "data_server/GetData.h"
 #include "std_msgs/String.h"
 #include "underwater_vehicle_sim/VehicleData.h"
 #include "data_server/GetData.h"
+#include "data_server/GetLatestData.h"
 
 #include "ros/ros.h"
-
 
 DataServer server;
 
 void recieveData(const underwater_vehicle_sim::VehicleData::ConstPtr& msg)
 {
-	DataServer::DataServerEntry entry;
+	DataServerEntry entry;
 
 	entry.x = msg->x;
 	entry.y = msg->y;
@@ -25,13 +26,33 @@ void recieveData(const underwater_vehicle_sim::VehicleData::ConstPtr& msg)
 	server.putData(msg->name, entry);
 }
 
+bool getLatestData(data_server::GetLatestData::Request &req,
+			       data_server::GetLatestData::Response &res)
+{
+	if(server.size(req.name) <= 0)
+	{
+		return false;
+	}
+
+	const DataServerEntry& entry = server.getLatestData(req.name);
+
+	res.x = entry.x;
+	res.y = entry.y;
+	res.h = entry.h;
+	res.time = entry.time;
+
+	res.temp = entry.temp;
+	res.dye = entry.dye;
+	res.salt = entry.salt;
+
+	return true;
+}
+
 bool getData(data_server::GetData::Request &req,
 		     data_server::GetData::Response &res)
 {
-	std::vector<DataServer::DataServerEntry>::iterator start = server.getStartTime(req.name, req.start_time);
-	std::vector<DataServer::DataServerEntry>::iterator end = server.getEndTime(req.name, req.end_time);
-
-	
+	std::vector<DataServerEntry>::iterator start = server.getStartTime(req.name, req.start_time);
+	std::vector<DataServerEntry>::iterator end = server.getEndTime(req.name, req.end_time);
 
 	for(auto it = start; it != end; it++)
 	{
@@ -48,7 +69,6 @@ bool getData(data_server::GetData::Request &req,
 	return true;
 }
 
-
 void saveData(const std_msgs::String::ConstPtr& msg)
 {
 	server.saveToFile(msg->data);
@@ -61,7 +81,8 @@ int main(int argc, char **argv)
 
     ros::Subscriber recievedDataSub = nh.subscribe("put", 5000, recieveData);
     ros::Subscriber saveDataSub = nh.subscribe("save", 5000, saveData);
-    ros::ServiceServer service = nh.advertiseService("get", getData);
+    ros::ServiceServer serviceGet = nh.advertiseService("get", getData);
+    ros::ServiceServer serviceGetLatest = nh.advertiseService("get_latestatest", getLatestData);
 
     ros::spin();
 }
