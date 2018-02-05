@@ -18,11 +18,11 @@ void SimplePlanServer::update()
 
 	if(planDispatcher->triggerReplan())
 	{
-		std::shared_ptr newPlan = planner->plan();
+		std::shared_ptr<Plan> newPlan = planner->plan();
 		
 		if(newPlan)
 		{
-			planDispatcher->setPlan();
+			planDispatcher->setPlan(newPlan);
 			planDispatcher->runPlan();
 		}	
 	}
