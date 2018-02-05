@@ -15,7 +15,7 @@ void PlanDispatcher::runPlan()
 
 void PlanDispatcher::setPlan(std::shared_ptr<Plan> newPlan)
 {
-	if(newPlan != plan)
+	if(newPlan && newPlan != plan)
 	{
 		if(running)
 		{
@@ -40,6 +40,12 @@ bool PlanDispatcher::triggerReplan()
 		{
 			//Check the current action to see if it should trigger a replan
 			return action->triggerReplan();
+		}
+
+		//replan because the current plan is finished 
+		if(currentAction == plan->getActions().size())
+		{
+			return true;
 		}
 	}
 	return false;
