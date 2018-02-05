@@ -31,7 +31,6 @@ const std::vector<std::shared_ptr<Action>>& Plan::getActions()
 
 unsigned int Plan::getNextAction()
 {
-
 	for(unsigned int i = 0; i <  actions.size(); i++)
 	{
 		auto action = actions[i];

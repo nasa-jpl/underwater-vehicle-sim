@@ -10,23 +10,25 @@ running(false)
 
 void PlanDispatcher::runPlan()
 {
-	currentAction = 0;
 	running = true;
 }
 
 void PlanDispatcher::setPlan(std::shared_ptr<Plan> newPlan)
 {
-	if(running)
+	if(newPlan != plan)
 	{
-		running = false;
-		if(currentAction < plan->getActions().size())
+		if(running)
 		{
-			plan->getActions()[currentAction]->cancel();
+			running = false;
+			if(currentAction < plan->getActions().size())
+			{
+				plan->getActions()[currentAction]->cancel();
+			}
 		}
+		
+		plan = newPlan;
+		currentAction = plan->getNextAction();
 	}
-	
-	plan = newPlan;
-	currentAction = plan->getNextAction();
 }
 
 bool PlanDispatcher::triggerReplan()

@@ -241,7 +241,7 @@ TEST(PlanPrempting, YoYoPointPathController){
     unsigned int planPhase = 0; //0 = plan0, 1=plan1, 2=plan0 again
     while((pointPathAction0->getState() != Action::State::COMPLETED || 
            pointPathAction1->getState() != Action::State::COMPLETED ||
-           pointPathAction2->getState() != Action::State::COMPLETED) && (ros::Time::now() - start) <= ros::Duration(600.0))
+           pointPathAction2->getState() != Action::State::COMPLETED) && (ros::Time::now() - start) <= ros::Duration(1000.0))
     {
        tf::StampedTransform transform;
         try
@@ -283,11 +283,12 @@ TEST(PlanPrempting, YoYoPointPathController){
         }
     }
 
+    ASSERT_EQ(allPoints.size(), currentPoint);
     ASSERT_EQ(Action::State::COMPLETED, pointPathAction0->getState());
     ASSERT_EQ(Action::State::COMPLETED, pointPathAction1->getState());
     ASSERT_EQ(Action::State::COMPLETED, pointPathAction1->getState());
     ASSERT_EQ(2, pointPathAction2->getCurrentPoint());
-    ASSERT_EQ(allPoints.size(), currentPoint);
+    
 }
 
 
