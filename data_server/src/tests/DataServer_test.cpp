@@ -1,4 +1,5 @@
 #include "data_server/DataServer.h"
+#include "data_server/DataServerEntry.h"
 
 #include "ros/ros.h"
 
@@ -11,7 +12,7 @@ TEST(DataServerTest, PutAndGetData)
 {
     DataServer dataServer;
 
-    std::vector<DataServer::DataServerEntry> entries;
+    std::vector<DataServerEntry> entries;
     entries.resize(4);
 
     entries[0].time = ros::Time(0);
@@ -56,14 +57,14 @@ TEST(DataServerTest, PutAndGetData)
     dataServer.putData("source2", entries[2]);    
     dataServer.putData("source2", entries[3]);
 
-    std::vector<DataServer::DataServerEntry>::iterator start1 = dataServer.getStartTime("source1", ros::Time(0));
-    std::vector<DataServer::DataServerEntry>::iterator end1 = dataServer.getEndTime("source1", ros::Time(11));
+    std::vector<DataServerEntry>::iterator start1 = dataServer.getStartTime("source1", ros::Time(0));
+    std::vector<DataServerEntry>::iterator end1 = dataServer.getEndTime("source1", ros::Time(11));
 
-    std::vector<DataServer::DataServerEntry>::iterator start2 = dataServer.getStartTime("source1", ros::Time(2));
-    std::vector<DataServer::DataServerEntry>::iterator end2 = dataServer.getEndTime("source1", ros::Time(9));
+    std::vector<DataServerEntry>::iterator start2 = dataServer.getStartTime("source1", ros::Time(2));
+    std::vector<DataServerEntry>::iterator end2 = dataServer.getEndTime("source1", ros::Time(9));
 
-    std::vector<DataServer::DataServerEntry>::iterator start3 = dataServer.getStartTime("source2", ros::Time(2));
-    std::vector<DataServer::DataServerEntry>::iterator end3 = dataServer.getEndTime("source2", ros::Time(11));
+    std::vector<DataServerEntry>::iterator start3 = dataServer.getStartTime("source2", ros::Time(2));
+    std::vector<DataServerEntry>::iterator end3 = dataServer.getEndTime("source2", ros::Time(11));
 
     ASSERT_EQ(3, std::distance(start1, end1));
     ASSERT_EQ(2, std::distance(start1, end2));
@@ -111,7 +112,7 @@ TEST(DataServerTest, SaveDataToCSV)
 {
     DataServer dataServer;
 
-    std::vector<DataServer::DataServerEntry> entries;
+    std::vector<DataServerEntry> entries;
     entries.resize(4);
 
     entries[0].time = ros::Time(0);
@@ -160,15 +161,15 @@ TEST(DataServerTest, SaveDataToCSV)
 
     DataServer dataServerLoaded("test_data/test_file.csv");
 
-    std::vector<DataServer::DataServerEntry>::iterator start1Original = dataServer.getStartTime("source1", ros::Time(0));
-    std::vector<DataServer::DataServerEntry>::iterator end1Original = dataServer.getEndTime("source1", ros::Time(11));
+    std::vector<DataServerEntry>::iterator start1Original = dataServer.getStartTime("source1", ros::Time(0));
+    std::vector<DataServerEntry>::iterator end1Original = dataServer.getEndTime("source1", ros::Time(11));
 
-    std::vector<DataServer::DataServerEntry>::iterator start1Loaded = dataServerLoaded.getStartTime("source1", ros::Time(0));
-    std::vector<DataServer::DataServerEntry>::iterator end1Loaded = dataServerLoaded.getEndTime("source1", ros::Time(11));
+    std::vector<DataServerEntry>::iterator start1Loaded = dataServerLoaded.getStartTime("source1", ros::Time(0));
+    std::vector<DataServerEntry>::iterator end1Loaded = dataServerLoaded.getEndTime("source1", ros::Time(11));
 
 
-    std::vector<DataServer::DataServerEntry>::iterator it1 = start1Original;
-    std::vector<DataServer::DataServerEntry>::iterator it2 = start1Loaded;
+    std::vector<DataServerEntry>::iterator it1 = start1Original;
+    std::vector<DataServerEntry>::iterator it2 = start1Loaded;
     unsigned int i = 0;
     while(it1 != end1Original && it2 != end1Loaded)
     {

@@ -10,9 +10,14 @@ public:
 	~PlanDispatcher() {}
 
 	/**
-	* Run the current plan
+	* Run the dispatcher
 	*/
-	void runPlan();
+	void run();
+
+	/**
+	* Stop the dispatcher
+	*/
+	void stop();
 
 	/**
 	* Sets the plan to be executed. Stops current plan.

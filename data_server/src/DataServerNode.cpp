@@ -82,7 +82,7 @@ int main(int argc, char **argv)
     ros::Subscriber recievedDataSub = nh.subscribe("put", 5000, recieveData);
     ros::Subscriber saveDataSub = nh.subscribe("save", 5000, saveData);
     ros::ServiceServer serviceGet = nh.advertiseService("get", getData);
-    ros::ServiceServer serviceGetLatest = nh.advertiseService("get_latestatest", getLatestData);
+    ros::ServiceServer serviceGetLatest = nh.advertiseService("get_latest", getLatestData);
 
     ros::spin();
 }

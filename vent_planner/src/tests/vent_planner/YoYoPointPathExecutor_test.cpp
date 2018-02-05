@@ -89,7 +89,7 @@ TEST(FourDOFPropulsionController, YoYoPointPathController){
     //Wait for transforms
     listener.waitForTransform("/world", "/v0", ros::Time(0), ros::Duration(200.0));
 
-    planDispatcher.runPlan();
+    planDispatcher.run();
 
     unsigned currentPoint = 0;
 
@@ -115,7 +115,7 @@ TEST(FourDOFPropulsionController, YoYoPointPathController){
         
         double xyDistance = sqrt(xDistance * xDistance + yDistance * yDistance);
 
-        if(xyDistance <= 1.0)
+        if(xyDistance <= 2.0)
         {
             currentPoint++;
         }
@@ -164,7 +164,7 @@ TEST(PlanPrempting, YoYoPointPathController){
     tf::Vector3 point0(0, 0, -100);
 
     tf::Vector3 point1(20, -20, -100);
-    tf::Vector3 point2(-100, 0, -100);
+    tf::Vector3 point2(-50, 0, -100);
 
     tf::Vector3 point3(20, -30, -100);
     tf::Vector3 point4(10, 0, -100);
@@ -232,7 +232,7 @@ TEST(PlanPrempting, YoYoPointPathController){
     //Wait for transforms
     listener.waitForTransform("/world", "/v0", ros::Time(0), ros::Duration(200.0));
 
-    planDispatcher.runPlan();
+    planDispatcher.run();
 
     unsigned currentPoint = 0;
 
@@ -259,7 +259,7 @@ TEST(PlanPrempting, YoYoPointPathController){
         
         double xyDistance = sqrt(xDistance * xDistance + yDistance * yDistance);
 
-        if(xyDistance <= 1.0)
+        if(xyDistance <= 2.0)
         {
             currentPoint++;
         }
@@ -270,7 +270,7 @@ TEST(PlanPrempting, YoYoPointPathController){
         if(pointPathAction1->getCurrentPoint() == 1 && planPhase == 0)
         {
             planDispatcher.setPlan(plan1);
-            planDispatcher.runPlan();
+            planDispatcher.run();
             planPhase = 1;
         }
 
@@ -278,7 +278,7 @@ TEST(PlanPrempting, YoYoPointPathController){
         {
             plan0->resetInterrupted();
             planDispatcher.setPlan(plan0);
-            planDispatcher.runPlan();
+            planDispatcher.run();
             planPhase = 2;
         }
     }
