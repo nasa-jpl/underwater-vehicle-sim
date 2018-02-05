@@ -3,17 +3,24 @@
 
 #include <vector>
 #include <memory>
+#include <stack>
+
 #include "tf/LinearMath/Vector3.h"
 
 #include "planner_framework/Planner.h"
+#include "vent_planner/VentActionFactory.h"
+
+#include "data_server/DataServerEntry.h"
 
 class VentPlanner : public Planner
 {
 public:
-	VentPlanner();
+	VentPlanner(ros::NodeHandle& nh, std::unique_ptr<VentActionFactory> actionFactory, std::string vehicleName);
 	~VentPlanner() {}
 
 	std::shared_ptr<Plan> plan();
+
+	DataServerEntry getLatestData();
 
 	static std::vector<tf::Vector3> makeSpiral(tf::Vector3 startLocation, 
 									 	double startDirection, 
@@ -28,8 +35,31 @@ public:
 		 								   		  double spacing);
 
 private:
+	bool isCompleted(std::shared_ptr<Plan> plan);
 
-	
+	/**
+	*Sets the parameter returnEntry to the latest data from the vehicle
+	*@param returnEntry Output for the latest data
+	*@return True if getting the latest data was successful
+	**/
+	bool getLatestData(DataServerEntry& returnEntry);
+
+private:
+	std::unique_ptr<VentActionFactory> actionFactory;
+
+	std::stack<std::shared_ptr<Plan>> plans;
+	ros::Time lastPlan;
+	bool initalPlan;
+	unsigned int initalSpacing;
+	unsigned int yoyoUpperDepth;
+	unsigned int yoyoLowerDepth;
+	std::string vehicleName;
+	tf::Vector3 vehicleStartLocation;
+
+	ros::ServiceClient dataClient;
+	ros::ServiceClient latestDataClient;
+
+	ros::NodeHandle& nh;
 };
 
 #endif
