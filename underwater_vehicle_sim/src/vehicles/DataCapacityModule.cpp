@@ -11,7 +11,7 @@
 #define SECONDS_IN_DAY 86400
 
 DataCapacityModule::DataCapacityModule(std::string name, ros::NodeHandle& parentNH) :
-	GeneralModule(name, parentNH)
+	GeneralModule(name, "DataCapacity", parentNH)
 {
 	pub = nh.advertise<std_msgs::Float64>("/vehicle/dataCapacity", 1000);
 }

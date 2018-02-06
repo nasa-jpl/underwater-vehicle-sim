@@ -7,7 +7,7 @@
 #include "vehicles/PowerCapacityModule.h"
 
 PowerCapacityModule::PowerCapacityModule(std::string name, ros::NodeHandle& parentNH) :
-	GeneralModule(name, parentNH)
+	GeneralModule(name, "PowerCapactiy", parentNH)
 {
 	pub = nh.advertise<std_msgs::Float64>("/vehicles/power", 1000);
 }

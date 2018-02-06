@@ -7,6 +7,7 @@
 
 #include "vent_planner/VentActionFactory.h"
 #include "vent_planner/actions/YoYoPointPathAction.h"
+#include "vent_planner/actions/ChargeAction.h"
 
 SimVentActionFactory::SimVentActionFactory(ros::NodeHandle& nh) :
 	nh(nh)
@@ -34,4 +35,16 @@ std::shared_ptr<YoYoPointPathAction> SimVentActionFactory::createYoYoPointPathAc
 																        upperDepth,
 																        lowerDepth,
 																        points));
+}    
+
+std::shared_ptr<ChargeAction> SimVentActionFactory::createChargeAction(const std::string& vehicleName)
+{
+
+	if(chargeExecutors.find(vehicleName) == chargeExecutors.end())
+	{
+		chargeExecutors.insert(std::make_pair(vehicleName, ChargeSimActionExecutor(nh, vehicleName)));
+	}
+
+	auto executor = chargeExecutors.find(vehicleName);
+	return std::unique_ptr<ChargeAction>(new ChargeAction(executor->second));
 }    
