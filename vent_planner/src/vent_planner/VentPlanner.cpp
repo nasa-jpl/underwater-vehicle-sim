@@ -24,7 +24,7 @@ VentPlanner::VentPlanner(ros::NodeHandle& nh, std::unique_ptr<VentActionFactory>
  dataClient(nh.serviceClient<data_server::GetData>("/data_server/get")),
  latestDataClient(nh.serviceClient<data_server::GetLatestData>("/data_server/get_latest"))
 {
-    ROS_INFO("Waiting for data server...");
+    ROS_INFO("VentPlanner: Waiting for data server...");
     dataClient.waitForExistence();
     latestDataClient.waitForExistence();
 }
@@ -39,8 +39,7 @@ std::shared_ptr<Plan> VentPlanner::plan()
 
     //Create inital plan and push it onto the stack
     if(!initalPlan && plans.size() == 0)
-    {
-        initalPlan = true;
+    {   
         std::shared_ptr<Plan> plan(new Plan());
 
         DataServerEntry latestEntry;
@@ -57,7 +56,8 @@ std::shared_ptr<Plan> VentPlanner::plan()
                                                                                     spiralPoints); 
             plan->addAction(newAction);
 
-            ROS_INFO("Created inital plan.");
+            ROS_INFO("VentPlanner: Created inital plan. Spiral of size %i", spiralPoints.size());
+            initalPlan = true;
             return plan;
         }
     }
@@ -84,7 +84,6 @@ bool VentPlanner::getLatestData(DataServerEntry& returnEntry)
     srv.request.name = vehicleName;
 
     bool valid = latestDataClient.call(srv);
-
     if(valid)
     {
         returnEntry.x = srv.response.x;

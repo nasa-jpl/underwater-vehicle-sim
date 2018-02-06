@@ -8,14 +8,14 @@ SimplePlanServer::SimplePlanServer(std::unique_ptr<PlanDispatcher> planDispatche
 	planDispatcher(std::move(planDispatcher)),
 	planner(std::move(planner))
 {
-	planDispatcher->run();
+	this->planDispatcher->run();
 }
 
 SimplePlanServer::SimplePlanServer(SimplePlanServer&& other) :
 	planDispatcher(std::move(other.planDispatcher)),
 	planner(std::move(other.planner))
 {
-	planDispatcher->run();
+	this->planDispatcher->run();
 }
 
 void SimplePlanServer::update()

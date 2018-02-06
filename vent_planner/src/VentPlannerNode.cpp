@@ -31,14 +31,13 @@ int main(int argc, char **argv)
 
     for(auto& name : vehicleNames)
     {
-
         std::unique_ptr<PlanDispatcher> dispatcher(new PlanDispatcher());
         std::unique_ptr<VentActionFactory> factory(new SimVentActionFactory(nh));
-
         std::unique_ptr<Planner> planner(new VentPlanner(nh, std::move(factory), name));
         servers.emplace_back(std::move(dispatcher), std::move(planner));
     }
 
+    ROS_INFO("Planner Initalized");
     ros::Rate r(loopHertz);
     while(ros::ok())
     {

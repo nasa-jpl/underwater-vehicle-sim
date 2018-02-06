@@ -12,6 +12,7 @@ running(false)
 
 void PlanDispatcher::run()
 {
+	ROS_INFO("Run PlanDispatcher");
 	running = true;
 }
 
@@ -27,7 +28,7 @@ void PlanDispatcher::setPlan(std::shared_ptr<Plan> newPlan)
 		if(running)
 		{
 			running = false;
-			if(currentAction < plan->getActions().size())
+			if(plan && currentAction < plan->getActions().size())
 			{
 				plan->getActions()[currentAction]->cancel();
 			}
@@ -43,7 +44,7 @@ bool PlanDispatcher::triggerReplan()
 {
 	if(running)
 	{
-		if(plan != nullptr)
+		if(plan)
 		{
 			std::shared_ptr<Action> action = plan->getActions()[currentAction];
 			if(action->getState() == Action::State::EXECUTING)
@@ -58,6 +59,11 @@ bool PlanDispatcher::triggerReplan()
 				return true;
 			}
 		}
+		else //No plan is present so replan to get a new one
+		{
+			return true;
+		}
+		
 	}
 
 	return false;
@@ -65,18 +71,19 @@ bool PlanDispatcher::triggerReplan()
 
 void PlanDispatcher::update()
 {
-	if(running && plan != nullptr && currentAction < plan->getActions().size())
+	if(running && plan && currentAction < plan->getActions().size())
 	{
 		std::shared_ptr<Action> action = plan->getActions()[currentAction];
 		if(action->getState() == Action::State::PLANNED) //execute the next action
 		{
 			action->execute();
+			ROS_INFO("PlanDispatcher: Execute action");
 		}
 		else if(action->getState() == Action::State::DISPATCHED ||
 				action->getState() == Action::State::EXECUTING) //moniter the current action
 		{
 			action->monitor();
-			
+
 		}
 		else if(action->getState() == Action::State::INTERRUPTED || //Move on to the next action
 				action->getState() == Action::State::COMPLETED ||

@@ -56,7 +56,7 @@ bool YoYoPointPathSimActionExecutor::execute(std::shared_ptr<YoYoPointPathAction
 		std::string velSub = "/vehicle_controller/" + vehicleName + "/command_target_velocity";
 		if(!hasPublisher(velSub))
 		{
-			publishers.insert(std::make_pair(velSub, nh.advertise<vehicle_auto_control::Velocity>(velSub, 1000)));
+			publishers.insert(std::make_pair(velSub, nh.advertise<vehicle_auto_control::Velocity>(velSub, 1000, true)));
 		}
 
 		//Send target velocities command
@@ -69,6 +69,7 @@ bool YoYoPointPathSimActionExecutor::execute(std::shared_ptr<YoYoPointPathAction
 	
 		auto publisher = publishers.find(velSub); 
 		publisher->second.publish(velMsg);
+
 	}
 	else //If the prop module is not known then this cannot be completed
 	{
