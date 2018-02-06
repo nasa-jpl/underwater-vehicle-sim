@@ -71,7 +71,7 @@ private:
 	const FVCOMChunk::TriangleData& getTriangleData(int triangle, int siglayTriangleIndex, int timeIndex);
 
 	ModelData interpolate(FVCOMStructure::Point p, float time);
-	FVCOMChunk::NodeData barycentricInterpolation(const FVCOMStructure::Point& interpolatedPoint, int siglayIndex, int timeIndex);
+	FVCOMChunk::NodeData barycentricInterpolation(const FVCOMStructure::Point& interpolatedPoint, int containingTriangle, int siglayIndex, int timeIndex);
 	const double areaOfTriangle(const FVCOMStructure::Point& p1, const FVCOMStructure::Point& p2, const FVCOMStructure::Point& p3);
 
 private:

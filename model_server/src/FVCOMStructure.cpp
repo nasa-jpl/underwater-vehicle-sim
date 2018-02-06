@@ -51,6 +51,11 @@ FVCOMStructure::Plane::Plane(FVCOMStructure::Point& p0, FVCOMStructure::Point& p
 	d = -(p0.x * a + p0.y * b + p0.h * c);
 }
 
+float FVCOMStructure::Plane::getHeight(Point& interpolatePoint)
+{
+	return (-d - a * interpolatePoint.x - b * interpolatePoint.y) / c;
+}
+
 std::vector<std::string> FVCOMStructure::traverseDataFiles(const std::string filename)
 {
 	std::vector<std::string> filenames;

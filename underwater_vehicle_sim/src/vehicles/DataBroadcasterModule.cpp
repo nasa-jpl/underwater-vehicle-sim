@@ -41,6 +41,7 @@ void DataBroadcasterModule::update(std::string name, const ros::Time& lastTime, 
 		data.temp = srv.response.temp;
 		data.salt = srv.response.salt;
 		data.dye = srv.response.dye;
+		data.sonarDepth = srv.response.depth + position.getZ(); //depth + z, becuase z is negative while depth is positive
 
 		dataRecorder.publish(data);
 	}

@@ -6,6 +6,7 @@ struct DataServerEntry
 	float x;
 	float y;
 	float h;
+	float sonarDepth;
 	ros::Time time;
 
 	float temp;

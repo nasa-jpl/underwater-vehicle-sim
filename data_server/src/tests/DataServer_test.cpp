@@ -26,6 +26,7 @@ TEST(DataServerTest, PutAndGetData)
     entries[0].temp = 3.345;
     entries[0].salt = 4.36;
     entries[0].dye = 5.564;
+    entries[0].sonarDepth = 100;
 
     entries[1].x = 0;
     entries[1].y = 10;
@@ -33,6 +34,7 @@ TEST(DataServerTest, PutAndGetData)
     entries[1].temp = 30;
     entries[1].salt = 40;
     entries[1].dye = 50;
+    entries[1].sonarDepth = 110;
 
     entries[2].x = -0.372;
     entries[2].y = 12.47;
@@ -40,6 +42,7 @@ TEST(DataServerTest, PutAndGetData)
     entries[2].temp = 33.4567;
     entries[2].salt = -430.623451;
     entries[2].dye = 56.263412;
+    entries[2].sonarDepth = 120;
 
     entries[3].x = 1;
     entries[3].y = -10.5;
@@ -47,6 +50,7 @@ TEST(DataServerTest, PutAndGetData)
     entries[3].temp = -30.526234;
     entries[3].salt = 40.2326;
     entries[3].dye = 50.23462;
+    entries[3].sonarDepth = 130;
 
     dataServer.putData("source1", entries[0]);
     dataServer.putData("source1", entries[1]);
@@ -84,6 +88,7 @@ TEST(DataServerTest, PutAndGetData)
         ASSERT_FLOAT_EQ(entries[expectedI1[i]].temp, it->temp);
         ASSERT_FLOAT_EQ(entries[expectedI1[i]].salt, it->salt);
         ASSERT_FLOAT_EQ(entries[expectedI1[i]].dye, it->dye);
+         ASSERT_FLOAT_EQ(entries[expectedI1[i]].sonarDepth, it->sonarDepth);
 
         i++;
     }
@@ -102,6 +107,7 @@ TEST(DataServerTest, PutAndGetData)
         ASSERT_FLOAT_EQ(entries[expectedI3[i]].temp, it->temp);
         ASSERT_FLOAT_EQ(entries[expectedI3[i]].salt, it->salt);
         ASSERT_FLOAT_EQ(entries[expectedI3[i]].dye, it->dye);
+        ASSERT_FLOAT_EQ(entries[expectedI3[i]].sonarDepth, it->sonarDepth);
 
         i++;
     }
@@ -126,6 +132,7 @@ TEST(DataServerTest, SaveDataToCSV)
     entries[0].temp = 3.345;
     entries[0].salt = 4.36;
     entries[0].dye = 5.564;
+    entries[0].sonarDepth = 100;
 
     entries[1].x = 0;
     entries[1].y = 10;
@@ -133,6 +140,7 @@ TEST(DataServerTest, SaveDataToCSV)
     entries[1].temp = 30;
     entries[1].salt = 40;
     entries[1].dye = 50;
+    entries[1].sonarDepth = 110;
 
     entries[2].x = -0.372;
     entries[2].y = 12.47;
@@ -140,6 +148,7 @@ TEST(DataServerTest, SaveDataToCSV)
     entries[2].temp = 33.4567;
     entries[2].salt = -430.623451;
     entries[2].dye = 56.263412;
+    entries[2].sonarDepth = 120;
 
     entries[3].x = 1;
     entries[3].y = -10.5;
@@ -147,6 +156,7 @@ TEST(DataServerTest, SaveDataToCSV)
     entries[3].temp = -30.526234;
     entries[3].salt = 40.2326;
     entries[3].dye = 50.23462;
+    entries[3].sonarDepth = 130;
 
     dataServer.putData("source1", entries[0]);
     dataServer.putData("source1", entries[1]);
@@ -181,6 +191,7 @@ TEST(DataServerTest, SaveDataToCSV)
         ASSERT_FLOAT_EQ(it2->temp, it1->temp);
         ASSERT_FLOAT_EQ(it2->salt, it1->salt);
         ASSERT_FLOAT_EQ(it2->dye, it1->dye);
+        ASSERT_FLOAT_EQ(it2->sonarDepth, it1->sonarDepth);
         
         it1++;
         it2++;

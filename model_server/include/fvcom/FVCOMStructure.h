@@ -63,6 +63,8 @@ public:
 
 		Plane();
 		Plane(FVCOMStructure::Point& p0, FVCOMStructure::Point& p1, FVCOMStructure::Point& p2);
+
+		float getHeight(Point& interpolatePoint);
 	};
 
 	

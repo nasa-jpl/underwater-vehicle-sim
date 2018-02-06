@@ -37,10 +37,12 @@ ModelData FVCOM::interpolate(FVCOMStructure::Point interpolatePoint, float time)
 	FVCOMChunk::NodeData siglay2Time1Data;
 	FVCOMChunk::NodeData siglay2Time2Data;
 
-	siglay1Time1Data = barycentricInterpolation(interpolatePoint, siglay1Index, time1Index);
-	siglay1Time2Data = barycentricInterpolation(interpolatePoint, siglay1Index, time2Index);
-	siglay2Time1Data = barycentricInterpolation(interpolatePoint, siglay2Index, time1Index);
-	siglay2Time2Data = barycentricInterpolation(interpolatePoint, siglay2Index, time2Index);
+	int containingTriangle = structure.getContainingTriangle(interpolatePoint);
+
+	siglay1Time1Data = barycentricInterpolation(interpolatePoint, containingTriangle, siglay1Index, time1Index);
+	siglay1Time2Data = barycentricInterpolation(interpolatePoint, containingTriangle, siglay1Index, time2Index);
+	siglay2Time1Data = barycentricInterpolation(interpolatePoint, containingTriangle, siglay2Index, time1Index);
+	siglay2Time2Data = barycentricInterpolation(interpolatePoint, containingTriangle, siglay2Index, time2Index);
 
 
 
@@ -73,13 +75,22 @@ ModelData FVCOM::interpolate(FVCOMStructure::Point interpolatePoint, float time)
 	returnData.u = triangleData.u;
 	returnData.v = triangleData.v;
 
+	//Get depth
+	const std::vector<int>& surroundingNodes = structure.getNodesInTriangle(containingTriangle);
+
+	FVCOMStructure::Point p1 = structure.getNodePoint(surroundingNodes[0]);
+	FVCOMStructure::Point p2 = structure.getNodePoint(surroundingNodes[1]);
+	FVCOMStructure::Point p3 = structure.getNodePoint(surroundingNodes[2]);
+
+	FVCOMStructure::Plane groundPlane(p1,p2,p3);
+
+	returnData.depth = groundPlane.getHeight(interpolatePoint);
 	return returnData;
 }
 
-FVCOMChunk::NodeData FVCOM::barycentricInterpolation(const FVCOMStructure::Point& interpolatePoint, int siglayIndex, int timeIndex)
+FVCOMChunk::NodeData FVCOM::barycentricInterpolation(const FVCOMStructure::Point& interpolatePoint, int containingTriangle, int siglayIndex, int timeIndex)
 {
 	FVCOMChunk::NodeData interpolatedData;
-	int containingTriangle = structure.getContainingTriangle(interpolatePoint);
 	const std::vector<int>& surroundingNodes = structure.getNodesInTriangle(containingTriangle);
 
 	FVCOMStructure::Point p1 = structure.getNodePoint(surroundingNodes[0]);

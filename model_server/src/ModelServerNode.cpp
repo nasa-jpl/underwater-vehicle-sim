@@ -21,6 +21,7 @@ bool getModelData(model_server::GetModelData::Request &req,
 	res.dye = data.dye;
 	res.temp = data.temp;
 	res.salt = data.salt;
+    res.depth = data.depth;
 
 	return true;
 }
@@ -56,14 +57,16 @@ int main(int argc, char **argv)
         float temp = 0;
         float salt = 0;
         float dye = 0;
+        float depth = -100;
 
         n.getParam("model/u", u);
         n.getParam("model/v", v);
         n.getParam("model/temp", temp);
         n.getParam("model/salt", salt);
         n.getParam("model/dye", dye);
+        n.getParam("model/depth", depth);
 
-        model.reset(new ConstantModel(u, v, temp, salt, dye));
+        model.reset(new ConstantModel(u, v, temp, salt, dye, depth));
     }   
     else
     {

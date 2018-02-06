@@ -11,7 +11,6 @@ FVCOMChunk::FVCOMChunk(const std::vector<FVCOMStructure::ModelFile> modelFiles, 
 											   FVCOMStructure::ChunkInfo chunkInfo) :
 	chunkInfo(chunkInfo)
 {
-//	ROS_INFO("NEW CHUNK");
 	unsigned int startModelFile = getFileIndexForTimeIndex(modelFiles, chunkInfo.timeStart);
 	unsigned int endModelFile = getFileIndexForTimeIndex(modelFiles, chunkInfo.timeStart + chunkInfo.timeSize);
 	
@@ -43,8 +42,6 @@ FVCOMChunk::FVCOMChunk(const std::vector<FVCOMStructure::ModelFile> modelFiles, 
 		triangles.insert(std::make_pair(trianglesToLoad[i], std::vector<FVCOMChunk::TriangleData>(uLoad.size())));
 	}
 	bool dyeVarExists = true;
-//	ROS_INFO("Nodes to Load: %u", nodesToLoad.size());
-//	ROS_INFO("Triangles to Load: %u", trianglesToLoad.size());
 	for(unsigned int i = 0; i < nodesToLoad.size(); i++)
 	{
 		unsigned int timeIndex = chunkInfo.timeStart;
@@ -60,7 +57,6 @@ FVCOMChunk::FVCOMChunk(const std::vector<FVCOMStructure::ModelFile> modelFiles, 
 			//Adjust time index for this file 
 			unsigned int adjustedTimeIndex = timeIndex - modelFiles[f].startTimeIndex;
 
-	//		ROS_INFO("index: %i model_start_index: %i chunk_size: %i model_size: %i",timeIndex, modelFiles[f].startTimeIndex, chunkInfo.timeSize, modelFiles[f].timeDim);
 			//calculate the size of the time dimension that needs to be loaded
 			unsigned int timeCount = std::min(chunkInfo.timeSize - (timeIndex - chunkInfo.timeStart), modelFiles[f].timeDim - adjustedTimeIndex);
 
@@ -68,8 +64,6 @@ FVCOMChunk::FVCOMChunk(const std::vector<FVCOMStructure::ModelFile> modelFiles, 
 			std::vector<size_t> start = {adjustedTimeIndex, chunkInfo.siglayStart, nodesToLoad[i]};
 			std::vector<size_t> count = {timeCount, chunkInfo.siglaySize, 1};
 
-		//	ROS_INFO("HERE8 start: %i %i %i", adjustedTimeIndex, chunkInfo.siglayStart, nodesToLoad[i]);
-		//	ROS_INFO("HERE8 count: %i %i %i",timeCount,chunkInfo.siglaySize,1);
 
 			//load data
 			tempVar.getVar(start, count, tempLoad.data() + dataIndex);

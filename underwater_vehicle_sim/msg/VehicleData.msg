@@ -2,6 +2,7 @@ string name
 float32 x
 float32 y
 float32 h
+float32 sonarDepth
 time time
 float32 temp
 float32 salt

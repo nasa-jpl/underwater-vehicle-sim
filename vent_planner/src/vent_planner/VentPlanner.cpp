@@ -56,7 +56,6 @@ std::shared_ptr<Plan> VentPlanner::plan()
                                                                                     spiralPoints); 
             plan->addAction(newAction);
 
-            ROS_INFO("VentPlanner: Created inital plan. Spiral of size %i", spiralPoints.size());
             initalPlan = true;
             return plan;
         }

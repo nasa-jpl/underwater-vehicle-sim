@@ -4,6 +4,7 @@
  <rosparam param="model/v">2.345</rosparam>
  <rosparam param="model/salt">4.567</rosparam>
  <rosparam param="model/dye">5.678</rosparam>
+ <rosparam param="model/depth">200</rosparam>
  
  <rosparam param="vehicles/names">[v1]</rosparam>
 
@@ -26,5 +27,5 @@
  <node pkg="model_server" type="model_server_node" name="model_server" output="screen"/>
  <node pkg="data_server" type="data_server_node" name="data_server" />
  <node pkg="underwater_vehicle_sim" type="underwater_vehicle_sim_node" name="underwater_vehicle_sim" output="screen" />
- <test test-name="data_recorder_module_test" pkg="underwater_vehicle_sim" type="data_recorder_module_test"/>
+ <test test-name="data_broadcaster_module_test" pkg="underwater_vehicle_sim" type="data_broadcaster_module_test"/>
 </launch>

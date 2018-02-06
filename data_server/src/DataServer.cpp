@@ -138,11 +138,12 @@ void DataServer::loadFromCSVFile(std::string filename)
 				newEntry.x = std::stof(splitLine[1]);
 				newEntry.y = std::stof(splitLine[2]);
 				newEntry.h = std::stof(splitLine[3]);
-				newEntry.time = ros::Time(std::stof(splitLine[4]));
+                newEntry.sonarDepth = std::stof(splitLine[4]);
+				newEntry.time = ros::Time(std::stof(splitLine[5]));
 
-				newEntry.temp = std::stof(splitLine[5]);
-				newEntry.salt = std::stof(splitLine[6]);
-				newEntry.dye = std::stof(splitLine[7]);
+				newEntry.temp = std::stof(splitLine[6]);
+				newEntry.salt = std::stof(splitLine[7]);
+				newEntry.dye = std::stof(splitLine[8]);
 				putData(splitLine[0], newEntry);
 
 	    	}
@@ -165,7 +166,7 @@ void DataServer::saveToCSVFile(std::string filename)
 	std::ofstream file (filename);
   	if (file.is_open())
   	{
-  		file << "source,x,y,h,time,temp,salt,dye\n";
+  		file << "source,x,y,h,sonarDepth,time,temp,salt,dye\n";
 
   		for ( auto it = data.begin(); it != data.end(); ++it )
   		{
@@ -173,7 +174,7 @@ void DataServer::saveToCSVFile(std::string filename)
   			for(auto list_it = it->second.begin(); list_it != it->second.end(); ++list_it)
   			{
   				file << it->first << ",";
-  				file << std::setprecision(9) << list_it->x << "," << list_it->y << "," << list_it->h << "," << list_it->time.toSec() << ",";
+  				file << std::setprecision(9) << list_it->x << "," << list_it->y << "," << list_it->h << "," << list_it->sonarDepth << "," << list_it->time.toSec() << ",";
   				file << std::setprecision(9) << list_it->temp << "," << list_it->salt << "," << list_it->dye << "\n";
   			}
   		}

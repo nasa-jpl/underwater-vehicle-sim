@@ -13,12 +13,13 @@ ConstantModel::ConstantModel() :
  	dye(0)
 {}
 
-ConstantModel::ConstantModel(float u, float v, float temp, float salt, float dye) :
+ConstantModel::ConstantModel(float u, float v, float temp, float salt, float dye, float depth) :
  	u(u),
  	v(v),
  	temp(temp),
  	salt(salt),
- 	dye(dye)
+ 	dye(dye),
+    depth(depth)
 {}
 
 const ModelData ConstantModel::getData(float x, float y, float height, float time)
@@ -30,6 +31,7 @@ const ModelData ConstantModel::getData(float x, float y, float height, float tim
 	data.temp = temp;
 	data.salt = salt;
 	data.dye = dye;
+    data.depth = depth;
 
 	return data;
 }

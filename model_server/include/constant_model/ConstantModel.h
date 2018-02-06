@@ -18,7 +18,7 @@ public:
 	/**
 	 * Initalize ConstantModel class with provided values
      */
-	ConstantModel(float u, float v, float temp, float salt, float dye);
+	ConstantModel(float u, float v, float temp, float salt, float dye, float depth);
 
 
 
@@ -31,6 +31,7 @@ private:
 	float temp;
 	float salt;
 	float dye;
+	float depth;
 
 };
 

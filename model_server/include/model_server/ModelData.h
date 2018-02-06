@@ -8,6 +8,7 @@ struct ModelData
 	float temp;
 	float salt;
 	float dye;
+    float depth;
 };
 
 #endif

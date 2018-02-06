@@ -25,6 +25,7 @@ void recieveData(const underwater_vehicle_sim::VehicleData::ConstPtr& msg)
 	entry.temp = msg->temp;
 	entry.salt = msg->salt;
 	entry.dye = msg->dye;
+	entry.sonarDepth = msg->sonarDepth;
 
 	server.putData(msg->name, entry);
 }
@@ -72,6 +73,7 @@ bool getData(data_server::GetData::Request &req,
 		res.temp.push_back(it->temp);
 		res.dye.push_back(it->dye);
 		res.salt.push_back(it->salt);
+		res.sonarDepth.push_back(it->sonarDepth);
 	}
 
 	return true;

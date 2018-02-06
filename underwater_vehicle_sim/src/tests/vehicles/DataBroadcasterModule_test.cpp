@@ -19,7 +19,6 @@ TEST(DataBroadcasterModule, TestDataRecording){
         client = nh.serviceClient<data_server::GetData>("data_server/get");
         modelClient = nh.serviceClient<model_server::GetModelData>("get_model_data");
 
-
         bool exists = modelClient.waitForExistence(ros::Duration(5));
         ASSERT_TRUE(exists); //check for the model server service existance
 
@@ -43,6 +42,7 @@ TEST(DataBroadcasterModule, TestDataRecording){
             ASSERT_FLOAT_EQ(0, retrievedData.response.temp[i]);
             ASSERT_FLOAT_EQ(4.567, retrievedData.response.salt[i]);
             ASSERT_FLOAT_EQ(5.678, retrievedData.response.dye[i]);
+            ASSERT_FLOAT_EQ(200, retrievedData.response.sonarDepth[i]);
             prevTime = retrievedData.response.time[i].toSec();
         }
 }
@@ -50,7 +50,7 @@ TEST(DataBroadcasterModule, TestDataRecording){
 
 int main(int argc, char** argv){
   testing::InitGoogleTest(&argc, argv);
-  ros::init(argc, argv, "data_recorder_module_test");
+  ros::init(argc, argv, "data_broadcasting_module_test");
 
   return RUN_ALL_TESTS();
 }

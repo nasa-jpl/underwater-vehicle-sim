@@ -5,6 +5,7 @@ float32 time
 ---
 float32 u
 float32 v
+float32 depth
 float32 temp
 float32 salt
 float32 dye

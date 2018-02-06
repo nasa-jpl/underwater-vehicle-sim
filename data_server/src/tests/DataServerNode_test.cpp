@@ -19,7 +19,7 @@ TEST(DataServerNode, PutAndGetData)
 	retrievedData1.request.start_time = ros::Time(1);
 	retrievedData1.request.end_time = ros::Time(2);
 
-	bool exists = client.waitForExistence(ros::Duration(5));
+	bool exists = client.waitForExistence(ros::Duration(20));
 	ASSERT_TRUE(exists);
 
 	ros::Duration(5.0).sleep();
@@ -38,6 +38,7 @@ TEST(DataServerNode, PutAndGetData)
 		ASSERT_FLOAT_EQ(3.0, retrievedData1.response.salt[i]);
 		ASSERT_FLOAT_EQ(2.0, retrievedData1.response.temp[i]);
 		ASSERT_FLOAT_EQ(4.0, retrievedData1.response.dye[i]);
+        ASSERT_FLOAT_EQ(200.0, retrievedData1.response.sonarDepth[i]);
 	}
 	
 }

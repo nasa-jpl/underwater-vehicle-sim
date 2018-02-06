@@ -99,7 +99,6 @@ TEST(NodeInterface, GetFVCOMDataTest){
 	ASSERT_FLOAT_EQ(0.0, srv7.response.dye);
 	EXPECT_NEAR(-5.013343914645146E-4, srv7.response.u, 0.0000000001);
 	EXPECT_NEAR(8.049376608763285E-4 , srv7.response.v, 0.0000000001);
-    
 
 	ASSERT_FLOAT_EQ(3.78614325, srv8.response.temp);
     ASSERT_FLOAT_EQ(34.320852, srv8.response.salt);

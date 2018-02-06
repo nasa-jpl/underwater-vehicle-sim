@@ -54,14 +54,17 @@ TEST(FVCOMTest, XYInterpolation)
     ASSERT_FLOAT_EQ(3.84160121445, data1.temp);
     ASSERT_FLOAT_EQ(34.312494441, data1.salt);
     ASSERT_FLOAT_EQ(0.0, data1.dye);
+    ASSERT_FLOAT_EQ(1890.6309, data1.depth);
     
     ASSERT_FLOAT_EQ(3.80200850181, data2.temp);
     ASSERT_FLOAT_EQ(34.3184551724, data2.salt);
     ASSERT_FLOAT_EQ(0.0, data2.dye);
+    ASSERT_FLOAT_EQ(1890.6309, data1.depth);
 
     ASSERT_FLOAT_EQ(3.80200575432, data3.temp);
     ASSERT_FLOAT_EQ(34.3184615073, data3.salt);
     ASSERT_FLOAT_EQ(0.0, data3.dye);
+    ASSERT_FLOAT_EQ(1890.6309, data1.depth);
 }
 
 TEST(FVCOMTest, TimeInterpolation)
