@@ -7,7 +7,7 @@
 #include "vehicles/GeneralModule.h"
 #include "vehicles/PropulsionModule.h"
 
-#include "vehicles/DataRecorderModule.h"
+#include "vehicles/DataBroadcasterModule.h"
 #include "vehicles/FourDOFPropulsion.h"
 
 Vehicle::Vehicle(std::string name, ros::NodeHandle& parentNH) :
@@ -95,8 +95,17 @@ void Vehicle::update()
 
 void Vehicle::getInfo(underwater_vehicle_sim::GetVehicleInfo::Response &res)
 {
-	res.propModuleName = propulsionModule->getName();
-	res.propModuleType = propulsionModule->getType();
+    if(propulsionModule)
+    {
+        res.propModuleName = propulsionModule->getName();
+        res.propModuleType = propulsionModule->getType();  
+    }
+    else
+    {
+        res.propModuleName = "";
+        res.propModuleType = "";
+    }
+	
 	for(std::unique_ptr<GeneralModule>& module : modules)
 	{
 		res.moduleNames.push_back(module->getName());

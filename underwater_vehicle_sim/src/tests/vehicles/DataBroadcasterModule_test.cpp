@@ -13,7 +13,7 @@
 ros::ServiceClient client;
 ros::ServiceClient modelClient;
 
-TEST(DataRecorderModule, TestDataRecording){
+TEST(DataBroadcasterModule, TestDataRecording){
         //Initalize ROS node handle
         ros::NodeHandle nh;
         client = nh.serviceClient<data_server::GetData>("data_server/get");

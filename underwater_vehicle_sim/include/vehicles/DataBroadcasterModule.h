@@ -1,5 +1,5 @@
-#ifndef DATA_RECORDER_MODULE_H
-#define DATA_RECORDER_MODULE_H
+#ifndef DATA_BROADCASTER_MODULE_H
+#define DATA_BROADCASTER_MODULE_H
 
 #include "tf/transform_broadcaster.h"
 #include "tf/transform_listener.h"
@@ -7,12 +7,12 @@
 
 #include "vehicles/GeneralModule.h"
 
-class DataRecorderModule : public GeneralModule
+class DataBroadcasterModule : public GeneralModule
 {
 
 public:
-	DataRecorderModule(std::string name, ros::NodeHandle& parentNH);
-	~DataRecorderModule() {}
+	DataBroadcasterModule(std::string name, ros::NodeHandle& parentNH);
+	~DataBroadcasterModule() {}
 
 	void update(std::string name, const ros::Time& lastTime, const tf::Vector3& position);
 

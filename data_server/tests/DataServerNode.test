@@ -1,4 +1,33 @@
 <launch>
+
+ <rosparam param="vehicles/names">[v1]</rosparam>
+
+
+ <rosparam param="vehicles/v1/start_x">100</rosparam>
+ <rosparam param="vehicles/v1/start_y">100</rosparam>
+ <rosparam param="vehicles/v1/start_z">0</rosparam>
+
+ <rosparam param="vehicles/v1/moduleNames">[dataBroadcaster]</rosparam>
+ <rosparam param="vehicles/v1/dataBroadcaster/type">DataBroadcaster</rosparam>
+ <rosparam param="vehicles/v1/dataBroadcaster/hertz">10</rosparam>
+ <rosparam param="vehicles/v1/propModuleName">prop_v1</rosparam>
+ <rosparam param="vehicles/v1/prop_v1/type">FourDOFPropulsion</rosparam>
+
+ <param name="use_sim_time" value="true" />
+ <rosparam param="speed_up_factor">1</rosparam>
+ <rosparam param="sim_start_time">0</rosparam>
+
+ <rosparam param="model_type">constant</rosparam>
+ <rosparam param="model/u">0</rosparam>
+ <rosparam param="model/v">1</rosparam>
+ <rosparam param="model/temp">2</rosparam>
+ <rosparam param="model/salt">3</rosparam>
+ <rosparam param="model/dye">4</rosparam>
+
+ <node pkg="underwater_vehicle_sim" type="clock_server_node" name="clock_server"/>
+ <node pkg="underwater_vehicle_sim" type="underwater_vehicle_sim_node" name="underwater_vehicle_sim" output="screen" />
+ <node pkg="model_server" type="model_server_node" name="model_server" output="screen"/>
  <node pkg="data_server" type="data_server_node" name="data_server" output="screen" />
+
  <test test-name="data_server_node_test" pkg="data_server" type="data_server_node_test" />
 </launch>

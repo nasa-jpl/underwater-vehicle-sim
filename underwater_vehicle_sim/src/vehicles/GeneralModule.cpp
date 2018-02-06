@@ -3,7 +3,7 @@
 #include "vehicles/Vehicle.h"
 
 #include "vehicles/GeneralModule.h"
-#include "vehicles/DataRecorderModule.h"
+#include "vehicles/DataBroadcasterModule.h"
 
 
 GeneralModule::GeneralModule(std::string name, std::string type, ros::NodeHandle parentNH) :
@@ -29,9 +29,9 @@ std::unique_ptr<GeneralModule> GeneralModule::makeGeneralModule(std::string modu
 	std::string moduleType;
 	parentNH.getParam(moduleName + "/type", moduleType);
 
-	if(moduleType == "DataRecorder")
+	if(moduleType == "DataBroadcaster")
 	{
-		std::unique_ptr<GeneralModule> returnPtr(new DataRecorderModule(moduleName, parentNH));
+		std::unique_ptr<GeneralModule> returnPtr(new DataBroadcasterModule(moduleName, parentNH));
 		return returnPtr;
 	}
 

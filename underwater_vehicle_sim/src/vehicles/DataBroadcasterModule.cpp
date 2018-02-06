@@ -6,19 +6,19 @@
 #include "model_server/GetModelData.h"
 
 #include "underwater_vehicle_sim/VehicleData.h"
-#include "vehicles/DataRecorderModule.h"
+#include "vehicles/DataBroadcasterModule.h"
 
 #define SECONDS_IN_DAY 86400
 
-DataRecorderModule::DataRecorderModule(std::string name, ros::NodeHandle& parentNH) :
-	GeneralModule(name, "DataRecorder", parentNH)
+DataBroadcasterModule::DataBroadcasterModule(std::string name, ros::NodeHandle& parentNH) :
+	GeneralModule(name, "DataBroadcaster", parentNH)
 {
 
-	dataRecorder = nh.advertise<underwater_vehicle_sim::VehicleData>("/data_server/put", 1000);
+	dataRecorder = nh.advertise<underwater_vehicle_sim::VehicleData>("data", 1000);
 	client = nh.serviceClient<model_server::GetModelData>("/get_model_data");
 }
 
-void DataRecorderModule::update(std::string name, const ros::Time& lastTime, const tf::Vector3& position) 
+void DataBroadcasterModule::update(std::string name, const ros::Time& lastTime, const tf::Vector3& position) 
 {
 	model_server::GetModelData srv;
 
@@ -26,7 +26,6 @@ void DataRecorderModule::update(std::string name, const ros::Time& lastTime, con
 	srv.request.y = position.getY();
 	srv.request.h = position.getZ();
 	srv.request.time = lastTime.toSec() / SECONDS_IN_DAY; //convert from seconds to days
-
 
 	if(client.exists())
 	{

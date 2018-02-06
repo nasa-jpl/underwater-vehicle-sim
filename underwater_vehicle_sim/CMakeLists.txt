@@ -128,7 +128,7 @@ catkin_package(
    src/vehicles/GeneralModule.cpp
    src/vehicles/PropulsionModule.cpp
    src/vehicles/FourDOFPropulsion.cpp
-   src/vehicles/DataRecorderModule.cpp
+   src/vehicles/DataBroadcasterModule.cpp
  )
 
  target_link_libraries(underwater_vehicles ${catkin_LIBRARIES})
@@ -214,12 +214,12 @@ if (CATKIN_ENABLE_TESTING)
  add_rostest_gtest(clock_server_test tests/clock_server/ClockServer.test src/tests/clock_server/ClockServer_test.cpp)
  add_rostest_gtest(init_underwater_vehicle_sim_test tests/vehicles/InitVehicles.test src/tests/vehicles/InitVehicles_test.cpp)
  add_rostest_gtest(four_dof_propulsion_test tests/vehicles/FourDOFPropulsion.test src/tests/vehicles/FourDOFPropulsion_test.cpp)
- add_rostest_gtest(data_recorder_module_test tests/vehicles/DataRecorderModule.test src/tests/vehicles/DataRecorderModule_test.cpp)
+ add_rostest_gtest(data_broadcaster_module_test tests/vehicles/DataBroadcasterModule.test src/tests/vehicles/DataBroadcasterModule_test.cpp)
  
  target_link_libraries(clock_server_test ${catkin_LIBRARIES} ${NETCDF_LIBRARIES} stdc++fs)
  target_link_libraries(init_underwater_vehicle_sim_test underwater_vehicles ${catkin_LIBRARIES} ${NETCDF_LIBRARIES} stdc++fs)
  target_link_libraries(four_dof_propulsion_test underwater_vehicles ${catkin_LIBRARIES} ${NETCDF_LIBRARIES} stdc++fs)
- target_link_libraries(data_recorder_module_test underwater_vehicles ${catkin_LIBRARIES} ${NETCDF_LIBRARIES} stdc++fs)
+ target_link_libraries(data_broadcaster_module_test underwater_vehicles ${catkin_LIBRARIES} ${NETCDF_LIBRARIES} stdc++fs)
 endif()
 
 

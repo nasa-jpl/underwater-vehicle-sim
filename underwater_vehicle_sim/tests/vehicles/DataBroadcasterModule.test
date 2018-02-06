@@ -14,9 +14,9 @@
  <rosparam param="vehicles/v1/propModuleName">prop_v1</rosparam>
  <rosparam param="vehicles/v1/prop_v1/type">FourDOFPropulsion</rosparam>
 
- <rosparam param="vehicles/v1/moduleNames">[dataRecorder]</rosparam>
- <rosparam param="vehicles/v1/dataRecorder/type">DataRecorder</rosparam>
- <rosparam param="vehicles/v1/dataRecorder/hertz">1</rosparam>
+ <rosparam param="vehicles/v1/moduleNames">[dataBroadcaster]</rosparam>
+ <rosparam param="vehicles/v1/dataBroadcaster/type">DataBroadcaster</rosparam>
+ <rosparam param="vehicles/v1/dataBroadcaster/hertz">1</rosparam>
 
  <param name="use_sim_time" value="true" />
  <rosparam param="speed_up_factor">1</rosparam>
