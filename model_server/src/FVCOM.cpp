@@ -4,6 +4,7 @@
 
 #include <stdexcept>
 #include <math.h>
+#include  <limits>
 
 FVCOM::FVCOM() {}
 
@@ -134,12 +135,42 @@ const ModelData FVCOM::getData(float x, float y, float height, float time)
 	return interpolate(interpolatePoint, time);
 }
 
-const float FVCOM::getDepthAtPoint(float x, float y) const
+const ModelData FVCOM::getDataOutOfRange(float x, float y, float height, float time)
 {
+	//if out of range XY then get closest node
+	//if out of range time then get closest time
+
 	FVCOMStructure::Point interpolatePoint;
 	interpolatePoint.x = x;
 	interpolatePoint.y = y;
-	return structure.getDepthAtPoint(interpolatePoint);	
+	interpolatePoint.h = height;
+
+	ModelData data;
+	if(!structure.xyInModel(interpolatePoint) || !structure.timeInModel(time))
+	{
+		int node = structure.getClosestNode(interpolatePoint);
+		FVCOMStructure::Point nodePoint = structure.getNodePoint(node);
+
+		data.depth = nodePoint.h;
+		data.u = std::numeric_limits<double>::quiet_NaN();
+		data.v = std::numeric_limits<double>::quiet_NaN();
+
+		data.salt = std::numeric_limits<double>::quiet_NaN();
+		data.temp = std::numeric_limits<double>::quiet_NaN();
+		data.dye = 0;
+	}
+	else if(!structure.depthInModel(interpolatePoint))
+	{
+		data.depth = structure.getDepthAtPoint(interpolatePoint);
+		data.u = std::numeric_limits<double>::quiet_NaN();
+		data.v = std::numeric_limits<double>::quiet_NaN();
+
+		data.salt = std::numeric_limits<double>::quiet_NaN();
+		data.temp = std::numeric_limits<double>::quiet_NaN();
+		data.dye = std::numeric_limits<double>::quiet_NaN();
+	}
+	
+	return data;
 }
 
 const FVCOMChunk::NodeData& FVCOM::getNodeData(int node, int siglayNodeIndex, int timeIndex)

@@ -10,7 +10,7 @@
 #include "fvcom/FVCOM.h"
 
 #include <stdexcept>
-#include  <limits>
+
 
 std::unique_ptr<ModelInterface> model;
 
@@ -29,13 +29,13 @@ bool getModelData(model_server::GetModelData::Request &req,
     }
     catch(const std::out_of_range& e)
     {
-        float depth = model->getDepthAtPoint(req.x, req.y);
-        res.u = std::numeric_limits<double>::quiet_NaN();;
-        res.v = std::numeric_limits<double>::quiet_NaN();;
-        res.dye = std::numeric_limits<double>::quiet_NaN();;
-        res.temp = std::numeric_limits<double>::quiet_NaN();;
-        res.salt = std::numeric_limits<double>::quiet_NaN();;
-        res.depth = depth;
+        ModelData data = model->getDataOutOfRange(req.x, req.y, req.h, req.time);
+        res.u = data.u;
+        res.v = data.v;
+        res.dye = data.dye;
+        res.temp = data.temp;
+        res.salt = data.salt;
+        res.depth = data.depth;
     }
     
 	return true;

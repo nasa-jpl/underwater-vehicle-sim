@@ -9,6 +9,7 @@
 #include <iterator>
 #include <experimental/filesystem>
 
+#include "ros/ros.h"
 namespace fs = std::experimental::filesystem;
 
 FVCOMStructure::FVCOMStructure() {}
@@ -508,6 +509,7 @@ const FVCOMStructure::Point FVCOMStructure::getNodePoint(int node, int siglay) c
 {
 	FVCOMStructure::Point returnPoint = nodes[node];
 	returnPoint.h = returnPoint.h * nodeSiglay[node][siglay];
+
 	return returnPoint;
 }
 
@@ -747,12 +749,41 @@ const bool FVCOMStructure::pointInModel(Point p, float time) const
 
 	Plane plane = getTrianglePlane(containingTriangle);
 	float depth = plane.getHeight(p);
-
 	return p.x >= minX && p.x <= maxX && 
 	       p.y >= minY && p.y <= maxY && 
 	       time >= times[0] && time <= times[times.size() - 1] &&
 	       p.h <= 0 && p.h >= -depth;
 }
+
+const bool FVCOMStructure::timeInModel(float time) const
+{
+	return time >= times[0] && time <= times[times.size() - 1];
+}
+
+const bool FVCOMStructure::depthInModel(Point p) const
+{
+	int containingTriangle = 0;
+	try
+	{
+		containingTriangle = getContainingTriangle(p);
+	}
+	catch(const std::out_of_range& e)
+	{
+		return false;
+	}
+
+	Plane plane = getTrianglePlane(containingTriangle);
+	float depth = plane.getHeight(p);
+
+	return p.h <= 0 && p.h >= -depth;
+}
+
+const bool FVCOMStructure::xyInModel(Point p) const
+{
+	return p.x >= minX && p.x <= maxX && 
+	       p.y >= minY && p.y <= maxY;
+}
+
 
 const std::vector<unsigned int>& FVCOMStructure::getNodesInChunk(FVCOMStructure::ChunkInfo chunk) const
 {

@@ -36,7 +36,16 @@ const ModelData ConstantModel::getData(float x, float y, float height, float tim
 	return data;
 }
 
-const float ConstantModel::getDepthAtPoint(float x, float y) const
+const ModelData ConstantModel::getDataOutOfRange(float x, float y, float height, float time)
 {
-	return depth;
+	ModelData data;
+	
+	data.u = u;
+	data.v = v;
+	data.temp = temp;
+	data.salt = salt;
+	data.dye = dye;
+    data.depth = depth;
+
+	return data;
 }

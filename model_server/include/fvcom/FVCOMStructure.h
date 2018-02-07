@@ -165,12 +165,12 @@ public:
 	int getClosestNodeSiglay(Point testPoint) const;
 
 	/**
-	 *Gets the point of a node with seafloor depth as height
+	 *Gets the point of a node with seafloor depth as height. Note: The z component is depth so it will be positive
 	 */
 	const FVCOMStructure::Point& getNodePoint(int node) const;
 
 	/**
-	 *Gets the point of a node at a specific siglay
+	 *Gets the point of a node at a specific siglay.  Note: The z component is height so it will be negative; this is due to the siglay values being negative.
 	 */
 	const FVCOMStructure::Point getNodePoint(int node, int siglay) const;
 
@@ -224,6 +224,9 @@ public:
 	const std::vector<ModelFile> getModelFiles() const;
 
 	const bool pointInModel(Point p, float time) const;
+	const bool timeInModel(float time) const;
+	const bool depthInModel(Point p) const;
+	const bool xyInModel(Point p) const;
 
 	const int getNumSiglays() const;
 
@@ -245,9 +248,20 @@ public:
 	 */
 	void siglayInterpolation(FVCOMStructure::Point& interpolatePoint, int& siglay1Index, int& siglay2Index, double& siglay1Percent) const;
 
+	/**
+	* Gets the depth at a specific point.  Takes in a containingTriangle if avalible to reduce computation time.
+	*@param interpolatePoint Point to get depth at
+	*@param containingTriangle Containing triangle for this point
+	*@param Depth at this point. Note this will be a positive number
+	**/
 	float getDepthAtPoint(FVCOMStructure::Point& interpolatePoint, int containingTriangle) const;
-	float getDepthAtPoint(FVCOMStructure::Point& interpolatePoint) const;
 
+	/**
+	* Gets the depth at a specific point.
+	* @param interpolatePoint Point to get depth at
+	* @param Depth at this point. Note this will be a positive number
+	**/
+	float getDepthAtPoint(FVCOMStructure::Point& interpolatePoint) const;
 
 private:
 
