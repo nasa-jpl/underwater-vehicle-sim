@@ -335,6 +335,68 @@ TEST(FourDOFPropulsion, TestVehicleRotationalThenLinearMovement) {
         ASSERT_TRUE(zCorrect);
 }
 
+TEST(FourDOFPropulsion, TestSeafloorImpact) {
+        //Initalize ROS node handle
+        ros::NodeHandle n;
+
+        tf::TransformListener transformListener;
+        ros::Publisher velocityV4Pub = n.advertise<geometry_msgs::Twist>("/vehicles/v4/prop_v4/command_velocity", 1000);
+        
+        tf::StampedTransform transformV4Start;
+
+        tf::StampedTransform transformV4End;
+
+        bool transformsRecieved = false;
+
+        while(!transformsRecieved)
+        {
+            try
+            {
+                transformListener.lookupTransform("/world", "/v4",  
+                                          ros::Time(0), transformV4Start);
+                transformsRecieved = true;
+            }
+            catch (tf::TransformException ex)
+            {
+                ROS_ERROR("%s",ex.what());
+                ros::Duration(1.0).sleep();
+            }
+        }
+
+        geometry_msgs::Twist linMsg;
+        geometry_msgs::Vector3 linLin;
+        geometry_msgs::Vector3 linRot;
+        linLin.x = 0;
+        linLin.y = 0;
+        linLin.z = -2;
+        linRot.x = 0;
+        linRot.y = 0;
+        linRot.z = 0;
+        linMsg.linear = linLin;
+        linMsg.angular = linRot;
+
+        velocityV4Pub.publish(linMsg);
+        ros::spinOnce();
+
+        ros::Duration(5).sleep();
+
+
+        try
+        {
+            transformListener.lookupTransform("/world", "/v4",  
+                                      ros::Time(0), transformV4End);
+            transformsRecieved = true;
+        }
+        catch (tf::TransformException ex)
+        {
+            ROS_ERROR("%s",ex.what());
+            ros::Duration(1.0).sleep();
+        }
+
+
+        ASSERT_FLOAT_EQ(-200, transformV4End.getOrigin().getZ());
+}
+
 int main(int argc, char** argv){
   testing::InitGoogleTest(&argc, argv);
   ros::init(argc, argv, "four_dof_propulsion_test");

@@ -1,5 +1,5 @@
 <launch>
- <rosparam param="vehicles/names">[v0,v1,v2,v3]</rosparam>
+ <rosparam param="vehicles/names">[v0,v1,v2,v3,v4]</rosparam>
 
 
  <rosparam param="vehicles/v0/start_x">100</rosparam>
@@ -32,6 +32,17 @@
  <rosparam param="vehicles/v3/propModuleName">prop_v3</rosparam>
  <rosparam param="vehicles/v3/prop_v3/type">FourDOFPropulsion</rosparam>
 
+ <rosparam param="vehicles/v4/start_x">100</rosparam>
+ <rosparam param="vehicles/v4/start_y">100</rosparam>
+ <rosparam param="vehicles/v4/start_z">-195</rosparam>
+
+ <rosparam param="vehicles/v4/propModuleName">prop_v4</rosparam>
+ <rosparam param="vehicles/v4/prop_v4/type">FourDOFPropulsion</rosparam>
+
+ <rosparam param="model_type">constant</rosparam>
+ <rosparam param="model/depth">200</rosparam>
+
+ <node pkg="model_server" type="model_server_node" name="model_server" output="screen"/>
  <node pkg="underwater_vehicle_sim" type="underwater_vehicle_sim_node" name="underwater_vehicle_sim" output="screen" />
  <test test-name="four_dof_propulsion_test" pkg="underwater_vehicle_sim" type="four_dof_propulsion_test" />
 </launch>

@@ -4,13 +4,18 @@
 #include "tf/transform_broadcaster.h"
 #include "tf/transform_listener.h"
 
+#include "model_server/GetModelData.h"
+
+#define SECONDS_IN_DAY 86400
+
+
 FourDOFPropulsion::FourDOFPropulsion(std::string name, ros::NodeHandle& parentNH) :
 	PropulsionModule(name, "FourDOFPropulsion", parentNH)
 {
 	nh.getParam("max_linear_velocity", maxLinVelocity);
 	nh.getParam("max_rotate_velocity", maxRotVelocity);
 
-
+	modelClient = nh.serviceClient<model_server::GetModelData>("/get_model_data");
 	commandVelocitySub = nh.subscribe("command_velocity", 1, &FourDOFPropulsion::commandVelocityCallback, this);
 
 	rotVelocity.setX(0);
@@ -47,6 +52,7 @@ void FourDOFPropulsion::move(ros::Time& lastTime, tf::Quaternion& rotation, tf::
 
 	//apply the linear movement
 	position += totalLinMovement;
+
 	//create a Quaternion to represent rotation using the axis of rotation and angle of rotation
 	tf::Quaternion totalRotMovement;
 
@@ -56,4 +62,22 @@ void FourDOFPropulsion::move(ros::Time& lastTime, tf::Quaternion& rotation, tf::
 	
 	//Apply the rotation to the current rotation of the vehicle
 	rotation *= totalRotMovement;
+
+
+	model_server::GetModelData srv;
+
+	srv.request.x = position.getX();
+	srv.request.y = position.getY();
+	srv.request.h = position.getZ();
+	srv.request.time = lastTime.toSec() / SECONDS_IN_DAY; //convert from seconds to days
+
+	if(modelClient.exists())
+	{
+		bool success = modelClient.call(srv);
+
+		if(success && -srv.response.depth > position.getZ())
+		{
+			position.setZ(-srv.response.depth);
+		}
+	}
 }

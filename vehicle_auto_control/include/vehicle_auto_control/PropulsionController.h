@@ -8,6 +8,8 @@
 
 #include "tf/transform_broadcaster.h"
 
+#include "underwater_vehicle_sim/GetVehicleInfo.h"
+
 class PropulsionController
 {
 
@@ -19,8 +21,7 @@ public:
 	virtual void update()=0;
 
 	static std::unique_ptr<PropulsionController> makePropulsionController(std::string vehicleName, 
-																		  std::string moduleName, 
-																		  std::string moduleType, 
+																		  underwater_vehicle_sim::GetVehicleInfo info,
 																		  ros::NodeHandle& parentNH,
 																		  float loopHertz);	
 

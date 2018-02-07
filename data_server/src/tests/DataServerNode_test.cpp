@@ -40,7 +40,6 @@ TEST(DataServerNode, PutAndGetData)
 		ASSERT_FLOAT_EQ(4.0, retrievedData1.response.dye[i]);
         ASSERT_FLOAT_EQ(200.0, retrievedData1.response.sonarDepth[i]);
 	}
-	
 }
 
 

@@ -36,3 +36,7 @@ const ModelData ConstantModel::getData(float x, float y, float height, float tim
 	return data;
 }
 
+const float ConstantModel::getDepthAtPoint(float x, float y) const
+{
+	return depth;
+}

@@ -13,6 +13,8 @@
 
 #include "underwater_vehicle_sim/GetVehicleInfo.h"
 
+#include "model_server/GetModelData.h"
+
 /**
  * Class used to represent a vehicle in the simulation
  * Vehicle front is the position x-axis in the vehicle frame

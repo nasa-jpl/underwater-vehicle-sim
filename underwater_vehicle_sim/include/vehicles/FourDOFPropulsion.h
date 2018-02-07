@@ -56,6 +56,8 @@ private:
 	tf::Vector3 rotVelocity;
 
 	ros::Subscriber commandVelocitySub;
+
+	ros::ServiceClient modelClient;
 };
 
 

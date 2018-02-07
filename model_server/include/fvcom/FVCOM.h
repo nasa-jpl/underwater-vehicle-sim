@@ -49,6 +49,7 @@ public:
 
 
 	const ModelData getData(float x, float y, float height, float time);
+	const float getDepthAtPoint(float x, float y) const;
 
 private:
 
@@ -72,7 +73,7 @@ private:
 
 	ModelData interpolate(FVCOMStructure::Point p, float time);
 	FVCOMChunk::NodeData barycentricInterpolation(const FVCOMStructure::Point& interpolatedPoint, int containingTriangle, int siglayIndex, int timeIndex);
-	const double areaOfTriangle(const FVCOMStructure::Point& p1, const FVCOMStructure::Point& p2, const FVCOMStructure::Point& p3);
+	const double areaOfTriangle(const FVCOMStructure::Point& p1, const FVCOMStructure::Point& p2, const FVCOMStructure::Point& p3) const;
 
 private:
 	

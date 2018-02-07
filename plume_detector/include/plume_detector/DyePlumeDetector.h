@@ -7,14 +7,17 @@ class DyePlumeDetector : public PlumeDetector
 {
 public:
 
-	DyePlumeDetector(ros::NodeHandle& handle);
+	DyePlumeDetector(ros::NodeHandle handle);
+    
+    DyePlumeDetector(DyePlumeDetector&& other);
+
 	virtual ~DyePlumeDetector() {}
 
 	std::vector<PlumeDetector::PlumeData> getPlumeData(std::string vehicleName, ros::Time startTime, ros::Time endTime);
 
 private:
 
-	ros::NodeHandle& nh;
+	ros::NodeHandle nh;
 	ros::ServiceClient client;
 };
 #endif

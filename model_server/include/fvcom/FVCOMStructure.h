@@ -140,7 +140,9 @@ public:
 	 * @param siglay to get the plane for
 	 * @return parameters defining the plane
 	 */
-	FVCOMStructure::Plane getTriangleSiglayPlane(int triange, unsigned int siglay);
+	FVCOMStructure::Plane getTriangleSiglayPlane(int triange, unsigned int siglay) const;
+
+	FVCOMStructure::Plane getTrianglePlane(int triange) const;
 
 	/**
 	 * Gets the siglay that is closest to the given location
@@ -232,7 +234,7 @@ public:
 	 * @param time2Index Output for the second time index for the interpolation
 	 * @param time1Percent Output for the percent for time1Index for interpolation
 	 */
-	void timeInterpolation(float time, int& time1Index, int& time2Index, double& time1Percent);
+	void timeInterpolation(float time, int& time1Index, int& time2Index, double& time1Percent) const;
 
 	/**
 	 * Gets the index and percentage for linear interpolation of time
@@ -241,7 +243,10 @@ public:
 	 * @param siglay2Index Output for the second siglay index for the interpolation
 	 * @param siglay1Percent Output for the percent for siglay1Index for interpolation
 	 */
-	void siglayInterpolation(FVCOMStructure::Point& interpolatePoint, int& siglay1Index, int& siglay2Index, double& siglay1Percent);
+	void siglayInterpolation(FVCOMStructure::Point& interpolatePoint, int& siglay1Index, int& siglay2Index, double& siglay1Percent) const;
+
+	float getDepthAtPoint(FVCOMStructure::Point& interpolatePoint, int containingTriangle) const;
+	float getDepthAtPoint(FVCOMStructure::Point& interpolatePoint) const;
 
 
 private:

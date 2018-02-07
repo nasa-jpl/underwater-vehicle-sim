@@ -11,8 +11,9 @@
 
 #include "vehicle_auto_control/PointPathAction.h"
 
+#include "underwater_vehicle_sim/VehicleData.h"
 
-FourDOFPropulsionController::FourDOFPropulsionController(ros::NodeHandle controlNode, ros::NodeHandle vehicleNode, std::string vehicleName, float loopHertz) :
+FourDOFPropulsionController::FourDOFPropulsionController(ros::NodeHandle controlNode, ros::NodeHandle vehicleNode, std::string propModuleName, std::string dataModuleName, std::string vehicleName, float loopHertz) :
 	PropulsionController(controlNode, vehicleNode, vehicleName, loopHertz),
 	targetHorzVelocity(0),
 	targetRotVelocity(0),
@@ -20,9 +21,15 @@ FourDOFPropulsionController::FourDOFPropulsionController(ros::NodeHandle control
 	lateralError(1.0),
 	verticalError(0.25),
 	rotationalError(0.0174533),
+	latestSonarDepth(1000),
 	pointPathServer(controlNode, "point_path", boost::bind(&FourDOFPropulsionController::executePointPath, this, _1, &pointPathServer), false)
 {
-	velocityPub = vehicleNode.advertise<geometry_msgs::Twist>("command_velocity", 1000);
+	velocityPub = vehicleNode.advertise<geometry_msgs::Twist>(propModuleName + "/command_velocity", 1000);
+
+	if(dataModuleName != "")
+	{
+		dataSub = vehicleNode.subscribe(dataModuleName + "/data", 1, &FourDOFPropulsionController::getVehicleData, this);
+	}
 
 	velocitySub = controlNode.subscribe("command_target_velocity", 1, &FourDOFPropulsionController::getTargetVelocityCommand, this);
 	pointPathServer.start();
@@ -33,6 +40,11 @@ void FourDOFPropulsionController::getTargetVelocityCommand(const vehicle_auto_co
 	targetHorzVelocity = fabs(vel.horizontalVelocity);
 	targetRotVelocity = fabs(vel.rotationalVelocity);
 	targetVertVelocity = fabs(vel.verticalVelocity);
+}
+
+void FourDOFPropulsionController::getVehicleData(const underwater_vehicle_sim::VehicleData data)
+{
+	latestSonarDepth = data.sonarDepth;
 }
 
 void FourDOFPropulsionController::executePointPath(const vehicle_auto_control::PointPathGoalConstPtr& goal, 
@@ -90,11 +102,11 @@ void FourDOFPropulsionController::executePointPath(const vehicle_auto_control::P
 
 		if(goal->yoyo)
 		{
-			if(transform.getOrigin().getZ() + verticalError > goal->upperDepth)
+			if(transform.getOrigin().getZ() + verticalError > goal->upperDepth || transform.getOrigin().getZ() + verticalError >= 0)
 			{
 				goingUp = false;
 			}
-			else if(transform.getOrigin().getZ() - verticalError < goal->lowerDepth)
+			else if(transform.getOrigin().getZ() - verticalError < goal->lowerDepth || latestSonarDepth <= verticalError)
 			{
 				goingUp = true;
 			}

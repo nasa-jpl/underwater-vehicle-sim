@@ -23,6 +23,7 @@ public:
 
 
 	const ModelData getData(float x, float y, float height, float time);
+	const float getDepthAtPoint(float x, float y) const;
 
 private:
 	

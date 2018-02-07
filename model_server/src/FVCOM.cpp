@@ -76,15 +76,7 @@ ModelData FVCOM::interpolate(FVCOMStructure::Point interpolatePoint, float time)
 	returnData.v = triangleData.v;
 
 	//Get depth
-	const std::vector<int>& surroundingNodes = structure.getNodesInTriangle(containingTriangle);
-
-	FVCOMStructure::Point p1 = structure.getNodePoint(surroundingNodes[0]);
-	FVCOMStructure::Point p2 = structure.getNodePoint(surroundingNodes[1]);
-	FVCOMStructure::Point p3 = structure.getNodePoint(surroundingNodes[2]);
-
-	FVCOMStructure::Plane groundPlane(p1,p2,p3);
-
-	returnData.depth = groundPlane.getHeight(interpolatePoint);
+	returnData.depth = structure.getDepthAtPoint(interpolatePoint, containingTriangle);
 	return returnData;
 }
 
@@ -116,7 +108,7 @@ FVCOMChunk::NodeData FVCOM::barycentricInterpolation(const FVCOMStructure::Point
 	return interpolatedData;
 }
 
-const double FVCOM::areaOfTriangle(const FVCOMStructure::Point& p1, const FVCOMStructure::Point& p2, const FVCOMStructure::Point& p3)
+const double FVCOM::areaOfTriangle(const FVCOMStructure::Point& p1, const FVCOMStructure::Point& p2, const FVCOMStructure::Point& p3) const
 {
 	double a = sqrt((p1.x - p2.x) * (p1.x - p2.x) + (p1.y - p2.y) * (p1.y - p2.y));
 	double b = sqrt((p1.x - p3.x) * (p1.x - p3.x) + (p1.y - p3.y) * (p1.y - p3.y));
@@ -142,6 +134,13 @@ const ModelData FVCOM::getData(float x, float y, float height, float time)
 	return interpolate(interpolatePoint, time);
 }
 
+const float FVCOM::getDepthAtPoint(float x, float y) const
+{
+	FVCOMStructure::Point interpolatePoint;
+	interpolatePoint.x = x;
+	interpolatePoint.y = y;
+	return structure.getDepthAtPoint(interpolatePoint);	
+}
 
 const FVCOMChunk::NodeData& FVCOM::getNodeData(int node, int siglayNodeIndex, int timeIndex)
 {

@@ -5,11 +5,16 @@
 
 #include "data_server/GetData.h"
 
-DyePlumeDetector::DyePlumeDetector(ros::NodeHandle& handle) :
-	nh(nh)
+DyePlumeDetector::DyePlumeDetector(ros::NodeHandle handle) :
+	nh(nh),
+	client(nh.serviceClient<data_server::GetData>("/data_server/get"))
 {
-	client = nh.serviceClient<data_server::GetData>("/data_server/get");
 }
+
+DyePlumeDetector::DyePlumeDetector(DyePlumeDetector&& other) :
+	nh(other.nh),
+	client(std::move(other.client))
+{}
 
 std::vector<PlumeDetector::PlumeData> DyePlumeDetector::getPlumeData(std::string vehicleName, ros::Time startTime, ros::Time endTime)
 {

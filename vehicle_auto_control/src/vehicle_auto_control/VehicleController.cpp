@@ -22,7 +22,7 @@ loopHertz(loopHertz)
 
 		if(info.response.propModuleName != "")
 		{
-			propControllers.push_back(PropulsionController::makePropulsionController(name, info.response.propModuleName, info.response.propModuleType, nh, loopHertz));
+			propControllers.push_back(PropulsionController::makePropulsionController(name, info, nh, loopHertz));
 		}
 	}
 }

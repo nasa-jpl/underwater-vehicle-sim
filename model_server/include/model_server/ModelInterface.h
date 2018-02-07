@@ -12,6 +12,7 @@ public:
 	virtual ~ModelInterface() {}
 
 	virtual const ModelData getData(float x, float y, float height, float time)=0;
+    virtual const float getDepthAtPoint(float x, float y) const=0;
 };
 
 #endif

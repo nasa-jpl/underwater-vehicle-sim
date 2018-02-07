@@ -6,9 +6,12 @@
 
 #include "vehicles/GeneralModule.h"
 #include "vehicles/PropulsionModule.h"
-
 #include "vehicles/DataBroadcasterModule.h"
 #include "vehicles/FourDOFPropulsion.h"
+
+#include "underwater_vehicle_sim/VehicleData.h"
+
+
 
 Vehicle::Vehicle(std::string name, ros::NodeHandle& parentNH) :
 	name(name),

@@ -9,11 +9,13 @@
 #include "vehicle_auto_control/Velocity.h"
 #include "vehicle_auto_control/PointPathAction.h"
 
+#include "underwater_vehicle_sim/VehicleData.h"
+
 class FourDOFPropulsionController : public PropulsionController
 {
 
 public:
-	FourDOFPropulsionController(ros::NodeHandle controlNode, ros::NodeHandle vehicleNode, std::string vehicleName, float loopHertz);
+	FourDOFPropulsionController(ros::NodeHandle controlNode, ros::NodeHandle vehicleNode, std::string propModuleName, std::string dataModuleName, std::string vehicleName, float loopHertz);
 	~FourDOFPropulsionController() {}
 
 	void update() {}
@@ -27,6 +29,8 @@ private:
 						  actionlib::SimpleActionServer<vehicle_auto_control::PointPathAction>* as);
 
 	void getTargetVelocityCommand(const vehicle_auto_control::Velocity vel);
+
+	void getVehicleData(const underwater_vehicle_sim::VehicleData data);
 
 
 	void sendVelocityCommand(double cmdForwardVelocity, double cmdLateralVelocity, double cmdRotVelocity, double cmdVertVelocity);
@@ -56,6 +60,9 @@ private:
 	std::string currentTask;
 
 	std::vector<tf::Vector3> pointPath;
+
+	ros::Subscriber dataSub;
+	float latestSonarDepth;
 
 	//YoYo Settings
 	double yoyoUpperDepth;
