@@ -36,8 +36,8 @@ TEST(FourDOFPropulsionController, PointPathController){
     point1.z = -105;
 
     geometry_msgs::Point point2;
-    point2.x = 5.5;
-    point2.y = -10.5;
+    point2.x = 25.5;
+    point2.y = -15.5;
     point2.z = -95;
 
     pointPathMsg.points.push_back(point1);
@@ -86,7 +86,7 @@ TEST(FourDOFPropulsionController, PointPathController){
         double zDistance = fabs(transform.getOrigin().getZ() - pointPathMsg.points[currentPoint].z);
         double xyDistance = sqrt(xDistance * xDistance + yDistance * yDistance);
 
-        if(zDistance <= 0.25 && xyDistance <= 1.0)
+        if(zDistance <= 0.25 && xyDistance <= 5.0)
         {
             currentPoint++;
         }
@@ -183,7 +183,7 @@ TEST(FourDOFPropulsionController, YoYoPointPathController){
         
         double xyDistance = sqrt(xDistance * xDistance + yDistance * yDistance);
 
-        if(xyDistance <= 1.0)
+        if(xyDistance <= 5.0)
         {
             currentPoint++;
         }

@@ -18,7 +18,7 @@ FourDOFPropulsionController::FourDOFPropulsionController(ros::NodeHandle control
 	targetHorzVelocity(0),
 	targetRotVelocity(0),
 	targetVertVelocity(0),
-	lateralError(1.0),
+	lateralError(5.0),
 	verticalError(0.25),
 	rotationalError(0.0174533),
 	latestSonarDepth(1000),
@@ -77,95 +77,95 @@ void FourDOFPropulsionController::executePointPath(const vehicle_auto_control::P
 		{
 			listener.lookupTransform("/world", "/" + vehicleName,  
 									 ros::Time(0), transform);
-		}
-		catch (tf::TransformException ex){
-			ROS_ERROR("%s",ex.what());
-			return;
-		}
 
-		if(currentPoint < pathPoints.size())
-		{
-			if(isAtPoint(transform, pathPoints[currentPoint], !goal->yoyo))
+			if(currentPoint < pathPoints.size())
 			{
-				currentPoint++;
+				if(isAtPoint(transform, pathPoints[currentPoint], !goal->yoyo))
+				{
+					currentPoint++;
+				}
 			}
-		}
 
-		feedback.currentPoint = currentPoint;
-		as->publishFeedback(feedback);
-		
-		if(as->isPreemptRequested() || !ros::ok())
-		{
-			as->setPreempted();
-			break;
-		}
-
-		if(goal->yoyo)
-		{
-			if(transform.getOrigin().getZ() + verticalError > goal->upperDepth || transform.getOrigin().getZ() + verticalError >= 0)
+			feedback.currentPoint = currentPoint;
+			feedback.goingUp = goingUp;
+			as->publishFeedback(feedback);
+			
+			if(as->isPreemptRequested() || !ros::ok())
 			{
-				goingUp = false;
+				as->setPreempted();
+				break;
 			}
-			else if(transform.getOrigin().getZ() - verticalError < goal->lowerDepth || latestSonarDepth <= verticalError)
-			{
-				goingUp = true;
-			}
-		}
 
-		if(currentPoint < pathPoints.size())
-		{
-			//Set vertical
 			if(goal->yoyo)
 			{
-				if(goingUp)
+				if(transform.getOrigin().getZ() + verticalError > goal->upperDepth || transform.getOrigin().getZ() + verticalError >= 0)
 				{
-					newVertVel = targetVertVelocity;	
+					goingUp = false;
+				}
+				else if(transform.getOrigin().getZ() - verticalError < goal->lowerDepth || latestSonarDepth <= verticalError)
+				{
+					goingUp = true;
+				}
+			}
+			
+			if(currentPoint < pathPoints.size())
+			{
+				//Set vertical
+				if(goal->yoyo)
+				{
+					if(goingUp)
+					{
+						newVertVel = targetVertVelocity;	
+					}
+					else
+					{
+						newVertVel = -targetVertVelocity;
+					}
 				}
 				else
 				{
-					newVertVel = -targetVertVelocity;
+					if(pathPoints[currentPoint].getZ() - transform.getOrigin().getZ()  > verticalError)
+					{
+						newVertVel = targetVertVelocity;
+					}
+					else if(pathPoints[currentPoint].getZ() - transform.getOrigin().getZ() < -verticalError)
+					{
+						newVertVel = -targetVertVelocity;
+					}
 				}
+
+				geometry_msgs::PointStamped pointOut;
+
+				transformPointToVehicleFrame(pointOut, transform, pathPoints[currentPoint]);
+				tf::Vector3 vehicleForward(1, 0, 0);
+				tf::Vector3 targetPoint(pointOut.point.x, pointOut.point.y, 0);
+				tf::Vector3 cross = vehicleForward.cross(targetPoint);
+
+				double angle = vehicleForward.angle(targetPoint);		
+
+				if(angle >= rotationalError)
+				{
+					if(cross.getZ() >= 0)
+					{
+						newRotVel = targetRotVelocity;
+					}
+					else if(cross.getZ() < 0)
+					{
+						newRotVel = -targetRotVelocity;
+					}
+					
+				}
+
+				//Set forward velocity
+				newForwVel = targetHorzVelocity;
 			}
-			else
-			{
-				if(pathPoints[currentPoint].getZ() - transform.getOrigin().getZ()  > verticalError)
-				{
-					newVertVel = targetVertVelocity;
-				}
-				else if(pathPoints[currentPoint].getZ() - transform.getOrigin().getZ() < -verticalError)
-				{
-					newVertVel = -targetVertVelocity;
-				}
-			}
 
-			geometry_msgs::PointStamped pointOut;
-			transformPointToVehicleFrame(pointOut, transform, pathPoints[currentPoint]);
-
-			tf::Vector3 vehicleForward(1, 0, 0);
-			tf::Vector3 targetPoint(pointOut.point.x, pointOut.point.y, 0);
-			tf::Vector3 cross = vehicleForward.cross(targetPoint);
-
-			double angle = vehicleForward.angle(targetPoint);		
-
-			if(angle >= rotationalError)
-			{
-				if(cross.getZ() > 0)
-				{
-					newRotVel = targetRotVelocity;
-				}
-				else if(cross.getZ() < 0)
-				{
-					newRotVel = -targetRotVelocity;
-				}
-				
-			}
-
-			//Set forward velocity
-			newForwVel = targetHorzVelocity;
+			//Create velocity command message and send it to the propulsion module
+			sendVelocityCommand(newForwVel, 0, newRotVel, newVertVel);
 		}
-
-		//Create velocity command message and send it to the propulsion module
-		sendVelocityCommand(newForwVel, 0, newRotVel, newVertVel);
+		catch (tf::TransformException ex){
+			ROS_ERROR("%s",ex.what());
+		}
 
 		r.sleep();
 	}

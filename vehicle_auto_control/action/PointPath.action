@@ -8,4 +8,5 @@ float64 lowerDepth
 int32 totalPoints
 ---
 #feedback
+bool goingUp
 int32 currentPoint
