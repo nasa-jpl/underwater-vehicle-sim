@@ -170,12 +170,12 @@ void DataServer::saveToCSVFile(std::string filename)
 
   		for ( auto it = data.begin(); it != data.end(); ++it )
   		{
-
-  			for(auto list_it = it->second.begin(); list_it != it->second.end(); ++list_it)
+            unsigned long endIndex = it->second.size();
+  			for(unsigned long i = 0; i < endIndex; i++)
   			{
   				file << it->first << ",";
-  				file << std::setprecision(9) << list_it->x << "," << list_it->y << "," << list_it->h << "," << list_it->sonarDepth << "," << list_it->time.toSec() << ",";
-  				file << std::setprecision(9) << list_it->temp << "," << list_it->salt << "," << list_it->dye << "\n";
+  				file << std::setprecision(9) <<  it->second[i].x << "," << it->second[i].y << "," << it->second[i].h << "," << it->second[i].sonarDepth << "," << it->second[i].time.toSec() << ",";
+  				file << std::setprecision(9) << it->second[i].temp << "," << it->second[i].salt << "," << it->second[i].dye << "\n";
   			}
   		}
 
