@@ -30,6 +30,7 @@ void PlanDispatcher::setPlan(std::shared_ptr<Plan> newPlan)
 			running = false;
 			if(plan && currentAction < plan->getActions().size())
 			{
+				ROS_INFO("PlanDispatcher: Cancel previous action.");
 				plan->getActions()[currentAction]->cancel();
 			}
 		}
