@@ -3,6 +3,7 @@
 #include "plume_detector/PlumeDetector.h"
 #include "plume_detector/DyePlumeDetector.h"
 
+#include "plume_detector/PlumeData.h"
 #include "data_server/GetData.h"
 
 DyePlumeDetector::DyePlumeDetector(ros::NodeHandle handle) :
@@ -16,7 +17,7 @@ DyePlumeDetector::DyePlumeDetector(DyePlumeDetector&& other) :
 	client(std::move(other.client))
 {}
 
-std::vector<PlumeDetector::PlumeData> DyePlumeDetector::getPlumeData(std::string vehicleName, ros::Time startTime, ros::Time endTime)
+std::vector<PlumeData> DyePlumeDetector::getPlumeData(std::string vehicleName, ros::Time startTime, ros::Time endTime)
 {
 	std::vector<PlumeData> data;
 

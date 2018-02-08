@@ -2,14 +2,15 @@
 
 #include "plume_detector/PlumeDetector.h"
 #include "plume_detector/DyePlumeDetector.h"
-
+#include "plume_detector/PlumeData.h"
 #include "plume_detector/GetPlumeData.h"
+
 std::unique_ptr<PlumeDetector> detector;
 
 bool getPlumeData(plume_detector::GetPlumeData::Request &req,
 		     	  plume_detector::GetPlumeData::Response &res)
 {
-	std::vector<PlumeDetector::PlumeData> plumeData = detector->getPlumeData(req.name, req.start_time, req.end_time);
+	std::vector<PlumeData> plumeData = detector->getPlumeData(req.name, req.start_time, req.end_time);
 	
 
 	for(auto dataPoint : plumeData)

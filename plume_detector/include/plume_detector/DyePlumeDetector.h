@@ -2,6 +2,7 @@
 #define DYE_PLUME_DETECTOR_H
 
 #include "plume_detector/PlumeDetector.h"
+#include "plume_detector/PlumeData.h"
 
 class DyePlumeDetector : public PlumeDetector
 {
@@ -13,11 +14,12 @@ public:
 
 	virtual ~DyePlumeDetector() {}
 
-	std::vector<PlumeDetector::PlumeData> getPlumeData(std::string vehicleName, ros::Time startTime, ros::Time endTime);
+	std::vector<PlumeData> getPlumeData(std::string vehicleName, ros::Time startTime, ros::Time endTime);
 
 private:
 
 	ros::NodeHandle nh;
 	ros::ServiceClient client;
 };
+
 #endif
