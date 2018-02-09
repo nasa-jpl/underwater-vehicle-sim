@@ -19,66 +19,66 @@
 class VentPlanner : public Planner
 {
 public:
-	VentPlanner(ros::NodeHandle& nh, std::unique_ptr<VentActionFactory> actionFactory, std::string vehicleName);
-	~VentPlanner() {}
+    VentPlanner(ros::NodeHandle& nh, std::unique_ptr<VentActionFactory> actionFactory, std::string vehicleName);
+    ~VentPlanner() {}
 
-	std::shared_ptr<Plan> plan();
+    std::shared_ptr<Plan> plan();
 
-	
+    
 
-	DataServerEntry getLatestData();
+    DataServerEntry getLatestData();
 
-	static std::vector<tf::Vector3> makeSpiral(tf::Vector3 startLocation, 
-									 	double startDirection, 
-									 	double spacing, 
-									 	double size);
+    static std::vector<tf::Vector3> makeSpiral(tf::Vector3 startLocation, 
+                                        double startDirection, 
+                                        double spacing, 
+                                        double size);
 
-	static std::vector<tf::Vector3> makeLawnmower(const tf::Vector3& startLocation,
-										   		  double alongTrackDirection,
-										   		  double acrossTrackDirection,
-										   		  double alongTrackSize,
-										   		  double acrossTrackSize,
-		 								   		  double spacing);
-
-private:
-
-	void plumeDataSummary(double& average, double& max, double& stddev);
-	bool triggerNewSpiral(const double plumeHeight, const double plumeStrength);
-	bool getHeightOfPlume(const std::vector<PlumeData>& data, const unsigned int dataStart, double& plumeX, double& plumeY, double& plumeHeight, double& plumeStrength);
-
-	bool isCompleted(std::shared_ptr<Plan> plan);
-
-	/**
-	*Sets the parameter returnEntry to the latest data from the vehicle
-	*@param returnEntry Output for the latest data
-	*@return True if getting the latest data was successful
-	**/
-	bool getLatestData(DataServerEntry& returnEntry);
+    static std::vector<tf::Vector3> makeLawnmower(const tf::Vector3& startLocation,
+                                                  double alongTrackDirection,
+                                                  double acrossTrackDirection,
+                                                  double alongTrackSize,
+                                                  double acrossTrackSize,
+                                                  double spacing);
 
 private:
-	std::unique_ptr<VentActionFactory> actionFactory;
 
-	std::vector<std::vector<PlumeData>> plumeData;
+    void plumeDataSummary(double& average, double& max, double& stddev);
+    bool triggerNewSpiral(const double plumeHeight, const double plumeStrength);
+    bool getHeightOfPlume(const std::vector<PlumeData>& data, const unsigned int dataStart, double& plumeX, double& plumeY, double& plumeHeight, double& plumeStrength);
 
-	std::stack<std::shared_ptr<Plan>> plans;
-	std::stack<unsigned long> currentPlumeData;
+    bool isCompleted(std::shared_ptr<Plan> plan);
 
-	ros::Time lastPlan;
-	bool initalPlan;
+    /**
+    *Sets the parameter returnEntry to the latest data from the vehicle
+    *@param returnEntry Output for the latest data
+    *@return True if getting the latest data was successful
+    **/
+    bool getLatestData(DataServerEntry& returnEntry);
 
-	double initalSpacing;
+private:
+    std::unique_ptr<VentActionFactory> actionFactory;
 
-	unsigned int yoyoUpperDepth;
-	unsigned int yoyoLowerDepth;
-	std::string vehicleName;
-	tf::Vector3 vehicleStartLocation;
+    std::vector<std::vector<PlumeData>> plumeData;
 
-	ros::ServiceClient dataClient;
-	ros::ServiceClient latestDataClient;
+    std::stack<std::shared_ptr<Plan>> plans;
+    std::stack<unsigned long> currentPlumeData;
 
-	ros::ServiceClient plumeClient;
+    ros::Time lastPlan;
+    bool initalPlan;
 
-	ros::NodeHandle& nh;
+    double initalSpacing;
+
+    unsigned int yoyoUpperDepth;
+    unsigned int yoyoLowerDepth;
+    std::string vehicleName;
+    tf::Vector3 vehicleStartLocation;
+
+    ros::ServiceClient dataClient;
+    ros::ServiceClient latestDataClient;
+
+    ros::ServiceClient plumeClient;
+
+    ros::NodeHandle& nh;
 };
 
 #endif

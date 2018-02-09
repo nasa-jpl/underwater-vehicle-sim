@@ -1,10 +1,10 @@
 #include <memory>
 
-#include "vent_planner/actions/YoYoPointPathAction.h"
+#include "vent_planner/actions/PointPathAction.h"
 #include "planner_framework/ActionExecutor.h"
 
 
-YoYoPointPathAction::YoYoPointPathAction(ActionExecutor<YoYoPointPathAction>& executor,
+PointPathAction::PointPathAction(ActionExecutor<PointPathAction>& executor,
 										 const double targetHorizontalVelocity,
 										 const double targetRotationalVelocity,
 										 const double targetSlope,
@@ -17,11 +17,27 @@ YoYoPointPathAction::YoYoPointPathAction(ActionExecutor<YoYoPointPathAction>& ex
   	targetSlope(targetSlope),
   	upperDepth(upperDepth),
   	lowerDepth(lowerDepth),
+    yoyo(true),
   	points(points),
   	currentPoint(0)
 {}
 
-YoYoPointPathAction::YoYoPointPathAction(const YoYoPointPathAction& action) :
+PointPathAction::PointPathAction(ActionExecutor<PointPathAction>& executor,
+                                         const double targetHorizontalVelocity,
+                                         const double targetRotationalVelocity,
+                                         const std::vector<tf::Vector3>& points) :
+    executor(executor),
+    targetHorizontalVelocity(targetHorizontalVelocity),
+    targetRotationalVelocity(targetRotationalVelocity),
+    targetSlope(0),
+    upperDepth(0),
+    lowerDepth(0),
+    yoyo(false),
+    points(points),
+    currentPoint(0)
+{}
+
+PointPathAction::PointPathAction(const PointPathAction& action) :
 	Action(action),
 	executor(action.executor),
   	targetHorizontalVelocity(action.targetHorizontalVelocity),
@@ -29,16 +45,17 @@ YoYoPointPathAction::YoYoPointPathAction(const YoYoPointPathAction& action) :
   	targetSlope(action.targetSlope),
   	upperDepth(action.upperDepth),
   	lowerDepth(action.lowerDepth),
+    yoyo(action.yoyo),
   	points(action.points)
 {}
 
-std::shared_ptr<Action> YoYoPointPathAction::clone() const
+std::shared_ptr<Action> PointPathAction::clone() const
 {
-	std::shared_ptr<Action> a(new YoYoPointPathAction(*this));
+	std::shared_ptr<Action> a(new PointPathAction(*this));
 	return a;
 }
 
-void YoYoPointPathAction::executeAction()
+void PointPathAction::executeAction()
 {
 	bool success = executor.execute(shared_from_this());
 
@@ -48,55 +65,55 @@ void YoYoPointPathAction::executeAction()
 	}
 }
 
-bool YoYoPointPathAction::triggerReplan()
+bool PointPathAction::triggerReplan()
 {
 	return executor.triggerReplan(shared_from_this());
 }
 
-void YoYoPointPathAction::monitor()
+void PointPathAction::monitor()
 {
 	executor.monitor(shared_from_this());
 }
 
-void YoYoPointPathAction::reset()
+void PointPathAction::reset()
 {
 	currentPoint = 0;
 	pointReachedTimes.clear();
 	state = Action::State::PLANNED;
 }
 
-void YoYoPointPathAction::cancel()
+void PointPathAction::cancel()
 {
 	executor.cancel(shared_from_this());
 	state = Action::State::INTERRUPTED;
 }
 
-void YoYoPointPathAction::setCurrentPoint(const int point)
+void PointPathAction::setCurrentPoint(const int point)
 {
 	currentPoint = point;
 }
 
-const int YoYoPointPathAction::getCurrentPoint()
+const int PointPathAction::getCurrentPoint()
 {
 	return currentPoint;
 }
 
-void YoYoPointPathAction::setGoingUp(const bool goingUp)
+void PointPathAction::setGoingUp(const bool goingUp)
 {
     this->goingUp = goingUp;
 }
 
-const bool YoYoPointPathAction::getGoingUp()
+const bool PointPathAction::getGoingUp()
 {
     return goingUp;
 }
 
-void YoYoPointPathAction::addPointReachedTime(const ros::Time& time)
+void PointPathAction::addPointReachedTime(const ros::Time& time)
 {
 	pointReachedTimes.push_back(time);
 }
 
-const std::vector<ros::Time>& YoYoPointPathAction::getPointReachedTimes()
+const std::vector<ros::Time>& PointPathAction::getPointReachedTimes()
 {
 	return pointReachedTimes;
 }

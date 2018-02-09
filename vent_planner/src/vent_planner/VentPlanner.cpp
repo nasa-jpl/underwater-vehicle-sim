@@ -69,7 +69,7 @@ std::shared_ptr<Plan> VentPlanner::plan()
             ROS_INFO("Planner: Generate Inital Plan");
             tf::Vector3 vehicleLocation(latestEntry.x, latestEntry.y, latestEntry.h);
             std::vector<tf::Vector3> spiralPoints = makeSpiral(vehicleLocation, 0, initalSpacing, 100000);
-            std::shared_ptr<Action> newAction = actionFactory->createYoYoPointPathAction(vehicleName,
+            std::shared_ptr<Action> newAction = actionFactory->createPointPathAction(vehicleName,
                                                                                     1.0,
                                                                                     0.349066,
                                                                                     0.523599, //30 deg
@@ -136,7 +136,7 @@ std::shared_ptr<Plan> VentPlanner::plan()
 
             tf::Vector3 spiralLocation(plumeX, plumeY, plumeHeight);
             std::vector<tf::Vector3> spiralPoints = makeSpiral(spiralLocation, 0, initalSpacing / (devFactor * 2), initalSpacing / devFactor);
-            std::shared_ptr<Action> newAction = actionFactory->createYoYoPointPathAction(vehicleName,
+            std::shared_ptr<Action> newAction = actionFactory->createPointPathAction(vehicleName,
                                                                                     1.0,
                                                                                     0.349066,
                                                                                     0.523599, //30 deg

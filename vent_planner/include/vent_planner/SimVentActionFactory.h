@@ -7,25 +7,30 @@
 #include "ros/ros.h"
 
 #include "vent_planner/VentActionFactory.h"
-#include "vent_planner/actions/YoYoPointPathAction.h"
-#include "vent_planner/YoYoPointPathSimActionExecutor.h"
+#include "vent_planner/actions/PointPathAction.h"
+#include "vent_planner/PointPathSimActionExecutor.h"
 class SimVentActionFactory : public VentActionFactory
 {
 public:
-	SimVentActionFactory(ros::NodeHandle& nh);
-	~SimVentActionFactory() {}
+    SimVentActionFactory(ros::NodeHandle& nh);
+    ~SimVentActionFactory() {}
 
-	std::shared_ptr<YoYoPointPathAction> createYoYoPointPathAction(const std::string& vehicleName,
-															       const double targetHorizontalVelocity, 
-															       const double targetRotationalVelocity,
-															       const double targetSlope,
-															       const double upperDepth,
-															       const double lowerDepth,
-															       const std::vector<tf::Vector3>& points) override;
+    std::shared_ptr<PointPathAction> createPointPathAction(const std::string& vehicleName,
+                                                           const double targetHorizontalVelocity, 
+                                                           const double targetRotationalVelocity,
+                                                           const double targetSlope,
+                                                           const double upperDepth,
+                                                           const double lowerDepth,
+                                                           const std::vector<tf::Vector3>& points) override;
+
+    std::shared_ptr<PointPathAction> createPointPathAction(const std::string& vehicleName,
+                                                           const double targetHorizontalVelocity, 
+                                                           const double targetRotationalVelocity,
+                                                           const std::vector<tf::Vector3>& points) override;
 
 private:
-	ros::NodeHandle& nh;
-	std::unordered_map<std::string, YoYoPointPathSimActionExecutor> yoyoPointPathExecutors;
+    ros::NodeHandle& nh;
+    std::unordered_map<std::string, PointPathSimActionExecutor> pointPathExecutors;
 
 };
 

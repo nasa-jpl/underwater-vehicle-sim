@@ -8,14 +8,14 @@
 
 #include "planner_framework/Action.h"
 
-#include "vent_planner/YoYoPointPathSimActionExecutor.h"
-#include "vent_planner/actions/YoYoPointPathAction.h"
+#include "vent_planner/PointPathSimActionExecutor.h"
+#include "vent_planner/actions/PointPathAction.h"
 #include "vehicle_auto_control/Velocity.h"
 
 #include "actionlib/client/simple_action_client.h"
 #include "vehicle_auto_control/PointPathAction.h"
 
-YoYoPointPathSimActionExecutor::YoYoPointPathSimActionExecutor(ros::NodeHandle& nh, std::string vehicleName) :
+PointPathSimActionExecutor::PointPathSimActionExecutor(ros::NodeHandle& nh, std::string vehicleName) :
 	vehicleName(vehicleName),
 	nh(nh),
 	pointPathClient("/vehicle_controller/"  + vehicleName + "/point_path", true),
@@ -30,7 +30,7 @@ YoYoPointPathSimActionExecutor::YoYoPointPathSimActionExecutor(ros::NodeHandle& 
 	vehicleInfo = info.response;
 }
 
-YoYoPointPathSimActionExecutor::YoYoPointPathSimActionExecutor(const YoYoPointPathSimActionExecutor& other) :
+PointPathSimActionExecutor::PointPathSimActionExecutor(const PointPathSimActionExecutor& other) :
 	vehicleName(other.vehicleName),
 	nh(other.nh),
 	pointPathClient("/vehicle_controller/"  + vehicleName + "/point_path", true)
@@ -44,7 +44,7 @@ YoYoPointPathSimActionExecutor::YoYoPointPathSimActionExecutor(const YoYoPointPa
 	vehicleInfo = info.response;
 }
 
-bool YoYoPointPathSimActionExecutor::execute(std::shared_ptr<YoYoPointPathAction> action)
+bool PointPathSimActionExecutor::execute(std::shared_ptr<PointPathAction> action)
 {
 	//targetSlope can only be on the interval (0, 90) degrees
 	if(action->targetSlope >= M_PI / 2 || action->targetSlope <= 0)
@@ -95,22 +95,33 @@ bool YoYoPointPathSimActionExecutor::execute(std::shared_ptr<YoYoPointPathAction
 
 	pointPathGoal.upperDepth = action->upperDepth;
 	pointPathGoal.lowerDepth = action->lowerDepth;
-	pointPathGoal.yoyo = true;
+	pointPathGoal.yoyo = action->yoyo;
 
 	pointPathClient.waitForServer();
 	pointPathClient.sendGoal(pointPathGoal,
-							 boost::bind(&YoYoPointPathSimActionExecutor::actionDone, this, action, _1, _2),
-							 boost::bind(&YoYoPointPathSimActionExecutor::actionActive, this, action),
-							 boost::bind(&YoYoPointPathSimActionExecutor::actionFeedback, this, action, _1));
+							 boost::bind(&PointPathSimActionExecutor::actionDone, this, action, _1, _2),
+							 boost::bind(&PointPathSimActionExecutor::actionActive, this, action),
+							 boost::bind(&PointPathSimActionExecutor::actionFeedback, this, action, _1));
 	return true;
 }
 
-void YoYoPointPathSimActionExecutor::cancel(std::shared_ptr<YoYoPointPathAction> action)
+void PointPathSimActionExecutor::cancel(std::shared_ptr<PointPathAction> action)
 {
 	pointPathClient.cancelAllGoals();
 }
 
-bool YoYoPointPathSimActionExecutor::triggerReplan(std::shared_ptr<YoYoPointPathAction> action)
+bool PointPathSimActionExecutor::triggerReplan(std::shared_ptr<PointPathAction> action)
+{
+	//trigger a replan when the top or bottom of a yoyo has been reached
+	if(action->yoyo)
+	{
+		return yoyoTriggerReplan(action);
+	}
+
+	return flatTriggerReplan(action);
+}
+
+bool PointPathSimActionExecutor::yoyoTriggerReplan(std::shared_ptr<PointPathAction> action)
 {
 	//trigger a replan when the top or bottom of a yoyo has been reached
 	if(action->getGoingUp() != replanGoingUp)
@@ -122,7 +133,18 @@ bool YoYoPointPathSimActionExecutor::triggerReplan(std::shared_ptr<YoYoPointPath
 	return false;
 }
 
-void YoYoPointPathSimActionExecutor::actionDone(std::shared_ptr<YoYoPointPathAction> action,
+bool PointPathSimActionExecutor::flatTriggerReplan(std::shared_ptr<PointPathAction> action)
+{
+	//trigger a replan when the top or bottom of a yoyo has been reached
+	if(replanNextUpdate)
+	{
+		replanNextUpdate = false;
+		return true;
+	}
+	return false;
+}
+
+void PointPathSimActionExecutor::actionDone(std::shared_ptr<PointPathAction> action,
 					const actionlib::SimpleClientGoalState& state,
                 	const vehicle_auto_control::PointPathResultConstPtr& result)
 {
@@ -145,23 +167,24 @@ void YoYoPointPathSimActionExecutor::actionDone(std::shared_ptr<YoYoPointPathAct
 	ROS_INFO("Planner: ActionDone End");
 }
 
-void YoYoPointPathSimActionExecutor::actionActive(std::shared_ptr<YoYoPointPathAction> action)
+void PointPathSimActionExecutor::actionActive(std::shared_ptr<PointPathAction> action)
 {
 	action->setState(Action::State::EXECUTING);
 }
 
-void YoYoPointPathSimActionExecutor::actionFeedback(std::shared_ptr<YoYoPointPathAction> action,
+void PointPathSimActionExecutor::actionFeedback(std::shared_ptr<PointPathAction> action,
 					const vehicle_auto_control::PointPathFeedbackConstPtr& feedback)
 {
 	if(feedback->currentPoint != action->getCurrentPoint())
 	{
 		action->setCurrentPoint(feedback->currentPoint);
 		action->addPointReachedTime(ros::Time::now());
+		replanNextUpdate = true;
 	}
 	action->setGoingUp(feedback->goingUp);
 }
 
-bool YoYoPointPathSimActionExecutor::hasPublisher(std::string topic)
+bool PointPathSimActionExecutor::hasPublisher(std::string topic)
 {
 	return publishers.find(topic) != publishers.end();
 }
