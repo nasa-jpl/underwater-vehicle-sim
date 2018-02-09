@@ -11,8 +11,9 @@ find_package(catkin REQUIRED
 			 roscpp
  			 tf
  			 underwater_vehicle_sim REQUIRED
-          data_server REQUIRED
- 			 planner REQUIRED)
+       data_server REQUIRED
+ 			 planner REQUIRED
+       plume_detector REQUIRED)
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)

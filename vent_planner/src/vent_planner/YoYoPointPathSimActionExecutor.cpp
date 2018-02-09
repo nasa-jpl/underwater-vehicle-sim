@@ -18,7 +18,8 @@
 YoYoPointPathSimActionExecutor::YoYoPointPathSimActionExecutor(ros::NodeHandle& nh, std::string vehicleName) :
 	vehicleName(vehicleName),
 	nh(nh),
-	pointPathClient("/vehicle_controller/"  + vehicleName + "/point_path", true)
+	pointPathClient("/vehicle_controller/"  + vehicleName + "/point_path", true),
+	replanGoingUp(true)
 {
 	infoClient = nh.serviceClient<underwater_vehicle_sim::GetVehicleInfo>("vehicles/get_info");
 	infoClient.waitForExistence();
@@ -88,6 +89,10 @@ bool YoYoPointPathSimActionExecutor::execute(std::shared_ptr<YoYoPointPathAction
 		p.z = point.getZ();
 		pointPathGoal.points.push_back(p);
 	}
+
+	//Set so the triggerReplan function knows when the yoyo direction changes
+	replanGoingUp = true;
+
 	pointPathGoal.upperDepth = action->upperDepth;
 	pointPathGoal.lowerDepth = action->lowerDepth;
 	pointPathGoal.yoyo = true;
@@ -107,6 +112,13 @@ void YoYoPointPathSimActionExecutor::cancel(std::shared_ptr<YoYoPointPathAction>
 
 bool YoYoPointPathSimActionExecutor::triggerReplan(std::shared_ptr<YoYoPointPathAction> action)
 {
+	//trigger a replan when the top or bottom of a yoyo has been reached
+	if(action->getGoingUp() != replanGoingUp)
+	{
+		replanGoingUp = action->getGoingUp();
+		return true;
+	}
+
 	return false;
 }
 
@@ -114,7 +126,7 @@ void YoYoPointPathSimActionExecutor::actionDone(std::shared_ptr<YoYoPointPathAct
 					const actionlib::SimpleClientGoalState& state,
                 	const vehicle_auto_control::PointPathResultConstPtr& result)
 {
-
+	ROS_INFO("Planner: ActionDone Start");
 	if(state == actionlib::SimpleClientGoalState::RECALLED ||
 	   state == actionlib::SimpleClientGoalState::PREEMPTED)
 	{
@@ -130,6 +142,7 @@ void YoYoPointPathSimActionExecutor::actionDone(std::shared_ptr<YoYoPointPathAct
 		action->setState(Action::State::COMPLETED);
 	}
 	action->setCurrentPoint(result->totalPoints);
+	ROS_INFO("Planner: ActionDone End");
 }
 
 void YoYoPointPathSimActionExecutor::actionActive(std::shared_ptr<YoYoPointPathAction> action)
@@ -145,6 +158,7 @@ void YoYoPointPathSimActionExecutor::actionFeedback(std::shared_ptr<YoYoPointPat
 		action->setCurrentPoint(feedback->currentPoint);
 		action->addPointReachedTime(ros::Time::now());
 	}
+	action->setGoingUp(feedback->goingUp);
 }
 
 bool YoYoPointPathSimActionExecutor::hasPublisher(std::string topic)

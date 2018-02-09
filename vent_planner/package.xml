@@ -42,7 +42,9 @@
   <buildtool_depend>catkin</buildtool_depend>
   <build_depend>roscpp</build_depend>
   <build_depend>planner</build_depend>
+  <build_depend>plume_detector</build_depend>
 
+  <exec_depend>plume_detector</exec_depend>
   <exec_depend>planner</exec_depend>
   <exec_depend>roscpp</exec_depend>
   <test_depend>rosunit</test_depend>

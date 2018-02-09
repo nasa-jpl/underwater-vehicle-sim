@@ -85,13 +85,19 @@ void FourDOFPropulsionController::executePointPath(const vehicle_auto_control::P
 					currentPoint++;
 				}
 			}
-
+			
+			if(currentPoint >= pathPoints.size())
+			{
+				ROS_INFO("Auto Controller: Final Point Reached");
+			}
+			
 			feedback.currentPoint = currentPoint;
 			feedback.goingUp = goingUp;
 			as->publishFeedback(feedback);
 			
 			if(as->isPreemptRequested() || !ros::ok())
 			{
+				ROS_INFO("Auto Controller: Action Preempted");
 				as->setPreempted();
 				break;
 			}
@@ -166,12 +172,12 @@ void FourDOFPropulsionController::executePointPath(const vehicle_auto_control::P
 		catch (tf::TransformException ex){
 			ROS_ERROR("%s",ex.what());
 		}
-
 		r.sleep();
 	}
 
 	if(currentPoint == pathPoints.size())
 	{
+		ROS_INFO("Auto Controller: Action Done, Succeeded");
 		result.totalPoints = currentPoint;
 		as->setSucceeded(result);
 	}

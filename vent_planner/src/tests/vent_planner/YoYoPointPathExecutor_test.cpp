@@ -115,7 +115,7 @@ TEST(FourDOFPropulsionController, YoYoPointPathController){
         
         double xyDistance = sqrt(xDistance * xDistance + yDistance * yDistance);
 
-        if(xyDistance <= 2.0)
+        if(xyDistance <= 11.0)
         {
             currentPoint++;
         }
@@ -259,7 +259,7 @@ TEST(PlanPrempting, YoYoPointPathController){
         
         double xyDistance = sqrt(xDistance * xDistance + yDistance * yDistance);
 
-        if(xyDistance <= 2.0)
+        if(xyDistance <= 6.0)
         {
             currentPoint++;
         }

@@ -81,7 +81,9 @@ bool getData(data_server::GetData::Request &req,
 
 void saveData(const std_msgs::String::ConstPtr& msg)
 {
+	ROS_INFO("DataServer: Start Saving Data");
 	server.saveToFile(msg->data);
+	ROS_INFO("DataServer: Finished Saving Data");
 }
 
 int main(int argc, char **argv)

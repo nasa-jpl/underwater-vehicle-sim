@@ -81,6 +81,16 @@ const int YoYoPointPathAction::getCurrentPoint()
 	return currentPoint;
 }
 
+void YoYoPointPathAction::setGoingUp(const bool goingUp)
+{
+    this->goingUp = goingUp;
+}
+
+const bool YoYoPointPathAction::getGoingUp()
+{
+    return goingUp;
+}
+
 void YoYoPointPathAction::addPointReachedTime(const ros::Time& time)
 {
 	pointReachedTimes.push_back(time);

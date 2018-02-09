@@ -51,6 +51,9 @@ public:
 
 	void setCurrentPoint(const int point);
 	const int getCurrentPoint();
+
+	void setGoingUp(const bool goingUp);
+	const bool getGoingUp();
 	
 	void addPointReachedTime(const ros::Time& time);
 	const std::vector<ros::Time>& getPointReachedTimes();
@@ -68,8 +71,8 @@ private:
 	ActionExecutor<YoYoPointPathAction>& executor;
 
 	int currentPoint;
+	bool goingUp;
 	std::vector<ros::Time> pointReachedTimes;
-
 };
 
 #endif

@@ -74,6 +74,8 @@ private:
 	underwater_vehicle_sim::GetVehicleInfo::Response vehicleInfo;
 	std::unordered_map<std::string, ros::Publisher> publishers;
 
+	bool replanGoingUp;
+	
 	std::string vehicleName;
 
 	actionlib::SimpleActionClient<vehicle_auto_control::PointPathAction> pointPathClient;
