@@ -11,7 +11,7 @@ class DataRecorderModule : public GeneralModule
 {
 
 public:
-	DataRecorderModule(std::string name, ros::NodeHandle& parentNH);
+	DataRecorderModule(std::string name, ros::NodeHandle& parentNH, std::string vehicleName);
 	~DataRecorderModule() {}
 
 	void update(std::string name, const ros::Time& lastTime, const tf::Vector3& position, double& powerCapacity, double& dataCapacity);

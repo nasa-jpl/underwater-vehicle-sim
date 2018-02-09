@@ -10,10 +10,10 @@
 
 #define SECONDS_IN_DAY 86400
 
-DataCapacityModule::DataCapacityModule(std::string name, ros::NodeHandle& parentNH) :
-	GeneralModule(name, "DataCapacity", parentNH)
+DataCapacityModule::DataCapacityModule(std::string name, ros::NodeHandle& parentNH, std::string vehicleName) :
+	GeneralModule(name, "DataCapacity", parentNH, vehicleName)
 {
-	pub = nh.advertise<std_msgs::Float64>("/vehicle/dataCapacity", 1000);
+	pub = nh.advertise<std_msgs::Float64>("/vehicle/" + vehicleName + "dataCapacity", 1000);
 }
 
 void DataCapacityModule::update(std::string name, const ros::Time& lastTime, const tf::Vector3& position, double& powerCapacity, double& dataCapacity) 

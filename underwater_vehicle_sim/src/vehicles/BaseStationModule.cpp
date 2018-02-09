@@ -6,10 +6,10 @@
 #include "std_msgs/Bool.h"
 #include "vehicles/BaseStationModule.h"
 
-BaseStationModule::BaseStationModule(std::string name, ros::NodeHandle& parentNH) :
-	GeneralModule(name, "BaseStation", parentNH)
+BaseStationModule::BaseStationModule(std::string name, ros::NodeHandle& parentNH, std:: string vehicleName) :
+	GeneralModule(name, "BaseStation", parentNH, vehicleName)
 {
-	pub = nh.advertise<std_msgs::Bool>("/vehicles/atBaseStation", 1000);
+	pub = nh.advertise<std_msgs::Bool>("/vehicles/" + vehicleName + "atBase", 1000);
 	nh.getParam("base_x", base_x);
 	nh.getParam("base_y", base_y);
 	nh.getParam("base_z", base_z);

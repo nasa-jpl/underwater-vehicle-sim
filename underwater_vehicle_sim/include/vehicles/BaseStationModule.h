@@ -11,7 +11,7 @@ class BaseStationModule : public GeneralModule
 {
 
 public:
-	BaseStationModule(std::string name, ros::NodeHandle& parentNH);
+	BaseStationModule(std::string name, ros::NodeHandle& parentNH, std::string vehicleName);
 	~BaseStationModule() {}
 
 	void update(std::string name, const ros::Time& lastTime, const tf::Vector3& position, double& powerCapactiy, double& dataCapacity);

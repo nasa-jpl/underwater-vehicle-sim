@@ -76,7 +76,7 @@ void Vehicle::initalizeGeneralModules()
 
 	for(std::string& name : moduleNames)
 	{
-		modules.push_back(GeneralModule::makeGeneralModule(name, nh));
+		modules.push_back(GeneralModule::makeGeneralModule(name, nh, getName()));
 	}
 }
 

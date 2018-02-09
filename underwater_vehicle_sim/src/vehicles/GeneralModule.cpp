@@ -8,10 +8,12 @@
 #include "vehicles/DataCapacityModule.h"
 #include "vehicles/BaseStationModule.h"
 
-GeneralModule::GeneralModule(std::string name, std::string type, ros::NodeHandle parentNH) :
+GeneralModule::GeneralModule(std::string name, std::string type, 
+                ros::NodeHandle parentNH, std::string vehicleName) :
 	nh(ros::NodeHandle(parentNH, name)),
 	name(name),
-	type(type)
+	type(type),
+    vehicleName(vehicleName)
 
 {
 	if(nh.hasParam("hertz"))
@@ -26,29 +28,30 @@ GeneralModule::GeneralModule(std::string name, std::string type, ros::NodeHandle
 	}
 }
 
-std::unique_ptr<GeneralModule> GeneralModule::makeGeneralModule(std::string moduleName, ros::NodeHandle& parentNH)
+std::unique_ptr<GeneralModule> GeneralModule::makeGeneralModule(std::string moduleName, 
+                            ros::NodeHandle& parentNH, std::string vehicleName)
 {
 	std::string moduleType;
 	parentNH.getParam(moduleName + "/type", moduleType);
 
 	if(moduleType == "DataRecorder")
 	{
-		std::unique_ptr<GeneralModule> returnPtr(new DataRecorderModule(moduleName, parentNH));
+		std::unique_ptr<GeneralModule> returnPtr(new DataRecorderModule(moduleName, parentNH, vehicleName));
 		return returnPtr;
 	}
 	if(moduleType == "PowerCapacity")
 	{
-		std::unique_ptr<GeneralModule> returnPtr(new PowerCapacityModule(moduleName, parentNH));
+		std::unique_ptr<GeneralModule> returnPtr(new PowerCapacityModule(moduleName, parentNH, vehicleName));
 		return returnPtr;
 	}
 	if(moduleType == "DataCapacity")
 	{
-		std::unique_ptr<GeneralModule> returnPtr(new DataCapacityModule(moduleName, parentNH));
+		std::unique_ptr<GeneralModule> returnPtr(new DataCapacityModule(moduleName, parentNH, vehicleName));
 		return returnPtr;
 	}
 	if(moduleType == "BaseStation")
 	{
-		std::unique_ptr<GeneralModule> returnPtr(new BaseStationModule(moduleName, parentNH));
+		std::unique_ptr<GeneralModule> returnPtr(new BaseStationModule(moduleName, parentNH, vehicleName));
 		return returnPtr;
 	}
 

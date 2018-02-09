@@ -58,7 +58,7 @@ void FourDOFPropulsion::move(ros::Time& lastTime, tf::Quaternion& rotation, tf::
 	rotation *= totalRotMovement;
 
 	//Use power PLACEHOLDER
-	powerCapacity -= 1;
+	powerCapacity -= 0.01;
 
 
 
