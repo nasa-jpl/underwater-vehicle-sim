@@ -112,7 +112,7 @@ TEST(FourDOFPropulsionControllerWithoutYoYo, PointPathController){
         double xyDistance = sqrt(xDistance * xDistance + yDistance * yDistance);
         
      //   ROS_ERROR("%f %f %f %i", transform.getOrigin().getX(), transform.getOrigin().getY(), transform.getOrigin().getZ(), currentPoint);
-        if(xyDistance <= 6.0 && zDistance <= 1.0)
+        if(xyDistance <= 6.0 && zDistance <= 2.0)
         {
             currentPoint++;
         }
@@ -236,7 +236,7 @@ TEST(FourDOFPropulsionControllerWithYoYo, PointPathController){
              zDistance = fabs(transform.getOrigin().getZ() - (-105.0));
         }
         
-        if(zDistance <= 0.25)
+        if(zDistance <= 2.0)
         {
             goingUp = !goingUp;
             yoyo++;

@@ -19,7 +19,7 @@ FourDOFPropulsionController::FourDOFPropulsionController(ros::NodeHandle control
 	targetRotVelocity(0),
 	targetVertVelocity(0),
 	lateralError(5.0),
-	verticalError(0.25),
+	verticalError(1.0),
 	rotationalError(0.0174533),
 	latestSonarDepth(1000),
 	pointPathServer(controlNode, "point_path", boost::bind(&FourDOFPropulsionController::executePointPath, this, _1, &pointPathServer), false)
