@@ -72,6 +72,7 @@ void FourDOFPropulsionController::executePointPath(const vehicle_auto_control::P
 
 	while(currentPoint < pathPoints.size() && ros::ok())
 	{
+
 		tf::StampedTransform transform;
 		try
 		{

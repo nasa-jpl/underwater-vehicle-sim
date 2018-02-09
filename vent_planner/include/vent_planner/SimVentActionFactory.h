@@ -26,6 +26,7 @@ public:
     std::shared_ptr<PointPathAction> createPointPathAction(const std::string& vehicleName,
                                                            const double targetHorizontalVelocity, 
                                                            const double targetRotationalVelocity,
+                                                           const double targetSlope,
                                                            const std::vector<tf::Vector3>& points) override;
 
 private:

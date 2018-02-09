@@ -24,6 +24,7 @@ public:
     PointPathAction(ActionExecutor<PointPathAction>& executor,
                         const double targetHorizontalVelocity, 
                         const double targetRotationalVelocity,
+                        const double targetSlope,
                         const std::vector<tf::Vector3>& points);
 
     PointPathAction(const PointPathAction& action);

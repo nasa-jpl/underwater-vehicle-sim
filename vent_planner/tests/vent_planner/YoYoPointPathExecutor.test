@@ -1,5 +1,5 @@
 <launch>
- <rosparam param="vehicles/names">[v0]</rosparam>
+ <rosparam param="vehicles/names">[v0,v1]</rosparam>
 
 
  <rosparam param="vehicles/v0/start_x">0</rosparam>
@@ -9,6 +9,14 @@
  <rosparam param="vehicles/v0/propModuleName">prop</rosparam>
  <rosparam param="vehicles/v0/prop/type">FourDOFPropulsion</rosparam>
  <rosparam param="vehicles/v0/prop/hertz">10</rosparam>
+
+ <rosparam param="vehicles/v1/start_x">0</rosparam>
+ <rosparam param="vehicles/v1/start_y">0</rosparam>
+ <rosparam param="vehicles/v1/start_z">-100</rosparam>
+
+ <rosparam param="vehicles/v1/propModuleName">prop</rosparam>
+ <rosparam param="vehicles/v1/prop/type">FourDOFPropulsion</rosparam>
+ <rosparam param="vehicles/v1/prop/hertz">10</rosparam>
 
  <rosparam param="vehicle_controller/hertz">2</rosparam>
 

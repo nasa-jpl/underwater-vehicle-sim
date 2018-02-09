@@ -19,7 +19,113 @@
 #include "vehicle_auto_control/Velocity.h"
 
 
-TEST(FourDOFPropulsionController, PointPathController){
+TEST(FourDOFPropulsionControllerWithoutYoYo, PointPathController){
+
+
+    ros::NodeHandle nh;
+    SimVentActionFactory factory(nh);
+
+    tf::TransformListener listener;
+
+    std::vector<tf::Vector3> points1;
+    std::vector<tf::Vector3> points2;
+
+    std::vector<tf::Vector3> allPoints;
+
+    tf::Vector3 point1(20, -20, -100);
+    tf::Vector3 point2(30, 0, -110);
+
+    tf::Vector3 point3(20, -30, -95);
+    tf::Vector3 point4(10, 0, -90);
+
+    points1.push_back(point1);
+    points1.push_back(point2);
+
+    points2.push_back(point3);
+    points2.push_back(point4);
+
+    allPoints.push_back(point1);
+    allPoints.push_back(point2);
+    allPoints.push_back(point3);
+    allPoints.push_back(point4);
+
+    std::shared_ptr<PointPathAction> pointPathAction1 = factory.createPointPathAction("v1",
+                                                                                          1.0,
+                                                                                          0.349066,
+                                                                                          0.785398,
+                                                                                          points1);
+
+    std::shared_ptr<PointPathAction> pointPathAction2 = factory.createPointPathAction("v1",
+                                                                                      1.0,
+                                                                                      0.349066,
+                                                                                      0.785398,
+                                                                                      points2);
+    PlanDispatcher planDispatcher;
+    std::shared_ptr<Plan> plan = std::shared_ptr<Plan>(new Plan());
+    plan->addAction(pointPathAction1);
+    plan->addAction(pointPathAction2);
+    planDispatcher.setPlan(plan);
+
+    //Wait for ros time to start
+    while(ros::Time::now().toSec() == 0.0);
+
+    //Wait for vehicle_auto_control node to start
+    ros::Publisher targetVelPub;
+    targetVelPub = nh.advertise<vehicle_auto_control::Velocity>("/vehicle_controller/v1/command_target_velocity", 1000);
+    ros::Time startWait = ros::Time::now();
+    while((targetVelPub.getNumSubscribers() == 0) &&
+          (ros::Time::now() - startWait).toSec() <= 200.0);
+
+    if(targetVelPub.getNumSubscribers() == 0)
+    {
+
+        FAIL();
+    }
+
+    //Wait for transforms
+    listener.waitForTransform("/world", "/v1", ros::Time(0), ros::Duration(200.0));
+
+    planDispatcher.run();
+
+    unsigned currentPoint = 0;
+
+    bool goingUp = true;
+    bool isActive = false;
+    ros::Time start = ros::Time::now();
+    while(pointPathAction2->getState() != Action::State::COMPLETED && (ros::Time::now() - start) <= ros::Duration(400.0))
+    {
+       tf::StampedTransform transform;
+        try
+        {
+            listener.lookupTransform("/world", "/v1",  
+                                     ros::Time(0), transform);
+        }
+        catch (tf::TransformException ex){
+            ROS_ERROR("%s",ex.what());
+            FAIL();
+        }
+
+        double xDistance = fabs(transform.getOrigin().getX() - allPoints[currentPoint].getX());
+        double yDistance = fabs(transform.getOrigin().getY() - allPoints[currentPoint].getY());
+        double zDistance = fabs(transform.getOrigin().getZ() - allPoints[currentPoint].getZ());
+
+        double xyDistance = sqrt(xDistance * xDistance + yDistance * yDistance);
+        
+     //   ROS_ERROR("%f %f %f %i", transform.getOrigin().getX(), transform.getOrigin().getY(), transform.getOrigin().getZ(), currentPoint);
+        if(xyDistance <= 6.0 && zDistance <= 1.0)
+        {
+            currentPoint++;
+        }
+
+        planDispatcher.update();
+    }
+
+    ASSERT_EQ(allPoints.size(), currentPoint);
+    ASSERT_EQ(Action::State::COMPLETED, pointPathAction1->getState());
+    ASSERT_EQ(2, pointPathAction2->getCurrentPoint());
+}
+
+TEST(FourDOFPropulsionControllerWithYoYo, PointPathController){
 
 
     ros::NodeHandle nh;

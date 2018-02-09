@@ -41,6 +41,7 @@ std::shared_ptr<PointPathAction> SimVentActionFactory::createPointPathAction(con
 std::shared_ptr<PointPathAction> SimVentActionFactory::createPointPathAction(const std::string& vehicleName,
                                                                              const double targetHorizontalVelocity, 
                                                                              const double targetRotationalVelocity,
+                                                                             const double targetSlope,
                                                                              const std::vector<tf::Vector3>& points)
 {
 
@@ -53,5 +54,6 @@ std::shared_ptr<PointPathAction> SimVentActionFactory::createPointPathAction(con
     return std::unique_ptr<PointPathAction>(new PointPathAction(executor->second,
                                                                         targetHorizontalVelocity,
                                                                         targetRotationalVelocity,
+                                                                        targetSlope,
                                                                         points));
 }    

@@ -47,7 +47,7 @@ PointPathSimActionExecutor::PointPathSimActionExecutor(const PointPathSimActionE
 bool PointPathSimActionExecutor::execute(std::shared_ptr<PointPathAction> action)
 {
 	//targetSlope can only be on the interval (0, 90) degrees
-	if(action->targetSlope >= M_PI / 2 || action->targetSlope <= 0)
+	if(action->yoyo && (action->targetSlope >= M_PI / 2 || action->targetSlope <= 0))
 	{
 		return false;
 	}
@@ -66,6 +66,7 @@ bool PointPathSimActionExecutor::execute(std::shared_ptr<PointPathAction> action
 
 		//Calculate the target vertical velocity based on target horizontal velocity and target slope
 		velMsg.verticalVelocity = action->targetHorizontalVelocity * (sin(action->targetSlope) / cos(action->targetSlope));
+
 		velMsg.rotationalVelocity = action->targetRotationalVelocity;
 	
 		auto publisher = publishers.find(velSub); 
