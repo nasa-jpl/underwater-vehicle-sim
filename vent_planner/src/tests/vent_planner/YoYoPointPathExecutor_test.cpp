@@ -33,10 +33,10 @@ TEST(FourDOFPropulsionControllerWithoutYoYo, PointPathController){
     std::vector<tf::Vector3> allPoints;
 
     tf::Vector3 point1(20, -20, -100);
-    tf::Vector3 point2(30, 0, -110);
+    tf::Vector3 point2(20, 0, -15);
 
-    tf::Vector3 point3(20, -30, -95);
-    tf::Vector3 point4(10, 0, -90);
+    tf::Vector3 point3(20, -10, -95);
+    tf::Vector3 point4(10, 0, -93);
 
     points1.push_back(point1);
     points1.push_back(point2);
