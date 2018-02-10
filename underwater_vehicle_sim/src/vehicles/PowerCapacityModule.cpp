@@ -12,7 +12,7 @@ PowerCapacityModule::PowerCapacityModule(std::string name, ros::NodeHandle& pare
 {
     savedCharge = 0.0;
 
-    nh.getParam("charge_rate", chargeRate);
+    nh.getParam("/charge_rate", chargeRate);
     chargingSub = nh.subscribe("/vehicles/" + vehicleName + "/charging", 1, &PowerCapacityModule::chargingCallback, this);
 	pub = nh.advertise<std_msgs::Float64>("/vehicles/" + vehicleName + "/power", 1000);
 }
@@ -25,6 +25,8 @@ void PowerCapacityModule::chargingCallback(const std_msgs::Float64::ConstPtr& ms
 void PowerCapacityModule::update(std::string name, const ros::Time& lastTime, const tf::Vector3& position, double& powerCapacity, double& dataCapacity) 
 {
     powerCapacity += savedCharge;
+
+    savedCharge = 0.0;
 
 	std_msgs::Float64 power_msg;
 	power_msg.data = powerCapacity;
