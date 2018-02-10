@@ -18,7 +18,7 @@
 #include "vent_planner/SimVentActionFactory.h"
 #include "vehicle_auto_control/Velocity.h"
 
-/*
+
 TEST(FourDOFPropulsionControllerWithoutYoYo, PointPathController){
 
 
@@ -250,7 +250,7 @@ TEST(FourDOFPropulsionControllerWithYoYo, PointPathController){
     ASSERT_TRUE(yoyo >= 4);
 }
 
-*/
+
 TEST(PlanPrempting, PointPathController){
 
     

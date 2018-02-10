@@ -42,6 +42,10 @@ private:
 	*/
 	bool isAtPoint(tf::Transform& location, tf::Vector3& point, bool useZ);
 
+	double scaleHorizontalVelocity(tf::Transform& location, tf::Vector3& point);
+	double scaleVerticalVelocity(tf::Transform& location, tf::Vector3& point);
+	double scaleRotationalVelocity(double angleError, double crossZ);
+
  	/**
 	*Transforms the current point into the vehicle frame
 	*@param pointOut Output point
@@ -71,7 +75,6 @@ private:
 	//Error bars for claiming the vehicle is at a point
 	double lateralError;
 	double verticalError;
-	double rotationalError;
 
 	//Target velocities for horizonal, vertical, and rotational movement
 	double targetHorzVelocity;

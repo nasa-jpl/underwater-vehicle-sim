@@ -20,7 +20,6 @@ FourDOFPropulsionController::FourDOFPropulsionController(ros::NodeHandle control
 	targetVertVelocity(0),
 	lateralError(5.0),
 	verticalError(1.0),
-	rotationalError(0.0523599),
 	latestSonarDepth(1000),
 	pointPathServer(controlNode, "point_path", boost::bind(&FourDOFPropulsionController::executePointPath, this, _1, &pointPathServer), false)
 {
@@ -135,13 +134,13 @@ void FourDOFPropulsionController::executePointPath(const vehicle_auto_control::P
 				}
 				else
 				{
-					if(pathPoints[currentPoint].getZ() - transform.getOrigin().getZ()  > verticalError)
+					if(pathPoints[currentPoint].getZ() >= transform.getOrigin().getZ())
 					{
-						newVertVel = targetVertVelocity;
+						newVertVel = scaleVerticalVelocity(transform, pathPoints[currentPoint]);
 					}
-					else if(pathPoints[currentPoint].getZ() - transform.getOrigin().getZ() < -verticalError)
+					else
 					{
-						newVertVel = -targetVertVelocity;
+						newVertVel = -scaleVerticalVelocity(transform, pathPoints[currentPoint]);
 					}
 				}
 
@@ -154,21 +153,11 @@ void FourDOFPropulsionController::executePointPath(const vehicle_auto_control::P
 
 				double angle = vehicleForward.angle(targetPoint);		
 
-				if(angle >= rotationalError)
-				{
-					if(cross.getZ() >= 0)
-					{
-						newRotVel = targetRotVelocity;
-					}
-					else if(cross.getZ() < 0)
-					{
-						newRotVel = -targetRotVelocity;
-					}
-					
-				}
+				//Get scaled rotational velocity
+				newRotVel = scaleRotationalVelocity(angle, cross.getZ());
 
 				//Set forward velocity
-				newForwVel = targetHorzVelocity;
+				newForwVel = scaleHorizontalVelocity(transform, pathPoints[currentPoint]);
 			}
 
 			//Create velocity command message and send it to the propulsion module
@@ -209,6 +198,60 @@ bool FourDOFPropulsionController::isAtPoint(tf::Transform& location, tf::Vector3
 	double zDifference = fabs(location.getOrigin().getZ() - point.getZ());
 
 	return (!useZ || zDifference <= verticalError) && sqrt(yDifference * yDifference + xDifference * xDifference) <= lateralError;
+}
+
+double FourDOFPropulsionController::scaleHorizontalVelocity(tf::Transform& location, tf::Vector3& point)
+{
+	double xDifference = fabs(location.getOrigin().getX() - point.getX());
+	double yDifference = fabs(location.getOrigin().getY() - point.getY());
+	double xyError = sqrt(yDifference * yDifference + xDifference * xDifference);
+
+	double horizontalScaleError = 50;
+
+	if(xyError >= horizontalScaleError)
+	{
+		return targetHorzVelocity;
+	}
+	
+	return targetHorzVelocity * (xyError / horizontalScaleError);
+}
+
+double FourDOFPropulsionController::scaleVerticalVelocity(tf::Transform& location, tf::Vector3& point)
+{
+	double zDifference = fabs(location.getOrigin().getZ() - point.getZ());
+
+	double verticalScaleError = 15;
+
+	if(zDifference >= verticalScaleError)
+	{
+		return targetVertVelocity;
+	}
+	
+	return targetVertVelocity * (zDifference / verticalScaleError);
+}
+
+double FourDOFPropulsionController::scaleRotationalVelocity(double angleError, double crossZ)
+{
+	double angleErrorScale = 0.523599; //30 degrees
+
+	if(angleError >= angleErrorScale)
+	{
+		if(crossZ >= 0)
+		{
+			return targetRotVelocity;
+		}
+		else
+		{
+			return -targetRotVelocity;
+		}
+	}
+
+	if(crossZ >= 0)
+	{
+		return targetRotVelocity * (angleError / angleErrorScale);
+	}
+	
+	return -targetRotVelocity * (angleError / angleErrorScale);
 }
 
 void FourDOFPropulsionController::sendVelocityCommand(double cmdForwardVelocity, double cmdLateralVelocity, double cmdRotVelocity, double cmdVertVelocity)
