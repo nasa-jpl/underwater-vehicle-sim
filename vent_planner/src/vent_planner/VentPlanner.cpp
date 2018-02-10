@@ -171,6 +171,11 @@ std::shared_ptr<Plan> VentPlanner::plan()
     return nullptr;
 }
 
+bool VentPlanner::isDone()
+{
+    return false;
+}
+
 bool VentPlanner::triggerNewSpiral(const double plumeHeight, const double plumeStrength)
 {
     double plumeAverage;

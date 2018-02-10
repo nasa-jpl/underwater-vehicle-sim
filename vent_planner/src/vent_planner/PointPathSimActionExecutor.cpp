@@ -2,7 +2,7 @@
 #include <unordered_map>
 
 #include "ros/ros.h"
-#include "tf/LinearMath/Vector3.h"
+#include "tf/transform_listener.h"
 
 #include "geometry_msgs/Point.h"
 
@@ -19,7 +19,8 @@ PointPathSimActionExecutor::PointPathSimActionExecutor(ros::NodeHandle& nh, std:
 	vehicleName(vehicleName),
 	nh(nh),
 	pointPathClient("/vehicle_controller/"  + vehicleName + "/point_path", true),
-	replanGoingUp(true)
+	replanGoingUp(true),
+	currentPointOffset(0)
 {
 	infoClient = nh.serviceClient<underwater_vehicle_sim::GetVehicleInfo>("vehicles/get_info");
 	infoClient.waitForExistence();
@@ -33,6 +34,7 @@ PointPathSimActionExecutor::PointPathSimActionExecutor(ros::NodeHandle& nh, std:
 PointPathSimActionExecutor::PointPathSimActionExecutor(const PointPathSimActionExecutor& other) :
 	vehicleName(other.vehicleName),
 	nh(other.nh),
+	currentPointOffset(other.currentPointOffset),
 	pointPathClient("/vehicle_controller/"  + vehicleName + "/point_path", true)
 {
 	infoClient = nh.serviceClient<underwater_vehicle_sim::GetVehicleInfo>("vehicles/get_info");
@@ -43,6 +45,13 @@ PointPathSimActionExecutor::PointPathSimActionExecutor(const PointPathSimActionE
 	infoClient.call(info);
 	vehicleInfo = info.response;
 }
+
+std::unique_ptr<ActionExecutor<PointPathAction>> PointPathSimActionExecutor::clone()
+{
+	std::unique_ptr<ActionExecutor<PointPathAction>> a(new PointPathSimActionExecutor(*this));
+    return a;
+}
+
 
 bool PointPathSimActionExecutor::execute(std::shared_ptr<PointPathAction> action)
 {
@@ -81,6 +90,17 @@ bool PointPathSimActionExecutor::execute(std::shared_ptr<PointPathAction> action
 	//Creates an action goal and sends it to the action server for point path movement
 	pointPathGoal = vehicle_auto_control::PointPathGoal();
 
+	if(action->getDoInterruptPoint())
+	{
+		tf::Vector3& interruptPoint = action->getInterruptPoint();
+		geometry_msgs::Point p;
+		p.x = interruptPoint.getX();
+		p.y = interruptPoint.getY();
+		p.z = interruptPoint.getZ();
+		pointPathGoal.points.push_back(p);
+	}
+
+	currentPointOffset = action->getCurrentPoint();
 	for(unsigned int i = action->getCurrentPoint(); i < action->points.size(); i++)
 	{
 		auto point = action->points[i];
@@ -108,6 +128,17 @@ bool PointPathSimActionExecutor::execute(std::shared_ptr<PointPathAction> action
 
 void PointPathSimActionExecutor::cancel(std::shared_ptr<PointPathAction> action)
 {
+	try
+	{
+		tf::StampedTransform transform;
+		listener.lookupTransform("/world", "/" + vehicleName, ros::Time(0), transform);
+		action->setInterruptPoint(transform.getOrigin());
+	}
+	catch (tf::TransformException ex)
+	{
+		ROS_ERROR("%s",ex.what());
+	}
+
 	pointPathClient.cancelAllGoals();
 }
 
@@ -142,6 +173,7 @@ bool PointPathSimActionExecutor::flatTriggerReplan(std::shared_ptr<PointPathActi
 		replanNextUpdate = false;
 		return true;
 	}
+
 	return false;
 }
 
@@ -164,7 +196,18 @@ void PointPathSimActionExecutor::actionDone(std::shared_ptr<PointPathAction> act
 	{
 		action->setState(Action::State::COMPLETED);
 	}
-	action->setCurrentPoint(result->totalPoints);
+
+	//Get the current point from the feedback
+	unsigned int adjustedCurrentPoint = result->totalPoints;
+
+	//If the interrupted point is active and we are past the 1st point then decrement the currentPoint
+	if(adjustedCurrentPoint > 0 && action->getDoInterruptPoint())
+	{
+		adjustedCurrentPoint--;
+	}
+	//Add the currentPointOffset as we did not necessarily start at point 0
+	adjustedCurrentPoint += currentPointOffset;
+
 	ROS_INFO("Planner: ActionDone End");
 }
 
@@ -176,9 +219,20 @@ void PointPathSimActionExecutor::actionActive(std::shared_ptr<PointPathAction> a
 void PointPathSimActionExecutor::actionFeedback(std::shared_ptr<PointPathAction> action,
 					const vehicle_auto_control::PointPathFeedbackConstPtr& feedback)
 {
-	if(feedback->currentPoint != action->getCurrentPoint())
+	//Get the current point from the feedback
+	unsigned int adjustedCurrentPoint = feedback->currentPoint;
+
+	//If the interrupted point is active and we are past the 1st point then decrement the currentPoint
+	if(adjustedCurrentPoint > 0 && action->getDoInterruptPoint())
 	{
-		action->setCurrentPoint(feedback->currentPoint);
+		adjustedCurrentPoint--;
+	}
+	//Add the currentPointOffset as we did not necessarily start at point 0
+	adjustedCurrentPoint += currentPointOffset;
+
+	if(adjustedCurrentPoint != action->getCurrentPoint())
+	{
+		action->setCurrentPoint(adjustedCurrentPoint);
 		action->addPointReachedTime(ros::Time::now());
 		replanNextUpdate = true;
 	}

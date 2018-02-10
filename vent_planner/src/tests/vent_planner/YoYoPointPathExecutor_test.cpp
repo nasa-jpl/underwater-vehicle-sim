@@ -18,7 +18,7 @@
 #include "vent_planner/SimVentActionFactory.h"
 #include "vehicle_auto_control/Velocity.h"
 
-
+/*
 TEST(FourDOFPropulsionControllerWithoutYoYo, PointPathController){
 
 
@@ -33,7 +33,7 @@ TEST(FourDOFPropulsionControllerWithoutYoYo, PointPathController){
     std::vector<tf::Vector3> allPoints;
 
     tf::Vector3 point1(20, -20, -100);
-    tf::Vector3 point2(20, 0, -15);
+    tf::Vector3 point2(20, 0, -105);
 
     tf::Vector3 point3(20, -10, -95);
     tf::Vector3 point4(10, 0, -93);
@@ -140,7 +140,7 @@ TEST(FourDOFPropulsionControllerWithYoYo, PointPathController){
     tf::Vector3 point1(20, -20, -100);
     tf::Vector3 point2(20, 0, -100);
 
-    tf::Vector3 point3(20, -30, -100);
+    tf::Vector3 point3(20, -10, -100);
     tf::Vector3 point4(10, 0, -100);
 
     points1.push_back(point1);
@@ -250,7 +250,7 @@ TEST(FourDOFPropulsionControllerWithYoYo, PointPathController){
     ASSERT_TRUE(yoyo >= 4);
 }
 
-
+*/
 TEST(PlanPrempting, PointPathController){
 
     
@@ -275,6 +275,7 @@ TEST(PlanPrempting, PointPathController){
     tf::Vector3 point4(10, 0, -100);
 
     points0.push_back(point0);
+
     points1.push_back(point1);
     points1.push_back(point2);
 
@@ -344,6 +345,8 @@ TEST(PlanPrempting, PointPathController){
     bool isActive = false;
     ros::Time start = ros::Time::now();
     unsigned int planPhase = 0; //0 = plan0, 1=plan1, 2=plan0 again
+
+    tf::Vector3 interruptPoint(0, 0, 0);
     while((pointPathAction0->getState() != Action::State::COMPLETED || 
            pointPathAction1->getState() != Action::State::COMPLETED ||
            pointPathAction2->getState() != Action::State::COMPLETED) && (ros::Time::now() - start) <= ros::Duration(1000.0))
@@ -364,7 +367,7 @@ TEST(PlanPrempting, PointPathController){
         
         double xyDistance = sqrt(xDistance * xDistance + yDistance * yDistance);
 
-        if(xyDistance <= 6.0)
+        if(xyDistance <= 5.0)
         {
             currentPoint++;
         }
@@ -374,6 +377,7 @@ TEST(PlanPrempting, PointPathController){
 
         if(pointPathAction1->getCurrentPoint() == 1 && planPhase == 0)
         {
+            interruptPoint = transform.getOrigin();
             planDispatcher.setPlan(plan1);
             planDispatcher.run();
             planPhase = 1;
@@ -381,6 +385,7 @@ TEST(PlanPrempting, PointPathController){
 
         if(pointPathAction2->getState() == Action::State::COMPLETED && planPhase == 1)
         {
+            allPoints.insert(allPoints.begin() + currentPoint, interruptPoint);
             plan0->resetInterrupted();
             planDispatcher.setPlan(plan0);
             planDispatcher.run();
@@ -391,7 +396,9 @@ TEST(PlanPrempting, PointPathController){
     ASSERT_EQ(allPoints.size(), currentPoint);
     ASSERT_EQ(Action::State::COMPLETED, pointPathAction0->getState());
     ASSERT_EQ(Action::State::COMPLETED, pointPathAction1->getState());
-    ASSERT_EQ(Action::State::COMPLETED, pointPathAction1->getState());
+    ASSERT_EQ(Action::State::COMPLETED, pointPathAction2->getState());
+    ASSERT_EQ(1, pointPathAction0->getCurrentPoint());
+    ASSERT_EQ(2, pointPathAction1->getCurrentPoint());
     ASSERT_EQ(2, pointPathAction2->getCurrentPoint());
     
 }

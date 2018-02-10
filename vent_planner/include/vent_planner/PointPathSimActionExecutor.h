@@ -5,7 +5,7 @@
 #include <unordered_map>
 
 #include "ros/ros.h"
-#include "tf/LinearMath/Vector3.h"
+#include "tf/transform_listener.h"
 
 #include "planner_framework/ActionExecutor.h"
 #include "vent_planner/actions/PointPathAction.h"
@@ -41,7 +41,7 @@ public:
 
     void cancel(std::shared_ptr<PointPathAction> action) override;
 
-
+    std::unique_ptr<ActionExecutor<PointPathAction>> clone() override;
 
 
 private:
@@ -92,6 +92,13 @@ private:
 
     actionlib::SimpleActionClient<vehicle_auto_control::PointPathAction> pointPathClient;
     vehicle_auto_control::PointPathGoal pointPathGoal;
+
+    tf::TransformListener listener;
+
+    /**
+    * Offset to apply to the currentPoint variable in the ActionLib feedback
+    */
+    unsigned int currentPointOffset;
 };
 
 #endif

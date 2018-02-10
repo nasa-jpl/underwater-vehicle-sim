@@ -18,6 +18,11 @@ SimplePlanServer::SimplePlanServer(SimplePlanServer&& other) :
 	this->planDispatcher->run();
 }
 
+bool SimplePlanServer::isDone()
+{
+	return planner->isDone();
+}
+
 void SimplePlanServer::update()
 {
 

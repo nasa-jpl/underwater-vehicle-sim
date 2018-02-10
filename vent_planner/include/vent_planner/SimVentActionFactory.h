@@ -31,8 +31,6 @@ public:
 
 private:
     ros::NodeHandle& nh;
-    std::unordered_map<std::string, PointPathSimActionExecutor> pointPathExecutors;
-
 };
 
 #endif

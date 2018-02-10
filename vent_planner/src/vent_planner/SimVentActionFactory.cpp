@@ -21,19 +21,14 @@ std::shared_ptr<PointPathAction> SimVentActionFactory::createPointPathAction(con
                                                                              const std::vector<tf::Vector3>& points)
 {
 
-    if(pointPathExecutors.find(vehicleName) == pointPathExecutors.end())
-    {
-        pointPathExecutors.insert(std::make_pair(vehicleName, PointPathSimActionExecutor(nh, vehicleName)));
-    }
-
-    auto executor = pointPathExecutors.find(vehicleName);
-    return std::unique_ptr<PointPathAction>(new PointPathAction(executor->second,
-                                                                        targetHorizontalVelocity,
-                                                                        targetRotationalVelocity,
-                                                                        targetSlope,
-                                                                        upperDepth,
-                                                                        lowerDepth,
-                                                                        points));
+    std::unique_ptr<ActionExecutor<PointPathAction>> executor(new PointPathSimActionExecutor(nh, vehicleName));
+    return std::unique_ptr<PointPathAction>(new PointPathAction(std::move(executor),
+                                                                targetHorizontalVelocity,
+                                                                targetRotationalVelocity,
+                                                                targetSlope,
+                                                                upperDepth,
+                                                                lowerDepth,
+                                                                points));
 }    
 
 
@@ -45,15 +40,10 @@ std::shared_ptr<PointPathAction> SimVentActionFactory::createPointPathAction(con
                                                                              const std::vector<tf::Vector3>& points)
 {
 
-    if(pointPathExecutors.find(vehicleName) == pointPathExecutors.end())
-    {
-        pointPathExecutors.insert(std::make_pair(vehicleName, PointPathSimActionExecutor(nh, vehicleName)));
-    }
-
-    auto executor = pointPathExecutors.find(vehicleName);
-    return std::unique_ptr<PointPathAction>(new PointPathAction(executor->second,
-                                                                        targetHorizontalVelocity,
-                                                                        targetRotationalVelocity,
-                                                                        targetSlope,
-                                                                        points));
+    std::unique_ptr<ActionExecutor<PointPathAction>> executor(new PointPathSimActionExecutor(nh, vehicleName));
+    return std::unique_ptr<PointPathAction>(new PointPathAction(std::move(executor),
+                                                                targetHorizontalVelocity,
+                                                                targetRotationalVelocity,
+                                                                targetSlope,
+                                                                points));
 }    

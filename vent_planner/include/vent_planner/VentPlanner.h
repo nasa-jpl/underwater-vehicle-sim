@@ -48,6 +48,7 @@ private:
 
     bool isCompleted(std::shared_ptr<Plan> plan);
 
+    bool isDone();
     /**
     *Sets the parameter returnEntry to the latest data from the vehicle
     *@param returnEntry Output for the latest data

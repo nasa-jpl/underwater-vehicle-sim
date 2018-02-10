@@ -86,7 +86,7 @@ TEST(FourDOFPropulsionController, PointPathController){
         double zDistance = fabs(transform.getOrigin().getZ() - pointPathMsg.points[currentPoint].z);
         double xyDistance = sqrt(xDistance * xDistance + yDistance * yDistance);
 
-        if(zDistance <= 0.25 && xyDistance <= 5.0)
+        if(zDistance <= 1.0 && xyDistance <= 5.0)
         {
             currentPoint++;
         }
@@ -198,7 +198,7 @@ TEST(FourDOFPropulsionController, YoYoPointPathController){
              zDistance = fabs(transform.getOrigin().getZ() - pointPathMsg.lowerDepth);
         }
         
-        if(zDistance <= 0.25)
+        if(zDistance <= 1.0)
         {
             goingUp = !goingUp;
             yoyo++;

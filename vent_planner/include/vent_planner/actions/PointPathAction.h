@@ -13,19 +13,19 @@
 class PointPathAction : public Action, public std::enable_shared_from_this<PointPathAction>
 {
 public:
-    PointPathAction(ActionExecutor<PointPathAction>& executor,
-                        const double targetHorizontalVelocity, 
-                        const double targetRotationalVelocity,
-                        const double targetSlope,
-                        const double upperDepth,
-                        const double lowerDepth,
-                        const std::vector<tf::Vector3>& points);
+    PointPathAction(std::unique_ptr<ActionExecutor<PointPathAction>> executor,
+                    const double targetHorizontalVelocity, 
+                    const double targetRotationalVelocity,
+                    const double targetSlope,
+                    const double upperDepth,
+                    const double lowerDepth,
+                    const std::vector<tf::Vector3>& points);
 
-    PointPathAction(ActionExecutor<PointPathAction>& executor,
-                        const double targetHorizontalVelocity, 
-                        const double targetRotationalVelocity,
-                        const double targetSlope,
-                        const std::vector<tf::Vector3>& points);
+    PointPathAction(std::unique_ptr<ActionExecutor<PointPathAction>> executor,
+                    const double targetHorizontalVelocity, 
+                    const double targetRotationalVelocity,
+                    const double targetSlope,
+                    const std::vector<tf::Vector3>& points);
 
     PointPathAction(const PointPathAction& action);
 
@@ -60,7 +60,12 @@ public:
 
     void setGoingUp(const bool goingUp);
     const bool getGoingUp();
-    
+
+    void setInterruptPoint(tf::Vector3 point);
+    void disableInterruptPoint();
+    tf::Vector3& getInterruptPoint();
+    bool getDoInterruptPoint();
+
     void addPointReachedTime(const ros::Time& time);
     const std::vector<ros::Time>& getPointReachedTimes();
 
@@ -76,10 +81,21 @@ public:
     const double lowerDepth;
 
 private:
-    ActionExecutor<PointPathAction>& executor;
+    std::unique_ptr<ActionExecutor<PointPathAction>> executor;
+
+    /**
+    * Set to true when interrupted to indicate that the interruptPoint is the next point
+    */
+    bool doInterruptPoint;
+    
+    /**
+    * Indicates the point at which the vehicle was interrupted in order to command it back to that point when resumed
+    */
+    tf::Vector3 interruptPoint;
 
     int currentPoint;
     bool goingUp;
+    
     std::vector<ros::Time> pointReachedTimes;
 };
 

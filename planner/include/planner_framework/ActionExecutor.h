@@ -24,6 +24,8 @@ public:
 
 	virtual void cancel(std::shared_ptr<T> action)=0;
 
+	virtual std::unique_ptr<ActionExecutor<T>> clone()=0;
+
 private:
 
 };

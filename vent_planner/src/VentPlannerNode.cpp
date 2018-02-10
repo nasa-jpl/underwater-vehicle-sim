@@ -38,14 +38,21 @@ int main(int argc, char **argv)
     }
 
     ROS_INFO("Planner Initalized");
+    bool plannersCompleted = false;
     ros::Rate r(loopHertz);
-    while(ros::ok())
+    while(!plannersCompleted && ros::ok())
     {
+        bool updatePlannersCompleted = true;
         for(auto& server : servers)
         {
-            server.update();
+            if(!server.isDone())
+            {
+                updatePlannersCompleted = false;
+                server.update();
+            }
         }
-        
+        plannersCompleted = updatePlannersCompleted;
+
         r.sleep();
     }
     return 0;

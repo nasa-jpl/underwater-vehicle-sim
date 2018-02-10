@@ -20,7 +20,7 @@ FourDOFPropulsionController::FourDOFPropulsionController(ros::NodeHandle control
 	targetVertVelocity(0),
 	lateralError(5.0),
 	verticalError(1.0),
-	rotationalError(0.0174533),
+	rotationalError(0.0523599),
 	latestSonarDepth(1000),
 	pointPathServer(controlNode, "point_path", boost::bind(&FourDOFPropulsionController::executePointPath, this, _1, &pointPathServer), false)
 {
@@ -84,6 +84,10 @@ void FourDOFPropulsionController::executePointPath(const vehicle_auto_control::P
 				if(isAtPoint(transform, pathPoints[currentPoint], !goal->yoyo))
 				{
 					currentPoint++;
+					if(currentPoint < pathPoints.size())
+					{
+					}
+					
 				}
 			}
 			
