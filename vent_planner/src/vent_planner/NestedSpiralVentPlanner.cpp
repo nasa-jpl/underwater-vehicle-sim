@@ -23,7 +23,7 @@ NestedSpiralVentPlanner::NestedSpiralVentPlanner(ros::NodeHandle& nh, std::uniqu
     actionFactory(std::move(actionFactory)),
     lastPlan(ros::Time::now()),
     initalPlan(false),
-    initalSpacing(3000),
+    plumeHeight(0),
     vehicleName(vehicleName),
     dataClient(nh.serviceClient<data_server::GetData>("/data_server/get")),
     latestDataClient(nh.serviceClient<data_server::GetLatestData>("/data_server/get_latest")),
@@ -33,6 +33,28 @@ NestedSpiralVentPlanner::NestedSpiralVentPlanner(ros::NodeHandle& nh, std::uniqu
     dataClient.waitForExistence();
     latestDataClient.waitForExistence();
     plumeClient.waitForExistence();
+
+    if(!nh.hasParam("planner/inital_spacing"))
+    {
+        ROS_FATAL("Parameter \"planner/inital_spacing\" not present in the parameter server.");
+        exit(1);
+    }
+
+    if(!nh.hasParam("planner/final_spacing"))
+    {
+        ROS_FATAL("Parameter \"planner/final_spacing\" not present in the parameter server.");
+        exit(1);
+    }
+
+    if(!nh.hasParam("planner/trigger_sigma"))
+    {
+        ROS_FATAL("Parameter \"planner/trigger_sigma\" not present in the parameter server.");
+        exit(1);
+    }
+
+    nh.getParam("planner/inital_spacing", initalSpacing);
+    nh.getParam("planner/final_spacing", finalSpacing);
+    nh.getParam("planner/trigger_sigma", triggerSigma);
 }
 
 std::shared_ptr<Plan> NestedSpiralVentPlanner::plan()
@@ -116,46 +138,60 @@ std::shared_ptr<Plan> NestedSpiralVentPlanner::plan()
                                                       srv.response.h[i],
                                                       srv.response.val[i]);
         }
-        
-        //Get height of the plume for this last yo
-        double plumeHeight;
-        double plumeStrength;
+
+
         double plumeX;
         double plumeY;
+        double plumeStrength;
+        bool gotHeight;
 
-        ROS_INFO("Planner: Get plume height");
-        bool gotHeight = getHeightOfPlume(plumeData[currentPlumeData.top()], dataStart, plumeX, plumeY, plumeHeight, plumeStrength);
+        if(plans.size() == 1)
+        {
+            //Get height of the plume for this last yo
+            ROS_INFO("Planner: Get plume height");
+            gotHeight = getHeightOfPlume(plumeData[currentPlumeData.top()], dataStart, plumeX, plumeY, plumeHeight, plumeStrength);
+        }
+        else
+        {
+            gotHeight = true;
+            getPlumeMax(plumeData[currentPlumeData.top()], dataStart, plumeX, plumeY, plumeStrength);
+        }
+        
         ROS_INFO("Planner: Finish get plume data");
-        if(gotHeight && triggerNewSpiral(plumeHeight, plumeStrength) && plans.size() <= 2 && !std::isnan(plumeX) && !std::isnan(plumeY) && !std::isinf(plumeX) && !std::isinf(plumeY))
+        if(gotHeight && triggerNewSpiral(plumeStrength) && !std::isnan(plumeX) && !std::isnan(plumeY) && !std::isinf(plumeX) && !std::isinf(plumeY))
         {
             int devFactor = plans.size();
-            ROS_INFO("Planner: Trigger new spiral; level: %lu, x: %f, y: %f, height: %f, spacing: %f, size: %f ", plans.size(), plumeX, plumeY, plumeHeight, initalSpacing / (devFactor * 2), initalSpacing / devFactor);
+            double spacing = initalSpacing / (devFactor * 2);
+            double size = initalSpacing / devFactor;
+
+            if(spacing > finalSpacing)
+            {
+                ROS_INFO("Planner: Trigger new spiral; level: %lu, x: %f, y: %f, height: %f, spacing: %f, size: %f ", plans.size(), plumeX, plumeY, plumeHeight, spacing, size);
             
 
-            std::shared_ptr<Plan> plan(new Plan());
+                std::shared_ptr<Plan> plan(new Plan());
 
-            tf::Vector3 spiralLocation(plumeX, plumeY, plumeHeight);
-            std::vector<tf::Vector3> spiralPoints = makeSpiral(spiralLocation, 0, initalSpacing / (devFactor * 2), initalSpacing / devFactor);
-            std::shared_ptr<Action> newAction = actionFactory->createPointPathAction(vehicleName,
-                                                                                    1.0,
-                                                                                    0.349066,
-                                                                                    0.523599, //30 deg
-                                                                                    plumeHeight + 200,
-                                                                                    plumeHeight - 200,
-                                                                                    spiralPoints);
+                tf::Vector3 spiralLocation(plumeX, plumeY, plumeHeight);
+                std::vector<tf::Vector3> spiralPoints = makeSpiral(spiralLocation, plumeHeight, spacing, size);
+                std::shared_ptr<Action> newAction = actionFactory->createPointPathAction(vehicleName,
+                                                                                        1.0,
+                                                                                        0.349066,
+                                                                                        0.523599, //30 deg
+                                                                                        spiralPoints);
 
-            plan->addAction(newAction);
+                plan->addAction(newAction);
 
 
-            //Create vector of plume data and add a reference to the stack
-            plumeData.emplace_back();
-            currentPlumeData.push(plumeData.size() - 1);
+                //Create vector of plume data and add a reference to the stack
+                plumeData.emplace_back();
+                currentPlumeData.push(plumeData.size() - 1);
 
-            //Add new plan to stack of plans
-            plans.push(plan);
+                //Add new plan to stack of plans
+                plans.push(plan);
 
-            lastPlan = ros::Time::now();
-            return plan;
+                lastPlan = ros::Time::now();
+                return plan;  
+            }
         }
     }
 
@@ -176,7 +212,7 @@ bool NestedSpiralVentPlanner::isDone()
     return false;
 }
 
-bool NestedSpiralVentPlanner::triggerNewSpiral(const double plumeHeight, const double plumeStrength)
+bool NestedSpiralVentPlanner::triggerNewSpiral(const double plumeStrength)
 {
     double plumeAverage;
     double plumeMax;
@@ -187,12 +223,30 @@ bool NestedSpiralVentPlanner::triggerNewSpiral(const double plumeHeight, const d
     {
         return true;
     }
-    else if(plumeStdDev > 0 && plumeStrength > plumeAverage + plumeStdDev * 2)
+    else if(plumeStdDev > 0 && plumeStrength > plumeAverage + plumeStdDev * triggerSigma)
     {
         return true;
     }
 
     return false;
+}
+
+void NestedSpiralVentPlanner::getPlumeMax(const std::vector<PlumeData>& data, const unsigned int dataStart, double& plumeX, double& plumeY, double& plumeStrength)
+{
+    plumeStrength = 0;
+    plumeX = std::numeric_limits<double>::quiet_NaN();
+    plumeY = std::numeric_limits<double>::quiet_NaN();
+
+    for(unsigned int i = dataStart; i < data.size(); i++)
+    {
+        auto& d = data[i];
+        if(d.val >= plumeStrength)
+        {
+            plumeStrength = d.val;
+            plumeX = d.x;
+            plumeY = d.y;
+        }
+    }
 }
 
 void NestedSpiralVentPlanner::plumeDataSummary(double& average, double& max, double& stdDev)

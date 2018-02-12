@@ -43,8 +43,9 @@ public:
 private:
 
     void plumeDataSummary(double& average, double& max, double& stddev);
-    bool triggerNewSpiral(const double plumeHeight, const double plumeStrength);
+    bool triggerNewSpiral(const double plumeStrength);
     bool getHeightOfPlume(const std::vector<PlumeData>& data, const unsigned int dataStart, double& plumeX, double& plumeY, double& plumeHeight, double& plumeStrength);
+    void getPlumeMax(const std::vector<PlumeData>& data, const unsigned int dataStart, double& plumeX, double& plumeY, double& plumeStrength);
 
     bool isCompleted(std::shared_ptr<Plan> plan);
 
@@ -63,11 +64,14 @@ private:
 
     std::stack<std::shared_ptr<Plan>> plans;
     std::stack<unsigned long> currentPlumeData;
+    double plumeHeight;
 
     ros::Time lastPlan;
     bool initalPlan;
 
     double initalSpacing;
+    double finalSpacing;
+    double triggerSigma;
 
     unsigned int yoyoUpperDepth;
     unsigned int yoyoLowerDepth;

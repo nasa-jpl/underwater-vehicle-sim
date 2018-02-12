@@ -22,6 +22,9 @@
  <rosparam param="vehicle_controller/hertz">1</rosparam>
 
  <rosparam param="planner/hertz">0.5</rosparam>
+ <rosparam param="planner/inital_spacing">3000</rosparam>
+ <rosparam param="planner/final_spacing">750</rosparam>
+ <rosparam param="planner/trigger_sigma">2</rosparam>
 
  <node pkg="underwater_vehicle_sim" type="clock_server_node" name="clock_server"/>
  <node pkg="underwater_vehicle_sim" type="underwater_vehicle_sim_node" name="underwater_vehicle_sim" output="screen"/>
