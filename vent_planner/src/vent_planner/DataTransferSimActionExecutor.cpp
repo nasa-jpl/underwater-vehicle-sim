@@ -40,7 +40,7 @@ DataTransferSimActionExecutor::DataTransferSimActionExecutor(const DataTransferS
 	info.request.name = vehicleName;
 	infoClient.call(info);
 	vehicleInfo = info.response;
-    pub = nh.advertise<std_msgs::Float64>("/vehicles/" + vehicleName + "transfering", 1000);
+    pub = nh.advertise<std_msgs::Float64>("/vehicles/" + vehicleName + "/transferring", 1000);
     sub = nh.subscribe("/vehicles/" + vehicleName + "/dataCapacity", 1, &DataTransferSimActionExecutor::transfer_Remaining_Callback, this);
     transfer_msg.data = 1;
 }
