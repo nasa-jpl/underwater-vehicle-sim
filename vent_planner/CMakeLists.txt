@@ -124,8 +124,10 @@ include_directories(
  add_library(vent_planner
    src/vent_planner/actions/YoYoPointPathAction.cpp
    src/vent_planner/actions/ChargeAction.cpp
+   src/vent_planner/actions/DataTransferAction.cpp
    src/vent_planner/YoYoPointPathSimActionExecutor.cpp
    src/vent_planner/ChargeSimActionExecutor.cpp
+   src/vent_planner/DataTransferSimActionExecutor.cpp
    src/vent_planner/SimVentActionFactory.cpp
    src/vent_planner/VentPlanner.cpp
  )
@@ -161,6 +163,7 @@ include_directories(
    planner_framework
    ${catkin_LIBRARIES}
  )
+ 
 
 #############
 ## Install ##

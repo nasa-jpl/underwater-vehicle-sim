@@ -10,9 +10,10 @@ BaseStationModule::BaseStationModule(std::string name, ros::NodeHandle& parentNH
 	GeneralModule(name, "BaseStation", parentNH, vehicleName)
 {
 	pub = nh.advertise<std_msgs::Bool>("/vehicles/" + vehicleName + "atBase", 1000);
-	nh.getParam("base_x", base_x);
-	nh.getParam("base_y", base_y);
-	nh.getParam("base_z", base_z);
+	nh.getParam("/base_x", base_x);
+	nh.getParam("/base_y", base_y);
+	nh.getParam("/base_z", base_z);
+    nh.getParam("/base_range", base_range);
 }
 
 double BaseStationModule::distanceToBase(const tf::Vector3& position)
@@ -28,8 +29,7 @@ void BaseStationModule::update(std::string name, const ros::Time& lastTime, cons
 	std_msgs::Bool base_msg;
 	double dist = distanceToBase(position);
 	base_msg.data = false;
-	//Placeholder distance
-	if (dist < 100.0)
+	if (dist < base_range)
 	{
 		base_msg.data = true;
 	}	

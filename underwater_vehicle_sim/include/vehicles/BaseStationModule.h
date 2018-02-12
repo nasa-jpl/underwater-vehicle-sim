@@ -29,6 +29,7 @@ private:
 	double base_x;
 	double base_y;
 	double base_z;
+    double base_range;
 };
 
 

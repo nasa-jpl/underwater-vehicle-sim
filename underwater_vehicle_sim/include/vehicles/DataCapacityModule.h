@@ -5,6 +5,9 @@
 #include "tf/transform_listener.h"
 #include "ros/ros.h"
 
+#include "std_msgs/Float64.h"
+#include "std_msgs/Bool.h"
+
 #include "vehicles/GeneralModule.h"
 
 class DataCapacityModule : public GeneralModule
@@ -21,9 +24,18 @@ private:
 	*Callback for the velocity message which is used to control this module
 	*@param vel Twist message used to control this module
 	*/
-	void commandVelocityCallback(const geometry_msgs::Twist::ConstPtr& vel);
-
-	ros::Publisher pub;
+	void transferCallback(const std_msgs::Float64::ConstPtr& msg);
+    void baseCallback(const std_msgs::Bool::ConstPtr& msg);
+    
+    double transferRate;
+    double sentData;
+    double maxData;
+    bool inBaseRange;
+    
+    ros::Publisher pub;
+    
+    ros::Subscriber transferSub;
+    ros::Subscriber baseSub;
 };
 
 

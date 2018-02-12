@@ -9,8 +9,10 @@
 #include "vent_planner/VentActionFactory.h"
 #include "vent_planner/actions/YoYoPointPathAction.h"
 #include "vent_planner/actions/ChargeAction.h"
+#include "vent_planner/actions/DataTransferAction.h"
 #include "vent_planner/YoYoPointPathSimActionExecutor.h"
 #include "vent_planner/ChargeSimActionExecutor.h"
+#include "vent_planner/DataTransferSimActionExecutor.h"
 class SimVentActionFactory : public VentActionFactory
 {
 public:
@@ -26,12 +28,14 @@ public:
 															       const std::vector<tf::Vector3>& points) override;
 	
     std::shared_ptr<ChargeAction> createChargeAction(const std::string& vehicleName) override;
+    std::shared_ptr<DataTransferAction> createDataTransferAction(const std::string& vehicleName) override;
 
 
 private:
 	ros::NodeHandle& nh;
 	std::unordered_map<std::string, YoYoPointPathSimActionExecutor> yoyoPointPathExecutors;
 	std::unordered_map<std::string, ChargeSimActionExecutor> chargeExecutors;
+	std::unordered_map<std::string, DataTransferSimActionExecutor> dataTransferExecutors;
 
 };
 

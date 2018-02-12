@@ -5,6 +5,7 @@
 
 #include "vent_planner/actions/YoYoPointPathAction.h"
 #include "vent_planner/actions/ChargeAction.h"
+#include "vent_planner/actions/DataTransferAction.h"
 
 class VentActionFactory
 {
@@ -21,6 +22,7 @@ public:
 															   		   	   const std::vector<tf::Vector3>& points)=0;
 	
     virtual std::shared_ptr<ChargeAction> createChargeAction(const std::string& vehicleName)=0;
+    virtual std::shared_ptr<DataTransferAction> createDataTransferAction(const std::string& vehicleName)=0;
 };
 
 #endif
