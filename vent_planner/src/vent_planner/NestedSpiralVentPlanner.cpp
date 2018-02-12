@@ -11,14 +11,14 @@
 #include "data_server/GetLatestData.h"
 
 #include "vent_planner/VentActionFactory.h"
-#include "vent_planner/VentPlanner.h"
+#include "vent_planner/NestedSpiralVentPlanner.h"
 
 #include "data_server/DataServerEntry.h"
 
 #include "plume_detector/PlumeData.h"
 #include "plume_detector/GetPlumeData.h"
 
-VentPlanner::VentPlanner(ros::NodeHandle& nh, std::unique_ptr<VentActionFactory> actionFactory, std::string vehicleName) :
+NestedSpiralVentPlanner::NestedSpiralVentPlanner(ros::NodeHandle& nh, std::unique_ptr<VentActionFactory> actionFactory, std::string vehicleName) :
     nh(nh),
     actionFactory(std::move(actionFactory)),
     lastPlan(ros::Time::now()),
@@ -29,13 +29,13 @@ VentPlanner::VentPlanner(ros::NodeHandle& nh, std::unique_ptr<VentActionFactory>
     latestDataClient(nh.serviceClient<data_server::GetLatestData>("/data_server/get_latest")),
     plumeClient(nh.serviceClient<plume_detector::GetPlumeData>("/plume_detector/get"))
 {
-    ROS_INFO("VentPlanner: Waiting for data server...");
+    ROS_INFO("Planner: Waiting for data server...");
     dataClient.waitForExistence();
     latestDataClient.waitForExistence();
     plumeClient.waitForExistence();
 }
 
-std::shared_ptr<Plan> VentPlanner::plan()
+std::shared_ptr<Plan> NestedSpiralVentPlanner::plan()
 {
     ROS_INFO("Planner: Plan Start");
     //Pop the top plan if it has been completed
@@ -171,12 +171,12 @@ std::shared_ptr<Plan> VentPlanner::plan()
     return nullptr;
 }
 
-bool VentPlanner::isDone()
+bool NestedSpiralVentPlanner::isDone()
 {
     return false;
 }
 
-bool VentPlanner::triggerNewSpiral(const double plumeHeight, const double plumeStrength)
+bool NestedSpiralVentPlanner::triggerNewSpiral(const double plumeHeight, const double plumeStrength)
 {
     double plumeAverage;
     double plumeMax;
@@ -195,7 +195,7 @@ bool VentPlanner::triggerNewSpiral(const double plumeHeight, const double plumeS
     return false;
 }
 
-void VentPlanner::plumeDataSummary(double& average, double& max, double& stdDev)
+void NestedSpiralVentPlanner::plumeDataSummary(double& average, double& max, double& stdDev)
 {
     double plumeMax = 0;
     double plumeAverage = 0;
@@ -245,7 +245,7 @@ void VentPlanner::plumeDataSummary(double& average, double& max, double& stdDev)
     stdDev = plumeStdDev;
 }
 
-bool VentPlanner::getHeightOfPlume(const std::vector<PlumeData>& data, const unsigned int dataStart, double& plumeX, double& plumeY, double& plumeHeight, double& plumeStrength)
+bool NestedSpiralVentPlanner::getHeightOfPlume(const std::vector<PlumeData>& data, const unsigned int dataStart, double& plumeX, double& plumeY, double& plumeHeight, double& plumeStrength)
 {
     //bin data by depth return bin with largest average
     unsigned int binSize = 10;
@@ -316,7 +316,7 @@ bool VentPlanner::getHeightOfPlume(const std::vector<PlumeData>& data, const uns
     return true;
 }
 
-bool VentPlanner::isCompleted(std::shared_ptr<Plan> plan)
+bool NestedSpiralVentPlanner::isCompleted(std::shared_ptr<Plan> plan)
 {
     ROS_INFO("Planner: Check for completed");
     for(auto action : plan->getActions())
@@ -332,7 +332,7 @@ bool VentPlanner::isCompleted(std::shared_ptr<Plan> plan)
     return true;
 }
 
-bool VentPlanner::getLatestData(DataServerEntry& returnEntry)
+bool NestedSpiralVentPlanner::getLatestData(DataServerEntry& returnEntry)
 {
     data_server::GetLatestData srv;
     srv.request.name = vehicleName;
@@ -355,7 +355,7 @@ bool VentPlanner::getLatestData(DataServerEntry& returnEntry)
     return false;
 }
 
-std::vector<tf::Vector3> VentPlanner::makeSpiral(tf::Vector3 startLocation, double startDirection, double spacing, double size)
+std::vector<tf::Vector3> NestedSpiralVentPlanner::makeSpiral(tf::Vector3 startLocation, double startDirection, double spacing, double size)
 {
     std::vector<tf::Vector3> spiral;
     spiral.push_back(startLocation);
@@ -395,7 +395,7 @@ std::vector<tf::Vector3> VentPlanner::makeSpiral(tf::Vector3 startLocation, doub
     return spiral;
 }
 
-std::vector<tf::Vector3> VentPlanner::makeLawnmower(const tf::Vector3& startLocation,
+std::vector<tf::Vector3> NestedSpiralVentPlanner::makeLawnmower(const tf::Vector3& startLocation,
                                                     double alongTrackDirection,
                                                     double acrossTrackDirection,
                                                     double alongTrackSize,

@@ -16,11 +16,11 @@
 #include "plume_detector/PlumeData.h"
 #include "plume_detector/GetPlumeData.h"
 
-class VentPlanner : public Planner
+class NestedSpiralVentPlanner : public Planner
 {
 public:
-    VentPlanner(ros::NodeHandle& nh, std::unique_ptr<VentActionFactory> actionFactory, std::string vehicleName);
-    ~VentPlanner() {}
+    NestedSpiralVentPlanner(ros::NodeHandle& nh, std::unique_ptr<VentActionFactory> actionFactory, std::string vehicleName);
+    ~NestedSpiralVentPlanner() {}
 
     std::shared_ptr<Plan> plan();
 

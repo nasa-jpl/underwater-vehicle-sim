@@ -127,7 +127,7 @@ include_directories(
    src/vent_planner/actions/PointPathAction.cpp
    src/vent_planner/PointPathSimActionExecutor.cpp
    src/vent_planner/SimVentActionFactory.cpp
-   src/vent_planner/VentPlanner.cpp
+   src/vent_planner/NestedSpiralVentPlanner.cpp
  )
 
 ## Add cmake target dependencies of the library
