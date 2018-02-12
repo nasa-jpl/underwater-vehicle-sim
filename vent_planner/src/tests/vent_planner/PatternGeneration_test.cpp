@@ -4,7 +4,7 @@
 
 #include "tf/LinearMath/Vector3.h"
 
-#include "vent_planner/VentPlanner.h"
+#include "vent_planner/NestedSpiralVentPlanner.h"
 
 TEST(PatternGeneration, Spiral)
 {
@@ -23,7 +23,7 @@ TEST(PatternGeneration, Spiral)
     double spacing = 100;
     double size = 210;
 
-    std::vector<tf::Vector3> spiral = VentPlanner::makeSpiral(startLocation, 
+    std::vector<tf::Vector3> spiral = NestedSpiralVentPlanner::makeSpiral(startLocation, 
                                                               startDirection, 
                                                               spacing, 
                                                               size);
@@ -58,7 +58,7 @@ TEST(PatternGeneration, Lawnmower)
     double acrossTrackSize = 300;
     double spacing = 100;
 
-    std::vector<tf::Vector3> lawnmower = VentPlanner::makeLawnmower(startLocation,
+    std::vector<tf::Vector3> lawnmower = NestedSpiralVentPlanner::makeLawnmower(startLocation,
                                alongTrackDirection,
                                acrossTrackDirection,
                                alongTrackSize,
