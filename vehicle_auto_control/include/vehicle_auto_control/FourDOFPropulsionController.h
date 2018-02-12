@@ -80,6 +80,10 @@ private:
 	double targetHorzVelocity;
 	double targetRotVelocity;
 	double targetVertVelocity;
+
+	//Minimum distance off seafloor
+	double minSeafloorDistance;
+	bool hasVehicleData;
 };
 
 

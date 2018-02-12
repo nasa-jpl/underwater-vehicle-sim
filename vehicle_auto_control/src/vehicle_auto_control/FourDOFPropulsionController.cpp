@@ -21,12 +21,14 @@ FourDOFPropulsionController::FourDOFPropulsionController(ros::NodeHandle control
 	lateralError(5.0),
 	verticalError(1.0),
 	latestSonarDepth(1000),
+	minSeafloorDistance(5.0),
 	pointPathServer(controlNode, "point_path", boost::bind(&FourDOFPropulsionController::executePointPath, this, _1, &pointPathServer), false)
 {
 	velocityPub = vehicleNode.advertise<geometry_msgs::Twist>(propModuleName + "/command_velocity", 1000);
 
 	if(dataModuleName != "")
 	{
+		hasVehicleData = true;
 		dataSub = vehicleNode.subscribe(dataModuleName + "/data", 1, &FourDOFPropulsionController::getVehicleData, this);
 	}
 
@@ -73,6 +75,7 @@ void FourDOFPropulsionController::executePointPath(const vehicle_auto_control::P
 	{
 
 		tf::StampedTransform transform;
+		double sonarDistance;
 		try
 		{
 			listener.lookupTransform("/world", "/" + vehicleName,  
@@ -90,6 +93,7 @@ void FourDOFPropulsionController::executePointPath(const vehicle_auto_control::P
 				}
 			}
 			
+
 			if(currentPoint >= pathPoints.size())
 			{
 				ROS_INFO("Auto Controller: Final Point Reached");
@@ -134,14 +138,8 @@ void FourDOFPropulsionController::executePointPath(const vehicle_auto_control::P
 				}
 				else
 				{
-					if(pathPoints[currentPoint].getZ() >= transform.getOrigin().getZ())
-					{
-						newVertVel = scaleVerticalVelocity(transform, pathPoints[currentPoint]);
-					}
-					else
-					{
-						newVertVel = -scaleVerticalVelocity(transform, pathPoints[currentPoint]);
-					}
+					//Also account for distance off bottom
+					newVertVel = scaleVerticalVelocity(transform, pathPoints[currentPoint]);
 				}
 
 				geometry_msgs::PointStamped pointOut;
@@ -218,16 +216,27 @@ double FourDOFPropulsionController::scaleHorizontalVelocity(tf::Transform& locat
 
 double FourDOFPropulsionController::scaleVerticalVelocity(tf::Transform& location, tf::Vector3& point)
 {
+
 	double zDifference = fabs(location.getOrigin().getZ() - point.getZ());
 
 	double verticalScaleError = 15;
 
+	int sign = 0;
+	if(point.getZ() >= location.getOrigin().getZ())
+	{
+		sign = 1;
+	}
+	else
+	{
+		sign = -1;
+	}
+
 	if(zDifference >= verticalScaleError)
 	{
-		return targetVertVelocity;
+		return targetVertVelocity * sign;
 	}
 	
-	return targetVertVelocity * (zDifference / verticalScaleError);
+	return targetVertVelocity * (zDifference / verticalScaleError) * sign;
 }
 
 double FourDOFPropulsionController::scaleRotationalVelocity(double angleError, double crossZ)
