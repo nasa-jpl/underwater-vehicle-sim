@@ -20,7 +20,7 @@ DataCapacityModule::DataCapacityModule(std::string name, ros::NodeHandle& parent
     nh.getParam("/max_data", maxData);
     transferSub = nh.subscribe("/vehicles/" + vehicleName + "/transferring", 1, &DataCapacityModule::transferCallback, this);
     baseSub = nh.subscribe("/vehicles/" + vehicleName + "/atBase", 1, &DataCapacityModule::baseCallback, this);
-	pub = nh.advertise<std_msgs::Float64>("/vehicle/" + vehicleName + "/dataCapacity", 1000);
+	pub = nh.advertise<std_msgs::Float64>("/vehicles/" + vehicleName + "/dataCapacity", 1000);
 }
 
 void DataCapacityModule::baseCallback(const std_msgs::Bool::ConstPtr& msg)
