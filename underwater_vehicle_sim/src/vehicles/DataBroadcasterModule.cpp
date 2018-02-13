@@ -29,20 +29,23 @@ void DataBroadcasterModule::update(std::string name, const ros::Time& lastTime, 
 
 	if(client.exists())
 	{
-		client.call(srv);
+		bool success = client.call(srv);
 
-		underwater_vehicle_sim::VehicleData data;
+		if(success)
+		{
+			underwater_vehicle_sim::VehicleData data;
 
-		data.name = name;
-		data.x = position.getX();
-		data.y = position.getY();
-		data.h = position.getZ();
-		data.time = lastTime;
-		data.temp = srv.response.temp;
-		data.salt = srv.response.salt;
-		data.dye = srv.response.dye;
-		data.sonarDepth = srv.response.depth + position.getZ(); //depth + z, becuase z is negative while depth is positive
+			data.name = name;
+			data.x = position.getX();
+			data.y = position.getY();
+			data.h = position.getZ();
+			data.time = lastTime;
+			data.temp = srv.response.temp;
+			data.salt = srv.response.salt;
+			data.dye = srv.response.dye;
+			data.sonarDepth = srv.response.depth + position.getZ(); //depth + z, becuase z is negative while depth is positive
 
-		dataRecorder.publish(data);
+			dataRecorder.publish(data);
+		}
 	}
 }

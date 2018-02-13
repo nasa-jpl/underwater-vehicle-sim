@@ -75,9 +75,10 @@ void FourDOFPropulsion::move(ros::Time& lastTime, tf::Quaternion& rotation, tf::
 	{
 		bool success = modelClient.call(srv);
 
-		if(success && -srv.response.depth > position.getZ())
+		if(success && -srv.response.depth + 0.1 > position.getZ())
 		{
-			position.setZ(-srv.response.depth);
+			//if vehicle is trying to go below the bottom of the ocean model then set its z position to above the ocean floor.
+			position.setZ(-srv.response.depth + 0.1);
 		}
 	}
 }

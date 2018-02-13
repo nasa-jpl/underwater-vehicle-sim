@@ -29,6 +29,7 @@ bool getModelData(model_server::GetModelData::Request &req,
     }
     catch(const std::out_of_range& e)
     {
+        ROS_INFO("ModelServer: Out of Range");
         ModelData data = model->getDataOutOfRange(req.x, req.y, req.h, req.time);
         res.u = data.u;
         res.v = data.v;

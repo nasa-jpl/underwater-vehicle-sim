@@ -164,7 +164,7 @@ std::shared_ptr<Plan> NestedSpiralVentPlanner::plan()
             double spacing = initalSpacing / (devFactor * 2);
             double size = initalSpacing / devFactor;
 
-            if(spacing > finalSpacing)
+            if(spacing >= finalSpacing)
             {
                 ROS_INFO("Planner: Trigger new spiral; level: %lu, x: %f, y: %f, height: %f, spacing: %f, size: %f ", plans.size(), plumeX, plumeY, plumeHeight, spacing, size);
             
@@ -172,7 +172,7 @@ std::shared_ptr<Plan> NestedSpiralVentPlanner::plan()
                 std::shared_ptr<Plan> plan(new Plan());
 
                 tf::Vector3 spiralLocation(plumeX, plumeY, plumeHeight);
-                std::vector<tf::Vector3> spiralPoints = makeSpiral(spiralLocation, plumeHeight, spacing, size);
+                std::vector<tf::Vector3> spiralPoints = makeSpiral(spiralLocation, 0, spacing, size);
                 std::shared_ptr<Action> newAction = actionFactory->createPointPathAction(vehicleName,
                                                                                         1.0,
                                                                                         0.349066,
@@ -378,7 +378,7 @@ bool NestedSpiralVentPlanner::isCompleted(std::shared_ptr<Plan> plan)
         if(!(action->getState() == Action::State::COMPLETED || 
              action->getState() == Action::State::FAILED))
         {
-            ROS_INFO("Planner: Not Completed");
+            ROS_INFO("Planner: Not Completed: %i", action->getState());
             return false;
         }
     }
@@ -429,12 +429,14 @@ std::vector<tf::Vector3> NestedSpiralVentPlanner::makeSpiral(tf::Vector3 startLo
         //Transect1 at transectLength
         location.setX(location.getX() + (cos(directions[currentDirection]) * spacing * lengthIndex));
         location.setY(location.getY() + (sin(directions[currentDirection]) * spacing * lengthIndex));
+        location.setZ(startLocation.getZ());
         spiral.push_back(location);
         currentDirection = (currentDirection + 1) % directions.size();
         
         //Transect2 at transectLength
         location.setX(location.getX() + (cos(directions[currentDirection]) * spacing * lengthIndex));
         location.setY(location.getY() + (sin(directions[currentDirection]) * spacing * lengthIndex));
+        location.setZ(startLocation.getZ());
         spiral.push_back(location);
         currentDirection = (currentDirection + 1) % directions.size();
         
@@ -444,6 +446,7 @@ std::vector<tf::Vector3> NestedSpiralVentPlanner::makeSpiral(tf::Vector3 startLo
     //Final transect to finish out the spiral, same transect length as the last segment
     location.setX(location.getX() + (cos(directions[currentDirection]) * spacing * (lengthIndex - 1)));
     location.setY(location.getY() + (sin(directions[currentDirection]) * spacing * (lengthIndex - 1)));
+    location.setZ(startLocation.getZ());
     spiral.push_back(location);
 
     return spiral;
@@ -479,6 +482,7 @@ std::vector<tf::Vector3> NestedSpiralVentPlanner::makeLawnmower(const tf::Vector
         //Transect1 at transectLength
         location.setX(location.getX() + (cos(directions[legIndex]) * distance[legIndex]));
         location.setY(location.getY() + (sin(directions[legIndex]) * distance[legIndex]));
+        location.setZ(startLocation.getZ());
         lawnmower.push_back(location);
 
         if(legIndex == 0 || legIndex == 2)

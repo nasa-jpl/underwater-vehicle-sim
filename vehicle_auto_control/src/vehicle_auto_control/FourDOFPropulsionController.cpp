@@ -1,4 +1,5 @@
 #include <math.h>
+#include <algorithm>
 
 #include "ros/ros.h"
 #include "tf/transform_listener.h"
@@ -21,7 +22,8 @@ FourDOFPropulsionController::FourDOFPropulsionController(ros::NodeHandle control
 	lateralError(5.0),
 	verticalError(1.0),
 	latestSonarDepth(1000),
-	minSeafloorDistance(5.0),
+	latestVehicleDepth(0),
+	minSeafloorDistance(10.0),
 	pointPathServer(controlNode, "point_path", boost::bind(&FourDOFPropulsionController::executePointPath, this, _1, &pointPathServer), false)
 {
 	velocityPub = vehicleNode.advertise<geometry_msgs::Twist>(propModuleName + "/command_velocity", 1000);
@@ -46,6 +48,7 @@ void FourDOFPropulsionController::getTargetVelocityCommand(const vehicle_auto_co
 void FourDOFPropulsionController::getVehicleData(const underwater_vehicle_sim::VehicleData data)
 {
 	latestSonarDepth = data.sonarDepth;
+	latestVehicleDepth = data.h;
 }
 
 void FourDOFPropulsionController::executePointPath(const vehicle_auto_control::PointPathGoalConstPtr& goal, 
@@ -86,14 +89,9 @@ void FourDOFPropulsionController::executePointPath(const vehicle_auto_control::P
 				if(isAtPoint(transform, pathPoints[currentPoint], !goal->yoyo))
 				{
 					currentPoint++;
-					if(currentPoint < pathPoints.size())
-					{
-					}
-					
 				}
 			}
 			
-
 			if(currentPoint >= pathPoints.size())
 			{
 				ROS_INFO("Auto Controller: Final Point Reached");
@@ -191,9 +189,11 @@ void FourDOFPropulsionController::transformPointToVehicleFrame(geometry_msgs::Po
 
 bool FourDOFPropulsionController::isAtPoint(tf::Transform& location, tf::Vector3& point, bool useZ)
 {
+	double targetVertPosition = std::max(point.getZ(), latestVehicleDepth - latestSonarDepth + minSeafloorDistance);
+
 	double xDifference = fabs(location.getOrigin().getX() - point.getX());
 	double yDifference = fabs(location.getOrigin().getY() - point.getY());
-	double zDifference = fabs(location.getOrigin().getZ() - point.getZ());
+	double zDifference = fabs(location.getOrigin().getZ() - targetVertPosition);
 
 	return (!useZ || zDifference <= verticalError) && sqrt(yDifference * yDifference + xDifference * xDifference) <= lateralError;
 }
@@ -204,7 +204,7 @@ double FourDOFPropulsionController::scaleHorizontalVelocity(tf::Transform& locat
 	double yDifference = fabs(location.getOrigin().getY() - point.getY());
 	double xyError = sqrt(yDifference * yDifference + xDifference * xDifference);
 
-	double horizontalScaleError = 50;
+	double horizontalScaleError = 100;
 
 	if(xyError >= horizontalScaleError)
 	{
@@ -216,13 +216,12 @@ double FourDOFPropulsionController::scaleHorizontalVelocity(tf::Transform& locat
 
 double FourDOFPropulsionController::scaleVerticalVelocity(tf::Transform& location, tf::Vector3& point)
 {
-
-	double zDifference = fabs(location.getOrigin().getZ() - point.getZ());
-
-	double verticalScaleError = 15;
+	double targetVertPosition = std::max(point.getZ(), latestVehicleDepth - latestSonarDepth + minSeafloorDistance);
+	double zDifference = fabs(location.getOrigin().getZ() - targetVertPosition);
+	double verticalErrorScale = 15;
 
 	int sign = 0;
-	if(point.getZ() >= location.getOrigin().getZ())
+	if(targetVertPosition >= location.getOrigin().getZ())
 	{
 		sign = 1;
 	}
@@ -231,17 +230,17 @@ double FourDOFPropulsionController::scaleVerticalVelocity(tf::Transform& locatio
 		sign = -1;
 	}
 
-	if(zDifference >= verticalScaleError)
+	if(zDifference >= verticalErrorScale)
 	{
 		return targetVertVelocity * sign;
 	}
 	
-	return targetVertVelocity * (zDifference / verticalScaleError) * sign;
+	return targetVertVelocity * (zDifference / verticalErrorScale) * sign;
 }
 
 double FourDOFPropulsionController::scaleRotationalVelocity(double angleError, double crossZ)
 {
-	double angleErrorScale = 0.523599; //30 degrees
+	double angleErrorScale = 0.785398; //30 degrees
 
 	if(angleError >= angleErrorScale)
 	{

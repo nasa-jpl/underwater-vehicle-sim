@@ -232,9 +232,14 @@ void PointPathSimActionExecutor::actionFeedback(std::shared_ptr<PointPathAction>
 
 	if(adjustedCurrentPoint != action->getCurrentPoint())
 	{
+		//Wait until we have reached point 1 before any replanning
+		ROS_INFO("PointPath Executor: Point Reached - Adjusted point: %i, Action Point: %i", adjustedCurrentPoint, action->getCurrentPoint());
+		if(action->getCurrentPoint() >= 1)
+		{
+			replanNextUpdate = true;
+		}
 		action->setCurrentPoint(adjustedCurrentPoint);
 		action->addPointReachedTime(ros::Time::now());
-		replanNextUpdate = true;
 	}
 	action->setGoingUp(feedback->goingUp);
 }

@@ -66,7 +66,8 @@ private:
 	std::vector<tf::Vector3> pointPath;
 
 	ros::Subscriber dataSub;
-	float latestSonarDepth;
+	double latestSonarDepth;
+	double latestVehicleDepth;
 
 	//YoYo Settings
 	double yoyoUpperDepth;

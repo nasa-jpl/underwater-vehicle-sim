@@ -51,9 +51,9 @@ bool PlanDispatcher::triggerReplan()
 		if(plan)
 		{
 			//replan because the current plan is finished 
-			if(currentAction == plan->getActions().size())
+			if(currentAction >= plan->getActions().size())
 			{
-				ROS_INFO("PlanDispatcher: At end of plan, replan");
+				ROS_INFO("PlanDispatcher: At end of plan, replan. Current Action: %i, Plan Size: %lu", currentAction, plan->getActions().size());
 				return true;
 			}
 			else
@@ -92,8 +92,7 @@ void PlanDispatcher::update()
 			action->monitor();
 
 		}
-		else if(action->getState() == Action::State::INTERRUPTED || //Move on to the next action
-				action->getState() == Action::State::COMPLETED ||
+		else if(action->getState() == Action::State::COMPLETED || //Move on to the next action
 				action->getState() == Action::State::FAILED)
 		{
 			currentAction++;

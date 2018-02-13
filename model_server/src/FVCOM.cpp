@@ -146,12 +146,22 @@ const ModelData FVCOM::getDataOutOfRange(float x, float y, float height, float t
 	interpolatePoint.h = height;
 
 	ModelData data;
-	if(!structure.xyInModel(interpolatePoint) || !structure.timeInModel(time))
+	if(!structure.xyInModel(interpolatePoint))
 	{
 		int node = structure.getClosestNode(interpolatePoint);
 		FVCOMStructure::Point nodePoint = structure.getNodePoint(node);
 
 		data.depth = nodePoint.h;
+		data.u = std::numeric_limits<double>::quiet_NaN();
+		data.v = std::numeric_limits<double>::quiet_NaN();
+
+		data.salt = std::numeric_limits<double>::quiet_NaN();
+		data.temp = std::numeric_limits<double>::quiet_NaN();
+		data.dye = 0;
+	}
+	else if(!structure.timeInModel(time))
+	{
+		data.depth = structure.getDepthAtPoint(interpolatePoint);
 		data.u = std::numeric_limits<double>::quiet_NaN();
 		data.v = std::numeric_limits<double>::quiet_NaN();
 
