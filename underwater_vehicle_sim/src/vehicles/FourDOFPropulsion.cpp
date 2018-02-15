@@ -71,6 +71,12 @@ void FourDOFPropulsion::move(ros::Time& lastTime, tf::Quaternion& rotation, tf::
 	srv.request.h = position.getZ();
 	srv.request.time = lastTime.toSec() / SECONDS_IN_DAY; //convert from seconds to days
 
+	//prevent position from leaving the top of the model
+	if(position.getZ() > 0)
+	{
+		position.setZ(0);
+	}
+
 	if(modelClient.exists())
 	{
 		bool success = modelClient.call(srv);

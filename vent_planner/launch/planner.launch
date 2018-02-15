@@ -1,8 +1,8 @@
 <launch>
  <rosparam param="vehicles/names">[v1]</rosparam>
 
- <rosparam param="vehicles/v1/start_x">4000</rosparam>
- <rosparam param="vehicles/v1/start_y">4000</rosparam>
+ <rosparam param="vehicles/v1/start_x">20000</rosparam>
+ <rosparam param="vehicles/v1/start_y">-24000</rosparam>
  <rosparam param="vehicles/v1/start_z">0</rosparam>
 
 
@@ -10,7 +10,7 @@
  <rosparam param="vehicles/v1/prop_v1/type">FourDOFPropulsion</rosparam>
  <rosparam param="vehicles/v1/moduleNames">[data_broadcaster]</rosparam>
  <rosparam param="vehicles/v1/data_broadcaster/type">DataBroadcaster</rosparam>
- <rosparam param="vehicles/v1/data_broadcaster/hertz">0.5</rosparam>
+ <rosparam param="vehicles/v1/data_broadcaster/hertz">1</rosparam>
 
  <param name="use_sim_time" value="true" />
  <rosparam param="speed_up_factor">300</rosparam>
@@ -28,7 +28,7 @@
 
  <node pkg="underwater_vehicle_sim" type="clock_server_node" name="clock_server"/>
  <node pkg="underwater_vehicle_sim" type="underwater_vehicle_sim_node" name="underwater_vehicle_sim" output="screen"/>
- <node pkg="model_server" type="model_server_node" name="model_server" output="screen" launch-prefix="valgrind --tool=callgrind --callgrind-out-file=/home/branch/proj/ocean_worlds/workspace/valgrind.log"/>
+ <node pkg="model_server" type="model_server_node" name="model_server" output="screen"/>
  <node pkg="data_server" type="data_server_node" name="data_server" output="screen"/>
  <node pkg="plume_detector" type="plume_detector_node" name="plume_detector" output="screen"/>
 

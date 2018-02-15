@@ -104,6 +104,9 @@ void FourDOFPropulsionController::executePointPath(const vehicle_auto_control::P
 			if(as->isPreemptRequested() || !ros::ok())
 			{
 				ROS_INFO("Auto Controller: Action Preempted");
+
+				//Stop vehicle
+				sendVelocityCommand(0,0,0,0);
 				as->setPreempted();
 				break;
 			}
@@ -168,6 +171,9 @@ void FourDOFPropulsionController::executePointPath(const vehicle_auto_control::P
 	if(currentPoint == pathPoints.size())
 	{
 		ROS_INFO("Auto Controller: Action Done, Succeeded");
+		
+		//Stop vehicle
+		sendVelocityCommand(0,0,0,0);
 		result.totalPoints = currentPoint;
 		as->setSucceeded(result);
 	}
