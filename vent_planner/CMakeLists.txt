@@ -128,6 +128,9 @@ include_directories(
    src/vent_planner/PointPathSimActionExecutor.cpp
    src/vent_planner/SimVentActionFactory.cpp
    src/vent_planner/NestedSpiralVentPlanner.cpp
+   src/vent_planner/NestedBinVentPlanner.cpp
+   src/vent_planner/DataBin.cpp
+   src/vent_planner/DataBins.cpp
  )
 
 ## Add cmake target dependencies of the library
@@ -208,6 +211,9 @@ if (CATKIN_ENABLE_TESTING)
 
  catkin_add_gtest(pattern_generation_test src/tests/vent_planner/PatternGeneration_test.cpp)
  target_link_libraries(pattern_generation_test vent_planner ${catkin_LIBRARIES})
+
+ catkin_add_gtest(data_bins_test src/tests/vent_planner/DataBins_test.cpp)
+ target_link_libraries(data_bins_test vent_planner ${catkin_LIBRARIES})
 
  add_rostest_gtest(yoyo_point_path_executor_test tests/vent_planner/YoYoPointPathExecutor.test src/tests/vent_planner/YoYoPointPathExecutor_test.cpp)
 
