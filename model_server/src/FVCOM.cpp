@@ -9,8 +9,8 @@
 FVCOM::FVCOM() {}
 
 FVCOM::FVCOM(std::string filename) :
-	chunkCache(LRUCache<unsigned int, FVCOMChunk>(10)),
-	structure(FVCOMStructure(filename, 500, 500, 10, 10))
+	chunkCache(LRUCache<unsigned int, FVCOMChunk>(100)),
+	structure(FVCOMStructure(filename, 2000, 2000, 100, 10))
 {}
 
 FVCOM::FVCOM(std::string filename, unsigned int xChunkSize, unsigned int yChunkSize, unsigned int siglayChunkSize, unsigned int timeChunkSize, unsigned int cacheSize) :
@@ -69,10 +69,9 @@ ModelData FVCOM::interpolate(FVCOMStructure::Point interpolatePoint, float time)
 
 
 	//Get u,v. Not currently interpolated
-	unsigned int triangle = structure.getContainingTriangle(interpolatePoint);
-	unsigned int siglayTriangleIndex = structure.getClosestTriangleSiglay(interpolatePoint);
+	unsigned int siglayTriangleIndex = structure.getClosestTriangleSiglay(interpolatePoint, containingTriangle);
 	unsigned int closestTimeIndex = structure.getClosestTime(time);
-	const FVCOMChunk::TriangleData& triangleData = getTriangleData(triangle, siglayTriangleIndex, closestTimeIndex);
+	const FVCOMChunk::TriangleData& triangleData = getTriangleData(containingTriangle, siglayTriangleIndex, closestTimeIndex);
 	returnData.u = triangleData.u;
 	returnData.v = triangleData.v;
 

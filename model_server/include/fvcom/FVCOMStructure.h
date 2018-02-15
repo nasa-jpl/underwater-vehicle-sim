@@ -150,12 +150,13 @@ public:
 	 * @return index for the closest siglay
 	 */
 	int getClosestTriangleSiglay(Point testPoint) const;
-
+	int getClosestTriangleSiglay(Point testPoint, int triangleIndex) const;
 	/**
 	 * Finds the closest node to a point
 	 * @param testPoint Point to get the closest node for
 	 */
 	int getClosestNode(Point testPoint) const;
+	int getContainingTriangle(Point testPoint, int closestNode) const;
 
 	/**
 	 * Gets the siglay that is closest to the given location
@@ -199,7 +200,7 @@ public:
 	 * @param p1 Point 1 for which  to get the distance
 	 */
 	float distance(Point p0, Point p1) const;
-
+	float distanceSquared(Point p0, Point p1) const;
 	/**
 	 * Gets the chunk that contains the (node, sigma, time) tuple
 	 * @param node Node to find the chunk for

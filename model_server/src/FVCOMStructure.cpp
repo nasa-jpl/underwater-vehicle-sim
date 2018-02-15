@@ -337,10 +337,8 @@ bool FVCOMStructure::pointInTriangle(Point testPoint, int triangle) const
 	return alpha >= 0 && beta >= 0 && gamma >= 0;
 }
 
-int FVCOMStructure::getContainingTriangle(Point testPoint) const
+int FVCOMStructure::getContainingTriangle(Point testPoint, int closestNode) const
 {
-	//Get the closest node to start the search for the containing triangle
-	int closestNode = getClosestNode(testPoint);
 
 	//Search all triangles that are connected to the closest node
 	for(int i = 0; i < nodeToTriangles[closestNode].size(); i++)
@@ -365,6 +363,14 @@ int FVCOMStructure::getContainingTriangle(Point testPoint) const
 	throw std::out_of_range("FVCOM request outside of model extent");
 }
 
+int FVCOMStructure::getContainingTriangle(Point testPoint) const
+{
+	//Get the closest node to start the search for the containing triangle
+	int closestNode = getClosestNode(testPoint);
+
+	return getContainingTriangle(testPoint, closestNode);
+}
+
 const std::vector<int>& FVCOMStructure::getNodesInTriangle(int triangle) const
 {
 	return triangleToNodes[triangle];
@@ -383,9 +389,9 @@ int FVCOMStructure::getClosestNode(Point testPoint) const
 	for(int i = 0; i < nodes.size(); i++)
 	{
 
-		if(distance(testPoint, nodes[i]) < closestDistance)
+		if(distanceSquared(testPoint, nodes[i]) < closestDistance)
 		{
-			closestDistance = distance(testPoint, nodes[i]);
+			closestDistance = distanceSquared(testPoint, nodes[i]);
 			node = i;
 		}
 	}
@@ -476,6 +482,24 @@ FVCOMStructure::Plane FVCOMStructure::getTriangleSiglayPlane(int triangle, unsig
 	return plane;
 }
 
+int FVCOMStructure::getClosestTriangleSiglay(Point testPoint, int triangleIndex) const
+{
+	int closestSiglay = -1;
+	float closest = std::numeric_limits<float>::max();
+
+	for(int i = 0; i < triangleSiglay[triangleIndex].size(); i++)
+	{
+		if(std::abs((triangleSiglay[triangleIndex][i] * triangles[triangleIndex].h) - testPoint.h) < closest)
+		{
+			closest = std::abs((triangleSiglay[triangleIndex][i] * triangles[triangleIndex].h) - testPoint.h);
+			closestSiglay = i;
+		}
+	}
+
+	return closestSiglay;
+
+}
+
 int FVCOMStructure::getClosestTriangleSiglay(Point testPoint) const
 {
 	int triangleIndex = getContainingTriangle(testPoint);
@@ -498,6 +522,11 @@ int FVCOMStructure::getClosestTriangleSiglay(Point testPoint) const
 float FVCOMStructure::distance(Point p0, Point p1) const
 {
 	return std::sqrt( (p0.x - p1.x)*(p0.x - p1.x) + (p0.y - p1.y)*(p0.y - p1.y) );
+}
+
+float FVCOMStructure::distanceSquared(Point p0, Point p1) const
+{
+	return (p0.x - p1.x)*(p0.x - p1.x) + (p0.y - p1.y)*(p0.y - p1.y);
 }
 
 const FVCOMStructure::Point& FVCOMStructure::getNodePoint(int node) const
