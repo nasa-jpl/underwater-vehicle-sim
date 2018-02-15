@@ -26,10 +26,11 @@ ModelData FVCOM::interpolate(FVCOMStructure::Point interpolatePoint, float time)
 	int siglay1Index, siglay2Index;
 	double siglay1Percent;
 
-
+	int containingTriangle = structure.getContainingTriangle(interpolatePoint);
+	
 	//Get indicies and ratio of time and siglay
 	structure.timeInterpolation(time, time1Index, time2Index, time1Percent);
-	structure.siglayInterpolation(interpolatePoint, siglay1Index, siglay2Index, siglay1Percent);
+	structure.siglayInterpolation(interpolatePoint, siglay1Index, siglay2Index, siglay1Percent, containingTriangle);
 
 
 	//Interpolate X, Y
@@ -38,7 +39,7 @@ ModelData FVCOM::interpolate(FVCOMStructure::Point interpolatePoint, float time)
 	FVCOMChunk::NodeData siglay2Time1Data;
 	FVCOMChunk::NodeData siglay2Time2Data;
 
-	int containingTriangle = structure.getContainingTriangle(interpolatePoint);
+	
 
 	siglay1Time1Data = barycentricInterpolation(interpolatePoint, containingTriangle, siglay1Index, time1Index);
 	siglay1Time2Data = barycentricInterpolation(interpolatePoint, containingTriangle, siglay1Index, time2Index);

@@ -18,7 +18,8 @@ FVCOMStructure::FVCOMStructure(const std::string filename, int xChunkSize, int y
 	xChunkSize(xChunkSize),
 	yChunkSize(yChunkSize),
 	siglayChunkSize(siglayChunkSize),
-	timeChunkSize(timeChunkSize)
+	timeChunkSize(timeChunkSize),
+	lastContainingTriangle(0)
 {
 	loadStructureData(filename);
 
@@ -337,8 +338,12 @@ bool FVCOMStructure::pointInTriangle(Point testPoint, int triangle) const
 	return alpha >= 0 && beta >= 0 && gamma >= 0;
 }
 
-int FVCOMStructure::getContainingTriangle(Point testPoint, int closestNode) const
+int FVCOMStructure::getContainingTriangle(Point testPoint, int closestNode)
 {
+	if(pointInTriangle(testPoint, lastContainingTriangle))
+	{
+		return lastContainingTriangle;
+	}
 
 	//Search all triangles that are connected to the closest node
 	for(int i = 0; i < nodeToTriangles[closestNode].size(); i++)
@@ -346,6 +351,7 @@ int FVCOMStructure::getContainingTriangle(Point testPoint, int closestNode) cons
 		//return the triangle for which the point is inside
 		if(pointInTriangle(testPoint, nodeToTriangles[closestNode][i]))
 		{
+			lastContainingTriangle = nodeToTriangles[closestNode][i];
 			return nodeToTriangles[closestNode][i];
 		}
 	}
@@ -355,6 +361,7 @@ int FVCOMStructure::getContainingTriangle(Point testPoint, int closestNode) cons
 	{
 		if(pointInTriangle(testPoint, i))
 		{
+			lastContainingTriangle = i;
 			return i;
 		}
 	}
@@ -363,8 +370,13 @@ int FVCOMStructure::getContainingTriangle(Point testPoint, int closestNode) cons
 	throw std::out_of_range("FVCOM request outside of model extent");
 }
 
-int FVCOMStructure::getContainingTriangle(Point testPoint) const
+int FVCOMStructure::getContainingTriangle(Point testPoint)
 {
+	if(pointInTriangle(testPoint, lastContainingTriangle))
+	{
+		return lastContainingTriangle;
+	}
+
 	//Get the closest node to start the search for the containing triangle
 	int closestNode = getClosestNode(testPoint);
 
@@ -482,7 +494,7 @@ FVCOMStructure::Plane FVCOMStructure::getTriangleSiglayPlane(int triangle, unsig
 	return plane;
 }
 
-int FVCOMStructure::getClosestTriangleSiglay(Point testPoint, int triangleIndex) const
+int FVCOMStructure::getClosestTriangleSiglay(Point testPoint, int triangleIndex)
 {
 	int closestSiglay = -1;
 	float closest = std::numeric_limits<float>::max();
@@ -500,7 +512,7 @@ int FVCOMStructure::getClosestTriangleSiglay(Point testPoint, int triangleIndex)
 
 }
 
-int FVCOMStructure::getClosestTriangleSiglay(Point testPoint) const
+int FVCOMStructure::getClosestTriangleSiglay(Point testPoint)
 {
 	int triangleIndex = getContainingTriangle(testPoint);
 	int closestSiglay = -1;
@@ -665,11 +677,15 @@ void FVCOMStructure::timeInterpolation(float time, int& time1Index, int& time2In
 	}
 }
 
-void FVCOMStructure::siglayInterpolation(FVCOMStructure::Point& interpolatePoint, int& siglay1Index, int& siglay2Index, double& siglay1Percent) const
+
+void FVCOMStructure::siglayInterpolation(FVCOMStructure::Point& interpolatePoint, int& siglay1Index, int& siglay2Index, double& siglay1Percent)
 {
 	int containingTriangle = getContainingTriangle(interpolatePoint);
+	siglayInterpolation(interpolatePoint, siglay1Index, siglay2Index, siglay1Percent, containingTriangle);
+}
 
-
+void FVCOMStructure::siglayInterpolation(FVCOMStructure::Point& interpolatePoint, int& siglay1Index, int& siglay2Index, double& siglay1Percent, int containingTriangle)
+{
 	siglay1Index = siglay2Index = -1;
 
 	double prevDot = 0;
@@ -736,7 +752,7 @@ void FVCOMStructure::siglayInterpolation(FVCOMStructure::Point& interpolatePoint
 	
 }
 
-float FVCOMStructure::getDepthAtPoint(FVCOMStructure::Point& interpolatePoint, int containingTriangle) const
+float FVCOMStructure::getDepthAtPoint(FVCOMStructure::Point& interpolatePoint, int containingTriangle)
 {
 	const std::vector<int>& surroundingNodes = getNodesInTriangle(containingTriangle);
 
@@ -749,7 +765,7 @@ float FVCOMStructure::getDepthAtPoint(FVCOMStructure::Point& interpolatePoint, i
 	return groundPlane.getHeight(interpolatePoint);
 }
 
-float FVCOMStructure::getDepthAtPoint(FVCOMStructure::Point& interpolatePoint) const
+float FVCOMStructure::getDepthAtPoint(FVCOMStructure::Point& interpolatePoint)
 {
 	int containingTriangle = getContainingTriangle(interpolatePoint);
 
@@ -764,7 +780,7 @@ float FVCOMStructure::getDepthAtPoint(FVCOMStructure::Point& interpolatePoint) c
 	return groundPlane.getHeight(interpolatePoint);
 }
 
-const bool FVCOMStructure::pointInModel(Point p, float time) const
+const bool FVCOMStructure::pointInModel(Point p, float time)
 {
 	int containingTriangle = 0;
 	try
@@ -789,7 +805,7 @@ const bool FVCOMStructure::timeInModel(float time) const
 	return time >= times[0] && time <= times[times.size() - 1];
 }
 
-const bool FVCOMStructure::depthInModel(Point p) const
+const bool FVCOMStructure::depthInModel(Point p)
 {
 	int containingTriangle = 0;
 	try

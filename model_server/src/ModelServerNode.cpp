@@ -17,6 +17,7 @@ std::unique_ptr<ModelInterface> model;
 bool getModelData(model_server::GetModelData::Request &req,
 				  model_server::GetModelData::Response &res)
 {   
+//    ROS_INFO("CALL MODEL DATA: %f %f %f %f", req.x, req.y, req.h, req.time);
     try
     {
         ModelData data = model->getData(req.x, req.y, req.h, req.time);

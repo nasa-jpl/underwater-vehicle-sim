@@ -125,8 +125,8 @@ public:
 	 * Finds the triangle which contains the specified point
 	 * @param testPoint Point to get containing triangle for
 	 */
-	int getContainingTriangle(Point testPoint) const;
-
+	int getContainingTriangle(Point testPoint);
+	int getContainingTriangle(Point testPoint, int closestNode);
 	/**
 	 * Gets the nodes that form the specified triangle
 	 * @param triangle Triangle to get the nodes for
@@ -149,14 +149,14 @@ public:
 	 * @param testPoint location to find the closest siglay for
 	 * @return index for the closest siglay
 	 */
-	int getClosestTriangleSiglay(Point testPoint) const;
-	int getClosestTriangleSiglay(Point testPoint, int triangleIndex) const;
+	int getClosestTriangleSiglay(Point testPoint);
+	int getClosestTriangleSiglay(Point testPoint, int triangleIndex);
 	/**
 	 * Finds the closest node to a point
 	 * @param testPoint Point to get the closest node for
 	 */
 	int getClosestNode(Point testPoint) const;
-	int getContainingTriangle(Point testPoint, int closestNode) const;
+	
 
 	/**
 	 * Gets the siglay that is closest to the given location
@@ -224,9 +224,9 @@ public:
 
 	const std::vector<ModelFile> getModelFiles() const;
 
-	const bool pointInModel(Point p, float time) const;
+	const bool pointInModel(Point p, float time);
 	const bool timeInModel(float time) const;
-	const bool depthInModel(Point p) const;
+	const bool depthInModel(Point p);
 	const bool xyInModel(Point p) const;
 
 	const int getNumSiglays() const;
@@ -247,7 +247,9 @@ public:
 	 * @param siglay2Index Output for the second siglay index for the interpolation
 	 * @param siglay1Percent Output for the percent for siglay1Index for interpolation
 	 */
-	void siglayInterpolation(FVCOMStructure::Point& interpolatePoint, int& siglay1Index, int& siglay2Index, double& siglay1Percent) const;
+	void siglayInterpolation(FVCOMStructure::Point& interpolatePoint, int& siglay1Index, int& siglay2Index, double& siglay1Percent);
+	void siglayInterpolation(FVCOMStructure::Point& interpolatePoint, int& siglay1Index, int& siglay2Index, double& siglay1Percent, int containingTriangle);
+
 
 	/**
 	* Gets the depth at a specific point.  Takes in a containingTriangle if avalible to reduce computation time.
@@ -255,14 +257,14 @@ public:
 	*@param containingTriangle Containing triangle for this point
 	*@param Depth at this point. Note this will be a positive number
 	**/
-	float getDepthAtPoint(FVCOMStructure::Point& interpolatePoint, int containingTriangle) const;
+	float getDepthAtPoint(FVCOMStructure::Point& interpolatePoint, int containingTriangle);
 
 	/**
 	* Gets the depth at a specific point.
 	* @param interpolatePoint Point to get depth at
 	* @param Depth at this point. Note this will be a positive number
 	**/
-	float getDepthAtPoint(FVCOMStructure::Point& interpolatePoint) const;
+	float getDepthAtPoint(FVCOMStructure::Point& interpolatePoint);
 
 private:
 
@@ -373,6 +375,9 @@ private:
 	unsigned int timeDimChunks;
 	unsigned int yDimChunks;
 	unsigned int xDimChunks;
+
+	//Used in optimizations
+	unsigned int lastContainingTriangle;
 };
 
 #endif

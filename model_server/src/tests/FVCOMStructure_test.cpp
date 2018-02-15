@@ -1,7 +1,7 @@
 #include "fvcom/FVCOMStructure.h"
 #include <gtest/gtest.h>
 
-const FVCOMStructure structure("test_data/box_plume_split", 10, 10, 10, 10);
+FVCOMStructure structure("test_data/box_plume_split", 10, 10, 10, 10);
 FVCOMStructure structureAxial("test_data/axial_data_test", 1000, 1000, 10, 10);
 
 TEST(FVCOMStructureTest, InterpolateTime)
