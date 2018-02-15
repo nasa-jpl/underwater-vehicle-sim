@@ -601,7 +601,6 @@ FVCOMStructure::ChunkInfo FVCOMStructure::getChunkForNode(int node, int siglay, 
 	unsigned int timeSize = times.size();
 	chunk.siglaySize = std::min(siglayChunkSize, siglayDim - chunk.siglayStart);
 	chunk.timeSize = std::min(timeChunkSize, timeSize - chunk.timeStart);
-//	ROS_INFO("GET CHUNK: chunk_size: %i timeSize: %i timeStart: %i", timeChunkSize, timeSize, chunk.timeStart);
 
 	return chunk;
 }
@@ -652,8 +651,10 @@ FVCOMStructure::ChunkInfo FVCOMStructure::getChunkForTriangle(int triangle, int 
 
 	chunk.xSize = xChunkSize;
 	chunk.ySize = yChunkSize;
-	chunk.siglaySize = siglayChunkSize;
-	chunk.timeSize = timeChunkSize;
+
+	unsigned int timeSize = times.size();
+	chunk.siglaySize = std::min(siglayChunkSize, siglayDim - chunk.siglayStart);
+	chunk.timeSize = std::min(timeChunkSize, timeSize - chunk.timeStart);
 
 	return chunk;
 }

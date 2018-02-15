@@ -8,7 +8,17 @@ int main(int argc, char **argv)
     ros::init(argc, argv, "underwater_vehicle_sim");
     ros::NodeHandle nh;
 
-    ros::Rate r(100); //Hz at which to run the sim loop
+    double hertz;
+    if(!nh.getParam("underwater_vehicle_sim/hertz", hertz))
+    {
+        ROS_FATAL("Parameter \"underwater_vehicle_sim/hertz\" not present in the parameter server.");
+        exit(1);
+    }
+    
+    nh.getParam("underwater_vehicle_sim/hertz", hertz);
+
+    ros::Rate r(hertz); //Hz at which to run the sim loop
+    
 
     UnderwaterVehicleSim sim(nh);
 

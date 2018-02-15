@@ -1,0 +1,7 @@
+<launch>
+ <rosparam param="model_type">fvcom</rosparam>
+ <rosparam param="model/fvcom_directory" subst_value="True">/home/branch/proj/ocean_worlds/models/axial_output</rosparam>
+
+ <node pkg="model_server" type="model_server_node" name="model_server" output="screen"/>
+
+</launch>

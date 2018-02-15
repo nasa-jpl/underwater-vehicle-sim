@@ -219,11 +219,11 @@ bool NestedSpiralVentPlanner::triggerNewSpiral(const double plumeStrength)
     double plumeStdDev;
     plumeDataSummary(plumeAverage, plumeMax, plumeStdDev);
 
-    if(plumeStdDev == 0 && plumeStrength >= 0.01)
+    if(plumeStdDev == 0 && plumeStrength >= 0.0001)
     {
         return true;
     }
-    else if(plumeStdDev > 0 && plumeStrength > plumeAverage + plumeStdDev * triggerSigma)
+    else if(plumeStrength >= 0.0001 && plumeStdDev > 0 && plumeStrength > plumeAverage + plumeStdDev * triggerSigma)
     {
         return true;
     }

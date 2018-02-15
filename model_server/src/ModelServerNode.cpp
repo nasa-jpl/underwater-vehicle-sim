@@ -30,7 +30,7 @@ bool getModelData(model_server::GetModelData::Request &req,
     }
     catch(const std::out_of_range& e)
     {
-        ROS_INFO("ModelServer: Out of Range");
+        ROS_INFO("ModelServer: Out of Range: %f %f %f %f", req.x, req.y, req.h, req.time);
         ModelData data = model->getDataOutOfRange(req.x, req.y, req.h, req.time);
         res.u = data.u;
         res.v = data.v;
@@ -39,6 +39,16 @@ bool getModelData(model_server::GetModelData::Request &req,
         res.salt = data.salt;
         res.depth = data.depth;
     }
+    /*catch (const std::exception& ex) 
+    {
+        ROS_INFO("CAUGHT EXCEPTION: %s", ex.what());
+        ROS_INFO("CALL: %f %f %f %f", req.x, req.y, req.h, req.time);
+        throw ex;
+    } 
+    catch (...) 
+    {
+        ROS_INFO("CAUGHT UNKNOWN EXCEPTION: %f %f %f %f", req.x, req.y, req.h, req.time);
+    }*/
     
 	return true;
 }

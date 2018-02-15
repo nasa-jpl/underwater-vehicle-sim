@@ -1,4 +1,7 @@
 <launch>
+
+ <rosparam param="underwater_vehicle_sim/hertz">10</rosparam>
+
  <rosparam param="vehicles/names">[v1]</rosparam>
 
  <rosparam param="vehicles/v1/start_x">20000</rosparam>
@@ -13,7 +16,7 @@
  <rosparam param="vehicles/v1/data_broadcaster/hertz">1</rosparam>
 
  <param name="use_sim_time" value="true" />
- <rosparam param="speed_up_factor">300</rosparam>
+ <rosparam param="speed_up_factor">400</rosparam>
  <rosparam param="sim_start_time">1728000</rosparam>
 
  <rosparam param="model_type">fvcom</rosparam>
@@ -24,7 +27,7 @@
  <rosparam param="planner/hertz">0.1</rosparam>
  <rosparam param="planner/inital_spacing">3000</rosparam>
  <rosparam param="planner/final_spacing">750</rosparam>
- <rosparam param="planner/trigger_sigma">2</rosparam>
+ <rosparam param="planner/trigger_sigma">3</rosparam>
 
  <node pkg="underwater_vehicle_sim" type="clock_server_node" name="clock_server"/>
  <node pkg="underwater_vehicle_sim" type="underwater_vehicle_sim_node" name="underwater_vehicle_sim" output="screen"/>
