@@ -13,15 +13,15 @@
  <rosparam param="vehicles/v1/data_broadcaster/hertz">0.5</rosparam>
 
  <param name="use_sim_time" value="true" />
- <rosparam param="speed_up_factor">100</rosparam>
+ <rosparam param="speed_up_factor">300</rosparam>
  <rosparam param="sim_start_time">1728000</rosparam>
 
  <rosparam param="model_type">fvcom</rosparam>
  <rosparam param="model/fvcom_directory" subst_value="True">/home/branch/proj/ocean_worlds/models/axial_output</rosparam>
 
- <rosparam param="vehicle_controller/hertz">1</rosparam>
+ <rosparam param="vehicle_controller/hertz">0.5</rosparam>
 
- <rosparam param="planner/hertz">0.5</rosparam>
+ <rosparam param="planner/hertz">0.1</rosparam>
  <rosparam param="planner/inital_spacing">3000</rosparam>
  <rosparam param="planner/final_spacing">750</rosparam>
  <rosparam param="planner/trigger_sigma">2</rosparam>

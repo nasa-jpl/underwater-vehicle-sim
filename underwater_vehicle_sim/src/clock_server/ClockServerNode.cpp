@@ -1,9 +1,16 @@
 #include "ros/ros.h"
 #include "rosgraph_msgs/Clock.h"
-
+#include "std_msgs/Float64.h"
 #include <chrono>
 #include <iostream>
 #include <thread>
+
+float speedUpFactor, simStartTime;
+
+void getSpeedUpFactor(const std_msgs::Float64 factor)
+{
+    speedUpFactor = fabs(factor.data);
+}
 
 int main(int argc, char **argv)
 {
@@ -11,13 +18,13 @@ int main(int argc, char **argv)
     ros::NodeHandle n;
 
     ros::Publisher clockPub = n.advertise<rosgraph_msgs::Clock>("/clock", 1000);
-
+    ros::Subscriber sub = n.subscribe("clock_server/speed_up_factor", 1, &getSpeedUpFactor);
 
     auto interval = std::chrono::milliseconds(10);
 	auto nodeStart = std::chrono::steady_clock::now();
 
 
-	float speedUpFactor, simStartTime;
+	
 
 	n.param<float>("speed_up_factor", speedUpFactor, 1);
 	n.param<float>("sim_start_time", simStartTime, 0);
