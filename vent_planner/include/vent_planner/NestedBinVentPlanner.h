@@ -9,7 +9,12 @@
 #include "tf/LinearMath/Vector3.h"
 
 #include "planner_framework/Planner.h"
+
 #include "vent_planner/VentActionFactory.h"
+
+#include "vent_planner/DataBin.h"
+#include "vent_planner/DataBins.h"
+
 
 #include "data_server/DataServerEntry.h"
 
@@ -59,11 +64,12 @@ private:
 private:
     std::unique_ptr<VentActionFactory> actionFactory;
 
-    std::vector<std::vector<PlumeData>> plumeData;
-
     std::stack<std::shared_ptr<Plan>> plans;
-    std::stack<unsigned long> currentPlumeData;
+
+    DataBin spiralData;
+    std::unique_ptr<DataBins> dataBins;
     double plumeHeight;
+    unsigned int currentInitalLawnmower;
 
     ros::Time lastPlan;
     bool initalPlan;
