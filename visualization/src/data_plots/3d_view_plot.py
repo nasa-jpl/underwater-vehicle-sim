@@ -5,12 +5,13 @@ from mpl_toolkits.mplot3d import Axes3D
 import file_util
 
 def main(argv):
-    if len(argv) != 3:
+    if len(argv) != 4:
         print("Invalid Arguments")
         sys.exit()
 
     filename = argv[1]
     measurement = argv[2]
+    dataRate = int(argv[3])
 
     data = file_util.load(filename)
     if data is None:
@@ -20,7 +21,7 @@ def main(argv):
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
 
-    ax.scatter(data["x"], data["y"], data["h"], c=data[measurement], linewidth=0, cmap="plasma")
+    ax.scatter(data["x"][::dataRate], data["y"][::dataRate], data["h"][::dataRate], c=data[measurement][::dataRate], linewidth=0, cmap="plasma")
 
     xLim = ax.get_xlim()
     yLim = ax.get_ylim()
