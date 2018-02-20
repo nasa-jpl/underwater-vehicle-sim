@@ -21,12 +21,14 @@ public:
 
     const std::vector<PlumeData>& getData();
     const double getMaxVal();
+    const tf::Vector3& getMaxValLocation();
     const double getAverage();
     const double getHeightOfPlume();
 
     const tf::Vector3& getCenterLocation();
     const unsigned int getBinLevel();
 
+    void clear();
 private:
     std::vector<PlumeData> data;
     std::unique_ptr<DataBins> nestedBins;
@@ -34,6 +36,7 @@ private:
     const double size;
     const unsigned int binLevel;
     double maxVal;
+    tf::Vector3 maxValLocation;
     double average;
 };
 

@@ -10,6 +10,7 @@ DataBin::DataBin(tf::Vector3 centerLocation, const double size, const unsigned i
     centerLocation(centerLocation),
     size(size),
     maxVal(-std::numeric_limits<double>::max()),
+    maxValLocation(0,0,0),
     average(0),
     binLevel(binLevel)
 {}
@@ -21,6 +22,9 @@ void DataBin::addData(const PlumeData& newData)
     if(newData.val > maxVal)
     {
         maxVal = newData.val;
+        maxValLocation.setX(newData.x);
+        maxValLocation.setY(newData.y);
+        maxValLocation.setZ(newData.h);
     }
 
 }
@@ -45,9 +49,21 @@ const double DataBin::getMaxVal()
     return maxVal;
 }
 
+const tf::Vector3& DataBin::getMaxValLocation()
+{
+    return maxValLocation;
+}
+
 const double DataBin::getAverage()
 {
     return average;
+}
+
+void DataBin::clear()
+{
+    data.clear();
+    average = 0;
+    maxVal = 0;
 }
 
 const double DataBin::getHeightOfPlume()
