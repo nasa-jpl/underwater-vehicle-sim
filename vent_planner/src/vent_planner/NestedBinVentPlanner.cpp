@@ -47,6 +47,7 @@ NestedBinVentPlanner::NestedBinVentPlanner(ros::NodeHandle& nh, std::unique_ptr<
         exit(1);
     }
 
+    nh.getParam("planner/spiral_spacing", spiralSpacing);
     nh.getParam("planner/inital_spacing", initalSpacing);
     nh.getParam("planner/final_spacing", finalSpacing);
 }
@@ -129,22 +130,90 @@ std::shared_ptr<Plan> NestedBinVentPlanner::plan()
                spiralData.addData(newPlumeData);
             }
 
-            if(spiralData.getMaxVal() >= 0.01)
+            if(spiralData.getMaxVal() >= 0.5)
             {
+                tf::Vector3 maxLoc = spiralData.getMaxValLocation();
+                double plumeHeight = spiralData.getHeightOfPlume();
+
+                //Create bins
                 if(!dataBins)
                 {
                     dataBins = std::unique_ptr<DataBins>(new DataBins(spiralData.getMaxValLocation(),
                                                                       150000, 
-                                                                      3000));
+                                                                      initalSpacing));
                 }
 
-                currentInitalLawnmower = 0;
-                //OPTONS:
+                ROS_INFO("Planner: Start Lawnmowers");
+                std::shared_ptr<Plan> plan(new Plan());
                 
-                //Create special action to dynamically adjust lawnmower if needed
-                ////plan can be created and forgotten about, will auto track where in the plan we are
-                ////requires multiple calls to get plume data
-                ////requires a new auto planning controller for the new actions
+                tf::Vector3 lawnmower0Start(maxLoc.getX() + initalSpacing / 2, maxLoc.getY() + initalSpacing / 2, plumeHeight);
+                tf::Vector3 lawnmower1Start(maxLoc.getX() - initalSpacing / 2, maxLoc.getY() + initalSpacing / 2, plumeHeight);
+                tf::Vector3 lawnmower2Start(maxLoc.getX() - initalSpacing / 2, maxLoc.getY() - initalSpacing / 2, plumeHeight);
+                tf::Vector3 lawnmower3Start(maxLoc.getX() + initalSpacing / 2, maxLoc.getY() - initalSpacing / 2, plumeHeight);
+
+                std::shared_ptr<Action> lawnmower0 = actionFactory->createDynamicLawnmowerAction(vehicleName,
+                                                                                                 1.0,
+                                                                                                 0.349066,
+                                                                                                 0.523599, //30 deg
+                                                                                                 lawnmower0Start,
+                                                                                                 0,
+                                                                                                 M_PI / 2,
+                                                                                                 initalSpacing,
+                                                                                                 plumeHeight,
+                                                                                                 3,
+                                                                                                 0.5,
+                                                                                                 2);
+
+                std::shared_ptr<Action> lawnmower1 = actionFactory->createDynamicLawnmowerAction(vehicleName,
+                                                                                                 1.0,
+                                                                                                 0.349066,
+                                                                                                 0.523599, //30 deg
+                                                                                                 lawnmower1Start,
+                                                                                                 M_PI,
+                                                                                                 M_PI / 2,
+                                                                                                 initalSpacing,
+                                                                                                 plumeHeight,
+                                                                                                 3,
+                                                                                                 0.5,
+                                                                                                 2);
+
+                std::shared_ptr<Action> lawnmower2 = actionFactory->createDynamicLawnmowerAction(vehicleName,
+                                                                                                 1.0,
+                                                                                                 0.349066,
+                                                                                                 0.523599, //30 deg
+                                                                                                 lawnmower2Start,
+                                                                                                 M_PI,
+                                                                                                 M_PI * 3 / 2,
+                                                                                                 initalSpacing,
+                                                                                                 plumeHeight,
+                                                                                                 3,
+                                                                                                 0.5,
+                                                                                                 2);
+
+                std::shared_ptr<Action> lawnmower3 = actionFactory->createDynamicLawnmowerAction(vehicleName,
+                                                                                                 1.0,
+                                                                                                 0.349066,
+                                                                                                 0.523599, //30 deg
+                                                                                                 lawnmower3Start,
+                                                                                                 0,
+                                                                                                 M_PI * 3 / 2,
+                                                                                                 initalSpacing,
+                                                                                                 plumeHeight,
+                                                                                                 3,
+                                                                                                 0.5,
+                                                                                                 2);
+
+                plan->addAction(lawnmower0);
+                plan->addAction(lawnmower1);
+                plan->addAction(lawnmower2);
+                plan->addAction(lawnmower3);
+
+                //Add new plan to stack of plans
+                plans.push(plan);
+           
+                lastPlan = ros::Time::now();
+
+                return plan;
             }
         }
         else if(plans.size() >= 1) //Add data to dataBins if we are no longer on the first spiral

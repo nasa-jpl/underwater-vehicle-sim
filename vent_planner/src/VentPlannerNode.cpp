@@ -6,7 +6,7 @@
 
 #include "vent_planner/VentActionFactory.h"
 #include "vent_planner/SimVentActionFactory.h"
-#include "vent_planner/NestedSpiralVentPlanner.h"
+#include "vent_planner/NestedBinVentPlanner.h"
 
 int main(int argc, char **argv)
 {
@@ -33,7 +33,7 @@ int main(int argc, char **argv)
     {
         std::unique_ptr<PlanDispatcher> dispatcher(new PlanDispatcher());
         std::unique_ptr<VentActionFactory> factory(new SimVentActionFactory(nh));
-        std::unique_ptr<Planner> planner(new NestedSpiralVentPlanner(nh, std::move(factory), name));
+        std::unique_ptr<Planner> planner(new NestedBinVentPlanner(nh, std::move(factory), name));
         servers.emplace_back(std::move(dispatcher), std::move(planner));
     }
 

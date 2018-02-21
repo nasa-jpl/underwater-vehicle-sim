@@ -74,6 +74,7 @@ private:
     ros::Time lastPlan;
     bool initalPlan;
 
+    double spiralSpacing;
     double initalSpacing;
     double finalSpacing;
 

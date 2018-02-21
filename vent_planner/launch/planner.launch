@@ -4,8 +4,8 @@
 
  <rosparam param="vehicles/names">[v1]</rosparam>
 
- <rosparam param="vehicles/v1/start_x">20000</rosparam>
- <rosparam param="vehicles/v1/start_y">-24000</rosparam>
+ <rosparam param="vehicles/v1/start_x">5000</rosparam>
+ <rosparam param="vehicles/v1/start_y">-5000</rosparam>
  <rosparam param="vehicles/v1/start_z">0</rosparam>
 
 
@@ -25,9 +25,9 @@
  <rosparam param="vehicle_controller/hertz">0.5</rosparam>
 
  <rosparam param="planner/hertz">0.1</rosparam>
+ <rosparam param="planner/spiral_spacing">5000</rosparam>
  <rosparam param="planner/inital_spacing">3000</rosparam>
  <rosparam param="planner/final_spacing">750</rosparam>
- <rosparam param="planner/trigger_sigma">3</rosparam>
 
  <node pkg="underwater_vehicle_sim" type="clock_server_node" name="clock_server"/>
  <node pkg="underwater_vehicle_sim" type="underwater_vehicle_sim_node" name="underwater_vehicle_sim" output="screen"/>

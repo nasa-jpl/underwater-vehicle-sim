@@ -32,7 +32,10 @@ private:
 	void executeDynamicLawnmower(const vehicle_auto_control::DynamicLawnmowerGoalConstPtr& goal, 
 						  			   actionlib::SimpleActionServer<vehicle_auto_control::DynamicLawnmowerAction>* as);
 
-
+	/**
+	*Processes the data for the dynamic lawnmower action
+	*/
+	bool processData(std::vector<double>& values, std::vector<double>& sectionAverages);
 
 	void getTargetVelocityCommand(const vehicle_auto_control::Velocity vel);
 
