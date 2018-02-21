@@ -6,9 +6,11 @@
 #include "model_server/GetModelData.h"
 #include "model_server/ModelData.h"
 
+#include "linear_model/LinearModel.h"
 #include "constant_model/ConstantModel.h"
 #include "fvcom/FVCOM.h"
 
+#include <string>
 #include <stdexcept>
 
 
@@ -94,6 +96,34 @@ int main(int argc, char **argv)
         n.getParam("model/depth", depth);
 
         model.reset(new ConstantModel(u, v, temp, salt, dye, depth));
+    } 
+    else if(model_type == "linear")
+    {
+        float u = 0; 
+        float v = 0;
+        float temp = 0;
+        float salt = 0;
+        float dye = 0;
+        float depth = -100;
+
+        float centerX = 0;
+        float centerY = 0;
+        float zeroDistance = 100;
+        std::string type = "circle";
+
+        n.getParam("model/centerX", centerX);
+        n.getParam("model/centerY", centerY);
+        n.getParam("model/zeroDistance", zeroDistance);
+        n.getParam("model/type", type);
+
+        n.getParam("model/u", u);
+        n.getParam("model/v", v);
+        n.getParam("model/temp", temp);
+        n.getParam("model/salt", salt);
+        n.getParam("model/dye", dye);
+        n.getParam("model/depth", depth);
+
+        model.reset(new LinearModel(u, v, temp, salt, dye, depth, zeroDistance, centerX, centerY, type));
     }   
     else
     {

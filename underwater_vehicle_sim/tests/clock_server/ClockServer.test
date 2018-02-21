@@ -1,5 +1,6 @@
 <launch>
  <param name="use_sim_time" value="true" />
+ <rosparam param="underwater_vehicle_sim/hertz">100</rosparam>
  <rosparam param="speed_up_factor">5</rosparam>
  <rosparam param="sim_start_time">1000</rosparam>
  <node pkg="underwater_vehicle_sim" type="clock_server_node" name="clock_server" output="screen" />

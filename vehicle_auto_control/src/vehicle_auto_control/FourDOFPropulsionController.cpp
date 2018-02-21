@@ -10,9 +10,12 @@
 #include "vehicle_auto_control/Velocity.h"
 #include "vehicle_auto_control/FourDOFPropulsionController.h"
 
+#include "vehicle_auto_control/DynamicLawnmowerAction.h"
 #include "vehicle_auto_control/PointPathAction.h"
 
 #include "underwater_vehicle_sim/VehicleData.h"
+
+#include "plume_detector/GetPlumeData.h"
 
 FourDOFPropulsionController::FourDOFPropulsionController(ros::NodeHandle controlNode, ros::NodeHandle vehicleNode, std::string propModuleName, std::string dataModuleName, std::string vehicleName, float loopHertz) :
 	PropulsionController(controlNode, vehicleNode, vehicleName, loopHertz),
@@ -24,7 +27,9 @@ FourDOFPropulsionController::FourDOFPropulsionController(ros::NodeHandle control
 	latestSonarDepth(1000),
 	latestVehicleDepth(0),
 	minSeafloorDistance(10.0),
-	pointPathServer(controlNode, "point_path", boost::bind(&FourDOFPropulsionController::executePointPath, this, _1, &pointPathServer), false)
+	pointPathServer(controlNode, "point_path", boost::bind(&FourDOFPropulsionController::executePointPath, this, _1, &pointPathServer), false),
+	dynamicLawnmowerServer(controlNode, "dynamic_lawnmower", boost::bind(&FourDOFPropulsionController::executeDynamicLawnmower, this, _1, &dynamicLawnmowerServer), false),
+	plumeClient(controlNode.serviceClient<plume_detector::GetPlumeData>("/plume_detector/get"))
 {
 	velocityPub = vehicleNode.advertise<geometry_msgs::Twist>(propModuleName + "/command_velocity", 1000);
 
@@ -36,6 +41,7 @@ FourDOFPropulsionController::FourDOFPropulsionController(ros::NodeHandle control
 
 	velocitySub = controlNode.subscribe("command_target_velocity", 1, &FourDOFPropulsionController::getTargetVelocityCommand, this);
 	pointPathServer.start();
+	dynamicLawnmowerServer.start();
 }
 
 void FourDOFPropulsionController::getTargetVelocityCommand(const vehicle_auto_control::Velocity vel)
@@ -67,10 +73,6 @@ void FourDOFPropulsionController::executePointPath(const vehicle_auto_control::P
 		pathPoints.emplace_back(point.x, point.y, point.z);
 	}
 
-	double newVertVel = 0;
-	double newRotVel = 0;
-	double newForwVel = 0;
-
 	unsigned int currentPoint = 0;
 	bool goingUp = true;
 
@@ -78,7 +80,6 @@ void FourDOFPropulsionController::executePointPath(const vehicle_auto_control::P
 	{
 
 		tf::StampedTransform transform;
-		double sonarDistance;
 		try
 		{
 			listener.lookupTransform("/world", "/" + vehicleName,  
@@ -125,42 +126,24 @@ void FourDOFPropulsionController::executePointPath(const vehicle_auto_control::P
 			
 			if(currentPoint < pathPoints.size())
 			{
-				//Set vertical
+				double targetHeight = 0;
 				if(goal->yoyo)
 				{
-					if(goingUp)
-					{
-						newVertVel = targetVertVelocity;	
-					}
-					else
-					{
-						newVertVel = -targetVertVelocity;
-					}
+					targetHeight = goingUp ? goal->upperDepth : goal->lowerDepth;
 				}
 				else
 				{
-					//Also account for distance off bottom
-					newVertVel = scaleVerticalVelocity(transform, pathPoints[currentPoint]);
+					targetHeight = pathPoints[currentPoint].getZ();
 				}
 
-				geometry_msgs::PointStamped pointOut;
-
-				transformPointToVehicleFrame(pointOut, transform, pathPoints[currentPoint]);
-				tf::Vector3 vehicleForward(1, 0, 0);
-				tf::Vector3 targetPoint(pointOut.point.x, pointOut.point.y, 0);
-				tf::Vector3 cross = vehicleForward.cross(targetPoint);
-
-				double angle = vehicleForward.angle(targetPoint);		
-
-				//Get scaled rotational velocity
-				newRotVel = scaleRotationalVelocity(angle, cross.getZ());
-
-				//Set forward velocity
-				newForwVel = scaleHorizontalVelocity(transform, pathPoints[currentPoint]);
+				goToPoint(transform, pathPoints[currentPoint], targetHeight);
 			}
-
-			//Create velocity command message and send it to the propulsion module
-			sendVelocityCommand(newForwVel, 0, newRotVel, newVertVel);
+			else
+			{
+				//Stop the vehicle
+				sendVelocityCommand(0, 0, 0, 0);
+			}
+			
 		}
 		catch (tf::TransformException ex){
 			ROS_ERROR("%s",ex.what());
@@ -178,6 +161,173 @@ void FourDOFPropulsionController::executePointPath(const vehicle_auto_control::P
 		as->setSucceeded(result);
 	}
 	
+}
+
+void FourDOFPropulsionController::executeDynamicLawnmower(const vehicle_auto_control::DynamicLawnmowerGoalConstPtr& goal, 
+						  			   					  actionlib::SimpleActionServer<vehicle_auto_control::DynamicLawnmowerAction>* as)
+{
+	double dataThreshold = 0.0001; //The required threshold to stop that specific track of a leg
+	int spacingThreshold = 3; //The required threshold that must be 
+
+
+	//Feedback and Results for the action
+	vehicle_auto_control::DynamicLawnmowerFeedback feedback;
+    vehicle_auto_control::DynamicLawnmowerResult result;
+
+	//Rate at which to run the control loop
+	ros::Rate r(loopHertz);
+	bool operating = true;
+
+	
+	int currentTrack = goal->currentTrack;
+	int currentSection = goal->currentSection;
+	
+	tf::Vector3 startLocation;
+	startLocation.setX(goal->startLocation.x);
+	startLocation.setY(goal->startLocation.y);
+	startLocation.setZ(goal->startLocation.z);
+
+	int sectionsUnderThreshold = 0;
+	bool trackUnderThreshold = true;
+	int sectionsCompletedInTrack = 0;
+
+	int lastTrack = currentTrack - 1;
+
+	tf::Vector3 currentPoint = getPoint(startLocation, 
+										goal->trackSpacing, 
+										goal->alongTrackDirection,
+										goal->acrossTrackDirection,
+										currentTrack, 
+										currentSection);
+
+	
+	ros::Time lastTime = ros::Time::now();
+	while(operating && ros::ok())
+	{
+		tf::StampedTransform transform;
+		try
+		{
+			listener.lookupTransform("/world", "/" + vehicleName,  
+									 ros::Time(0), transform);
+
+			if(isAtPoint(transform, currentPoint, true))
+			{
+				
+				if(lastTrack == currentTrack)
+				{
+					plume_detector::GetPlumeData srv;
+			        srv.request.name = vehicleName;
+			        srv.request.start_time = lastTime;
+			        srv.request.end_time = ros::Time::now();
+			        plumeClient.call(srv);
+			        
+			        lastTime = ros::Time::now();
+
+			        bool overThresh = false;
+			        for(unsigned int i = 0; i < srv.response.time.size(); i++)
+			        {
+			        	if(srv.response.val[i] >= goal->continueThreshold)
+			           	{
+			           		overThresh = true;
+			           		break;
+			           	}
+			        }
+
+			        //Track how many sections have been under the threshold
+			        if(!overThresh)
+			        {
+			        	sectionsUnderThreshold++;
+			        }
+			        else
+			    	{
+			    		trackUnderThreshold = false;
+			    		sectionsUnderThreshold = 0;
+			    	}
+				}
+		        
+		        //update last track information
+		        lastTrack = currentTrack;
+
+		        //Make sure a specified number of sections have been completed on this track before going to the next
+		        //Go to next track or finish the lawnmower if needed, also go to next track if at the edge of the survey area
+		        if((sectionsCompletedInTrack >= goal->minSectionsPerTrack &&
+		           sectionsUnderThreshold >= goal->trackSectionThreshold) ||
+		           (currentTrack % 2 == 1 && currentSection == 0))
+		        {
+		        	
+	        		currentTrack++;
+		        	if(trackUnderThreshold)
+			       	{
+			       		operating = false;
+			       	}
+			       	else
+			       	{
+			       		//reset the consecutive sections under the threshold
+		        		sectionsUnderThreshold = 0;
+			       		trackUnderThreshold = true;
+
+			       		sectionsCompletedInTrack = 0;
+			       	}  	
+		        	
+		        }
+		        else
+		        {
+		        	if(currentTrack % 2 == 0)
+			        {
+			        	currentSection++;
+			        }
+			        else
+			        {
+			        	currentSection--;
+			        }
+			        sectionsCompletedInTrack++;
+		        }			       
+
+				currentPoint = getPoint(startLocation, 
+										goal->trackSpacing, 
+										goal->alongTrackDirection,
+										goal->acrossTrackDirection,
+										currentTrack, 
+										currentSection);
+			}
+
+			//send feedback
+			feedback.currentTrack = currentTrack;
+			feedback.currentSection = currentSection;
+			as->publishFeedback(feedback);
+			
+			//handle preempt request
+			if(as->isPreemptRequested() || !ros::ok())
+			{
+				ROS_INFO("Auto Controller: Action Preempted");
+
+				//Stop vehicle
+				sendVelocityCommand(0,0,0,0);
+				as->setPreempted();
+				break;
+			}
+
+			goToPoint(transform, currentPoint, goal->targetHeight);
+		}
+		catch (tf::TransformException ex){
+			ROS_ERROR("%s",ex.what());
+		}
+
+		r.sleep();
+	}
+
+	if(trackUnderThreshold)
+	{
+		ROS_INFO("Auto Controller: Action Done, Succeeded");
+		
+		//Stop vehicle
+		sendVelocityCommand(0,0,0,0);
+
+		result.totalTrackLines = currentTrack;
+		
+		as->setSucceeded(result);
+	}
+
 }
 
 void FourDOFPropulsionController::transformPointToVehicleFrame(geometry_msgs::PointStamped& pointOut, tf::StampedTransform& transform, tf::Vector3& point)
@@ -204,6 +354,46 @@ bool FourDOFPropulsionController::isAtPoint(tf::Transform& location, tf::Vector3
 	return (!useZ || zDifference <= verticalError) && sqrt(yDifference * yDifference + xDifference * xDifference) <= lateralError;
 }
 
+void FourDOFPropulsionController::goToPoint(tf::StampedTransform& location, tf::Vector3& point, double targetHeight)
+{
+	geometry_msgs::PointStamped pointOut;
+	transformPointToVehicleFrame(pointOut, location, point);
+	tf::Vector3 vehicleForward(1, 0, 0);
+	tf::Vector3 targetPoint(pointOut.point.x, pointOut.point.y, 0);
+	tf::Vector3 cross = vehicleForward.cross(targetPoint);
+
+	double angle = vehicleForward.angle(targetPoint);		
+
+	double newVertVel = scaleVerticalVelocity(location, targetHeight);
+	double newRotVel = scaleRotationalVelocity(angle, cross.getZ());
+	double newForwVel = scaleHorizontalVelocity(location, point);
+
+	sendVelocityCommand(newForwVel, 0, newRotVel, newVertVel);
+}
+
+tf::Vector3 FourDOFPropulsionController::getPoint(const tf::Vector3& startLocation, 
+												  const double sectionSize, 
+												  const double alongTrackDirection, 
+												  const double acrossTrackDirection, 
+												  const int currentTrack, 
+												  const int currentSection)
+{
+	tf::Vector3 point;
+
+	//Calculate across track location
+	point.setX(startLocation.getX() + cos(acrossTrackDirection) * sectionSize * currentTrack);
+	point.setY(startLocation.getY() + sin(acrossTrackDirection) * sectionSize * currentTrack);
+
+	//Add along track location to across track location
+	point.setX(point.getX() + cos(alongTrackDirection) * sectionSize * currentSection);
+	point.setY(point.getY() + sin(alongTrackDirection) * sectionSize * currentSection);
+
+
+	point.setZ(startLocation.getZ());
+
+	return point;
+}
+
 double FourDOFPropulsionController::scaleHorizontalVelocity(tf::Transform& location, tf::Vector3& point)
 {
 	double xDifference = fabs(location.getOrigin().getX() - point.getX());
@@ -220,9 +410,9 @@ double FourDOFPropulsionController::scaleHorizontalVelocity(tf::Transform& locat
 	return targetHorzVelocity * (xyError / horizontalScaleError);
 }
 
-double FourDOFPropulsionController::scaleVerticalVelocity(tf::Transform& location, tf::Vector3& point)
+double FourDOFPropulsionController::scaleVerticalVelocity(tf::Transform& location, double targetHeight)
 {
-	double targetVertPosition = std::max(point.getZ(), latestVehicleDepth - latestSonarDepth + minSeafloorDistance);
+	double targetVertPosition = std::max(targetHeight, latestVehicleDepth - latestSonarDepth + minSeafloorDistance);
 	double zDifference = fabs(location.getOrigin().getZ() - targetVertPosition);
 	double verticalErrorScale = 15;
 

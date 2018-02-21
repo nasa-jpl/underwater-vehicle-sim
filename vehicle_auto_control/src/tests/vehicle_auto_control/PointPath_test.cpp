@@ -8,12 +8,13 @@
 #include "tf/transform_listener.h"
 #include "actionlib/client/simple_action_client.h"
 #include "vehicle_auto_control/PointPathAction.h"
+#include "vehicle_auto_control/DynamicLawnmowerAction.h"
 #include "vehicle_auto_control/Velocity.h"
 
 ros::ServiceClient client;
 
 
-TEST(FourDOFPropulsionController, PointPathController){
+TEST(PointPath, PointPathController){
 
     ros::NodeHandle nh;
 
@@ -68,7 +69,7 @@ TEST(FourDOFPropulsionController, PointPathController){
     ros::Time start = ros::Time::now();
 
     bool isActive = false;
-    while(currentPoint < pointPathMsg.points.size() && (ros::Time::now() - start) <= ros::Duration(200.0))
+    while(currentPoint < pointPathMsg.points.size() && (ros::Time::now() - start) <= ros::Duration(400.0))
     {
        tf::StampedTransform transform;
         try
@@ -105,7 +106,7 @@ TEST(FourDOFPropulsionController, PointPathController){
     ASSERT_EQ(pointPathMsg.points.size(), currentPoint);
 }
 
-TEST(FourDOFPropulsionController, YoYoPointPathController){
+TEST(PointPath, YoYoPointPathController){
 
     ros::NodeHandle nh;
 
@@ -165,7 +166,7 @@ TEST(FourDOFPropulsionController, YoYoPointPathController){
     unsigned yoyo = 0;
     bool isActive = false;
     ros::Time start = ros::Time::now();
-    while(currentPoint < pointPathMsg.points.size() && (ros::Time::now() - start) <= ros::Duration(200.0))
+    while(currentPoint < pointPathMsg.points.size() && (ros::Time::now() - start) <= ros::Duration(400.0))
     {
        tf::StampedTransform transform;
         try
@@ -221,7 +222,7 @@ TEST(FourDOFPropulsionController, YoYoPointPathController){
 
 int main(int argc, char** argv){
   testing::InitGoogleTest(&argc, argv);
-  ros::init(argc, argv, "four_dof_propulsion_controller_test");
+  ros::init(argc, argv, "point_path_test");
 
   return RUN_ALL_TESTS();
 }

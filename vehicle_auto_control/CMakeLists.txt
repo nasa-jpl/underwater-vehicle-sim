@@ -64,7 +64,7 @@ find_package(catkin REQUIRED COMPONENTS
  add_action_files(
    FILES
    PointPath.action
-#   Action2.action
+   DynamicLawnmower.action
  )
 
 ## Generate added messages and services with any dependencies listed here
@@ -199,9 +199,11 @@ include_directories(
 if (CATKIN_ENABLE_TESTING)
  find_package(rostest REQUIRED)
 
- add_rostest_gtest(four_dof_propulsion_controller_test tests/vehicle_auto_control/FourDOFPropulsionController.test src/tests/vehicle_auto_control/FourDOFPropulsionController_test.cpp)
+ add_rostest_gtest(point_path_test tests/vehicle_auto_control/PointPath.test src/tests/vehicle_auto_control/PointPath_test.cpp)
+ add_rostest_gtest(dynamic_lawnmower_test tests/vehicle_auto_control/DynamicLawnmower.test src/tests/vehicle_auto_control/DynamicLawnmower_test.cpp)
 
- target_link_libraries(four_dof_propulsion_controller_test ${PROJECT_NAME} ${catkin_LIBRARIES} ${NETCDF_LIBRARIES} stdc++fs)
+ target_link_libraries(point_path_test ${PROJECT_NAME} ${catkin_LIBRARIES} ${NETCDF_LIBRARIES} stdc++fs)
+ target_link_libraries(dynamic_lawnmower_test ${PROJECT_NAME} ${catkin_LIBRARIES} ${NETCDF_LIBRARIES} stdc++fs)
 endif()
 
 ## Add folders to be run by python nosetests

@@ -1,5 +1,5 @@
 <launch>
-
+ <rosparam param="underwater_vehicle_sim/hertz">100</rosparam>
  <rosparam param="model_type">constant</rosparam>
  <rosparam param="model/v">2.345</rosparam>
  <rosparam param="model/salt">4.567</rosparam>

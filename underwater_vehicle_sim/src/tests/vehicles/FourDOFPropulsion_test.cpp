@@ -394,7 +394,7 @@ TEST(FourDOFPropulsion, TestSeafloorImpact) {
         }
 
 
-        ASSERT_FLOAT_EQ(-200, transformV4End.getOrigin().getZ());
+        ASSERT_NEAR(-200, transformV4End.getOrigin().getZ(), 0.1);
 }
 
 int main(int argc, char** argv){

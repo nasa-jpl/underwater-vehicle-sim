@@ -52,8 +52,8 @@ private:
     void getPlumeMax(const std::vector<PlumeData>& data, const unsigned int dataStart, double& plumeX, double& plumeY, double& plumeStrength);
 
     bool isCompleted(std::shared_ptr<Plan> plan);
-
     bool isDone();
+    
     /**
     *Sets the parameter returnEntry to the latest data from the vehicle
     *@param returnEntry Output for the latest data
@@ -79,7 +79,6 @@ private:
 
     std::string vehicleName;
     tf::Vector3 vehicleStartLocation;
-
 
     ros::ServiceClient dataClient;
     ros::ServiceClient latestDataClient;

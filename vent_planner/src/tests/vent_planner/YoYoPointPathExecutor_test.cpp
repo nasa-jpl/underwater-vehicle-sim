@@ -19,7 +19,7 @@
 #include "vehicle_auto_control/Velocity.h"
 
 
-TEST(FourDOFPropulsionControllerWithoutYoYo, PointPathController){
+TEST(PointPathExecutor, FourDOFPropulsionControllerWithoutYoYo){
 
 
     ros::NodeHandle nh;
@@ -124,7 +124,7 @@ TEST(FourDOFPropulsionControllerWithoutYoYo, PointPathController){
     ASSERT_EQ(2, pointPathAction2->getCurrentPoint());
 }
 
-TEST(FourDOFPropulsionControllerWithYoYo, PointPathController){
+TEST(PointPathExecutor, FourDOFPropulsionControllerWithYoYo){
 
 
     ros::NodeHandle nh;
@@ -251,7 +251,7 @@ TEST(FourDOFPropulsionControllerWithYoYo, PointPathController){
 }
 
 
-TEST(PlanPrempting, PointPathController){
+TEST(PointPathExecutor, PlanPrempting){
 
     
     ros::NodeHandle nh;

@@ -1,4 +1,5 @@
 <launch>
+ <rosparam param="underwater_vehicle_sim/hertz">100</rosparam>
  <rosparam param="vehicles/names">[v1]</rosparam>
 
 

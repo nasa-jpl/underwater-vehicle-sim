@@ -126,6 +126,11 @@ add_library(constant_model
  )
 target_link_libraries(constant_model ${catkin_LIBRARIES} ${NETCDF_LIBRARIES})
 
+add_library(linear_model
+   src/LinearModel.cpp
+ )
+target_link_libraries(linear_model ${catkin_LIBRARIES} ${NETCDF_LIBRARIES})
+
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 include_directories(
@@ -157,7 +162,8 @@ include_directories(
 ## Specify libraries to link a library or executable target against
  target_link_libraries(${PROJECT_NAME}_node
    fvcom
-   constant_model 
+   constant_model
+   linear_model 
    ${catkin_LIBRARIES}
    ${NETCDF_LIBRARIES}
    stdc++fs

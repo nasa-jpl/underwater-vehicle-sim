@@ -126,6 +126,8 @@ include_directories(
  add_library(vent_planner
    src/vent_planner/actions/PointPathAction.cpp
    src/vent_planner/PointPathSimActionExecutor.cpp
+   src/vent_planner/actions/DynamicLawnmowerAction.cpp
+   src/vent_planner/DynamicLawnmowerSimActionExecutor.cpp
    src/vent_planner/SimVentActionFactory.cpp
    src/vent_planner/NestedSpiralVentPlanner.cpp
    src/vent_planner/NestedBinVentPlanner.cpp
