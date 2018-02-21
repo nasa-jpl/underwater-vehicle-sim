@@ -7,6 +7,10 @@
 
 #include "vent_planner/VentActionFactory.h"
 #include "vent_planner/actions/PointPathAction.h"
+#include "vent_planner/actions/DynamicLawnmowerAction.h"
+#include "vent_planner/PointPathSimActionExecutor.h"
+#include "vent_planner/DynamicLawnmowerSimActionExecutor.h"
+
 
 SimVentActionFactory::SimVentActionFactory(ros::NodeHandle& nh) :
     nh(nh)
@@ -46,4 +50,32 @@ std::shared_ptr<PointPathAction> SimVentActionFactory::createPointPathAction(con
                                                                 targetRotationalVelocity,
                                                                 targetSlope,
                                                                 points));
-}    
+}
+
+std::shared_ptr<DynamicLawnmowerAction> SimVentActionFactory::createDynamicLawnmowerAction(const std::string& vehicleName,
+                                                                                           const double targetHorizontalVelocity, 
+                                                                                           const double targetRotationalVelocity,
+                                                                                           const double targetSlope,
+                                                                                           const tf::Vector3& startLocation,
+                                                                                           const double alongTrackDirection,
+                                                                                           const double acrossTrackDirection,
+                                                                                           const double trackSpacing,
+                                                                                           const double targetHeight,
+                                                                                           const int minSectionsPerTrack,
+                                                                                           const double continueThreshold,
+                                                                                           const int trackSectionThreshold)
+{
+    std::unique_ptr<ActionExecutor<DynamicLawnmowerAction>> executor(new DynamicLawnmowerSimActionExecutor(nh, vehicleName));
+    return std::unique_ptr<DynamicLawnmowerAction>(new DynamicLawnmowerAction(std::move(executor),
+                                                                              targetHorizontalVelocity, 
+                                                                              targetRotationalVelocity,
+                                                                              targetSlope,
+                                                                              startLocation,
+                                                                              alongTrackDirection,
+                                                                              acrossTrackDirection,
+                                                                              trackSpacing,
+                                                                              targetHeight,
+                                                                              minSectionsPerTrack,
+                                                                              continueThreshold,
+                                                                              trackSectionThreshold));
+}
