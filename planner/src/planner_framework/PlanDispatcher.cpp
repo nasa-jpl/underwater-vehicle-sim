@@ -23,17 +23,16 @@ void PlanDispatcher::stop()
 
 void PlanDispatcher::setPlan(std::shared_ptr<Plan> newPlan)
 {
-	ROS_INFO("PlanDispatcher: setPlan Start.");
 	if(newPlan && newPlan != plan)
 	{
-		ROS_INFO("PlanDispatcher: Check for running.");
+		ROS_INFO("PlanDispatcher: Check for running plan");
 		if(running)
 		{
-			ROS_INFO("PlanDispatcher: Stop runnning");
+			ROS_INFO("PlanDispatcher: Stop runnning plan");
 			running = false;
 			if(plan && currentAction < plan->getActions().size())
 			{
-				ROS_INFO("PlanDispatcher: Cancel previous action.");
+				ROS_INFO("PlanDispatcher: Cancel previous action");
 				plan->getActions()[currentAction]->cancel();
 			}
 		}
