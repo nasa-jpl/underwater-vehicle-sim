@@ -44,7 +44,7 @@ const unsigned int DataBin::getBinLevel()
     return binLevel;
 }
 
-const double DataBin::getMaxVal()
+const double DataBin::getMaxVal() const
 {
     return maxVal;
 }
@@ -59,11 +59,48 @@ const double DataBin::getAverage()
     return average;
 }
 
+const double DataBin::getSize() const
+{
+    return size;
+}
+
 void DataBin::clear()
 {
     data.clear();
     average = 0;
     maxVal = 0;
+}
+
+bool DataBin::operator<(const DataBin& rhs) const
+{
+    if(this == &rhs)
+    {
+        return false;
+    }
+
+    if(getMaxVal() == rhs.getMaxVal())
+    {
+        return this < &rhs;
+    }
+
+    return getMaxVal() < rhs.getMaxVal();
+}
+
+bool DataBin::operator==(const DataBin& rhs) const
+{
+    return this == &rhs;
+}
+
+
+bool DataBin::RefCompare::operator() (const std::reference_wrapper<DataBin> lhs, 
+                                      const std::reference_wrapper<DataBin> rhs) const
+{
+    return lhs.get() < rhs.get();
+}
+
+const bool DataBin::isPartitioned() const
+{
+    return nestedBins != 0;
 }
 
 const double DataBin::getHeightOfPlume()
