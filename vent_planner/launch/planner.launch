@@ -4,8 +4,8 @@
 
  <rosparam param="vehicles/names">[v1]</rosparam>
 
- <rosparam param="vehicles/v1/start_x">5000</rosparam>
- <rosparam param="vehicles/v1/start_y">-5000</rosparam>
+ <rosparam param="vehicles/v1/start_x">8000</rosparam>
+ <rosparam param="vehicles/v1/start_y">-3000</rosparam>
  <rosparam param="vehicles/v1/start_z">0</rosparam>
 
 
