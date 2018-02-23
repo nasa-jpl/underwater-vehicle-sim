@@ -35,7 +35,7 @@ private:
 	/**
 	*Processes the data for the dynamic lawnmower action
 	*/
-	bool processData(std::vector<double>& values, std::vector<double>& sectionAverages);
+	bool processData(std::vector<float>& values, std::vector<double>& sectionAverages, double continueThreshold);
 
 	void getTargetVelocityCommand(const vehicle_auto_control::Velocity vel);
 

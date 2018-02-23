@@ -92,19 +92,14 @@ void FourDOFPropulsionController::executePointPath(const vehicle_auto_control::P
                     currentPoint++;
                 }
             }
-            
-            if(currentPoint >= pathPoints.size())
-            {
-                ROS_INFO("Auto Controller: Final Point Reached");
-            }
-            
+                        
             feedback.currentPoint = currentPoint;
             feedback.goingUp = goingUp;
             as->publishFeedback(feedback);
             
             if(as->isPreemptRequested() || !ros::ok())
             {
-                ROS_INFO("Auto Controller: Action Preempted");
+                ROS_INFO("Auto Controller: Point Path Action Preempted");
 
                 //Stop vehicle
                 sendVelocityCommand(0,0,0,0);
@@ -153,7 +148,7 @@ void FourDOFPropulsionController::executePointPath(const vehicle_auto_control::P
 
     if(currentPoint == pathPoints.size())
     {
-        ROS_INFO("Auto Controller: Action Done, Succeeded");
+        ROS_INFO("Auto Controller: Point Path Action Done, Succeeded");
         
         //Stop vehicle
         sendVelocityCommand(0,0,0,0);
@@ -166,10 +161,6 @@ void FourDOFPropulsionController::executePointPath(const vehicle_auto_control::P
 void FourDOFPropulsionController::executeDynamicLawnmower(const vehicle_auto_control::DynamicLawnmowerGoalConstPtr& goal, 
                                                           actionlib::SimpleActionServer<vehicle_auto_control::DynamicLawnmowerAction>* as)
 {
-    double dataThreshold = 0.0001; //The required threshold to stop that specific track of a leg
-    int spacingThreshold = 3; //The required threshold that must be 
-
-
     //Feedback and Results for the action
     vehicle_auto_control::DynamicLawnmowerFeedback feedback;
     vehicle_auto_control::DynamicLawnmowerResult result;
@@ -227,7 +218,7 @@ void FourDOFPropulsionController::executeDynamicLawnmower(const vehicle_auto_con
                     lastTime = ros::Time::now();
 
                     //process the plume data
-                    bool overThresh = processData(srv.response.val, sectionAverages);
+                    bool overThresh = processData(srv.response.val, sectionAverages, goal->continueThreshold);
 
                     //Track how many sections have been under the threshold and the averages of those sections
                     if(!overThresh)
@@ -319,8 +310,8 @@ void FourDOFPropulsionController::executeDynamicLawnmower(const vehicle_auto_con
             //handle preempt request
             if(as->isPreemptRequested() || !ros::ok())
             {
-                ROS_INFO("Auto Controller: Action Preempted");
-
+                ROS_INFO("Auto Controller: Dynamic Lawnmower Action Preempted");
+                trackUnderThreshold = false; //prevents the actions from declaring success when preempted
                 //Stop vehicle
                 sendVelocityCommand(0,0,0,0);
                 as->setPreempted();
@@ -338,7 +329,7 @@ void FourDOFPropulsionController::executeDynamicLawnmower(const vehicle_auto_con
 
     if(trackUnderThreshold)
     {
-        ROS_INFO("Auto Controller: Action Done, Succeeded");
+        ROS_INFO("Auto Controller: Dynamic Lawnmower Action Done, Succeeded");
         
         //Stop vehicle
         sendVelocityCommand(0,0,0,0);
@@ -350,13 +341,13 @@ void FourDOFPropulsionController::executeDynamicLawnmower(const vehicle_auto_con
 
 }
 
-bool FourDOFPropulsionController::processData(std::vector<double>& values, std::vector<double>& sectionAverages)
+bool FourDOFPropulsionController::processData(std::vector<float>& values, std::vector<double>& sectionAverages, double continueThreshold)
 {
     bool overThresh = false;
     double averageVal = 0;
     for(unsigned int i = 0; i < values.size(); i++)
     {
-        if(values[i] >= goal->continueThreshold)
+        if(values[i] >= continueThreshold)
         {
             overThresh = true;
         }
