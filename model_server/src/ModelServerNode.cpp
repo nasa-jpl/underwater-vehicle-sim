@@ -10,6 +10,7 @@
 #include "constant_model/ConstantModel.h"
 #include "fvcom/FVCOM.h"
 
+#include "std_msgs/Float64.h"
 #include <string>
 #include <stdexcept>
 
@@ -61,6 +62,17 @@ int main(int argc, char **argv)
     ros::NodeHandle n;
     
     std::string model_type;
+
+    //Get sim speed up factor from param server
+    float speedUpFactor;
+    n.param<float>("speed_up_factor", speedUpFactor, 1);
+
+    //stop the clock so the model can be loaded
+    ros::Publisher pub = n.advertise<std_msgs::Float64>("/clock_server/speed_up_factor", 1, true);
+    std_msgs::Float64 stopSim;
+    stopSim.data = 0;
+    pub.publish(stopSim);
+
 
     if(!n.getParam("model_type", model_type))
     {
@@ -131,10 +143,14 @@ int main(int argc, char **argv)
         exit(1);
     } 
 
-    
-
     ros::ServiceServer service = n.advertiseService("get_model_data", getModelData);
   	ROS_INFO("Model Loaded");
+
+    //Start the sim after the model has been loaded
+    std_msgs::Float64 startSim;
+    startSim.data = speedUpFactor;
+    pub.publish(startSim);
+
 
     ros::spin();
 }
