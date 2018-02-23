@@ -53,6 +53,8 @@ std::unique_ptr<ActionExecutor<DynamicLawnmowerAction>> DynamicLawnmowerSimActio
 
 bool DynamicLawnmowerSimActionExecutor::execute(std::shared_ptr<DynamicLawnmowerAction> action)
 {
+
+
 	//targetSlope can only be on the interval (0, 90) degrees
 	if(action->targetSlope >= M_PI / 2 || action->targetSlope <= 0)
 	{
@@ -101,6 +103,10 @@ bool DynamicLawnmowerSimActionExecutor::execute(std::shared_ptr<DynamicLawnmower
 							 boost::bind(&DynamicLawnmowerSimActionExecutor::actionDone, this, action, _1, _2),
 							 boost::bind(&DynamicLawnmowerSimActionExecutor::actionActive, this, action),
 							 boost::bind(&DynamicLawnmowerSimActionExecutor::actionFeedback, this, action, _1));
+
+	//replan at the start of each action, i.e. the end of the previous action
+	replanNextUpdate = true;
+	
 	return true;
 }
 
@@ -147,12 +153,6 @@ void DynamicLawnmowerSimActionExecutor::actionActive(std::shared_ptr<DynamicLawn
 void DynamicLawnmowerSimActionExecutor::actionFeedback(std::shared_ptr<DynamicLawnmowerAction> action,
 					const vehicle_auto_control::DynamicLawnmowerFeedbackConstPtr& feedback)
 {
-	//Replan if we have gone to the next track
-	if(action->getCurrentTrack() != feedback->currentTrack)
-	{
-		replanNextUpdate = true;
-	}
-
 	action->setCurrentTrack(feedback->currentTrack);
 	action->setCurrentSection(feedback->currentSection);
 }
