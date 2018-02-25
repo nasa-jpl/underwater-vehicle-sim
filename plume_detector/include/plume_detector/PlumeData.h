@@ -5,6 +5,14 @@
 
 struct PlumeData
 {
+    PlumeData() :
+        time(ros::Time(0)),
+        x(0),
+        y(0),
+        h(0),
+        val(0)
+    {}
+
     PlumeData(ros::Time time, double x, double y, double h, double val) :
         time(time),
         x(x),

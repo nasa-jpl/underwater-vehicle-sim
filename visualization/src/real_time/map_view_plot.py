@@ -6,6 +6,7 @@ from underwater_vehicle_sim.msg import VehicleData
 
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.colors
 from matplotlib.animation import FuncAnimation
 
 xdata = []

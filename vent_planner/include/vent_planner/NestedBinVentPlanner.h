@@ -2,6 +2,7 @@
 #define NESTED_BIN_VENT_PLANNER_H
 
 #include <vector>
+#include <set>
 #include <memory>
 #include <stack>
 #include <functional>
@@ -12,8 +13,8 @@
 
 #include "vent_planner/VentActionFactory.h"
 
-#include "vent_planner/DataBin.h"
-#include "vent_planner/DataBins.h"
+#include "vent_planner/DataNode.h"
+#include "vent_planner/DataTree.h"
 
 
 #include "data_server/DataServerEntry.h"
@@ -54,6 +55,8 @@ private:
     bool isCompleted(std::shared_ptr<Plan> plan);
     bool isDone();
     
+    void addInitalLawnmowers(std::shared_ptr<Plan> plan, tf::Vector3& centerLocation, double plumeHeight);
+
     /**
     *Sets the parameter returnEntry to the latest data from the vehicle
     *@param returnEntry Output for the latest data
@@ -66,10 +69,10 @@ private:
 
     std::stack<std::shared_ptr<Plan>> plans;
 
-    DataBin spiralData;
-    std::unique_ptr<DataBins> dataBins;
-    double plumeHeight;
-    unsigned int currentInitalLawnmower;
+    DataNode spiralData;
+    std::unique_ptr<DataTree> dataTree;
+    std::map<std::shared_ptr<Plan>, DataNode*> plannedMaxima;
+
 
     ros::Time lastPlan;
     bool initalPlan;

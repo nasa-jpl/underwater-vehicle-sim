@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8.3)
 project(vent_planner)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
- add_compile_options(-std=c++11)
+ add_compile_options(-std=c++11 -g)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
@@ -131,8 +131,8 @@ include_directories(
    src/vent_planner/SimVentActionFactory.cpp
    src/vent_planner/NestedSpiralVentPlanner.cpp
    src/vent_planner/NestedBinVentPlanner.cpp
-   src/vent_planner/DataBin.cpp
-   src/vent_planner/DataBins.cpp
+   src/vent_planner/DataTree.cpp
+   src/vent_planner/DataNode.cpp
  )
 
 ## Add cmake target dependencies of the library

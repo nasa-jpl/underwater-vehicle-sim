@@ -1,6 +1,6 @@
 import sys
 import matplotlib.pyplot as plt
-
+import matplotlib.colors
 import file_util
 
 def main(argv):
@@ -25,6 +25,7 @@ def main(argv):
     axes.set_xlim([min(xLim[0], yLim[0]), max(xLim[1], yLim[1])])
     axes.set_ylim([min(xLim[0], yLim[0]), max(xLim[1], yLim[1])])
     
+    plt.colorbar()
     plt.show()
 
 if __name__ == "__main__":
