@@ -13,12 +13,6 @@ public:
 
 	virtual std::shared_ptr<Plan> plan()=0;
 
-    /**
-    * True when planning is completed and no more plans will be produced.
-    * Used primarily to end the simulation
-    */
-    virtual bool isDone()=0;
-
 private:
 };
 

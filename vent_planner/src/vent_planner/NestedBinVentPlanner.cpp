@@ -6,6 +6,7 @@
 
 #include "ros/ros.h"
 #include "tf/LinearMath/Vector3.h"
+#include "std_msgs/String.h"
 
 #include "data_server/GetData.h"
 #include "data_server/GetLatestData.h"
@@ -30,7 +31,9 @@ NestedBinVentPlanner::NestedBinVentPlanner(ros::NodeHandle& nh, std::unique_ptr<
     dataClient(nh.serviceClient<data_server::GetData>("/data_server/get")),
     latestDataClient(nh.serviceClient<data_server::GetLatestData>("/data_server/get_latest")),
     plumeClient(nh.serviceClient<plume_detector::GetPlumeData>("/plume_detector/get")),
-    spiralData(nullptr, 0, tf::Vector3(0,0,0), 300000, 0)
+    goalPub(nh.advertise<std_msgs::String>("goal", 1, true)),
+    spiralData(nullptr, 0, tf::Vector3(0,0,0), 300000, 0),
+    goalState("running")
 {
     ROS_INFO("Planner: Waiting for data server...");
     dataClient.waitForExistence();
@@ -52,6 +55,7 @@ NestedBinVentPlanner::NestedBinVentPlanner(ros::NodeHandle& nh, std::unique_ptr<
     nh.getParam("planner/spiral_spacing", spiralSpacing);
     nh.getParam("planner/inital_spacing", initalSpacing);
     nh.getParam("planner/final_spacing", finalSpacing);
+    nh.getParam("planner/fail_time", failTime);
 }
 
 std::shared_ptr<Plan> NestedBinVentPlanner::plan()
@@ -60,6 +64,11 @@ std::shared_ptr<Plan> NestedBinVentPlanner::plan()
     double nestedSizeFactor = 2;
 
     ROS_INFO("Planner: Plan");
+
+    //updates the goal state and publishes it
+    updateGoal();
+    publishGoal();
+
     //Pop the top plan if it has been completed
     if(plans.size() > 0 && isCompleted(plans.top()))
     {
@@ -334,9 +343,34 @@ void NestedBinVentPlanner::addInitalLawnmowers(std::shared_ptr<Plan> plan, tf::V
     plan->addAction(lawnmower3);
 }
 
-bool NestedBinVentPlanner::isDone()
+void NestedBinVentPlanner::publishGoal()
 {
-    return false;
+    std_msgs::String msg;
+    msg.data = goalState;
+    goalPub.publish(msg);
+}
+
+void NestedBinVentPlanner::updateGoal()
+{
+    if(dataTree)
+    {
+        DataNode& centerNode = dataTree->getSmallestNode(tf::Vector3(0,0,0));
+        if(centerNode.getSize() <= finalSpacing)
+        {
+            for(auto it : plannedMaxima)
+            {
+                if(it.second == &centerNode && isCompleted(it.first))
+                {
+                    goalState = "success";
+                }
+            }
+        }
+    }
+
+    if(ros::Time::now() >= ros::Time(failTime))
+    {
+        goalState = "failed";
+    }
 }
 
 bool NestedBinVentPlanner::isCompleted(std::shared_ptr<Plan> plan)

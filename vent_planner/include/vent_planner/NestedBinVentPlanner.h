@@ -53,7 +53,6 @@ private:
     void getPlumeMax(const std::vector<PlumeData>& data, const unsigned int dataStart, double& plumeX, double& plumeY, double& plumeStrength);
 
     bool isCompleted(std::shared_ptr<Plan> plan);
-    bool isDone();
     
     void addInitalLawnmowers(std::shared_ptr<Plan> plan, tf::Vector3& centerLocation, double plumeHeight);
 
@@ -63,6 +62,9 @@ private:
     *@return True if getting the latest data was successful
     **/
     bool getLatestData(DataServerEntry& returnEntry);
+
+    void publishGoal();
+    void updateGoal();
 
 private:
     std::unique_ptr<VentActionFactory> actionFactory;
@@ -80,6 +82,7 @@ private:
     double spiralSpacing;
     double initalSpacing;
     double finalSpacing;
+    double failTime;
 
     std::string vehicleName;
     tf::Vector3 vehicleStartLocation;
@@ -87,7 +90,10 @@ private:
     ros::ServiceClient dataClient;
     ros::ServiceClient latestDataClient;
     ros::ServiceClient plumeClient;
+    ros::Publisher goalPub;
     ros::NodeHandle& nh;
+
+    std::string goalState;
 };
 
 #endif

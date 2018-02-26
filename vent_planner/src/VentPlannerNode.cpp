@@ -45,11 +45,8 @@ int main(int argc, char **argv)
         bool updatePlannersCompleted = true;
         for(auto& server : servers)
         {
-            if(!server.isDone())
-            {
-                updatePlannersCompleted = false;
-                server.update();
-            }
+            updatePlannersCompleted = false;
+            server.update();
         }
         plannersCompleted = updatePlannersCompleted;
 

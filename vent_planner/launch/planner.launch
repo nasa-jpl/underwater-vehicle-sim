@@ -28,6 +28,7 @@
  <rosparam param="planner/spiral_spacing">5000</rosparam>
  <rosparam param="planner/inital_spacing">3000</rosparam>
  <rosparam param="planner/final_spacing">750</rosparam>
+ <rosparam param="planner/fail_time">3000000</rosparam>
 
  <node pkg="underwater_vehicle_sim" type="clock_server_node" name="clock_server"/>
  <node pkg="underwater_vehicle_sim" type="underwater_vehicle_sim_node" name="underwater_vehicle_sim" output="screen"/>

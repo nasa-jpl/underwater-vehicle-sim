@@ -36,7 +36,6 @@ public:
 
 	unsigned int getNextAction();
 
-	bool isCompleted();
 private:
 	std::vector<std::shared_ptr<Action>> actions;
 };
