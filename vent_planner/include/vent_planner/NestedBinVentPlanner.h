@@ -83,6 +83,7 @@ private:
     double initalSpacing;
     double finalSpacing;
     double failTime;
+    bool finalSurvey;
 
     std::string vehicleName;
     tf::Vector3 vehicleStartLocation;

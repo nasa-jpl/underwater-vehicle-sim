@@ -466,7 +466,7 @@ double FourDOFPropulsionController::scaleVerticalVelocity(tf::Transform& locatio
 
 double FourDOFPropulsionController::scaleRotationalVelocity(double angleError, double crossZ)
 {
-    double angleErrorScale = 0.785398; //30 degrees
+    double angleErrorScale = M_PI; //60 degrees 
 
     if(angleError >= angleErrorScale)
     {

@@ -31,9 +31,10 @@ NestedBinVentPlanner::NestedBinVentPlanner(ros::NodeHandle& nh, std::unique_ptr<
     dataClient(nh.serviceClient<data_server::GetData>("/data_server/get")),
     latestDataClient(nh.serviceClient<data_server::GetLatestData>("/data_server/get_latest")),
     plumeClient(nh.serviceClient<plume_detector::GetPlumeData>("/plume_detector/get")),
-    goalPub(nh.advertise<std_msgs::String>("goal", 1, true)),
+    goalPub(nh.advertise<std_msgs::String>("planner/goal", 1, true)),
     spiralData(nullptr, 0, tf::Vector3(0,0,0), 300000, 0),
-    goalState("running")
+    goalState("running"),
+    finalSurvey(false)
 {
     ROS_INFO("Planner: Waiting for data server...");
     dataClient.waitForExistence();
@@ -75,6 +76,13 @@ std::shared_ptr<Plan> NestedBinVentPlanner::plan()
         ROS_INFO("Planner: Finished plan");
         plans.pop();
 
+        if(finalSurvey)
+        {
+            goalState = "success";
+            ROS_INFO("Planner: Set goal state: success");
+            publishGoal();
+        }
+
         if(plans.size() > 0)
         {
             ROS_INFO("Planner: Restart previous plan");
@@ -106,7 +114,7 @@ std::shared_ptr<Plan> NestedBinVentPlanner::plan()
 
             //Add new plan to stack of plans
             plans.push(plan);
-           
+
             initalPlan = true;
 
             lastPlan = ros::Time::now();
@@ -221,6 +229,47 @@ std::shared_ptr<Plan> NestedBinVentPlanner::plan()
 
                 ROS_INFO("Planner: Starting new maxima search; Nested Bins Size: %f, Max: %f", nestedBinSize, maximum->getMaxVal().val);
                 std::vector<DataNode*> neighbors = maximum->getInitalizedNeighbors();
+
+                //Check for goal completion.
+                //This should be moved to a seperate function at some point
+                ROS_INFO("Planner: Check for goal state nestedBinSize: %f, finalSpacing: %f", nestedBinSize, finalSpacing);
+                if(nestedBinSize <= finalSpacing + 0.1)
+                {
+                    DataNode& smallestCenter = dataTree->getSmallestNode(tf::Vector3(0,0,0));
+                    ROS_INFO("Planner: Smallest Node: X: %f Y: %f Size: %f", smallestCenter.getCenterLocation().getX(),
+                                                                             smallestCenter.getCenterLocation().getY(),
+                                                                             smallestCenter.getSize());
+                    
+
+                    ROS_INFO("Planner: Check for goal state smallestCenter: %p, maximum: %p", (void*)(&smallestCenter), (void*)maximum);
+                    ROS_INFO("Planner: Check for goal state smallestCenter: %f %f %f, maximum: %f %f %f", smallestCenter.getCenterLocation().getX(), 
+                                                                                                         smallestCenter.getCenterLocation().getY(), 
+                                                                                                         smallestCenter.getSize(),
+                                                                                                         maximum->getCenterLocation().getX(),
+                                                                                                         maximum->getCenterLocation().getY(),
+                                                                                                         maximum->getSize());
+                    if(maximum == &smallestCenter)
+                    {
+                        finalSurvey = true;
+                    }
+
+                    for(auto neighbor : neighbors)
+                    {
+                        ROS_INFO("Planner: Check for goal state smallestCenter: %p, neighbor: %p", (void*)(&smallestCenter), (void*)neighbor);
+                        ROS_INFO("Planner: Check for goal state smallestCenter: %f %f %f, neighbor: %f %f %f", smallestCenter.getCenterLocation().getX(), 
+                                                                                                         smallestCenter.getCenterLocation().getY(), 
+                                                                                                         smallestCenter.getSize(),
+                                                                                                         neighbor->getCenterLocation().getX(),
+                                                                                                         neighbor->getCenterLocation().getY(),
+                                                                                                         neighbor->getSize());
+                        if(&smallestCenter == neighbor)
+                        {
+                            ROS_INFO("Planner: Set final survey");
+                            finalSurvey = true;
+                        }
+                    }
+                }                
+
                 if(!maximum->isPartitioned())                
                 {
                     maximum->partition(nestedSizeFactor);
@@ -352,24 +401,12 @@ void NestedBinVentPlanner::publishGoal()
 
 void NestedBinVentPlanner::updateGoal()
 {
-    if(dataTree)
+    if(goalState == "running")
     {
-        DataNode& centerNode = dataTree->getSmallestNode(tf::Vector3(0,0,0));
-        if(centerNode.getSize() <= finalSpacing)
+        if(ros::Time::now() >= ros::Time(failTime))
         {
-            for(auto it : plannedMaxima)
-            {
-                if(it.second == &centerNode && isCompleted(it.first))
-                {
-                    goalState = "success";
-                }
-            }
+            goalState = "failed";
         }
-    }
-
-    if(ros::Time::now() >= ros::Time(failTime))
-    {
-        goalState = "failed";
     }
 }
 

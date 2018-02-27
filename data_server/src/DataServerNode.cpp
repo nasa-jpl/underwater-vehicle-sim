@@ -3,6 +3,7 @@
 #include "data_server/DataServer.h"
 #include "data_server/DataServerEntry.h"
 #include "data_server/GetData.h"
+#include "data_server/SaveData.h"
 #include "std_msgs/String.h"
 #include "underwater_vehicle_sim/VehicleData.h"
 #include "underwater_vehicle_sim/GetVehicleInfo.h"
@@ -79,11 +80,15 @@ bool getData(data_server::GetData::Request &req,
 	return true;
 }
 
-void saveData(const std_msgs::String::ConstPtr& msg)
+bool saveData(data_server::SaveData::Request &req,
+			  data_server::SaveData::Response &res)
 {
 	ROS_INFO("DataServer: Start Saving Data");
-	server.saveToFile(msg->data);
+	server.saveToFile(req.filename);
 	ROS_INFO("DataServer: Finished Saving Data");
+
+	res.success = true;
+	return true;
 }
 
 int main(int argc, char **argv)
@@ -116,7 +121,7 @@ int main(int argc, char **argv)
 	}
 
 
-    ros::Subscriber saveDataSub = nh.subscribe("save", 5000, saveData);
+    ros::ServiceServer saveDataSub = nh.advertiseService("save", saveData);
     ros::ServiceServer serviceGet = nh.advertiseService("get", getData);
     ros::ServiceServer serviceGetLatest = nh.advertiseService("get_latest", getLatestData);
 
