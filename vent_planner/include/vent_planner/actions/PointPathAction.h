@@ -19,13 +19,15 @@ public:
                     const double targetSlope,
                     const double upperDepth,
                     const double lowerDepth,
-                    const std::vector<tf::Vector3>& points);
+                    const std::vector<tf::Vector3>& points,
+                    const bool replan);
 
     PointPathAction(std::unique_ptr<ActionExecutor<PointPathAction>> executor,
                     const double targetHorizontalVelocity, 
                     const double targetRotationalVelocity,
                     const double targetSlope,
-                    const std::vector<tf::Vector3>& points);
+                    const std::vector<tf::Vector3>& points,
+                    const bool replan);
 
     PointPathAction(const PointPathAction& action);
 
@@ -79,6 +81,7 @@ public:
     const double targetSlope;
     const double upperDepth;
     const double lowerDepth;
+    const bool replan;
 
 private:
     std::unique_ptr<ActionExecutor<PointPathAction>> executor;

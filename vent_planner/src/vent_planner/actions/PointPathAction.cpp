@@ -9,7 +9,8 @@ PointPathAction::PointPathAction(std::unique_ptr<ActionExecutor<PointPathAction>
                                  const double targetSlope,
                                  const double upperDepth,
                                  const double lowerDepth,
-                                 const std::vector<tf::Vector3>& points) :
+                                 const std::vector<tf::Vector3>& points,
+                                 const bool replan) :
     executor(std::move(executor)),
     targetHorizontalVelocity(targetHorizontalVelocity),
     targetRotationalVelocity(targetRotationalVelocity),
@@ -18,6 +19,7 @@ PointPathAction::PointPathAction(std::unique_ptr<ActionExecutor<PointPathAction>
     lowerDepth(lowerDepth),
     yoyo(true),
     points(points),
+    replan(replan),
     currentPoint(0),
     doInterruptPoint(false)
 {}
@@ -26,7 +28,8 @@ PointPathAction::PointPathAction(std::unique_ptr<ActionExecutor<PointPathAction>
                                  const double targetHorizontalVelocity,
                                  const double targetRotationalVelocity,
                                  const double targetSlope,
-                                 const std::vector<tf::Vector3>& points) :
+                                 const std::vector<tf::Vector3>& points,
+                                 const bool replan) :
                                  executor(std::move(executor)),
                                  targetHorizontalVelocity(targetHorizontalVelocity),
                                  targetRotationalVelocity(targetRotationalVelocity),
@@ -35,6 +38,7 @@ PointPathAction::PointPathAction(std::unique_ptr<ActionExecutor<PointPathAction>
                                  lowerDepth(0),
                                  yoyo(false),
                                  points(points),
+                                 replan(replan),
                                  currentPoint(0),
                                  doInterruptPoint(false)
 {}
@@ -49,6 +53,7 @@ PointPathAction::PointPathAction(const PointPathAction& action) :
     lowerDepth(action.lowerDepth),
     yoyo(action.yoyo),
     points(action.points),
+    replan(action.replan),
     doInterruptPoint(action.doInterruptPoint),
     interruptPoint(action.interruptPoint)
 {}

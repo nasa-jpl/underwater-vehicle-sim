@@ -19,7 +19,7 @@ def callback(data):
 def getLaunchFiles(directory):
     return [os.path.join(directory, f) for f in os.listdir(directory) if os.path.isfile(os.path.join(directory, f))]
 
-def runLaunchFile(uuid, filename, outputDirectory):
+def runLaunchFile(uuid, filename, outputDirectory, inputDirectory):
     launch = roslaunch.parent.ROSLaunchParent(uuid, [filename])
 
     rospy.loginfo("Starting launch file: %s", filename)
@@ -42,6 +42,7 @@ def runLaunchFile(uuid, filename, outputDirectory):
         f.write("Goal State: " + currentGoal)
 
     shutil.copy(filename, outputDirectory)
+    shutil.move(filename, os.path.join(inputDirectory, "completed"))
 
     rospy.loginfo("Stopping launch file: %s", filename)
     launch.shutdown()
@@ -55,6 +56,8 @@ def main(argv):
     inputDirectory = argv[1]
     outputDirectory = argv[2]
 
+    if not os.path.exists(os.path.join(inputDirectory, "completed")):
+        os.makedirs(os.path.join(inputDirectory, "completed"))
 
     rospy.init_node('en_Mapping', anonymous=True)
 
@@ -69,7 +72,7 @@ def main(argv):
 
     for launchFile, output in zip(launchFiles, outputDirectories):
         currentGoal = 'running'
-        runLaunchFile(uuid, file, output)
+        runLaunchFile(uuid, file, output, inputDirectory)
 
 
 

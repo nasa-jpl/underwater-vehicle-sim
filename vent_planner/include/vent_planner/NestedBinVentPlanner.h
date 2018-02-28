@@ -83,7 +83,7 @@ private:
     double initalSpacing;
     double finalSpacing;
     double failTime;
-    bool finalSurvey;
+    std::shared_ptr<Plan> finalSurvey;
 
     std::string vehicleName;
     tf::Vector3 vehicleStartLocation;

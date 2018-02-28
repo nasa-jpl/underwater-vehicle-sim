@@ -97,7 +97,8 @@ std::shared_ptr<Plan> NestedSpiralVentPlanner::plan()
                                                                                     0.523599, //30 deg
                                                                                     -100,
                                                                                     -2000,
-                                                                                    spiralPoints);
+                                                                                    spiralPoints,
+                                                                                    true);
             plan->addAction(newAction);
 
 
@@ -177,7 +178,8 @@ std::shared_ptr<Plan> NestedSpiralVentPlanner::plan()
                                                                                         1.0,
                                                                                         0.349066,
                                                                                         0.523599, //30 deg
-                                                                                        spiralPoints);
+                                                                                        spiralPoints,
+                                                                                        true);
 
                 plan->addAction(newAction);
 

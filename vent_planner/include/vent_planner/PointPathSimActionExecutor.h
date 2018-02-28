@@ -48,17 +48,6 @@ private:
     bool hasPublisher(std::string topic);
 
     /**
-     *Determines in we want to replan when not yoyoing
-     */
-    bool flatTriggerReplan(std::shared_ptr<PointPathAction> action);
-
-    /**
-     *Determines in we want to replan when yoyoing
-     */
-    bool yoyoTriggerReplan(std::shared_ptr<PointPathAction> action);
-
-
-    /**
     * Callback that occurs when the action is finished
     * @param action Action is avalible to update the internal state
     */

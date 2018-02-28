@@ -22,7 +22,8 @@ std::shared_ptr<PointPathAction> SimVentActionFactory::createPointPathAction(con
                                                                              const double targetSlope,
                                                                              const double upperDepth,
                                                                              const double lowerDepth,
-                                                                             const std::vector<tf::Vector3>& points)
+                                                                             const std::vector<tf::Vector3>& points,
+                                                                             const bool replan)
 {
 
     std::unique_ptr<ActionExecutor<PointPathAction>> executor(new PointPathSimActionExecutor(nh, vehicleName));
@@ -32,7 +33,8 @@ std::shared_ptr<PointPathAction> SimVentActionFactory::createPointPathAction(con
                                                                 targetSlope,
                                                                 upperDepth,
                                                                 lowerDepth,
-                                                                points));
+                                                                points,
+                                                                replan));
 }    
 
 
@@ -41,7 +43,8 @@ std::shared_ptr<PointPathAction> SimVentActionFactory::createPointPathAction(con
                                                                              const double targetHorizontalVelocity, 
                                                                              const double targetRotationalVelocity,
                                                                              const double targetSlope,
-                                                                             const std::vector<tf::Vector3>& points)
+                                                                             const std::vector<tf::Vector3>& points,
+                                                                             const bool replan)
 {
 
     std::unique_ptr<ActionExecutor<PointPathAction>> executor(new PointPathSimActionExecutor(nh, vehicleName));
@@ -49,7 +52,8 @@ std::shared_ptr<PointPathAction> SimVentActionFactory::createPointPathAction(con
                                                                 targetHorizontalVelocity,
                                                                 targetRotationalVelocity,
                                                                 targetSlope,
-                                                                points));
+                                                                points,
+                                                                replan));
 }
 
 std::shared_ptr<DynamicLawnmowerAction> SimVentActionFactory::createDynamicLawnmowerAction(const std::string& vehicleName,

@@ -144,31 +144,7 @@ void PointPathSimActionExecutor::cancel(std::shared_ptr<PointPathAction> action)
 
 bool PointPathSimActionExecutor::triggerReplan(std::shared_ptr<PointPathAction> action)
 {
-	//trigger a replan when the top or bottom of a yoyo has been reached
-	if(action->yoyo)
-	{
-		return yoyoTriggerReplan(action);
-	}
-
-	return flatTriggerReplan(action);
-}
-
-bool PointPathSimActionExecutor::yoyoTriggerReplan(std::shared_ptr<PointPathAction> action)
-{
-	//trigger a replan when the top or bottom of a yoyo has been reached
-	if(action->getGoingUp() != replanGoingUp)
-	{
-		replanGoingUp = action->getGoingUp();
-		return true;
-	}
-
-	return false;
-}
-
-bool PointPathSimActionExecutor::flatTriggerReplan(std::shared_ptr<PointPathAction> action)
-{
-	//trigger a replan when the top or bottom of a yoyo has been reached
-	if(replanNextUpdate)
+	if(action->replan && replanNextUpdate)
 	{
 		replanNextUpdate = false;
 		return true;
@@ -227,20 +203,32 @@ void PointPathSimActionExecutor::actionFeedback(std::shared_ptr<PointPathAction>
 	{
 		adjustedCurrentPoint--;
 	}
+
 	//Add the currentPointOffset as we did not necessarily start at point 0
 	adjustedCurrentPoint += currentPointOffset;
+
+	if(action->yoyo &&
+	   feedback->goingUp != action->getGoingUp() &&
+	   action->getCurrentPoint() >= 1 &&
+	   (!action->getDoInterruptPoint() || (action->getDoInterruptPoint() && feedback->currentPoint >= 1)))
+	{
+		replanNextUpdate = true;
+	}
 
 	if(adjustedCurrentPoint != action->getCurrentPoint())
 	{
 		//Wait until we have reached point 1 before any replanning
 		ROS_INFO("PointPath Executor: Point Reached - Adjusted point: %i, Action Point: %i", adjustedCurrentPoint, action->getCurrentPoint());
-		if(action->getCurrentPoint() >= 1)
+		if(!action->yoyo && action->getCurrentPoint() >= 1)
 		{
 			replanNextUpdate = true;
 		}
 		action->setCurrentPoint(adjustedCurrentPoint);
 		action->addPointReachedTime(ros::Time::now());
 	}
+
+	
+
 	action->setGoingUp(feedback->goingUp);
 }
 
