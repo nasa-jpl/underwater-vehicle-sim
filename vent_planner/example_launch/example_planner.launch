@@ -4,9 +4,9 @@
 
  <rosparam param="vehicles/names">[v1]</rosparam>
 
- <rosparam param="vehicles/v1/start_x">5000</rosparam>
- <rosparam param="vehicles/v1/start_y">-4000</rosparam>
- <rosparam param="vehicles/v1/start_z">0</rosparam>
+ <rosparam param="vehicles/v1/start_x"><START_X></rosparam>
+ <rosparam param="vehicles/v1/start_y"><START_Y></rosparam>
+ <rosparam param="vehicles/v1/start_z"><START_Z></rosparam>
 
 
  <rosparam param="vehicles/v1/propModuleName">prop_v1</rosparam>
@@ -17,10 +17,10 @@
 
  <param name="use_sim_time" value="true" />
  <rosparam param="speed_up_factor">400</rosparam>
- <rosparam param="sim_start_time">1728000</rosparam>
+ <rosparam param="sim_start_time">2592000</rosparam>
 
  <rosparam param="model_type">fvcom</rosparam>
- <rosparam param="model/fvcom_directory" subst_value="True">/home/branch/proj/ocean_worlds/models/axial_output</rosparam>
+ <rosparam param="model/fvcom_directory" subst_value="True">/home/branch/proj/ocean_worlds/models/final_axial</rosparam>
 
  <rosparam param="vehicle_controller/hertz">2</rosparam>
 
@@ -28,8 +28,9 @@
  <rosparam param="planner/spiral_spacing">5000</rosparam>
  <rosparam param="planner/inital_spacing">4000</rosparam>
  <rosparam param="planner/final_spacing">200</rosparam>
- <rosparam param="planner/fail_time">4000000</rosparam>
+ <rosparam param="planner/fail_time">5011200</rosparam>
 
+ <node pkg="planner_log" type="logger.py" name="planner_log"/>
  <node pkg="underwater_vehicle_sim" type="clock_server_node" name="clock_server"/>
  <node pkg="underwater_vehicle_sim" type="underwater_vehicle_sim_node" name="underwater_vehicle_sim" output="screen"/>
  <node pkg="model_server" type="model_server_node" name="model_server" output="screen"/>

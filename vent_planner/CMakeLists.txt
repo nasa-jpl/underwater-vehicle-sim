@@ -13,7 +13,8 @@ find_package(catkin REQUIRED
  			 underwater_vehicle_sim REQUIRED
        data_server REQUIRED
  			 planner REQUIRED
-       plume_detector REQUIRED)
+       plume_detector REQUIRED
+       planner_log REQUIRED)
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)

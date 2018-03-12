@@ -47,14 +47,14 @@ public:
                                                   double spacing);
 
 private:
-
+    void publishLog(std::string log);
     void plumeDataSummary(double& average, double& max, double& stddev);
     bool getHeightOfPlume(const std::vector<PlumeData>& data, const unsigned int dataStart, double& plumeX, double& plumeY, double& plumeHeight, double& plumeStrength);
     void getPlumeMax(const std::vector<PlumeData>& data, const unsigned int dataStart, double& plumeX, double& plumeY, double& plumeStrength);
 
     bool isCompleted(std::shared_ptr<Plan> plan);
     
-    void addInitalLawnmowers(std::shared_ptr<Plan> plan, tf::Vector3& centerLocation, double plumeHeight);
+    void addInitalLawnmowers(std::shared_ptr<Plan> plan, const tf::Vector3& centerLocation, double plumeHeight);
 
     /**
     *Sets the parameter returnEntry to the latest data from the vehicle
@@ -92,6 +92,7 @@ private:
     ros::ServiceClient latestDataClient;
     ros::ServiceClient plumeClient;
     ros::Publisher goalPub;
+    ros::Publisher logPub;
     ros::NodeHandle& nh;
 
     std::string goalState;
