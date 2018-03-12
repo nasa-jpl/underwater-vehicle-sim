@@ -53,13 +53,13 @@ TEST(PointPathExecutor, FourDOFPropulsionControllerWithoutYoYo){
                                                                                           1.0,
                                                                                           0.349066,
                                                                                           0.785398,
-                                                                                          points1);
+                                                                                          points1, true);
 
     std::shared_ptr<PointPathAction> pointPathAction2 = factory.createPointPathAction("v1",
                                                                                       1.0,
                                                                                       0.349066,
                                                                                       0.785398,
-                                                                                      points2);
+                                                                                      points2, true);
     PlanDispatcher planDispatcher;
     std::shared_ptr<Plan> plan = std::shared_ptr<Plan>(new Plan());
     plan->addAction(pointPathAction1);
@@ -160,7 +160,7 @@ TEST(PointPathExecutor, FourDOFPropulsionControllerWithYoYo){
                                                                                            0.785398, //45 deg
                                                                                           -95.0,
                                                                                           -105.0,
-                                                                                          points1);
+                                                                                          points1, true);
 
     std::shared_ptr<PointPathAction> pointPathAction2 = factory.createPointPathAction("v0",
                                                                                           1.0,
@@ -168,7 +168,7 @@ TEST(PointPathExecutor, FourDOFPropulsionControllerWithYoYo){
                                                                                           0.785398, //45 deg
                                                                                           -95.0,
                                                                                           -105.0,
-                                                                                          points2);
+                                                                                          points2, true);
     PlanDispatcher planDispatcher;
     std::shared_ptr<Plan> plan = std::shared_ptr<Plan>(new Plan());
     plan->addAction(pointPathAction1);
@@ -294,7 +294,7 @@ TEST(PointPathExecutor, PlanPrempting){
                                                                                               0.785398, //45 deg
                                                                                               -95.0,
                                                                                               -105.0,
-                                                                                              points0);
+                                                                                              points0, true);
 
     std::shared_ptr<PointPathAction> pointPathAction1 = factory.createPointPathAction("v0",
                                                                                               1.0,
@@ -302,7 +302,7 @@ TEST(PointPathExecutor, PlanPrempting){
                                                                                               0.785398, //45 deg
                                                                                               -95.0,
                                                                                               -105.0,
-                                                                                              points1);
+                                                                                              points1, true);
 
     std::shared_ptr<PointPathAction> pointPathAction2 = factory.createPointPathAction("v0",
                                                                                               1.0,
@@ -310,7 +310,7 @@ TEST(PointPathExecutor, PlanPrempting){
                                                                                               0.785398, //45 deg
                                                                                               -95.0,
                                                                                               -105.0,
-                                                                                              points2);
+                                                                                              points2, true);
 
     PlanDispatcher planDispatcher;
     std::shared_ptr<Plan> plan0 = std::shared_ptr<Plan>(new Plan());
