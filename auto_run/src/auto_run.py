@@ -6,10 +6,10 @@ import sys
 
 from std_msgs.msg import String
 import data_server.srv
+import planner_log.srv
 
 
 currentGoal = "running"
-print("TOP: " + currentGoal)
 dataFilePub = None
 
 def callback(data):
@@ -17,7 +17,7 @@ def callback(data):
     currentGoal = data.data
 
 def getLaunchFiles(directory):
-    return [os.path.join(directory, f) for f in os.listdir(directory) if os.path.isfile(os.path.join(directory, f))]
+    return [os.path.join(directory, f) for f in os.listdir(directory) if os.path.isfile(os.path.join(directory, f)) and f.endswith(".launch")]
 
 def runLaunchFile(uuid, filename, outputDirectory, inputDirectory):
     launch = roslaunch.parent.ROSLaunchParent(uuid, [filename])
@@ -26,7 +26,12 @@ def runLaunchFile(uuid, filename, outputDirectory, inputDirectory):
     launch.start()
 
     rate = rospy.Rate(0.1)
-    while currentGoal == 'running' :
+
+    sawRunning = False
+    while not sawRunning or currentGoal == 'running' :
+        if(currentGoal == 'running'):
+            sawRunning = True
+            
         try:
             rate.sleep()
         except rospy.exceptions.ROSTimeMovedBackwardsException:
@@ -34,20 +39,37 @@ def runLaunchFile(uuid, filename, outputDirectory, inputDirectory):
 
     rospy.loginfo("Goal reached saving data to: %s", outputDirectory)
 
-    os.makedirs(outputDirectory)
-    dataFileClient = rospy.ServiceProxy('/data_server/save', data_server.srv.SaveData)
-    dataFileClient(os.path.join(os.path.abspath(outputDirectory), "data.csv"))
+    if not os.path.exists(outputDirectory):
+        os.makedirs(outputDirectory)
+
+    try:
+        dataFileClient = rospy.ServiceProxy('/data_server/save', data_server.srv.SaveData)
+        dataFileClient(os.path.join(os.path.abspath(outputDirectory), "data.csv"))
+    except rospy.service.ServiceException:
+        rospy.logerr("Auto Run: ServiceException /data_server/save: inputFile: %s", filename)
+        launch.shutdown()
+        return
+
+    try:
+        logClient = rospy.ServiceProxy('/planner_log/save', planner_log.srv.SaveLog)
+        logClient(os.path.join(os.path.abspath(outputDirectory), "log.txt"))
+    except rospy.service.ServiceException:
+        rospy.logerr("Auto Run: ServiceException /planner_log/save: inputFile: %s", filename)
+        launch.shutdown()
+        return
 
     with open(os.path.join(outputDirectory, "stats.txt"), 'w+') as f:
         f.write("Goal State: " + currentGoal)
 
     shutil.copy(filename, outputDirectory)
-    shutil.move(filename, os.path.join(inputDirectory, "completed"))
-
+    
     rospy.loginfo("Stopping launch file: %s", filename)
     launch.shutdown()
 
+    shutil.move(filename, os.path.join(inputDirectory, "completed"))
+
 def main(argv):
+    global currentGoal
 
     if len(argv) != 3:
         print("Invalid Arguments")
@@ -72,7 +94,7 @@ def main(argv):
 
     for launchFile, output in zip(launchFiles, outputDirectories):
         currentGoal = 'running'
-        runLaunchFile(uuid, file, output, inputDirectory)
+        runLaunchFile(uuid, launchFile, output, inputDirectory)
 
 
 

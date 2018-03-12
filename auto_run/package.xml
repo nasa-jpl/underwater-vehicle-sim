@@ -42,10 +42,12 @@
   <build_depend>message_generation</build_depend>
   <build_depend>std_msgs</build_depend>
   <build_depend>data_server</build_depend>
+  <build_depend>planner_log</build_depend>
   <buildtool_depend>catkin</buildtool_depend>
 
   <run_depend>message_runtime</run_depend>
   <run_depend>std_msgs</run_depend>
+  <run_depend>planner_log</run_depend>
   <run_depend>data_server</run_depend>
 
   <!-- The export tag contains other, unspecified, tags -->
