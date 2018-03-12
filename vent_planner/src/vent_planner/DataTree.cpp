@@ -28,3 +28,8 @@ std::vector<DataNode*> DataTree::getMaxima()
 {
     return root.getMaxima();
 }
+
+const tf::Vector3 DataTree::getClosestNodeOrigin(const tf::Vector3& location, unsigned int targetNodeLevel)
+{
+    return root.getClosestNodeOrigin(location, targetNodeLevel);
+}

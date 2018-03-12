@@ -2,6 +2,7 @@
 #include "tf/LinearMath/Vector3.h"
 #include "plume_detector/PlumeData.h"
 
+#include "ros/ros.h"
 #include <map>
 DataNode::DataNode(DataNode* parentNode, const unsigned int nodeLevel, const tf::Vector3 origin, double nodeSize, const unsigned nodeIndex) :
     parentNode(parentNode),
@@ -85,6 +86,54 @@ DataNode& DataNode::getSmallestNode(const tf::Vector3& location)
         return child->getSmallestNode(location);
     }
 }
+
+tf::Vector3 DataNode::getClosestNodeOrigin(const tf::Vector3& location, unsigned int targetNodeLevel)
+{
+    tf::Vector3 baseOrigin;
+    float baseSize = 0;
+    if(!partitioned || targetNodeLevel == nodeLevel)
+    {
+        baseOrigin = origin;
+        baseSize = nodeSize;
+    }
+    else if(partitioned)
+    {
+        unsigned int baseNodeIndex = toNodeIndex(location);
+        DataNode* child = getChild(toNodeIndex(location));
+        if(!child)
+        {
+            baseOrigin = toOriginXY(baseNodeIndex);
+            baseSize = nodeSize / partitionFactor;
+        }
+        else
+        {
+            return child->getClosestNodeOrigin(location, targetNodeLevel);
+        } 
+    }
+    
+    float x = 0;
+    float y = 0;
+    if(fabs(baseOrigin.getX() - location.getX()) < fabs((baseOrigin.getX() + baseSize) - location.getX()))
+    {
+        x = baseOrigin.getX();
+    }
+    else
+    {
+        x = baseOrigin.getX() + baseSize;
+    }
+
+    if(fabs(baseOrigin.getY() - location.getY()) < fabs((baseOrigin.getY() + baseSize) - location.getY()))
+    {
+        y = baseOrigin.getY();
+    }
+    else
+    {
+        y = baseOrigin.getY() + baseSize;
+    }
+
+    return tf::Vector3(x, y, location.getZ());
+}
+
 
 DataNode* DataNode::getChild(unsigned int nodeIndex)
 {
@@ -404,6 +453,7 @@ const double DataNode::getHeightOfPlume()
         return minHeight;
     }
 
+
     int numBins = ceil((maxHeight - minHeight) / binSize);
 
     if(numBins == 0)
@@ -411,6 +461,7 @@ const double DataNode::getHeightOfPlume()
         return false;
     }
 
+    ROS_INFO("Planner: GET PLUME HEIGHT, numBins: %i, maxHeight: %f, minHeight: %f, binSize: %u", numBins, maxHeight, minHeight, binSize);
     std::vector<double> bins(numBins, 0);
     std::vector<int> binCount(numBins, 0);
 

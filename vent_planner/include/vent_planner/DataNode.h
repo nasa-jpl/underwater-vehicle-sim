@@ -47,6 +47,7 @@ private:
     DataNode* getChild(unsigned int nodeIndex);
 
     DataNode& getSmallestNode(const tf::Vector3& location);
+    tf::Vector3 getClosestNodeOrigin(const tf::Vector3& location, unsigned int targetNodeLevel);
 
     bool isMaximum();
     void createChild(unsigned int nodeIndex);

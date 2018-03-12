@@ -15,6 +15,7 @@ public:
     std::vector<DataNode*> getMaxima();
     DataNode& getRoot();
     DataNode& getSmallestNode(const tf::Vector3& location);
+    const tf::Vector3 getClosestNodeOrigin(const tf::Vector3& location, unsigned int targetNodeLevel);
 
 
 private:
