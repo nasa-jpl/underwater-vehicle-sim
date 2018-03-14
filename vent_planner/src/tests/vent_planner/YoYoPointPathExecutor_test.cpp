@@ -32,11 +32,11 @@ TEST(PointPathExecutor, FourDOFPropulsionControllerWithoutYoYo){
 
     std::vector<tf::Vector3> allPoints;
 
-    tf::Vector3 point1(20, -20, -100);
-    tf::Vector3 point2(20, 0, -105);
+    tf::Vector3 point1(15, -15, -50);
+    tf::Vector3 point2(15, 0, -55);
 
-    tf::Vector3 point3(20, -10, -95);
-    tf::Vector3 point4(10, 0, -93);
+    tf::Vector3 point3(15, -10, -45);
+    tf::Vector3 point4(10, 0, -43);
 
     points1.push_back(point1);
     points1.push_back(point2);
@@ -137,11 +137,11 @@ TEST(PointPathExecutor, FourDOFPropulsionControllerWithYoYo){
 
     std::vector<tf::Vector3> allPoints;
 
-    tf::Vector3 point1(20, -20, -100);
-    tf::Vector3 point2(20, 0, -100);
+    tf::Vector3 point1(15, -15, -50);
+    tf::Vector3 point2(15, 0, -50);
 
-    tf::Vector3 point3(20, -10, -100);
-    tf::Vector3 point4(10, 0, -100);
+    tf::Vector3 point3(15, -10, -50);
+    tf::Vector3 point4(10, 0, -50);
 
     points1.push_back(point1);
     points1.push_back(point2);
@@ -266,13 +266,13 @@ TEST(PointPathExecutor, PlanPrempting){
     std::vector<tf::Vector3> allPoints;
 
 
-    tf::Vector3 point0(0, 0, -100);
+    tf::Vector3 point0(0, 0, -50);
 
-    tf::Vector3 point1(20, -20, -100);
-    tf::Vector3 point2(-50, 0, -100);
+    tf::Vector3 point1(15, -15, -50);
+    tf::Vector3 point2(-10, 0, -50);
 
-    tf::Vector3 point3(20, -30, -100);
-    tf::Vector3 point4(10, 0, -100);
+    tf::Vector3 point3(15, -10, -50);
+    tf::Vector3 point4(10, 0, -50);
 
     points0.push_back(point0);
 
@@ -289,7 +289,7 @@ TEST(PointPathExecutor, PlanPrempting){
     allPoints.push_back(point2);
 
     std::shared_ptr<PointPathAction> pointPathAction0 = factory.createPointPathAction("v0",
-                                                                                              1.0,
+                                                                                              2.0,
                                                                                               0.349066,
                                                                                               0.785398, //45 deg
                                                                                               -95.0,
@@ -297,7 +297,7 @@ TEST(PointPathExecutor, PlanPrempting){
                                                                                               points0, true);
 
     std::shared_ptr<PointPathAction> pointPathAction1 = factory.createPointPathAction("v0",
-                                                                                              1.0,
+                                                                                              2.0,
                                                                                               0.349066,
                                                                                               0.785398, //45 deg
                                                                                               -95.0,
@@ -305,7 +305,7 @@ TEST(PointPathExecutor, PlanPrempting){
                                                                                               points1, true);
 
     std::shared_ptr<PointPathAction> pointPathAction2 = factory.createPointPathAction("v0",
-                                                                                              1.0,
+                                                                                              2.0,
                                                                                               0.349066,
                                                                                               0.785398, //45 deg
                                                                                               -95.0,
