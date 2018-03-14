@@ -129,6 +129,9 @@ catkin_package(
    src/vehicles/PropulsionModule.cpp
    src/vehicles/FourDOFPropulsion.cpp
    src/vehicles/DataBroadcasterModule.cpp
+   src/vehicles/PowerCapacityModule.cpp
+   src/vehicles/DataCapacityModule.cpp
+   src/vehicles/BaseStationModule.cpp
  )
 
  target_link_libraries(underwater_vehicles ${catkin_LIBRARIES})

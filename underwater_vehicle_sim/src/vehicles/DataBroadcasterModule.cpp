@@ -10,15 +10,15 @@
 
 #define SECONDS_IN_DAY 86400
 
-DataBroadcasterModule::DataBroadcasterModule(std::string name, ros::NodeHandle& parentNH) :
-	GeneralModule(name, "DataBroadcaster", parentNH)
+DataBroadcasterModule::DataBroadcasterModule(std::string name, ros::NodeHandle& parentNH, std::string vehicleName) :
+	GeneralModule(name, "DataBroadcaster", parentNH, vehicleName)
 {
 
 	dataRecorder = nh.advertise<underwater_vehicle_sim::VehicleData>("data", 1000);
 	client = nh.serviceClient<model_server::GetModelData>("/get_model_data");
 }
 
-void DataBroadcasterModule::update(std::string name, const ros::Time& lastTime, const tf::Vector3& position) 
+void DataBroadcasterModule::update(std::string name, const ros::Time& lastTime, const tf::Vector3& position, double& powerCapacity, double& dataCapacity) 
 {
 	model_server::GetModelData srv;
 
@@ -46,6 +46,9 @@ void DataBroadcasterModule::update(std::string name, const ros::Time& lastTime, 
 			data.sonarDepth = srv.response.depth + position.getZ(); //depth + z, becuase z is negative while depth is positive
 
 			dataRecorder.publish(data);
+
+			//sizeof gives the size of data to be 64 Bytes
+			dataCapacity -= 64;
 		}
 	}
 }

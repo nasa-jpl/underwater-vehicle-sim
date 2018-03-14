@@ -38,14 +38,14 @@ std::unique_ptr<PropulsionModule> PropulsionModule::makePropulsionModule(std::st
 	return NULL;
 }
 
-void PropulsionModule::moveAtRate(ros::Time& lastTime, tf::Quaternion& rotation, tf::Vector3& position)
+void PropulsionModule::moveAtRate(ros::Time& lastTime, tf::Quaternion& rotation, tf::Vector3& position, double& powerCapacity, double& dataCapacity)
 {
 	ros::Duration rate(1 / hertz);
 
 	if(!useHertz || ros::Time::now() - lastUpdate >= rate)
 	{
 		lastUpdate = ros::Time::now();
-		move(lastTime, rotation, position);
+		move(lastTime, rotation, position, powerCapacity, dataCapacity);
 	}
 }
 

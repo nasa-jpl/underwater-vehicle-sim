@@ -6,7 +6,11 @@
 
 #include "vehicles/GeneralModule.h"
 #include "vehicles/PropulsionModule.h"
+
 #include "vehicles/DataBroadcasterModule.h"
+
+#include "vehicles/PowerCapacityModule.h"
+#include "vehicles/DataCapacityModule.h"
 #include "vehicles/FourDOFPropulsion.h"
 
 #include "underwater_vehicle_sim/VehicleData.h"
@@ -43,6 +47,8 @@ void Vehicle::initalizeVehicleFrame()
 	nh.getParam("start_x", startX);
 	nh.getParam("start_y", startY);
 	nh.getParam("start_z", startZ);
+	nh.getParam("start_power", powerCapacity);
+	nh.getParam("start_dataCapacity", dataCapacity);
 
 	//broadcast the inital frame for this vehicle
 
@@ -75,7 +81,7 @@ void Vehicle::initalizeGeneralModules()
 
 	for(std::string& name : moduleNames)
 	{
-		modules.push_back(GeneralModule::makeGeneralModule(name, nh));
+		modules.push_back(GeneralModule::makeGeneralModule(name, nh, getName()));
 	}
 }
 
@@ -84,7 +90,7 @@ void Vehicle::update()
 	//move the frame using the propulsion module and broadcast it
 	if(propulsionModule)
 	{
-		propulsionModule->moveAtRate(lastTransformTime, rotation, position);
+		propulsionModule->moveAtRate(lastTransformTime, rotation, position, powerCapacity, dataCapacity);
 	}
 
 	broadcastTransform();
@@ -92,7 +98,7 @@ void Vehicle::update()
 	//update all modules
 	for(std::unique_ptr<GeneralModule>& module : modules)
 	{
-		module->updateAtRate(name, lastTransformTime, position);
+		module->updateAtRate(name, lastTransformTime, position, powerCapacity, dataCapacity);
 	}
 }
 

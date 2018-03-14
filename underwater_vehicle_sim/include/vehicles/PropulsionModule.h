@@ -15,9 +15,11 @@ public:
 	* @param currentLocaion The old vehicle frame relative to the world frame
 	* @return The new vehicle frame relative to the world frame
 	*/
-	virtual void move(ros::Time& lastTime, tf::Quaternion& rotation, tf::Vector3& position)=0;
+	virtual void move(ros::Time& lastTime, tf::Quaternion& rotation, tf::Vector3& position, 
+						double& powerCapacity, double& dataCapacity)=0;
 
-	void moveAtRate(ros::Time& lastTime, tf::Quaternion& rotation, tf::Vector3& position);
+	void moveAtRate(ros::Time& lastTime, tf::Quaternion& rotation, tf::Vector3& position, 
+						double& powerCapacity, double& dataCapacity);
 
 	/**
 	* Creates a propulsion module using the parameters from the parameter server

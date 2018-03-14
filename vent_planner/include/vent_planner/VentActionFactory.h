@@ -5,6 +5,9 @@
 
 #include "vent_planner/actions/PointPathAction.h"
 #include "vent_planner/actions/DynamicLawnmowerAction.h"
+#include "vent_planner/actions/ChargeAction.h"
+#include "vent_planner/actions/DataTransferAction.h"
+
 class VentActionFactory
 {
 public:
@@ -39,6 +42,9 @@ public:
                                                                                  const int minSectionsPerTrack,
                                                                                  const double continueThreshold,
                                                                                  const int trackSectionThreshold)=0;
+
+    virtual std::shared_ptr<ChargeAction> createChargeAction(const std::string& vehicleName)=0;
+    virtual std::shared_ptr<DataTransferAction> createDataTransferAction(const std::string& vehicleName)=0;
 };
 
 #endif

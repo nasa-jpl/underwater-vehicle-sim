@@ -9,7 +9,12 @@
 #include "vent_planner/actions/PointPathAction.h"
 #include "vent_planner/actions/DynamicLawnmowerAction.h"
 #include "vent_planner/PointPathSimActionExecutor.h"
+#include "vent_planner/ChargeSimActionExecutor.h"
+#include "vent_planner/DataTransferSimActionExecutor.h"
+
 #include "vent_planner/DynamicLawnmowerSimActionExecutor.h"
+#include "vent_planner/actions/ChargeAction.h"
+#include "vent_planner/actions/DataTransferAction.h"
 
 
 SimVentActionFactory::SimVentActionFactory(ros::NodeHandle& nh) :
@@ -46,7 +51,6 @@ std::shared_ptr<PointPathAction> SimVentActionFactory::createPointPathAction(con
                                                                              const std::vector<tf::Vector3>& points,
                                                                              const bool replan)
 {
-
     std::unique_ptr<ActionExecutor<PointPathAction>> executor(new PointPathSimActionExecutor(nh, vehicleName));
     return std::unique_ptr<PointPathAction>(new PointPathAction(std::move(executor),
                                                                 targetHorizontalVelocity,
@@ -83,3 +87,17 @@ std::shared_ptr<DynamicLawnmowerAction> SimVentActionFactory::createDynamicLawnm
                                                                               continueThreshold,
                                                                               trackSectionThreshold));
 }
+
+
+std::shared_ptr<ChargeAction> SimVentActionFactory::createChargeAction(const std::string& vehicleName)
+{
+	std::unique_ptr<ActionExecutor<ChargeAction>> executor(new ChargeSimActionExecutor(nh, vehicleName));
+	return std::unique_ptr<ChargeAction>(new ChargeAction(std::move(executor)));
+}    
+
+std::shared_ptr<DataTransferAction> SimVentActionFactory::createDataTransferAction(const std::string& vehicleName)
+{
+	std::unique_ptr<ActionExecutor<DataTransferAction>> executor(new DataTransferSimActionExecutor(nh, vehicleName));
+
+	return std::unique_ptr<DataTransferAction>(new DataTransferAction(std::move(executor)));
+}    

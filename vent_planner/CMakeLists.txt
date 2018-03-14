@@ -129,6 +129,10 @@ include_directories(
    src/vent_planner/PointPathSimActionExecutor.cpp
    src/vent_planner/actions/DynamicLawnmowerAction.cpp
    src/vent_planner/DynamicLawnmowerSimActionExecutor.cpp
+   src/vent_planner/actions/ChargeAction.cpp
+   src/vent_planner/actions/DataTransferAction.cpp
+   src/vent_planner/ChargeSimActionExecutor.cpp
+   src/vent_planner/DataTransferSimActionExecutor.cpp
    src/vent_planner/SimVentActionFactory.cpp
    src/vent_planner/NestedSpiralVentPlanner.cpp
    src/vent_planner/NestedBinVentPlanner.cpp
@@ -167,6 +171,7 @@ include_directories(
    planner_framework
    ${catkin_LIBRARIES}
  )
+ 
 
 #############
 ## Install ##

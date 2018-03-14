@@ -11,10 +11,10 @@ class DataBroadcasterModule : public GeneralModule
 {
 
 public:
-	DataBroadcasterModule(std::string name, ros::NodeHandle& parentNH);
+	DataBroadcasterModule(std::string name, ros::NodeHandle& parentNH, std::string vehicleName);
 	~DataBroadcasterModule() {}
 
-	void update(std::string name, const ros::Time& lastTime, const tf::Vector3& position);
+	void update(std::string name, const ros::Time& lastTime, const tf::Vector3& position, double& powerCapacity, double& dataCapacity);
 
 
 	

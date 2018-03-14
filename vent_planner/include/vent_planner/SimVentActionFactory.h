@@ -9,6 +9,11 @@
 #include "vent_planner/VentActionFactory.h"
 #include "vent_planner/actions/PointPathAction.h"
 #include "vent_planner/actions/DynamicLawnmowerAction.h"
+#include "vent_planner/actions/ChargeAction.h"
+#include "vent_planner/actions/DataTransferAction.h"
+#include "vent_planner/PointPathSimActionExecutor.h"
+#include "vent_planner/ChargeSimActionExecutor.h"
+#include "vent_planner/DataTransferSimActionExecutor.h"
 
 class SimVentActionFactory : public VentActionFactory
 {
@@ -32,7 +37,10 @@ public:
                                                            const std::vector<tf::Vector3>& points,
                                                            const bool replan) override;
 
-    std::shared_ptr<DynamicLawnmowerAction> createDynamicLawnmowerAction(const std::string& vehicleName,
+    std::shared_ptr<ChargeAction> createChargeAction(const std::string& vehicleName) override;
+    std::shared_ptr<DataTransferAction> createDataTransferAction(const std::string& vehicleName) override;
+
+std::shared_ptr<DynamicLawnmowerAction> createDynamicLawnmowerAction(const std::string& vehicleName,
                                                                          const double targetHorizontalVelocity, 
                                                                          const double targetRotationalVelocity,
                                                                          const double targetSlope,
@@ -44,9 +52,8 @@ public:
                                                                          const int minSectionsPerTrack,
                                                                          const double continueThreshold,
                                                                          const int trackSectionThreshold) override;
-
 private:
-    ros::NodeHandle& nh;
+	ros::NodeHandle& nh;
 };
 
 #endif

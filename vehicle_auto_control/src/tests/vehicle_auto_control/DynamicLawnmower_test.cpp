@@ -183,26 +183,27 @@ TEST(DynamicLawnmower, DynamicLawnmowerStop){
         {
             listener.lookupTransform("/world", "/v3",  
                                      ros::Time(0), transform);
+
+            double xDistance = fabs(transform.getOrigin().getX() - expectedPoints[currentPoint].getX());
+            double yDistance = fabs(transform.getOrigin().getY() - expectedPoints[currentPoint].getY());
+            double zDistance = fabs(transform.getOrigin().getZ() - expectedPoints[currentPoint].getZ());
+            double xyDistance = sqrt(xDistance * xDistance + yDistance * yDistance);
+
+            if(zDistance <= 1.0 && xyDistance <= 5.0)
+            {
+                currentPoint++;
+            }
+
+            if(ac.getState() == actionlib::SimpleClientGoalState::ACTIVE)
+            {
+                isActive = true;
+            }
         }
         catch (tf::TransformException ex){
             ROS_ERROR("%s",ex.what());
-            FAIL();
         }
 
-        double xDistance = fabs(transform.getOrigin().getX() - expectedPoints[currentPoint].getX());
-        double yDistance = fabs(transform.getOrigin().getY() - expectedPoints[currentPoint].getY());
-        double zDistance = fabs(transform.getOrigin().getZ() - expectedPoints[currentPoint].getZ());
-        double xyDistance = sqrt(xDistance * xDistance + yDistance * yDistance);
-
-        if(zDistance <= 1.0 && xyDistance <= 5.0)
-        {
-            currentPoint++;
-        }
-
-        if(ac.getState() == actionlib::SimpleClientGoalState::ACTIVE)
-        {
-            isActive = true;
-        }
+        
     }
 
     bool finishedBeforeTimeout = ac.waitForResult(ros::Duration(30.0));
