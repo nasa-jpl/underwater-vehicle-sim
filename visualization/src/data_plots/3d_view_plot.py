@@ -33,14 +33,19 @@ def main(argv):
     ax.set_ylim([min(xLim[0], yLim[0]), max(xLim[1], yLim[1])])
     ax.set_zlim(ax.get_zlim()[0], 0)
 
-    ax.set_xlabel('X (m)', fontsize=14)
-    ax.set_ylabel('Y (m)', fontsize=14)
-    ax.set_zlabel('Height (m)', fontsize=14)
+    ax.set_xlabel('\n\n\nX (m)', fontsize=28)
+    ax.set_ylabel('\n\n\nY (m)', fontsize=28)
+    ax.set_zlabel('\n\n\nHeight (m)', fontsize=24)
+    ax.xaxis._axinfo['label']['space_factor'] = 5.0
+    ax.yaxis._axinfo['label']['space_factor'] = 5.0
+    ax.zaxis._axinfo['label']['space_factor'] = 5.0
 
-    plt.scatter([0],[0],zs=[-1553], c='c', s=50, marker="^", label="Vent Source")
-    plt.title("Hydrothermal Vent Search Simulation", fontsize=14)
+    plt.scatter([0],[0],zs=[-1553], c='c', s=100, marker="^", label="Vent Source")
+    plt.title("Hydrothermal Vent Search Simulation", fontsize=32)
+    plt.tick_params(axis='both', which='major', labelsize=24)
     cbar = plt.colorbar(points)
-    cbar.set_label("Neutrally Buoyant Tracer", fontsize=14)
+    cbar.set_label("Neutrally Buoyant Tracer", fontsize=28)
+    cbar.ax.tick_params(labelsize=24)
 
     plt.show()
 

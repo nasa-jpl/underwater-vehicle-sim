@@ -16,9 +16,9 @@ def plotData(data, measurement):
 
     axes = plt.gca()
 
-    axes.set_xlabel('X (m)', fontsize=14)
-    axes.set_ylabel('Y (m)', fontsize=14)
-    plt.title("Dynamic Lawnmower Survey", fontsize=18)
+    axes.set_xlabel('X (m)', fontsize=28)
+    axes.set_ylabel('Y (m)', fontsize=28)
+    plt.title("Dynamic Lawnmower Survey", fontsize=32)
     
     plt.gcf().set_size_inches(14, 12)
 
@@ -98,11 +98,11 @@ def plotData(data, measurement):
                 if yi == 0 and (xi == 1 or xi == 2):
                     axes.text(xOrigin + 100, yOrigin + 3900, "Avg: " + ('%.2f' % avgY),
                         verticalalignment='top', horizontalalignment='left',
-                        color='k', fontsize=14)
+                        color='k', fontsize=24)
                 else:
                     axes.text(xOrigin + 100, yOrigin + 3900, "Avg: " + ('%.2f' % avgY),
                         verticalalignment='top', horizontalalignment='left',
-                        color='k', fontsize=14)
+                        color='k', fontsize=24)
      
 
     
@@ -149,11 +149,14 @@ def plotData(data, measurement):
     data[measurement] = [max(d, 0.1) for d in data[measurement]]
     points = plt.scatter(data["x"], data["y"], c=data[measurement], linewidth=0, cmap="plasma", norm=matplotlib.colors.LogNorm(vmin=min(data[measurement]), vmax=max(data[measurement])))
     cbar = plt.colorbar(points)
-    cbar.set_label("Neutrally Buoyant Tracer")
+    cbar.set_label("Neutrally Buoyant Tracer", fontsize=28)
+    cbar.ax.tick_params(labelsize=24) 
     plt.scatter(data["x"][80], data["y"][80], c='k', marker="*", s=1000, label="Survey Start Location")
     axes.set_xlim((xLim[0] - 50, xLim[1] + 50))
     axes.set_ylim((yLim[0] - 50, yLim[1] + 50))
-    plt.legend(scatterpoints = 1, loc='lower right')
+    plt.legend(scatterpoints = 1, loc='lower right', fontsize=28)
+    plt.tick_params(axis='both', which='major', labelsize=24)
+
     #plt.gcf().savefig('/home/branch/Desktop/vent_search_map_plot.png', dpi=100)
     #plt.gcf().savefig('/home/branch/Desktop/vent_search_map_plot.eps')
 

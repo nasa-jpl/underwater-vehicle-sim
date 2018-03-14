@@ -24,18 +24,20 @@ def plotData(data, measurement):
 
     
     
-    axes.set_xlabel('X (m)')
-    axes.set_ylabel('Y (m)')
-    plt.title("Hydrothermal Vent Search Simulation")
+    axes.set_xlabel('X (m)', fontsize=28)
+    axes.set_ylabel('Y (m)', fontsize=28)
+    plt.title("Hydrothermal Vent Search Simulation", fontsize=32)
     cbar = plt.colorbar(points)
-    cbar.set_label("Neutrally Buoyant Tracer")
-    plt.scatter([0],[0],c='k', marker="^", s=50, label="Vent Source")
-    plt.legend()
+    cbar.ax.tick_params(labelsize=24) 
+    cbar.set_label("Neutrally Buoyant Tracer", fontsize=28)
+    plt.scatter([0],[0],c='k', marker="^", s=100, label="Vent Source")
+    plt.legend(fontsize=28)
+    plt.tick_params(axis='both', which='major', labelsize=24)
     plt.axes().set_aspect('equal', 'datalim')
     plt.gcf().set_size_inches(14, 12)
     axes.set_xlim([-30000,30000])
-    plt.gcf().savefig('/home/branch/Desktop/vent_search_map_plot.png', dpi=100)
-    plt.gcf().savefig('/home/branch/Desktop/vent_search_map_plot.eps')
+    plt.gcf().savefig('/home/branch/Desktop/vent_search_map_plot.png', dpi=100, bbox_inches='tight')
+    plt.gcf().savefig('/home/branch/Desktop/vent_search_map_plot.eps', bbox_inches='tight')
     #plt.show()
 
 def plotSurveyType(data, log):
@@ -93,20 +95,21 @@ def plotSurveyType(data, log):
         label = str(k) + " m Nested Lawnmower"
         plt.scatter(nestedX[k], nestedY[k], c=thisColor, linewidth=0, label=label)
 
-    plt.scatter([0],[0],c='k', marker="^", s=50, label="Vent Source")
+    plt.scatter([0],[0],c='k', marker="^", s=100, label="Vent Source")
     axes = plt.gca()
 
     
 
-    plt.xlabel("X (m)")
-    plt.ylabel("Y (m)")
-    plt.title("Hydrothermal Vent Search Survey Type")
-    plt.legend()
+    plt.xlabel("X (m)", fontsize=28)
+    plt.ylabel("Y (m)", fontsize=28)
+    plt.title("Hydrothermal Vent Search Survey Type", fontsize=32)
+    plt.legend(fontsize=18, loc="lower left")
+    plt.tick_params(axis='both', which='major', labelsize=24)
     plt.axes().set_aspect('equal', 'datalim')
     plt.gcf().set_size_inches(14, 12)
     axes.set_xlim([-30000,30000])
-    plt.gcf().savefig('/home/branch/Desktop/vent_search_survey_type.png', dpi=100)
-    plt.gcf().savefig('/home/branch/Desktop/vent_search_survey_type.eps')
+    plt.gcf().savefig('/home/branch/Desktop/vent_search_survey_type.png', dpi=100, bbox_inches='tight')
+    plt.gcf().savefig('/home/branch/Desktop/vent_search_survey_type.eps', bbox_inches='tight')
   #  plt.show()
 
 

@@ -16,9 +16,9 @@ def plotData(data, data_inner, measurement):
 
     axes = plt.gca()
 
-    axes.set_xlabel('X (m)', fontsize=14)
-    axes.set_ylabel('Y (m)', fontsize=14)
-    plt.title("Nested Lawnmower Survey", fontsize=18)
+    axes.set_xlabel('X (m)', fontsize=28)
+    axes.set_ylabel('Y (m)', fontsize=28)
+    plt.title("Nested Lawnmower Survey", fontsize=32)
     
     plt.gcf().set_size_inches(14, 12)
 
@@ -157,11 +157,13 @@ def plotData(data, data_inner, measurement):
     plt.plot([],[],label="Planned Nested Survey", c='darkred', linewidth=3)
 
     cbar = plt.colorbar(points)
-    cbar.set_label("Neutrally Buoyant Tracer")
+    cbar.set_label("Neutrally Buoyant Tracer", fontsize=28)
+    cbar.ax.tick_params(labelsize=24) 
     plt.scatter(data["x"][80], data["y"][80], c='k', marker="*", s=1000, label="Start Location")
     axes.set_xlim((binOrigin[0], binOrigin[0] + binSize * numBins[0]))
     axes.set_ylim((binOrigin[1], binOrigin[1] + binSize * numBins[1]))
-    plt.legend(scatterpoints = 1, loc='lower right')
+    plt.legend(scatterpoints = 1, loc='lower right', fontsize=28)
+    plt.tick_params(axis='both', which='major', labelsize=24)
     #plt.gcf().savefig('/home/branch/Desktop/vent_search_map_plot.png', dpi=100)
     #plt.gcf().savefig('/home/branch/Desktop/vent_search_map_plot.eps')
 

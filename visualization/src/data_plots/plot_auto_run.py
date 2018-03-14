@@ -67,7 +67,8 @@ def readLaunch(filename):
 
 def processRun(run):
     run["stats"] = readStats(run["stats_file"])
-    run["data"] = file_util.load_csv_first_and_last(run["data_file"])# file_util.load(run["data_file"])
+    #run["data"] = file_util.load_csv_first_and_last(run["data_file"])
+    run["data"] = file_util.load(run["data_file"])
     run["launch"] = readLaunch(run["launch_file"])
     run["log"] = readLog(run["log_file"])
 
@@ -90,14 +91,14 @@ def processRun(run):
                 run["stats"]["nested_lawnmower_time"] += currTime - prevTime
 
     #get rid of data so it can be garbage collected
-    run["data"] = []
+  #  run["data"] = []
 
 def displayRun(run):
     print(run["launch_file"])
     print(run["stats"]["success"])
     print(run["stats"]["time"])
     print(math.sqrt(run["launch"]["start_x"]**2 + run["launch"]["start_y"]**2))
-    map_view_plot.plotData(run["data"], "dye")
+   # map_view_plot.plotData(run["data"], "dye")
     print("")
 
 def getSuccessRate(runs):
@@ -171,49 +172,54 @@ def plotTimeVsDistance(runs):
    # nestedStartColor = [13 / 255.0, 90 / 255.0, 171 / 255.0]
    # nestedStartColorFailed = [19 / 255.0, 130 / 255.0, 247 / 255.0]
 
+    marker_size = 30
     fig = plt.figure(1)
     
-    fig.suptitle("Search Time vs. Distance from Vent Source", fontsize=20)
+    fig.suptitle("Search Time vs. Distance from Vent Source", fontsize=32)
 
  #   plt.scatter(x, y, c=totalTime, linewidth=0, cmap='plasma',s=50)
     ax1 = plt.subplot(221)
-    plt.scatter(dist, totalTime, c=totalColor, linewidth=0)
-    plt.scatter(distFailed, totalTimeFailed, c=totalColorFailed, linewidth=0)
-    plt.ylabel("Time (Days)")
-    plt.xlabel("Distance from Vent Source (m)")
-    plt.title("(a) Total Search Time", fontsize=16)
+    plt.scatter(dist, totalTime, c=totalColor, linewidth=0, s=marker_size)
+    plt.scatter(distFailed, totalTimeFailed, c=totalColorFailed, linewidth=0, s=marker_size)
+    plt.ylabel("Time (Days)", fontsize=24)
+    plt.xlabel("Distance from Vent Source (m)", fontsize=24)
+    plt.title("(a) Total Search Time", fontsize=28)
+    plt.tick_params(axis='both', which='major', labelsize=24)
     ax1.set_xlim([0, 50000])
     ax1.set_ylim([0, ax1.get_ylim()[1]])
 
     ax2 = plt.subplot(222)
-    plt.ylabel("Time (Days)")
-    plt.xlabel("Distance from Vent Source (m)")
-    plt.scatter(dist, spiralTime, c=spiralColor, linewidth=0)
-    plt.scatter(distFailed, spiralTimeFailed, c=spiralColorFailed, linewidth=0)
-    plt.title("(b) Spiral Survey Time", fontsize=16)
+    plt.ylabel("Time (Days)", fontsize=24)
+    plt.xlabel("Distance from Vent Source (m)", fontsize=24)
+    plt.scatter(dist, spiralTime, c=spiralColor, linewidth=0, s=marker_size)
+    plt.scatter(distFailed, spiralTimeFailed, c=spiralColorFailed, linewidth=0, s=marker_size)
+    plt.title("(b) Spiral Survey Time", fontsize=28)
+    plt.tick_params(axis='both', which='major', labelsize=24)
     ax2.set_xlim([0, 50000])
     ax2.set_ylim([0, ax2.get_ylim()[1]])
 
     ax3 =plt.subplot(223)
-    plt.ylabel("Time (Days)")
-    plt.xlabel("Distance from Vent Source (m)")
-    plt.scatter(dist, dynamicTime, c=dynamicColor, linewidth=0)
-    plt.scatter(distFailed, dynamicTimeFailed, c=dynamicColorFailed, linewidth=0)
-    plt.title("(c) Dynamic Lawnmower Survey Time", fontsize=16)
+    plt.ylabel("Time (Days)", fontsize=24)
+    plt.xlabel("Distance from Vent Source (m)", fontsize=24)
+    plt.scatter(dist, dynamicTime, c=dynamicColor, linewidth=0, s=marker_size)
+    plt.scatter(distFailed, dynamicTimeFailed, c=dynamicColorFailed, linewidth=0, s=marker_size)
+    plt.title("(c) Dynamic Lawnmower Survey Time", fontsize=28)
+    plt.tick_params(axis='both', which='major', labelsize=24)
     ax3.set_xlim([0, 50000])
     ax3.set_ylim([0, ax3.get_ylim()[1]])
 
     ax4 = plt.subplot(224)
-    plt.ylabel("Time (Days)")
-    plt.xlabel("Distance from Vent Source (m)")
-    pSuccess = plt.scatter(dist, nestedTime, c=nestedStartColor, linewidth=0)
-    pFailed = plt.scatter(distFailed, nestedTimeFailed, c=nestedStartColorFailed, linewidth=0)
-    plt.title("(d) Nested Lawnmower Survey Time", fontsize=16)
+    plt.ylabel("Time (Days)", fontsize=24)
+    plt.xlabel("Distance from Vent Source (m)", fontsize=24)
+    pSuccess = plt.scatter(dist, nestedTime, c=nestedStartColor, linewidth=0, s=marker_size)
+    pFailed = plt.scatter(distFailed, nestedTimeFailed, c=nestedStartColorFailed, linewidth=0, s=marker_size)
+    plt.title("(d) Nested Lawnmower Survey Time", fontsize=28)
+    plt.tick_params(axis='both', which='major', labelsize=24)
     ax4.set_xlim([0, 50000])
     ax4.set_ylim([0, ax4.get_ylim()[1]])
 
 
-    plt.figlegend( [pSuccess, pFailed], ["Successful Runs", "Failed Runs"], loc = 'lower center', ncol=5, labelspacing=0. )
+    plt.figlegend( [pSuccess, pFailed], ["Successful Runs", "Failed Runs"], loc = 'lower center', ncol=5, labelspacing=0. , fontsize=24)
     plt.show()
 
 def main(argv):
@@ -229,13 +235,13 @@ def main(argv):
     for run in runs:
         processRun(run)
 
-    plotTimeVsDistance(runs)
+    #plotTimeVsDistance(runs)
     print("Success Rate: " + str(getSuccessRate(runs)))        
 
-   # for run in runs:
-   #     if run["launch_file"] == "6000m_30000m/planner_10_launch/planner_10.launch":
-   #         map_view_plot.plotSurveyType(run["data"], run["log"])
-    #    displayRun(run)
+    for run in runs:
+        if run["launch_file"] == "./paper_output/6000m_30000m/planner_10_launch/planner_10.launch":
+            map_view_plot.plotSurveyType(run["data"], run["log"])
+        displayRun(run)
 
 if __name__ == "__main__":
     main(sys.argv)
