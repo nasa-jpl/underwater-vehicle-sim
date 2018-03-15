@@ -220,7 +220,7 @@ TEST(PointPathExecutor, FourDOFPropulsionControllerWithYoYo){
         
         double xyDistance = sqrt(xDistance * xDistance + yDistance * yDistance);
 
-        if(xyDistance <= 11.0)
+        if(xyDistance <= 11.0 && currentPoint < allPoints.size())
         {
             currentPoint++;
         }
