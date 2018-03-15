@@ -40,7 +40,10 @@ void DataBroadcasterModule::update(std::string name, const ros::Time& lastTime, 
 			data.y = position.getY();
 			data.h = position.getZ();
 			data.time = lastTime;
-			data.temp = srv.response.temp;
+
+			float precisionPow = std::pow(10, 4); //Set presision of temperature reading to 4 decimal places
+			data.temp = std::round(srv.response.temp * precisionPow) / precisionPow;
+			
 			data.salt = srv.response.salt;
 			data.dye = srv.response.dye;
 			data.sonarDepth = srv.response.depth + position.getZ(); //depth + z, becuase z is negative while depth is positive
