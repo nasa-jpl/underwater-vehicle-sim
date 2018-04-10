@@ -19,16 +19,6 @@
  <rosparam param="vehicles/v1/prop/type">FourDOFPropulsion</rosparam>
  <rosparam param="vehicles/v1/prop/hertz">10</rosparam>
 
- <rosparam param="model_type">linear</rosparam>
- <rosparam param="model/u">0.5</rosparam>
- <rosparam param="model/v">0.5</rosparam>
- <rosparam param="model/temp">0.5</rosparam>
- <rosparam param="model/salt">0.5</rosparam>
- <rosparam param="model/dye">0.5</rosparam>
- <rosparam param="model/depth">300</rosparam>
- <rosparam param="model/zeroDistance">50</rosparam>
- <rosparam param="model/type">square</rosparam>
-
  <rosparam param="vehicle_controller/hertz">2</rosparam>
 
  <param name="use_sim_time" value="true" />

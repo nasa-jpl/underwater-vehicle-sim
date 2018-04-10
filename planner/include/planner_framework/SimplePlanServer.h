@@ -4,10 +4,12 @@
 #include "planner_framework/Planner.h"
 #include "planner_framework/PlanDispatcher.h"
 
+#include "ros/ros.h"
+
 class SimplePlanServer
 {
 public:
-	SimplePlanServer(std::unique_ptr<PlanDispatcher> planDispatcher, std::unique_ptr<Planner> planner);
+	SimplePlanServer(ros::NodeHandle nh, std::unique_ptr<PlanDispatcher> planDispatcher, std::unique_ptr<Planner> planner);
 	SimplePlanServer(SimplePlanServer&& other);
 	~SimplePlanServer() {}
 
@@ -16,6 +18,10 @@ public:
 private:
 	std::unique_ptr<PlanDispatcher> planDispatcher;
 	std::unique_ptr<Planner> planner;
+    ros::NodeHandle nh;
+
+    const ros::Publisher clockSpeedPub;
+    float speedUpFactor;
 };
 
 #endif

@@ -34,7 +34,7 @@ int main(int argc, char **argv)
         std::unique_ptr<PlanDispatcher> dispatcher(new PlanDispatcher());
         std::unique_ptr<VentActionFactory> factory(new SimVentActionFactory(nh));
         std::unique_ptr<Planner> planner(new NestedBinVentPlanner(nh, std::move(factory), name));
-        servers.emplace_back(std::move(dispatcher), std::move(planner));
+        servers.emplace_back(nh, std::move(dispatcher), std::move(planner));
     }
 
     ROS_INFO("Planner Initalized");
