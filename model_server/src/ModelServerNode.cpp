@@ -10,6 +10,7 @@
 #include "constant_model/ConstantModel.h"
 #include "fvcom/FVCOM.h"
 
+#include "std_msgs/Float64.h"
 #include <string>
 #include <stdexcept>
 
@@ -17,11 +18,18 @@
 std::unique_ptr<ModelInterface> model;
 
 
+ros::Publisher clockSpeedPub;
+float speedUpFactor;   
 
 bool getModelData(model_server::GetModelData::Request &req,
 				  model_server::GetModelData::Response &res)
 {   
 //    ROS_INFO("CALL MODEL DATA: %f %f %f %f", req.x, req.y, req.h, req.time);
+
+    std_msgs::Float64 stopSim;
+    stopSim.data = 0;
+    clockSpeedPub.publish(stopSim);
+
     try
     {
         ModelData data = model->getData(req.x, req.y, req.h, req.time);
@@ -54,6 +62,10 @@ bool getModelData(model_server::GetModelData::Request &req,
         ROS_INFO("CAUGHT UNKNOWN EXCEPTION: %f %f %f %f", req.x, req.y, req.h, req.time);
     }*/
 
+    std_msgs::Float64 startSim;
+    stopSim.data = speedUpFactor;
+    clockSpeedPub.publish(stopSim);
+    
 	return true;
 }
 
@@ -63,6 +75,9 @@ int main(int argc, char **argv)
     ros::NodeHandle n;
     
     std::string model_type;
+
+    clockSpeedPub = n.advertise<std_msgs::Float64>("/clock_server/speed_up_factor", 1, true);
+    n.param<float>("speed_up_factor", speedUpFactor, 1);
 
     if(!n.getParam("model_type", model_type))
     {
