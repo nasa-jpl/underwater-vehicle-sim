@@ -20,27 +20,28 @@ int main(int argc, char **argv)
     ros::Publisher clockPub = n.advertise<rosgraph_msgs::Clock>("/clock", 1000);
     ros::Subscriber sub = n.subscribe("clock_server/speed_up_factor", 1, &getSpeedUpFactor);
 
-    auto interval = std::chrono::milliseconds(1);
-	auto nodeStart = std::chrono::steady_clock::now();
+    ros::WallDuration interval = ros::WallDuration(0.001);
 
-    //Tracks the previous time published to prevent going back in time
-    ros::Time prevRosTime = simStartTime;
+    
 	
 
 	n.param<float>("speed_up_factor", speedUpFactor, 1);
 	n.param<float>("sim_start_time", simStartTime, 0);
 
-    auto prev = std::chrono::steady_clock::now();
+    //Tracks the previous time published to prevent going back in time
+    ros::Time prevRosTime = ros::Time(simStartTime);
+    
+    ros::WallTime prev = ros::WallTime::now();
     while(ros::ok())
     {
     	//get clock time
-        auto now = std::chrono::steady_clock::now();
+        auto now = ros::WallTime::now();
 
         //get time from system
-        std::chrono::duration<double> chronoTime = (now - prev) * speedUpFactor;
+        ros::WallDuration chronoTime = (now - prev) * speedUpFactor;
 
         //convert system time to ros time
-        ros::Time rosTime(chronoTime.count() + prevRosTime);
+        ros::Time rosTime(chronoTime.toSec() + prevRosTime.toSec());
 
         //Create ROS message for clock topic
         rosgraph_msgs::Clock msg;
@@ -58,8 +59,7 @@ int main(int argc, char **argv)
         ros::spinOnce();
 
         // delay until time to iterate again
-        auto next = now + interval;
-        std::this_thread::sleep_until(next);
+        interval.sleep();
     }
 
 }
