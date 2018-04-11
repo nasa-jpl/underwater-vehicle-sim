@@ -1,7 +1,6 @@
 #include "ros/ros.h"
 
 #include "underwater_vehicle_sim/UnderwaterVehicleSim.h"
-#include "vehicles/Vehicle.h"
 
 #include "std_msgs/Float64.h"
 
@@ -16,9 +15,8 @@ int main(int argc, char **argv)
         ROS_FATAL("Parameter \"underwater_vehicle_sim/hertz\" not present in the parameter server.");
         exit(1);
     }
-    
-    nh.getParam("underwater_vehicle_sim/hertz", hertz);
 
+    nh.getParam("underwater_vehicle_sim/hertz", hertz);
     ros::Rate r(hertz); //Hz at which to run the sim loop
     
     ros::Publisher clockSpeedPub = nh.advertise<std_msgs::Float64>("/clock_server/speed_up_factor", 1, true);

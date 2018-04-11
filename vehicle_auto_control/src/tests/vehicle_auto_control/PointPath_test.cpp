@@ -125,12 +125,12 @@ TEST(PointPath, YoYoPointPathController){
     maxVelMsg.rotationalVelocity = 0.349066;
 
     geometry_msgs::Point point1;
-    point1.x = 20;
-    point1.y = -20;
+    point1.x = 10;
+    point1.y = -10;
     point1.z = -100;
 
     geometry_msgs::Point point2;
-    point2.x = 20;
+    point2.x = 10;
     point2.y = 0;
     point2.z = -100;
 
@@ -145,10 +145,9 @@ TEST(PointPath, YoYoPointPathController){
 
     //Wait for vehicle_auto_control node to start
     ros::Time startWait = ros::Time::now();
-    while((targetVelPub.getNumSubscribers() == 0) &&
-          (ros::Time::now() - startWait).toSec() <= 5);
+    while(targetVelPub.getNumSubscribers() == 0);
 
-    if(targetVelPub.getNumSubscribers() == 0 || !ac.waitForServer(ros::Duration(10.0)))
+    if(targetVelPub.getNumSubscribers() == 0 || !ac.waitForServer())
     {
         FAIL();
     }
@@ -217,7 +216,7 @@ TEST(PointPath, YoYoPointPathController){
     ASSERT_EQ(true, isActive);
     ASSERT_EQ(actionlib::SimpleClientGoalState::SUCCEEDED, ac.getState().state_);
     ASSERT_EQ(pointPathMsg.points.size(), currentPoint);
-    ASSERT_TRUE(yoyo >= 4);
+    ASSERT_TRUE(yoyo >= 2);
 }
 
 int main(int argc, char** argv){

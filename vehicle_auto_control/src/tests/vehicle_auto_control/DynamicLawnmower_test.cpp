@@ -65,8 +65,7 @@ TEST(DynamicLawnmower, DynamicLawnmowerTurn){
 
     //Wait for vehicle_auto_control node to start
     ros::Time startWait = ros::Time::now();
-    while((targetVelPub.getNumSubscribers() == 0) &&
-          (ros::Time::now() - startWait).toSec() <= 200.0);
+    while(targetVelPub.getNumSubscribers() == 0);
 
     if(targetVelPub.getNumSubscribers() == 0 || !ac.waitForServer(ros::Duration(5)))
     {

@@ -58,7 +58,7 @@ TEST(NodeInterface, GetFVCOMDataTest){
 	srv8.request.time = 0;
 
 
-	bool exists = client.waitForExistence(ros::Duration(5));
+	bool exists = client.waitForExistence();
 
 	ASSERT_TRUE(exists); //Checks to make sure the service has started correctly
 	

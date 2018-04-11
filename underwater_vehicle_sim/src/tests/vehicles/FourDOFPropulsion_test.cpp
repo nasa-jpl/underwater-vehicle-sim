@@ -321,14 +321,14 @@ TEST(FourDOFPropulsion, TestVehicleRotationalThenLinearMovement) {
         //Due to timing issues they are not exact, however they are acceptably close
 
         //Due to timing issues they are not exact, however they are acceptably close
-        bool xCorrect = (0 * sleepDuration) + 0.02 > (transformV3End.getOrigin().getX() - transformV3Start.getOrigin().getX()) &&
-                        (0 * sleepDuration) - 0.02 < (transformV3End.getOrigin().getX() - transformV3Start.getOrigin().getX());
+        bool xCorrect = (0 * sleepDuration) + 0.05 > (transformV3End.getOrigin().getX() - transformV3Start.getOrigin().getX()) &&
+                        (0 * sleepDuration) - 0.05 < (transformV3End.getOrigin().getX() - transformV3Start.getOrigin().getX());
 
-        bool yCorrect = (-1.5 * sleepDuration) + 0.02 > (transformV3End.getOrigin().getY() - transformV3Start.getOrigin().getY()) &&
-                        (-1.5 * sleepDuration) - 0.02 < (transformV3End.getOrigin().getY() - transformV3Start.getOrigin().getY());
+        bool yCorrect = (-1.5 * sleepDuration) + 0.05 > (transformV3End.getOrigin().getY() - transformV3Start.getOrigin().getY()) &&
+                        (-1.5 * sleepDuration) - 0.05 < (transformV3End.getOrigin().getY() - transformV3Start.getOrigin().getY());
 
-        bool zCorrect = (0 * sleepDuration) + 0.02 > (transformV3End.getOrigin().getZ() - transformV3Start.getOrigin().getZ()) &&
-                        (0 * sleepDuration) - 0.02 < (transformV3End.getOrigin().getZ() - transformV3Start.getOrigin().getZ());     
+        bool zCorrect = (0 * sleepDuration) + 0.05 > (transformV3End.getOrigin().getZ() - transformV3Start.getOrigin().getZ()) &&
+                        (0 * sleepDuration) - 0.05 < (transformV3End.getOrigin().getZ() - transformV3Start.getOrigin().getZ());
         
         ASSERT_TRUE(xCorrect);
         ASSERT_TRUE(yCorrect);
