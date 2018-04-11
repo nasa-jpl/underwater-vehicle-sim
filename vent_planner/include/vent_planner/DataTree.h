@@ -13,11 +13,37 @@ public:
 public:
     void addData(const PlumeData& data);
 
+    /**
+     * Get all maxima nodes
+     * @return
+     */
     std::vector<DataNode*> getMaxima();
+
+    /**
+     * Get all nodes that could be maxima, but are not surrounded by all 8 neighbors
+     * @return
+     */
     std::vector<DataNode*> getPotentialMaxima();
 
+    /**
+     * Gets the root data node to the tree
+     * @return
+     */
     DataNode& getRoot();
+
+    /**
+     * Gets the smallest node at a given location
+     * @param location
+     * @return
+     */
     DataNode& getSmallestNode(const tf::Vector3& location);
+
+    /**
+     * Gets closest node origin to the given location at the targetNodeLevel
+     * @param location
+     * @param targetNodeLevel
+     * @return
+     */
     const tf::Vector3 getClosestNodeOrigin(const tf::Vector3& location, unsigned int targetNodeLevel);
 
 
