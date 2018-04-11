@@ -42,6 +42,7 @@ private:
     
 
     std::vector<DataNode*> getMaxima();
+    std::vector<DataNode*> getPotentialMaxima();
     
     DataNode* createAndGetChild(unsigned int nodeIndex);
     DataNode* getChild(unsigned int nodeIndex);
@@ -50,6 +51,8 @@ private:
     tf::Vector3 getClosestNodeOrigin(const tf::Vector3& location, unsigned int targetNodeLevel);
 
     bool isMaximum();
+    bool isPotentialMaximum();
+
     void createChild(unsigned int nodeIndex);
     DataNode* getRelativeNode(unsigned int x, unsigned int y);
     unsigned int toNodeIndex(const tf::Vector3& point);

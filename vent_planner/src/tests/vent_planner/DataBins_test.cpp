@@ -17,24 +17,24 @@ TEST(DataNode, LocalMaxima)
     DataNode& root = tree.getRoot();
     root.partition(20);
 
-    PlumeData data0_a(ros::Time(0),-85, -105, 0, 1);
-    PlumeData data0_b(ros::Time(0),-84, -104, -18, 5);
+    PlumeData data0_a(ros::Time(0), -85, -105, 0, 1);
+    PlumeData data0_b(ros::Time(0), -84, -104, -18, 5);
 
-    PlumeData data1(ros::Time(0),-74, -94, -15, 4);
-    PlumeData data2(ros::Time(0),-84, -94, -12, 4);
-    PlumeData data3(ros::Time(0),-74, -104, -24, 4);
+    PlumeData data1(ros::Time(0), -74, -94, -15, 4);
+    PlumeData data2(ros::Time(0), -84, -94, -12, 4);
+    PlumeData data3(ros::Time(0), -74, -104, -24, 4);
 
-    PlumeData data4(ros::Time(0),-84, -84, -15, 5);
-    PlumeData data5(ros::Time(0),-84, -74, -12, 4);
-    PlumeData data6(ros::Time(0),-74, -84, -24, 4);
-    PlumeData data7(ros::Time(0),-74, -74, -24, 4);
+    PlumeData data4(ros::Time(0), -84, -84, -15, 5);
+    PlumeData data5(ros::Time(0), -84, -74, -12, 4);
+    PlumeData data6(ros::Time(0), -74, -84, -24, 4);
+    PlumeData data7(ros::Time(0), -74, -74, -24, 4);
 
-    PlumeData data8(ros::Time(0),-64, -104, -15, 4);
-    PlumeData data9(ros::Time(0),-64, -94, -12, 5);
-    PlumeData data10(ros::Time(0),-64, -84, -24, 4);
-    PlumeData data11(ros::Time(0),-54, -104, -24, 4);
-    PlumeData data12(ros::Time(0),-54, -94, -24, 4);
-    PlumeData data13(ros::Time(0),-54, -84, -24, 4);
+    PlumeData data8(ros::Time(0), -64, -104, -15, 4);
+    PlumeData data9(ros::Time(0), -64, -94, -12, 5);
+    PlumeData data10(ros::Time(0), -64, -84, -24, 4);
+    PlumeData data11(ros::Time(0), -54, -104, -24, 4);
+    PlumeData data12(ros::Time(0), -54, -94, -24, 4);
+    PlumeData data13(ros::Time(0), -54, -84, -24, 4);
 
     tree.addData(data0_a);
     tree.addData(data0_b);
@@ -52,12 +52,16 @@ TEST(DataNode, LocalMaxima)
     tree.addData(data10);
     tree.addData(data11);
     tree.addData(data12);
-    tree.addData(data13); 
+    tree.addData(data13);
 
     std::vector<DataNode*> maxima = tree.getMaxima();
+    std::vector<DataNode*> potentialMaxima = tree.getPotentialMaxima();
 
     std::vector<double> xVals {-65, -63.5, -60.5};
     std::vector<double> yVals {-95, -97.5, -90.5};
+
+    std::vector<double> potentialMaximaX {10, -85, -85};
+    std::vector<double> potentialMaximaY {-10, -105, -85};
 
     unsigned int partBinIndex = 0;
 
@@ -127,8 +131,10 @@ TEST(DataNode, LocalMaxima)
     maxima = tree.getMaxima();
 
     bool inMaxima[3] = {false, false, false};
+    bool inPotentialMaxima[3] = {false, false, false};
 
     ASSERT_EQ(3, maxima.size());
+    ASSERT_EQ(3, potentialMaxima.size());
 
     for(auto singleMax : maxima)
     {
@@ -144,7 +150,22 @@ TEST(DataNode, LocalMaxima)
         }
     }
 
+    for(auto singleMax : potentialMaxima)
+    {
+        tf::Vector3 location = singleMax->getCenterLocation();
+        for(unsigned int i = 0; i < potentialMaximaX.size(); i++)
+        {
+            if(location.getX() == potentialMaximaX[i] &&
+               location.getY() == potentialMaximaY[i] &&
+               !inPotentialMaxima[i])
+            {
+                inPotentialMaxima[i] = true;
+            }
+        }
+    }
+
     ASSERT_TRUE(inMaxima[0] && inMaxima[1] && inMaxima[2]);
+    ASSERT_TRUE(inPotentialMaxima[0] && inPotentialMaxima[1]);
 }
 
 TEST(DataNode, ClosestOrigin)

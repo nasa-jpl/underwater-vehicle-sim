@@ -29,6 +29,11 @@ std::vector<DataNode*> DataTree::getMaxima()
     return root.getMaxima();
 }
 
+std::vector<DataNode*> DataTree::getPotentialMaxima()
+{
+    return root.getPotentialMaxima();
+}
+
 const tf::Vector3 DataTree::getClosestNodeOrigin(const tf::Vector3& location, unsigned int targetNodeLevel)
 {
     return root.getClosestNodeOrigin(location, targetNodeLevel);

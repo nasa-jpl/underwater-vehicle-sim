@@ -354,11 +354,35 @@ std::vector<DataNode*> DataNode::getMaxima()
                 maxima.push_back(maximum);
             }
         }
- 
     }
     
     return maxima; 
 }
+
+std::vector<DataNode*> DataNode::getPotentialMaxima()
+{
+    std::vector<DataNode*> maxima;
+    if(isPotentialMaximum())
+    {
+        maxima.push_back(this);
+    }
+
+    if(partitioned)
+    {
+        for(auto& node : nodes)
+        {
+            std::vector<DataNode*> nodeMaxima = node.second.getPotentialMaxima();
+            for(auto maximum : nodeMaxima)
+            {
+                maxima.push_back(maximum);
+            }
+        }
+
+    }
+
+    return maxima;
+}
+
 
 bool DataNode::isMaximum()
 {
@@ -377,6 +401,38 @@ bool DataNode::isMaximum()
         }
     }
     
+    return true;
+}
+
+bool DataNode::isPotentialMaximum()
+{
+    int count = 0;
+    for(int x = -1; x <= 1; x++)
+    {
+        for(int y = -1; y <= 1; y++)
+        {
+            if(!(x == 0 && y == 0))
+            {
+                DataNode* neighbor = getRelative(x,y);
+                if(neighbor)
+                {
+                    if(neighbor->maxVal.val > maxVal.val)
+                    {
+                        return false;
+                    }
+                    else if(neighbor->maxVal.val < maxVal.val)
+                    {
+                        count++;
+                    }
+                }
+            }
+        }
+    }
+
+    if(count == 8)
+    {
+        return false;
+    }
     return true;
 }
 
