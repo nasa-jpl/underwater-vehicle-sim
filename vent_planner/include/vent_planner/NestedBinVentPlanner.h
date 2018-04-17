@@ -47,10 +47,10 @@ public:
                                                   double spacing);
 
 private:
+
+    enum SearchPhase {none, spiral, dynamic, nested };
+
     void publishLog(std::string log);
-    void plumeDataSummary(double& average, double& max, double& stddev);
-    bool getHeightOfPlume(const std::vector<PlumeData>& data, const unsigned int dataStart, double& plumeX, double& plumeY, double& plumeHeight, double& plumeStrength);
-    void getPlumeMax(const std::vector<PlumeData>& data, const unsigned int dataStart, double& plumeX, double& plumeY, double& plumeStrength);
 
     bool isCompleted(std::shared_ptr<Plan> plan);
     
@@ -63,21 +63,31 @@ private:
     **/
     bool getLatestData(DataServerEntry& returnEntry);
 
+    DataNode getLatestSpiralData();
+    bool newSpiralPlumeIntersect(DataNode& spiralData, double detectionThreshold);
+
+    void addRecentDataToTree();
+    std::set<DataNode*, DataNode::PointerCompare> getUnexploredMaxima();
+    void initalizeDataTree(tf::Vector3 centerLocation);
+
+    bool isGoalSurvey(double nestedBinSize, DataNode* maximum, std::vector<DataNode*>& neighbors);
+
     void publishGoal();
     void updateGoal();
 
 private:
     std::unique_ptr<VentActionFactory> actionFactory;
 
-    std::stack<std::shared_ptr<Plan>> plans;
+    SearchPhase phase;
 
-    DataNode spiralData;
+    std::shared_ptr<Plan> spiralPlan;
+    std::shared_ptr<Plan> dynamicPlan;
+
     std::unique_ptr<DataTree> dataTree;
     std::map<std::shared_ptr<Plan>, DataNode*> plannedMaxima;
 
 
     ros::Time lastPlan;
-    bool initalPlan;
 
     double spiralSpacing;
     double initalSpacing;
@@ -86,7 +96,6 @@ private:
     std::shared_ptr<Plan> finalSurvey;
 
     std::string vehicleName;
-    tf::Vector3 vehicleStartLocation;
 
     ros::ServiceClient dataClient;
     ros::ServiceClient latestDataClient;
