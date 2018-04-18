@@ -49,29 +49,26 @@ public:
 private:
 
     enum SearchPhase {none, spiral, dynamic, nested };
-
     void publishLog(std::string log);
 
     bool isCompleted(std::shared_ptr<Plan> plan);
-    
-    void addInitalLawnmowers(std::shared_ptr<Plan> plan, const tf::Vector3& centerLocation, double plumeHeight);
 
+    DataNode getLatestSpiralData();
+    bool newSpiralPlumeIntersect(DataNode& spiralData, double detectionThreshold);
+
+    void initalizeDataTree(tf::Vector3 centerLocation);
+    void addRecentDataToTree();
     /**
     *Sets the parameter returnEntry to the latest data from the vehicle
     *@param returnEntry Output for the latest data
     *@return True if getting the latest data was successful
     **/
     bool getLatestData(DataServerEntry& returnEntry);
-
-    DataNode getLatestSpiralData();
-    bool newSpiralPlumeIntersect(DataNode& spiralData, double detectionThreshold);
-
-    void addRecentDataToTree();
     std::set<DataNode*, DataNode::PointerCompare> getUnexploredMaxima();
-    void initalizeDataTree(tf::Vector3 centerLocation);
+    void addInitalLawnmowers(std::shared_ptr<Plan> plan, const tf::Vector3& centerLocation, double plumeHeight);
+
 
     bool isGoalSurvey(double nestedBinSize, DataNode* maximum, std::vector<DataNode*>& neighbors);
-
     void publishGoal();
     void updateGoal();
 
