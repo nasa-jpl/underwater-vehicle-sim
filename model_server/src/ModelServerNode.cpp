@@ -19,6 +19,7 @@ std::unique_ptr<ModelInterface> model;
 
 
 ros::Publisher clockSpeedPub;
+ros::ServiceServer dataService;
 float speedUpFactor;   
 
 bool getModelData(model_server::GetModelData::Request &req,
@@ -26,9 +27,9 @@ bool getModelData(model_server::GetModelData::Request &req,
 {   
 //    ROS_INFO("CALL MODEL DATA: %f %f %f %f", req.x, req.y, req.h, req.time);
 
-    std_msgs::Float64 stopSim;
-    stopSim.data = 0;
-    clockSpeedPub.publish(stopSim);
+    std_msgs::Float64 slowSim;
+    slowSim.data = 0;
+    clockSpeedPub.publish(slowSim);
 
     try
     {
@@ -63,8 +64,8 @@ bool getModelData(model_server::GetModelData::Request &req,
     }*/
 
     std_msgs::Float64 startSim;
-    stopSim.data = speedUpFactor;
-    clockSpeedPub.publish(stopSim);
+    startSim.data = speedUpFactor;
+    clockSpeedPub.publish(startSim);
     
 	return true;
 }
@@ -146,9 +147,9 @@ int main(int argc, char **argv)
     {
         ROS_FATAL("Parameter \"model_type\" is not valid.");
         exit(1);
-    } 
+    }
 
-    ros::ServiceServer service = n.advertiseService("get_model_data", getModelData);
+    dataService = n.advertiseService("get_model_data", getModelData);
   	ROS_INFO("Model Loaded");
 
     ros::spin();

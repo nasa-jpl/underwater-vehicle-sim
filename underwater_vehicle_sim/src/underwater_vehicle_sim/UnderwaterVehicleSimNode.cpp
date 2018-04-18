@@ -20,9 +20,9 @@ int main(int argc, char **argv)
     ros::Rate r(hertz); //Hz at which to run the sim loop
     
     ros::Publisher clockSpeedPub = nh.advertise<std_msgs::Float64>("/clock_server/speed_up_factor", 1, true);
-    std_msgs::Float64 stopSim;
-    stopSim.data = 0;
-    clockSpeedPub.publish(stopSim);
+    std_msgs::Float64 slowSim;
+    slowSim.data = 1;
+    clockSpeedPub.publish(slowSim);
 
     UnderwaterVehicleSim sim(nh);
 
