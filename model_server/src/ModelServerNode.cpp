@@ -22,15 +22,25 @@ ros::Publisher clockSpeedPub;
 ros::ServiceServer dataService;
 float speedUpFactor;   
 
+void startModelLoad()
+{
+    std_msgs::Float64 slowSim;
+    slowSim.data = 0;
+    clockSpeedPub.publish(slowSim);
+}
+
+void endModelLoad()
+{
+    std_msgs::Float64 startSim;
+    startSim.data = speedUpFactor;
+    clockSpeedPub.publish(startSim);
+}
+
+
 bool getModelData(model_server::GetModelData::Request &req,
 				  model_server::GetModelData::Response &res)
 {   
 //    ROS_INFO("CALL MODEL DATA: %f %f %f %f", req.x, req.y, req.h, req.time);
-
-    std_msgs::Float64 slowSim;
-    slowSim.data = 0;
-    clockSpeedPub.publish(slowSim);
-
     try
     {
         ModelData data = model->getData(req.x, req.y, req.h, req.time);
@@ -62,10 +72,6 @@ bool getModelData(model_server::GetModelData::Request &req,
     {
         ROS_INFO("CAUGHT UNKNOWN EXCEPTION: %f %f %f %f", req.x, req.y, req.h, req.time);
     }*/
-
-    std_msgs::Float64 startSim;
-    startSim.data = speedUpFactor;
-    clockSpeedPub.publish(startSim);
     
 	return true;
 }
@@ -95,7 +101,7 @@ int main(int argc, char **argv)
             exit(1);
         }
 
-        model.reset(new FVCOM(fvcom_directory, 1000, 1000, 10, 10, 100));
+        model.reset(new FVCOM(fvcom_directory, &startModelLoad, &endModelLoad, 1000, 1000, 10, 10, 100));
     }
     else if(model_type == "constant")
     {

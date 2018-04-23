@@ -5,7 +5,6 @@
 
 class ModelInterface
 {
-
 public:
 
 	ModelInterface() {}

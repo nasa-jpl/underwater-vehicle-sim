@@ -1,4 +1,5 @@
 #include <vector>
+#include <memory>
 
 #include "data_server/DataServer.h"
 #include "data_server/DataServerEntry.h"
@@ -9,10 +10,14 @@
 #include "underwater_vehicle_sim/GetVehicleInfo.h"
 #include "data_server/GetData.h"
 #include "data_server/GetLatestData.h"
-
+#include "data_server/GetPlumeData.h"
+#include "plume_detector/PlumeDetector.h"
+#include "plume_detector/DyePlumeDetector.h"
+#include "plume_detector/PlumeData.h"
 #include "ros/ros.h"
 
 DataServer server;
+std::unique_ptr<PlumeDetector> plumeDetector;
 
 void recieveData(const underwater_vehicle_sim::VehicleData::ConstPtr& msg)
 {
@@ -80,6 +85,23 @@ bool getData(data_server::GetData::Request &req,
 	return true;
 }
 
+bool getPlumeData(data_server::GetPlumeData::Request &req,
+                  data_server::GetPlumeData::Response &res)
+{
+    std::vector<PlumeData> plumeData = plumeDetector->getPlumeData(req.name, req.start_time, req.end_time, server);
+
+    for(PlumeData& data : plumeData)
+    {
+        res.x.push_back(data.x);
+        res.y.push_back(data.y);
+        res.h.push_back(data.h);
+        res.time.push_back(data.time);
+        res.plume_val.push_back(data.val);
+    }
+
+    return true;
+}
+
 bool saveData(data_server::SaveData::Request &req,
 			  data_server::SaveData::Response &res)
 {
@@ -103,6 +125,8 @@ int main(int argc, char **argv)
 
 	std::vector<ros::Subscriber> subscribers;
 
+    plumeDetector = std::unique_ptr<PlumeDetector>(new DyePlumeDetector());
+
 	for(std::string& name : vehicleNames)
 	{
 		underwater_vehicle_sim::GetVehicleInfo info;
@@ -123,6 +147,7 @@ int main(int argc, char **argv)
 
     ros::ServiceServer saveDataSub = nh.advertiseService("save", saveData);
     ros::ServiceServer serviceGet = nh.advertiseService("get", getData);
+    ros::ServiceServer serviceGetPlume = nh.advertiseService("get_plume", getPlumeData);
     ros::ServiceServer serviceGetLatest = nh.advertiseService("get_latest", getLatestData);
 
     ros::spin();

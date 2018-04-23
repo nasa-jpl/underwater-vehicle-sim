@@ -14,7 +14,7 @@
 #include "data_server/DataServerEntry.h"
 
 #include "plume_detector/PlumeData.h"
-#include "plume_detector/GetPlumeData.h"
+#include "data_server/GetPlumeData.h"
 
 class NestedSpiralVentPlanner : public Planner
 {

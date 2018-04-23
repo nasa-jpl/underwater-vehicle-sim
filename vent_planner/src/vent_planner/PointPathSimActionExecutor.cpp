@@ -131,6 +131,7 @@ void PointPathSimActionExecutor::cancel(std::shared_ptr<PointPathAction> action)
 	try
 	{
 		tf::StampedTransform transform;
+		listener.waitForTransform("/word", "/" + vehicleName, ros::Time(0), ros::Duration(5.0));
 		listener.lookupTransform("/world", "/" + vehicleName, ros::Time(0), transform);
 		action->setInterruptPoint(transform.getOrigin());
 	}

@@ -16,7 +16,7 @@
 #include "data_server/DataServerEntry.h"
 
 #include "plume_detector/PlumeData.h"
-#include "plume_detector/GetPlumeData.h"
+#include "data_server/GetPlumeData.h"
 
 NestedSpiralVentPlanner::NestedSpiralVentPlanner(ros::NodeHandle& nh, std::unique_ptr<VentActionFactory> actionFactory, std::string vehicleName) :
     nh(nh),
@@ -27,7 +27,7 @@ NestedSpiralVentPlanner::NestedSpiralVentPlanner(ros::NodeHandle& nh, std::uniqu
     vehicleName(vehicleName),
     dataClient(nh.serviceClient<data_server::GetData>("/data_server/get")),
     latestDataClient(nh.serviceClient<data_server::GetLatestData>("/data_server/get_latest")),
-    plumeClient(nh.serviceClient<plume_detector::GetPlumeData>("/plume_detector/get"))
+    plumeClient(nh.serviceClient<data_server::GetPlumeData>("/data_server/get_plume"))
 {
     ROS_INFO("Planner: Waiting for data server...");
     dataClient.waitForExistence();
@@ -120,7 +120,7 @@ std::shared_ptr<Plan> NestedSpiralVentPlanner::plan()
     else
     {
         ROS_INFO("Planner: Plan");
-        plume_detector::GetPlumeData srv;
+        data_server::GetPlumeData srv;
         srv.request.name = vehicleName;
         srv.request.start_time = lastPlan;
         srv.request.end_time = ros::Time::now();
@@ -137,7 +137,7 @@ std::shared_ptr<Plan> NestedSpiralVentPlanner::plan()
                                                       srv.response.x[i],
                                                       srv.response.y[i],
                                                       srv.response.h[i],
-                                                      srv.response.val[i]);
+                                                      srv.response.plume_val[i]);
         }
 
 

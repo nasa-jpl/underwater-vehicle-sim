@@ -15,7 +15,7 @@
 
 #include "underwater_vehicle_sim/VehicleData.h"
 
-#include "plume_detector/GetPlumeData.h"
+#include "data_server/GetPlumeData.h"
 
 FourDOFPropulsionController::FourDOFPropulsionController(ros::NodeHandle controlNode, ros::NodeHandle vehicleNode, std::string propModuleName, std::string dataModuleName, std::string vehicleName, float loopHertz) :
     PropulsionController(controlNode, vehicleNode, vehicleName, loopHertz),
@@ -29,7 +29,7 @@ FourDOFPropulsionController::FourDOFPropulsionController(ros::NodeHandle control
     minSeafloorDistance(10.0),
     pointPathServer(controlNode, "point_path", boost::bind(&FourDOFPropulsionController::executePointPath, this, _1, &pointPathServer), false),
     dynamicLawnmowerServer(controlNode, "dynamic_lawnmower", boost::bind(&FourDOFPropulsionController::executeDynamicLawnmower, this, _1, &dynamicLawnmowerServer), false),
-    plumeClient(controlNode.serviceClient<plume_detector::GetPlumeData>("/plume_detector/get"))
+    plumeClient(controlNode.serviceClient<data_server::GetPlumeData>("/data_server/get_plume"))
 {
     velocityPub = vehicleNode.advertise<geometry_msgs::Twist>(propModuleName + "/command_velocity", 1000);
 
@@ -82,6 +82,8 @@ void FourDOFPropulsionController::executePointPath(const vehicle_auto_control::P
         tf::StampedTransform transform;
         try
         {
+            listener.waitForTransform("/word", "/" + vehicleName,
+                                      ros::Time(0), ros::Duration(5.0));
             listener.lookupTransform("/world", "/" + vehicleName,  
                                      ros::Time(0), transform);
 
@@ -201,6 +203,8 @@ void FourDOFPropulsionController::executeDynamicLawnmower(const vehicle_auto_con
         tf::StampedTransform transform;
         try
         {
+            listener.waitForTransform("/word", "/" + vehicleName,
+                                      ros::Time(0), ros::Duration(5.0));
             listener.lookupTransform("/world", "/" + vehicleName,  
                                      ros::Time(0), transform);
 
@@ -209,7 +213,7 @@ void FourDOFPropulsionController::executeDynamicLawnmower(const vehicle_auto_con
                 
                 if(lastTrack == currentTrack)
                 {
-                    plume_detector::GetPlumeData srv;
+                    data_server::GetPlumeData srv;
                     srv.request.name = vehicleName;
                     srv.request.start_time = lastTime;
                     srv.request.end_time = ros::Time::now();
@@ -218,7 +222,7 @@ void FourDOFPropulsionController::executeDynamicLawnmower(const vehicle_auto_con
                     lastTime = ros::Time::now();
 
                     //process the plume data
-                    bool overThresh = processData(srv.response.val, sectionAverages, goal->continueThreshold);
+                    bool overThresh = processData(srv.response.plume_val, sectionAverages, goal->continueThreshold);
 
                     //Track how many sections have been under the threshold and the averages of those sections
                     if(!overThresh)

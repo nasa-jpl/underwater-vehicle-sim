@@ -17,7 +17,7 @@
 #include "data_server/DataServerEntry.h"
 
 #include "plume_detector/PlumeData.h"
-#include "plume_detector/GetPlumeData.h"
+#include "data_server/GetPlumeData.h"
 
 #include "vent_planner/DataNode.h"
 #include "vent_planner/DataTree.h"
@@ -29,7 +29,7 @@ NestedBinVentPlanner::NestedBinVentPlanner(ros::NodeHandle& nh, std::unique_ptr<
     vehicleName(vehicleName),
     dataClient(nh.serviceClient<data_server::GetData>("/data_server/get")),
     latestDataClient(nh.serviceClient<data_server::GetLatestData>("/data_server/get_latest")),
-    plumeClient(nh.serviceClient<plume_detector::GetPlumeData>("/plume_detector/get")),
+    plumeClient(nh.serviceClient<data_server::GetPlumeData>("/data_server/get_plume")),
     goalPub(nh.advertise<std_msgs::String>("planner/goal", 1, true)),
     logPub(nh.advertise<std_msgs::String>("planner_log/log", 1000)),
     goalState("running"),
@@ -97,7 +97,6 @@ std::shared_ptr<Plan> NestedBinVentPlanner::plan()
 
         DataNode spiralData = getLatestSpiralData();
         bool valid = newSpiralPlumeIntersect(spiralData, detectionThreshold);
-
 
         if(valid)
         {
@@ -248,7 +247,7 @@ bool NestedBinVentPlanner::isCompleted(std::shared_ptr<Plan> plan)
 DataNode NestedBinVentPlanner::getLatestSpiralData()
 {
     DataNode spiralData(nullptr, 0, tf::Vector3(0,0,0), 300000, 0);
-    plume_detector::GetPlumeData srv;
+    data_server::GetPlumeData srv;
     srv.request.name = vehicleName;
     srv.request.start_time = lastPlan;
     srv.request.end_time = ros::Time::now();
@@ -262,7 +261,7 @@ DataNode NestedBinVentPlanner::getLatestSpiralData()
                                srv.response.x[i],
                                srv.response.y[i],
                                srv.response.h[i],
-                               srv.response.val[i]);
+                               srv.response.plume_val[i]);
         spiralData.addData(newPlumeData);
     }
 
@@ -311,7 +310,7 @@ void NestedBinVentPlanner::addRecentDataToTree()
 {
     if(dataTree)
     {
-        plume_detector::GetPlumeData srv;
+        data_server::GetPlumeData srv;
         srv.request.name = vehicleName;
         srv.request.start_time = lastPlan;
         srv.request.end_time = ros::Time::now();
@@ -324,7 +323,7 @@ void NestedBinVentPlanner::addRecentDataToTree()
                                    srv.response.x[i],
                                    srv.response.y[i],
                                    srv.response.h[i],
-                                   srv.response.val[i]);
+                                   srv.response.plume_val[i]);
             dataTree->addData(newPlumeData);
         }
     }

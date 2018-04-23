@@ -10,12 +10,39 @@ FVCOM::FVCOM() {}
 
 FVCOM::FVCOM(std::string filename) :
 	chunkCache(LRUCache<unsigned int, FVCOMChunk>(100)),
-	structure(FVCOMStructure(filename, 2000, 2000, 100, 10))
+	structure(FVCOMStructure(filename, 2000, 2000, 100, 10)),
+	startLoad(nullptr),
+	endLoad(nullptr)
 {}
+
+FVCOM::FVCOM(std::string filename, void (*startLoad)(void), void (*endLoad)(void)) :
+	chunkCache(LRUCache<unsigned int, FVCOMChunk>(100)),
+	structure(FVCOMStructure(filename, 2000, 2000, 100, 10)),
+	startLoad(startLoad),
+	endLoad(endLoad)
+{
+
+}
 
 FVCOM::FVCOM(std::string filename, unsigned int xChunkSize, unsigned int yChunkSize, unsigned int siglayChunkSize, unsigned int timeChunkSize, unsigned int cacheSize) :
 	chunkCache(LRUCache<unsigned int, FVCOMChunk>(cacheSize)),
-	structure(FVCOMStructure(filename, xChunkSize, yChunkSize, siglayChunkSize, timeChunkSize))
+	structure(FVCOMStructure(filename, xChunkSize, yChunkSize, siglayChunkSize, timeChunkSize)),
+	startLoad(nullptr),
+	endLoad(nullptr)
+{}
+
+FVCOM::FVCOM(std::string filename,
+			 void (*startLoad)(void),
+			 void (*endLoad)(void),
+			 unsigned int xChunkSize,
+			 unsigned int yChunkSize,
+			 unsigned int siglayChunkSize,
+			 unsigned int timeChunkSize,
+			 unsigned int cacheSize) :
+		chunkCache(LRUCache<unsigned int, FVCOMChunk>(cacheSize)),
+		structure(FVCOMStructure(filename, xChunkSize, yChunkSize, siglayChunkSize, timeChunkSize)),
+		startLoad(startLoad),
+		endLoad(endLoad)
 {}
 
 ModelData FVCOM::interpolate(FVCOMStructure::Point interpolatePoint, float time)
@@ -188,10 +215,18 @@ const FVCOMChunk::NodeData& FVCOM::getNodeData(int node, int siglayNodeIndex, in
 	FVCOMStructure::ChunkInfo nodeChunkInfo = structure.getChunkForNode(node, siglayNodeIndex, timeIndex);
 	if(!chunkCache.exists(nodeChunkInfo.id))
 	{
+		if(startLoad)
+		{
+			startLoad();
+		}
 		const std::vector<unsigned int>& nodesToLoad = structure.getNodesInChunk(nodeChunkInfo);
 		const std::vector<unsigned int>& trianglesToLoad = structure.getTrianglesInChunk(nodeChunkInfo);
 
 		chunkCache.put(nodeChunkInfo.id, FVCOMChunk(structure.getModelFiles(), nodesToLoad, trianglesToLoad, nodeChunkInfo));
+		if(endLoad)
+		{
+			endLoad();
+		}
 	}
 
 	FVCOMChunk& nodeChunk = chunkCache.get(nodeChunkInfo.id);
@@ -205,10 +240,18 @@ const FVCOMChunk::TriangleData& FVCOM::getTriangleData(int triangle, int siglayT
 	FVCOMStructure::ChunkInfo triangleChunkInfo = structure.getChunkForTriangle(triangle, siglayTriangleIndex, timeIndex);
 	if(!chunkCache.exists(triangleChunkInfo.id))
 	{
+		if(startLoad)
+		{
+			startLoad();
+		}
 		const std::vector<unsigned int>& nodesToLoad = structure.getNodesInChunk(triangleChunkInfo);
 		const std::vector<unsigned int>& trianglesToLoad = structure.getTrianglesInChunk(triangleChunkInfo);
 
 		chunkCache.put(triangleChunkInfo.id, FVCOMChunk(structure.getModelFiles(), nodesToLoad, trianglesToLoad, triangleChunkInfo));
+		if(endLoad)
+		{
+			endLoad();
+		}
 	}
 
 	FVCOMChunk& triangleChunk = chunkCache.get(triangleChunkInfo.id);

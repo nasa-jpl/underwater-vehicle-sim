@@ -34,6 +34,14 @@ public:
 	FVCOM(std::string filename);
 
 	/**
+	 * Initalize FVCOM class with data from file,
+     * @param filename File to load
+     * @param start_load function to call before new data is loaded
+     * @param end_load function to call after new data is loaded
+     */
+	FVCOM(std::string filename, void (*startLoad)(void), void (*endLoad)(void));
+
+	/**
 	 * Initalize FVCOM class with data from file and specify the size of the FVCOMChunks
      * @param filename File to load
      * @param xChunkSize Size of a chunk in the x direction
@@ -47,6 +55,24 @@ public:
 								unsigned int timeChunkSize, 
 								unsigned int cacheSize);
 
+	/**
+	 * Initalize FVCOM class with data from file and specify the size of the FVCOMChunks
+     * @param filename File to load
+     * @param xChunkSize Size of a chunk in the x direction
+     * @param yChunkSize Size of a chunk in the y direction
+     * @param siglayChunkSize Size of a chunk in the siglay direction
+     * @param timeChunkSize Size of a chunk in the time direction
+     * @param start_load function to call before new data is loaded
+     * @param end_load function to call after new data is loaded
+     */
+	FVCOM(std::string filename,
+		  void (*startLoad)(void),
+		  void (*endLoad)(void),
+		  unsigned int xChunkSize,
+		  unsigned int yChunkSize,
+		  unsigned int siglayChunkSize,
+		  unsigned int timeChunkSize,
+		  unsigned int cacheSize);
 
 	const ModelData getData(float x, float y, float height, float time);
 	const ModelData getDataOutOfRange(float x, float y, float height, float time);
@@ -80,6 +106,9 @@ private:
 	FVCOMStructure structure;
 
 	LRUCache<unsigned int, FVCOMChunk> chunkCache;
+
+	void (*startLoad)(void);
+	void (*endLoad)(void);
 
 };
 

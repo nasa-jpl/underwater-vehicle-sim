@@ -20,8 +20,6 @@ public:
 
 	/**
 	* Calculates the new frame of the vehicle from the old one
-	* @param currentLocaion The old vehicle frame relative to the world frame
-	* @return The new vehicle frame relative to the world frame
 	*/
 	void move(ros::Time& lastTime, tf::Quaternion& rotation, tf::Vector3& position, 
 					double& powerCapacity, double& dataCapacity);

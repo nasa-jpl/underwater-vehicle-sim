@@ -57,6 +57,7 @@ find_package(catkin REQUIRED
  add_service_files(
    FILES
    GetData.srv
+   GetPlumeData.srv
    GetLatestData.srv
    SaveData.srv
  )
@@ -124,6 +125,7 @@ include_directories(
 ## Declare a C++ library
  add_library(data_server
    src/DataServer.cpp
+   src/plume_detector/DyePlumeDetector.cpp
  )
 
 target_link_libraries(data_server ${catkin_LIBRARIES} stdc++fs)
