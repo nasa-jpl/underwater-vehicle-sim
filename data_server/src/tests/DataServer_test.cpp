@@ -133,6 +133,7 @@ TEST(DataServerTest, SaveDataToCSV)
     entries[0].salt = 4.36;
     entries[0].dye = 5.564;
     entries[0].sonarDepth = 100;
+    entries[0].plumeStrength = 3.1423;
 
     entries[1].x = 0;
     entries[1].y = 10;
@@ -141,6 +142,7 @@ TEST(DataServerTest, SaveDataToCSV)
     entries[1].salt = 40;
     entries[1].dye = 50;
     entries[1].sonarDepth = 110;
+    entries[1].plumeStrength = 60;
 
     entries[2].x = -0.372;
     entries[2].y = 12.47;
@@ -149,6 +151,7 @@ TEST(DataServerTest, SaveDataToCSV)
     entries[2].salt = -430.623451;
     entries[2].dye = 56.263412;
     entries[2].sonarDepth = 120;
+    entries[2].plumeStrength = 60.43;
 
     entries[3].x = 1;
     entries[3].y = -10.5;
@@ -157,6 +160,7 @@ TEST(DataServerTest, SaveDataToCSV)
     entries[3].salt = 40.2326;
     entries[3].dye = 50.23462;
     entries[3].sonarDepth = 130;
+    entries[3].plumeStrength = 61.43;
 
     dataServer.putData("source1", entries[0]);
     dataServer.putData("source1", entries[1]);
@@ -192,6 +196,7 @@ TEST(DataServerTest, SaveDataToCSV)
         ASSERT_FLOAT_EQ(it2->salt, it1->salt);
         ASSERT_FLOAT_EQ(it2->dye, it1->dye);
         ASSERT_FLOAT_EQ(it2->sonarDepth, it1->sonarDepth);
+        ASSERT_FLOAT_EQ(it2->plumeStrength, it1->plumeStrength);
         
         it1++;
         it2++;

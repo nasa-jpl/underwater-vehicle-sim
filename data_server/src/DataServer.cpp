@@ -144,6 +144,7 @@ void DataServer::loadFromCSVFile(std::string filename)
 				newEntry.temp = std::stof(splitLine[6]);
 				newEntry.salt = std::stof(splitLine[7]);
 				newEntry.dye = std::stof(splitLine[8]);
+				newEntry.plumeStrength = std::stof(splitLine[9]);
 				putData(splitLine[0], newEntry);
 
 	    	}
@@ -166,7 +167,7 @@ void DataServer::saveToCSVFile(std::string filename)
 	std::ofstream file (filename);
   	if (file.is_open())
   	{
-  		file << "source,x,y,h,sonarDepth,time,temp,salt,dye\n";
+  		file << "source,x,y,h,sonarDepth,time,temp,salt,dye,plumeStrength\n";
 
   		for ( auto it = data.begin(); it != data.end(); ++it )
   		{
@@ -175,7 +176,9 @@ void DataServer::saveToCSVFile(std::string filename)
   			{
   				file << it->first << ",";
   				file << std::setprecision(9) <<  it->second[i].x << "," << it->second[i].y << "," << it->second[i].h << "," << it->second[i].sonarDepth << "," << it->second[i].time.toSec() << ",";
-  				file << std::setprecision(9) << it->second[i].temp << "," << it->second[i].salt << "," << it->second[i].dye << "\n";
+  				file << std::setprecision(9) << it->second[i].temp << ",";
+                file << std::setprecision(9) << it->second[i].salt << "," << it->second[i].dye << ",";
+                file << std::setprecision(9) << it->second[i].plumeStrength << "\n";
   			}
   		}
 
