@@ -6,7 +6,7 @@
 class DataTree;
 
 #include "tf/LinearMath/Vector3.h"
-#include "plume_detector/PlumeData.h"
+#include "plume_detector/PlumeDataEntry.h"
 
 class DataNode
 {

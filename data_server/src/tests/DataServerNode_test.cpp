@@ -5,7 +5,7 @@
 #include <cmath>
 #include "underwater_vehicle_sim/VehicleData.h"
 #include "data_server/GetData.h"
-#include "data_server/PlumeValue.h"
+#include "data_server/PlumeData.h"
 #include "std_msgs/String.h"
 
 ros::ServiceClient client;
@@ -23,7 +23,7 @@ struct PlumeHelper
 			incorrectCount(0)
 	{}
 
-	void plumeCB(const data_server::PlumeValue& msg)
+	void plumeCB(const data_server::PlumeData& msg)
 	{
 
 		if(fabs(100 - msg.x) > 0.0000001 ||

@@ -4,7 +4,7 @@
 
 #include "tf/LinearMath/Vector3.h"
 
-#include "plume_detector/PlumeData.h"
+#include "plume_detector/PlumeDataEntry.h"
 
 #include "vent_planner/DataTree.h"
 #include "vent_planner/DataNode.h"

@@ -2,7 +2,7 @@
 #define DYE_PLUME_DETECTOR_H
 
 #include "plume_detector/PlumeDetector.h"
-#include "plume_detector/PlumeData.h"
+#include "plume_detector/PlumeDataEntry.h"
 
 class DyePlumeDetector : public PlumeDetector
 {

@@ -1,7 +1,7 @@
 #ifndef PLUME_DETECTOR_H
 #define PLUME_DETECTOR_H
 
-#include "plume_detector/PlumeData.h"
+#include "plume_detector/PlumeDataEntry.h"
 #include "data_server/DataServer.h"
 
 class PlumeDetector

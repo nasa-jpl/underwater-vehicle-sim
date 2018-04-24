@@ -1,6 +1,6 @@
 #include "vent_planner/DataNode.h"
 #include "tf/LinearMath/Vector3.h"
-#include "plume_detector/PlumeData.h"
+#include "plume_detector/PlumeDataEntry.h"
 
 #include "ros/ros.h"
 #include <map>

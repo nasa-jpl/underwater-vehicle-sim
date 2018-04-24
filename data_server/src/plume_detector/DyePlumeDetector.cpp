@@ -3,7 +3,7 @@
 #include "plume_detector/PlumeDetector.h"
 #include "plume_detector/DyePlumeDetector.h"
 
-#include "plume_detector/PlumeData.h"
+#include "plume_detector/PlumeDataEntry.h"
 #include "data_server/GetData.h"
 
 #include "data_server/DataServer.h"

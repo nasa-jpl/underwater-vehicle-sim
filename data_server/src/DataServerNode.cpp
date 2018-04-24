@@ -11,10 +11,10 @@
 #include "data_server/GetData.h"
 #include "data_server/GetLatestData.h"
 #include "data_server/GetPlumeData.h"
-#include "data_server/PlumeValue.h"
+#include "data_server/PlumeData.h"
 #include "plume_detector/PlumeDetector.h"
 #include "plume_detector/DyePlumeDetector.h"
-#include "plume_detector/PlumeData.h"
+#include "plume_detector/PlumeDataEntry.h"
 #include "ros/ros.h"
 
 DataServer server;
@@ -39,7 +39,7 @@ void recieveData(const underwater_vehicle_sim::VehicleData::ConstPtr& msg)
 
 
     PlumeData data = plumeDetector->getLastPlumeData(msg->name, server);
-    data_server::PlumeValue plumeMsg;
+    data_server::PlumeData plumeMsg;
     plumeMsg.x = data.x;
     plumeMsg.y = data.y;
     plumeMsg.h = data.h;
@@ -158,7 +158,7 @@ int main(int argc, char **argv)
 
         plumePubs.insert(std::pair<std::string, ros::Publisher>(
                     name,
-                    nh.advertise<data_server::PlumeValue>(name + "/plume_data", 1000)));
+                    nh.advertise<data_server::PlumeData>(name + "/plume_data", 1000)));
 	}
 
     ros::ServiceServer saveDataSub = nh.advertiseService("save", saveData);
