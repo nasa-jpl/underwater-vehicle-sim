@@ -27,7 +27,7 @@ public:
     std::vector<DataNode*> getInitalizedNeighbors();
     const double getHeightOfPlume();
     const double getSize();
-    const PlumeData& getMaxVal() const;
+    const PlumeDataEntry& getMaxVal() const;
     const unsigned int getNodeLevel();
 
     /**
@@ -42,14 +42,14 @@ public:
     bool operator<(const DataNode& rhs) const;
     bool operator==(const DataNode& rhs) const;
 
-    void addData(const PlumeData& plumeData);
+    void addData(const PlumeDataEntry& plumeData);
 private:
 
     /**
      * Gets the data from this node
      * @param data Vector to add data to
      */
-    void getData(std::vector<PlumeData*>& data);
+    void getData(std::vector<PlumeDataEntry*>& data);
     
 
     /**
@@ -182,8 +182,8 @@ private:
     std::map<unsigned int, DataNode> nodes;
     DataNode* parentNode;
 
-    std::vector<PlumeData> data;
-    PlumeData maxVal;
+    std::vector<PlumeDataEntry> data;
+    PlumeDataEntry maxVal;
 
     const unsigned int nodeIndex;
     const tf::Vector3 origin;

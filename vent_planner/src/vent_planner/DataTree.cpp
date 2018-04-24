@@ -14,7 +14,7 @@ DataNode& DataTree::getRoot()
     return root;
 }
 
-void DataTree::addData(const PlumeData& data)
+void DataTree::addData(const PlumeDataEntry& data)
 {
     root.addData(data);
 }

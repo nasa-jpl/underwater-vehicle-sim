@@ -1,11 +1,11 @@
-#ifndef PLUME_DATA_H
-#define PLUME_DATA_H
+#ifndef PLUME_DATA_ENTRY_H
+#define PLUME_DATA_ENTRY_H
 
 #include "ros/ros.h"
 
-struct PlumeData
+struct PlumeDataEntry
 {
-    PlumeData() :
+    PlumeDataEntry() :
         time(ros::Time(0)),
         x(0),
         y(0),
@@ -13,7 +13,7 @@ struct PlumeData
         val(0)
     {}
 
-    PlumeData(ros::Time time, double x, double y, double h, double val) :
+    PlumeDataEntry(ros::Time time, double x, double y, double h, double val) :
         time(time),
         x(x),
         y(y),

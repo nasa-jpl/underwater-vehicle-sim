@@ -28,7 +28,7 @@ struct PlumeHelper
 
 		if(fabs(100 - msg.x) > 0.0000001 ||
 		   fabs(100 - msg.y) > 0.0000001 ||
-		   fabs(4 - msg.plume) > 0.0000001)
+		   fabs(4 - msg.plume_strength) > 0.0000001)
 		{
 			incorrectCount++;
 		}

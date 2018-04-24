@@ -3,6 +3,7 @@
 #include "plume_detector/PlumeDetector.h"
 #include "plume_detector/DyePlumeDetector.h"
 
+#include "underwater_vehicle_sim/VehicleData.h"
 #include "plume_detector/PlumeDataEntry.h"
 #include "data_server/GetData.h"
 
@@ -13,22 +14,14 @@ DyePlumeDetector::DyePlumeDetector() {}
 
 DyePlumeDetector::DyePlumeDetector(DyePlumeDetector&& other) {}
 
-PlumeData DyePlumeDetector::getLastPlumeData(std::string vehicleName, DataServer dataServer)
+float DyePlumeDetector::calcPlumeStrength(std::string name, const underwater_vehicle_sim::VehicleData::ConstPtr& newData, DataServer dataServer)
 {
-    DataServerEntry entry = dataServer.getLatestData(vehicleName);
-    PlumeData data;
-    data.time = entry.time;
-    data.x = entry.x;
-    data.y = entry.y;
-    data.h = entry.h;
-    data.val = entry.dye;
-
-    return data;
+    return newData->dye;
 }
 
-std::vector<PlumeData> DyePlumeDetector::getPlumeData(std::string vehicleName, ros::Time startTime, ros::Time endTime, DataServer dataServer)
+std::vector<PlumeDataEntry> DyePlumeDetector::getPlumeData(std::string vehicleName, ros::Time startTime, ros::Time endTime, DataServer dataServer)
 {
-	std::vector<PlumeData> plumeData;
+	std::vector<PlumeDataEntry> plumeData;
     std::vector<DataServerEntry>::iterator start = dataServer.getStartTime(vehicleName, startTime);
     std::vector<DataServerEntry>::iterator end = dataServer.getStartTime(vehicleName, endTime);
 

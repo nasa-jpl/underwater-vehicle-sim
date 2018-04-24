@@ -233,7 +233,7 @@ bool NestedSpiralVentPlanner::triggerNewSpiral(const double plumeStrength)
     return false;
 }
 
-void NestedSpiralVentPlanner::getPlumeMax(const std::vector<PlumeData>& data, const unsigned int dataStart, double& plumeX, double& plumeY, double& plumeStrength)
+void NestedSpiralVentPlanner::getPlumeMax(const std::vector<PlumeDataEntry>& data, const unsigned int dataStart, double& plumeX, double& plumeY, double& plumeStrength)
 {
     plumeStrength = 0;
     plumeX = std::numeric_limits<double>::quiet_NaN();
@@ -301,7 +301,7 @@ void NestedSpiralVentPlanner::plumeDataSummary(double& average, double& max, dou
     stdDev = plumeStdDev;
 }
 
-bool NestedSpiralVentPlanner::getHeightOfPlume(const std::vector<PlumeData>& data, const unsigned int dataStart, double& plumeX, double& plumeY, double& plumeHeight, double& plumeStrength)
+bool NestedSpiralVentPlanner::getHeightOfPlume(const std::vector<PlumeDataEntry>& data, const unsigned int dataStart, double& plumeX, double& plumeY, double& plumeHeight, double& plumeStrength)
 {
     //bin data by depth return bin with largest average
     unsigned int binSize = 10;

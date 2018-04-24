@@ -11,7 +11,7 @@ public:
     ~DataTree();
 
 public:
-    void addData(const PlumeData& data);
+    void addData(const PlumeDataEntry& data);
 
     /**
      * Get all maxima nodes

@@ -12,6 +12,7 @@ struct DataServerEntry
 	float temp;
 	float salt;
 	float dye;
+	float plumeStrength;
 
 	bool operator<(const DataServerEntry& rhs) const { return time < rhs.time; }
 	bool operator==(const DataServerEntry& rhs) const { return time == rhs.time; }

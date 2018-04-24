@@ -193,7 +193,7 @@ void DataBins::partition(DataBin& dataBin, const double binSize)
                                                                 binLevel + 1));
 }
 
-void DataBins::addData(const PlumeData& data)
+void DataBins::addData(const PlumeDataEntry& data)
 {
     tf::Vector3 dataVector(data.x, data.y, data.h);
     DataBin& bin = createAndGetBin(dataVector);
@@ -208,9 +208,9 @@ void DataBins::addData(const PlumeData& data)
     
 }
 
-void DataBins::addData(const std::vector<PlumeData>& data)
+void DataBins::addData(const std::vector<PlumeDataEntry>& data)
 {
-    for(const PlumeData& entry : data)
+    for(const PlumeDataEntry& entry : data)
     {
         addData(entry);
     }

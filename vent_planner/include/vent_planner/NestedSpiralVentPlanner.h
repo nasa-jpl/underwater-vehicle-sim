@@ -44,8 +44,8 @@ private:
 
     void plumeDataSummary(double& average, double& max, double& stddev);
     bool triggerNewSpiral(const double plumeStrength);
-    bool getHeightOfPlume(const std::vector<PlumeData>& data, const unsigned int dataStart, double& plumeX, double& plumeY, double& plumeHeight, double& plumeStrength);
-    void getPlumeMax(const std::vector<PlumeData>& data, const unsigned int dataStart, double& plumeX, double& plumeY, double& plumeStrength);
+    bool getHeightOfPlume(const std::vector<PlumeDataEntry>& data, const unsigned int dataStart, double& plumeX, double& plumeY, double& plumeHeight, double& plumeStrength);
+    void getPlumeMax(const std::vector<PlumeDataEntry>& data, const unsigned int dataStart, double& plumeX, double& plumeY, double& plumeStrength);
 
     bool isCompleted(std::shared_ptr<Plan> plan);
 
@@ -60,7 +60,7 @@ private:
 private:
     std::unique_ptr<VentActionFactory> actionFactory;
 
-    std::vector<std::vector<PlumeData>> plumeData;
+    std::vector<std::vector<PlumeDataEntry>> plumeData;
 
     std::stack<std::shared_ptr<Plan>> plans;
     std::stack<unsigned long> currentPlumeData;

@@ -100,7 +100,7 @@ std::shared_ptr<Plan> NestedBinVentPlanner::plan()
 
         if(valid)
         {
-            PlumeData maxVal = spiralData.getMaxVal();
+            PlumeDataEntry maxVal = spiralData.getMaxVal();
             tf::Vector3 maxLoc(maxVal.x, maxVal.y, maxVal.h);
             double plumeHeight = spiralData.getHeightOfPlume();
 
@@ -257,7 +257,7 @@ DataNode NestedBinVentPlanner::getLatestSpiralData()
     spiralData.clear(); //Clear data so we can easily calculate plume height and max value
     for(unsigned int i = 0; i < srv.response.time.size(); i++)
     {
-        PlumeData newPlumeData(srv.response.time[i],
+        PlumeDataEntry newPlumeData(srv.response.time[i],
                                srv.response.x[i],
                                srv.response.y[i],
                                srv.response.h[i],
@@ -270,7 +270,7 @@ DataNode NestedBinVentPlanner::getLatestSpiralData()
 
 bool NestedBinVentPlanner::newSpiralPlumeIntersect(DataNode& spiralData, double detectionThreshold)
 {
-    PlumeData maxVal = spiralData.getMaxVal();
+    PlumeDataEntry maxVal = spiralData.getMaxVal();
     bool intersect = false;
     if(maxVal.val >= detectionThreshold)
     {
@@ -319,7 +319,7 @@ void NestedBinVentPlanner::addRecentDataToTree()
 
         for(unsigned int i = 0; i < srv.response.time.size(); i++)
         {
-            PlumeData newPlumeData(srv.response.time[i],
+            PlumeDataEntry newPlumeData(srv.response.time[i],
                                    srv.response.x[i],
                                    srv.response.y[i],
                                    srv.response.h[i],

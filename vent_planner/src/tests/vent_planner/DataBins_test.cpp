@@ -17,24 +17,24 @@ TEST(DataNode, LocalMaxima)
     DataNode& root = tree.getRoot();
     root.partition(20);
 
-    PlumeData data0_a(ros::Time(0), -85, -105, 0, 1);
-    PlumeData data0_b(ros::Time(0), -84, -104, -18, 5);
+    PlumeDataEntry data0_a(ros::Time(0), -85, -105, 0, 1);
+    PlumeDataEntry data0_b(ros::Time(0), -84, -104, -18, 5);
 
-    PlumeData data1(ros::Time(0), -74, -94, -15, 4);
-    PlumeData data2(ros::Time(0), -84, -94, -12, 4);
-    PlumeData data3(ros::Time(0), -74, -104, -24, 4);
+    PlumeDataEntry data1(ros::Time(0), -74, -94, -15, 4);
+    PlumeDataEntry data2(ros::Time(0), -84, -94, -12, 4);
+    PlumeDataEntry data3(ros::Time(0), -74, -104, -24, 4);
 
-    PlumeData data4(ros::Time(0), -84, -84, -15, 5);
-    PlumeData data5(ros::Time(0), -84, -74, -12, 4);
-    PlumeData data6(ros::Time(0), -74, -84, -24, 4);
-    PlumeData data7(ros::Time(0), -74, -74, -24, 4);
+    PlumeDataEntry data4(ros::Time(0), -84, -84, -15, 5);
+    PlumeDataEntry data5(ros::Time(0), -84, -74, -12, 4);
+    PlumeDataEntry data6(ros::Time(0), -74, -84, -24, 4);
+    PlumeDataEntry data7(ros::Time(0), -74, -74, -24, 4);
 
-    PlumeData data8(ros::Time(0), -64, -104, -15, 4);
-    PlumeData data9(ros::Time(0), -64, -94, -12, 5);
-    PlumeData data10(ros::Time(0), -64, -84, -24, 4);
-    PlumeData data11(ros::Time(0), -54, -104, -24, 4);
-    PlumeData data12(ros::Time(0), -54, -94, -24, 4);
-    PlumeData data13(ros::Time(0), -54, -84, -24, 4);
+    PlumeDataEntry data8(ros::Time(0), -64, -104, -15, 4);
+    PlumeDataEntry data9(ros::Time(0), -64, -94, -12, 5);
+    PlumeDataEntry data10(ros::Time(0), -64, -84, -24, 4);
+    PlumeDataEntry data11(ros::Time(0), -54, -104, -24, 4);
+    PlumeDataEntry data12(ros::Time(0), -54, -94, -24, 4);
+    PlumeDataEntry data13(ros::Time(0), -54, -84, -24, 4);
 
     tree.addData(data0_a);
     tree.addData(data0_b);
@@ -86,15 +86,15 @@ TEST(DataNode, LocalMaxima)
    
    
     //Add data in the partitioned bin
-    PlumeData partData0(ros::Time(0), -63.4, -97.4, -12, 6);
-    PlumeData partData1(ros::Time(0), -64.5, -98.5, -12, 5);
-    PlumeData partData2(ros::Time(0), -64.5, -97.5, -12, 5);
-    PlumeData partData3(ros::Time(0), -64.5, -96.5, -12, 5);
-    PlumeData partData4(ros::Time(0), -63.5, -98.5, -12, 5);
-    PlumeData partData5(ros::Time(0), -63.5, -96.5, -12, 5);
-    PlumeData partData6(ros::Time(0), -62.5, -98.5, -12, 5);
-    PlumeData partData7(ros::Time(0), -62.5, -97.5, -12, 5);
-    PlumeData partData8(ros::Time(0), -62.5, -96.5, -12, 5);
+    PlumeDataEntry partData0(ros::Time(0), -63.4, -97.4, -12, 6);
+    PlumeDataEntry partData1(ros::Time(0), -64.5, -98.5, -12, 5);
+    PlumeDataEntry partData2(ros::Time(0), -64.5, -97.5, -12, 5);
+    PlumeDataEntry partData3(ros::Time(0), -64.5, -96.5, -12, 5);
+    PlumeDataEntry partData4(ros::Time(0), -63.5, -98.5, -12, 5);
+    PlumeDataEntry partData5(ros::Time(0), -63.5, -96.5, -12, 5);
+    PlumeDataEntry partData6(ros::Time(0), -62.5, -98.5, -12, 5);
+    PlumeDataEntry partData7(ros::Time(0), -62.5, -97.5, -12, 5);
+    PlumeDataEntry partData8(ros::Time(0), -62.5, -96.5, -12, 5);
 
     tree.addData(partData0);
     tree.addData(partData1);
@@ -107,15 +107,15 @@ TEST(DataNode, LocalMaxima)
     tree.addData(partData8);
 
     //Add data in the partitioned crossover bin
-    PlumeData crossoverPartData0(ros::Time(0), -60.4, -90.4, -12, 6);
-    PlumeData crossoverPartData1(ros::Time(0), -61.5, -91.5, -12, 5);
-    PlumeData crossoverPartData2(ros::Time(0), -61.5, -90.5, -12, 5);
-    PlumeData crossoverPartData3(ros::Time(0), -61.5, -89.5, -12, 5);
-    PlumeData crossoverPartData4(ros::Time(0), -60.5, -91.5, -12, 5);
-    PlumeData crossoverPartData5(ros::Time(0), -60.5, -89.5, -12, 5);
-    PlumeData crossoverPartData6(ros::Time(0), -59.5, -91.5, -12, 5);
-    PlumeData crossoverPartData7(ros::Time(0), -59.5, -90.5, -12, 5);
-    PlumeData crossoverPartData8(ros::Time(0), -59.5, -89.5, -12, 5);
+    PlumeDataEntry crossoverPartData0(ros::Time(0), -60.4, -90.4, -12, 6);
+    PlumeDataEntry crossoverPartData1(ros::Time(0), -61.5, -91.5, -12, 5);
+    PlumeDataEntry crossoverPartData2(ros::Time(0), -61.5, -90.5, -12, 5);
+    PlumeDataEntry crossoverPartData3(ros::Time(0), -61.5, -89.5, -12, 5);
+    PlumeDataEntry crossoverPartData4(ros::Time(0), -60.5, -91.5, -12, 5);
+    PlumeDataEntry crossoverPartData5(ros::Time(0), -60.5, -89.5, -12, 5);
+    PlumeDataEntry crossoverPartData6(ros::Time(0), -59.5, -91.5, -12, 5);
+    PlumeDataEntry crossoverPartData7(ros::Time(0), -59.5, -90.5, -12, 5);
+    PlumeDataEntry crossoverPartData8(ros::Time(0), -59.5, -89.5, -12, 5);
 
     tree.addData(crossoverPartData0);
     tree.addData(crossoverPartData1);
@@ -176,24 +176,24 @@ TEST(DataNode, ClosestOrigin)
     DataNode& root = tree.getRoot();
     root.partition(20);
 
-    PlumeData data0_a(ros::Time(0),-85, -105, 0, 1);
-    PlumeData data0_b(ros::Time(0),-84, -104, -18, 5);
+    PlumeDataEntry data0_a(ros::Time(0),-85, -105, 0, 1);
+    PlumeDataEntry data0_b(ros::Time(0),-84, -104, -18, 5);
 
-    PlumeData data1(ros::Time(0),-74, -94, -15, 4);
-    PlumeData data2(ros::Time(0),-84, -94, -12, 4);
-    PlumeData data3(ros::Time(0),-74, -104, -24, 4);
+    PlumeDataEntry data1(ros::Time(0),-74, -94, -15, 4);
+    PlumeDataEntry data2(ros::Time(0),-84, -94, -12, 4);
+    PlumeDataEntry data3(ros::Time(0),-74, -104, -24, 4);
 
-    PlumeData data4(ros::Time(0),-84, -84, -15, 5);
-    PlumeData data5(ros::Time(0),-84, -74, -12, 4);
-    PlumeData data6(ros::Time(0),-74, -84, -24, 4);
-    PlumeData data7(ros::Time(0),-74, -74, -24, 4);
+    PlumeDataEntry data4(ros::Time(0),-84, -84, -15, 5);
+    PlumeDataEntry data5(ros::Time(0),-84, -74, -12, 4);
+    PlumeDataEntry data6(ros::Time(0),-74, -84, -24, 4);
+    PlumeDataEntry data7(ros::Time(0),-74, -74, -24, 4);
 
-    PlumeData data8(ros::Time(0),-64, -104, -15, 4);
-    PlumeData data9(ros::Time(0),-64, -94, -12, 5);
-    PlumeData data10(ros::Time(0),-64, -84, -24, 4);
-    PlumeData data11(ros::Time(0),-54, -104, -24, 4);
-    PlumeData data12(ros::Time(0),-54, -94, -24, 4);
-    PlumeData data13(ros::Time(0),-54, -84, -24, 4);
+    PlumeDataEntry data8(ros::Time(0),-64, -104, -15, 4);
+    PlumeDataEntry data9(ros::Time(0),-64, -94, -12, 5);
+    PlumeDataEntry data10(ros::Time(0),-64, -84, -24, 4);
+    PlumeDataEntry data11(ros::Time(0),-54, -104, -24, 4);
+    PlumeDataEntry data12(ros::Time(0),-54, -94, -24, 4);
+    PlumeDataEntry data13(ros::Time(0),-54, -84, -24, 4);
 
     tree.addData(data0_a);
     tree.addData(data0_b);

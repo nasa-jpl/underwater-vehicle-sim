@@ -28,7 +28,7 @@ DataNode::DataNode(const DataNode& other) :
 
 DataNode::~DataNode() {}
 
-void DataNode::addData(const PlumeData& plumeData)
+void DataNode::addData(const PlumeDataEntry& plumeData)
 {
 
     if(maxVal.val <= plumeData.val)
@@ -457,7 +457,7 @@ std::vector<DataNode*> DataNode::getInitalizedNeighbors()
     return neighbors;
 }
 
-void DataNode::getData(std::vector<PlumeData*>& allData)
+void DataNode::getData(std::vector<PlumeDataEntry*>& allData)
 {
     for(auto& d : data)
     {
@@ -475,7 +475,7 @@ void DataNode::getData(std::vector<PlumeData*>& allData)
 
 const double DataNode::getHeightOfPlume()
 {
-    std::vector<PlumeData*> allData;
+    std::vector<PlumeDataEntry*> allData;
     getData(allData);
     //bin data by depth return bin with largest average
     unsigned int binSize = 10;
@@ -596,7 +596,7 @@ bool DataNode::PointerCompare::operator() (const DataNode* lhs,
     return *lhs < *rhs;
 }
 
-const PlumeData& DataNode::getMaxVal() const
+const PlumeDataEntry& DataNode::getMaxVal() const
 {
     return maxVal;
 }

@@ -1,6 +1,7 @@
 #ifndef DYE_PLUME_DETECTOR_H
 #define DYE_PLUME_DETECTOR_H
 
+#include "underwater_vehicle_sim/VehicleData.h"
 #include "plume_detector/PlumeDetector.h"
 #include "plume_detector/PlumeDataEntry.h"
 
@@ -14,8 +15,8 @@ public:
 
 	virtual ~DyePlumeDetector() {}
 
-	PlumeData getLastPlumeData(std::string vehicleName, DataServer dataServer);
-	std::vector<PlumeData> getPlumeData(std::string vehicleName, ros::Time startTime, ros::Time endTime, DataServer dataServer);
+	float calcPlumeStrength(std::string name, const underwater_vehicle_sim::VehicleData::ConstPtr& newData, DataServer dataServer);
+	std::vector<PlumeDataEntry> getPlumeData(std::string vehicleName, ros::Time startTime, ros::Time endTime, DataServer dataServer);
 
 private:
 

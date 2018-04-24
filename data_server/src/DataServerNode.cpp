@@ -23,6 +23,8 @@ std::map<std::string, ros::Publisher> plumePubs;
 
 void recieveData(const underwater_vehicle_sim::VehicleData::ConstPtr& msg)
 {
+    float plumeVal = plumeDetector->calcPlumeStrength(msg->name, msg, server);
+
 	DataServerEntry entry;
 
 	entry.x = msg->x;
@@ -34,17 +36,17 @@ void recieveData(const underwater_vehicle_sim::VehicleData::ConstPtr& msg)
 	entry.salt = msg->salt;
 	entry.dye = msg->dye;
 	entry.sonarDepth = msg->sonarDepth;
+    entry.plumeStrength = plumeVal;
 
 	server.putData(msg->name, entry);
 
 
-    PlumeData data = plumeDetector->getLastPlumeData(msg->name, server);
     data_server::PlumeData plumeMsg;
-    plumeMsg.x = data.x;
-    plumeMsg.y = data.y;
-    plumeMsg.h = data.h;
-    plumeMsg.time = data.time;
-    plumeMsg.plume = data.val;
+    plumeMsg.x = entry.x;
+    plumeMsg.y = entry.y;
+    plumeMsg.h = entry.h;
+    plumeMsg.time = entry.time;
+    plumeMsg.plume_strength = entry.plumeStrength;
 
     plumePubs[msg->name].publish(plumeMsg);
 }
@@ -101,9 +103,9 @@ bool getData(data_server::GetData::Request &req,
 bool getPlumeData(data_server::GetPlumeData::Request &req,
                   data_server::GetPlumeData::Response &res)
 {
-    std::vector<PlumeData> plumeData = plumeDetector->getPlumeData(req.name, req.start_time, req.end_time, server);
+    std::vector<PlumeDataEntry> plumeData = plumeDetector->getPlumeData(req.name, req.start_time, req.end_time, server);
 
-    for(PlumeData& data : plumeData)
+    for(PlumeDataEntry& data : plumeData)
     {
         res.x.push_back(data.x);
         res.y.push_back(data.y);
