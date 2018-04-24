@@ -2,8 +2,10 @@
 
 #include "ros/ros.h"
 
+#include <cmath>
 #include "underwater_vehicle_sim/VehicleData.h"
 #include "data_server/GetData.h"
+#include "data_server/PlumeValue.h"
 #include "std_msgs/String.h"
 
 ros::ServiceClient client;
@@ -11,9 +13,40 @@ ros::Publisher v1Broadcaster;
 ros::Publisher v2Broadcaster;
 ros::Publisher saveData;
 
+struct PlumeHelper
+{
+	int correctCount;
+	int incorrectCount;
+
+	PlumeHelper() :
+			correctCount(0),
+			incorrectCount(0)
+	{}
+
+	void plumeCB(const data_server::PlumeValue& msg)
+	{
+
+		if(fabs(100 - msg.x) > 0.0000001 ||
+		   fabs(100 - msg.y) > 0.0000001 ||
+		   fabs(4 - msg.plume) > 0.0000001)
+		{
+			incorrectCount++;
+		}
+		else
+		{
+			correctCount++;
+		}
+	}
+};
+
+
 
 TEST(DataServerNode, PutAndGetData)
 {
+	ros::NodeHandle nh;
+	PlumeHelper helper;
+	ros::Subscriber sub = nh.subscribe("/data_server/v1/plume_data",0, &PlumeHelper::plumeCB, &helper);
+
 	data_server::GetData retrievedData1;
 	retrievedData1.request.name = "v1";
 	retrievedData1.request.start_time = ros::Time(1);
@@ -25,6 +58,8 @@ TEST(DataServerNode, PutAndGetData)
 	ros::Duration(5.0).sleep();
 
 	client.call(retrievedData1);
+
+    ros::spinOnce();
 
 	ASSERT_TRUE(retrievedData1.response.time.size() > 5);
 
@@ -40,6 +75,11 @@ TEST(DataServerNode, PutAndGetData)
 		ASSERT_FLOAT_EQ(4.0, retrievedData1.response.dye[i]);
         ASSERT_FLOAT_EQ(200.0, retrievedData1.response.sonarDepth[i]);
 	}
+
+    ros::spinOnce();
+
+	ASSERT_TRUE(helper.correctCount >= 1);
+	ASSERT_TRUE(helper.incorrectCount == 0);
 }
 
 

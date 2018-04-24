@@ -14,6 +14,7 @@ public:
 
 	virtual ~DyePlumeDetector() {}
 
+	PlumeData getLastPlumeData(std::string vehicleName, DataServer dataServer);
 	std::vector<PlumeData> getPlumeData(std::string vehicleName, ros::Time startTime, ros::Time endTime, DataServer dataServer);
 
 private:

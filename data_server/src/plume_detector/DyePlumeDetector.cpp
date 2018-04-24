@@ -13,6 +13,19 @@ DyePlumeDetector::DyePlumeDetector() {}
 
 DyePlumeDetector::DyePlumeDetector(DyePlumeDetector&& other) {}
 
+PlumeData DyePlumeDetector::getLastPlumeData(std::string vehicleName, DataServer dataServer)
+{
+    DataServerEntry entry = dataServer.getLatestData(vehicleName);
+    PlumeData data;
+    data.time = entry.time;
+    data.x = entry.x;
+    data.y = entry.y;
+    data.h = entry.h;
+    data.val = entry.dye;
+
+    return data;
+}
+
 std::vector<PlumeData> DyePlumeDetector::getPlumeData(std::string vehicleName, ros::Time startTime, ros::Time endTime, DataServer dataServer)
 {
 	std::vector<PlumeData> plumeData;

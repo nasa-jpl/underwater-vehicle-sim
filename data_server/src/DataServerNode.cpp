@@ -11,6 +11,7 @@
 #include "data_server/GetData.h"
 #include "data_server/GetLatestData.h"
 #include "data_server/GetPlumeData.h"
+#include "data_server/PlumeValue.h"
 #include "plume_detector/PlumeDetector.h"
 #include "plume_detector/DyePlumeDetector.h"
 #include "plume_detector/PlumeData.h"
@@ -18,6 +19,7 @@
 
 DataServer server;
 std::unique_ptr<PlumeDetector> plumeDetector;
+std::map<std::string, ros::Publisher> plumePubs;
 
 void recieveData(const underwater_vehicle_sim::VehicleData::ConstPtr& msg)
 {
@@ -34,6 +36,17 @@ void recieveData(const underwater_vehicle_sim::VehicleData::ConstPtr& msg)
 	entry.sonarDepth = msg->sonarDepth;
 
 	server.putData(msg->name, entry);
+
+
+    PlumeData data = plumeDetector->getLastPlumeData(msg->name, server);
+    data_server::PlumeValue plumeMsg;
+    plumeMsg.x = data.x;
+    plumeMsg.y = data.y;
+    plumeMsg.h = data.h;
+    plumeMsg.time = data.time;
+    plumeMsg.plume = data.val;
+
+    plumePubs[msg->name].publish(plumeMsg);
 }
 
 bool getLatestData(data_server::GetLatestData::Request &req,
@@ -142,8 +155,11 @@ int main(int argc, char **argv)
 				subscribers.push_back(nh.subscribe("/vehicles/" + name + "/" + info.response.moduleNames[i] + "/data", 5000, recieveData));
 			}
 		}
-	}
 
+        plumePubs.insert(std::pair<std::string, ros::Publisher>(
+                    name,
+                    nh.advertise<data_server::PlumeValue>(name + "/plume_data", 1000)));
+	}
 
     ros::ServiceServer saveDataSub = nh.advertiseService("save", saveData);
     ros::ServiceServer serviceGet = nh.advertiseService("get", getData);
