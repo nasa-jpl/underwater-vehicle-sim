@@ -83,7 +83,7 @@ int main(int argc, char **argv)
     
     std::string model_type;
 
-    clockSpeedPub = n.advertise<std_msgs::Float64>("/clock_server/speed_up_factor", 1, true);
+    clockSpeedPub = n.advertise<std_msgs::Float64>("clock_server/speed_up_factor", 1, true);
     n.param<float>("speed_up_factor", speedUpFactor, 1);
 
     if(!n.getParam("model_type", model_type))

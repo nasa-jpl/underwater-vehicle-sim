@@ -15,7 +15,7 @@ FourDOFPropulsion::FourDOFPropulsion(std::string name, ros::NodeHandle& parentNH
 	nh.getParam("max_linear_velocity", maxLinVelocity);
 	nh.getParam("max_rotate_velocity", maxRotVelocity);
 
-	modelClient = nh.serviceClient<model_server::GetModelData>("/get_model_data");
+	modelClient = nh.serviceClient<model_server::GetModelData>("get_model_data");
 	commandVelocitySub = nh.subscribe("command_velocity", 1, &FourDOFPropulsion::commandVelocityCallback, this);
 
 	rotVelocity.setX(0);

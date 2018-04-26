@@ -134,8 +134,8 @@ int main(int argc, char **argv)
     ros::NodeHandle nh("data_server");
 
     std::vector<std::string> vehicleNames;
-    nh.getParam("/vehicles/names", vehicleNames);
-	ros::ServiceClient infoClient = nh.serviceClient<underwater_vehicle_sim::GetVehicleInfo>("/vehicles/get_info");
+    nh.getParam("vehicles/names", vehicleNames);
+	ros::ServiceClient infoClient = nh.serviceClient<underwater_vehicle_sim::GetVehicleInfo>("vehicles/get_info");
 	infoClient.waitForExistence();
 
 	std::vector<ros::Subscriber> subscribers;
@@ -154,13 +154,13 @@ int main(int argc, char **argv)
 			if(info.response.moduleTypes[i] == "DataBroadcaster")
 			{
 
-				subscribers.push_back(nh.subscribe("/vehicles/" + name + "/" + info.response.moduleNames[i] + "/data", 5000, recieveData));
+				subscribers.push_back(nh.subscribe("vehicles/" + name + "/" + info.response.moduleNames[i] + "/data", 5000, recieveData));
 			}
 		}
 
         plumePubs.insert(std::pair<std::string, ros::Publisher>(
                     name,
-                    nh.advertise<data_server::PlumeData>(name + "/plume_data", 1000)));
+                    nh.advertise<data_server::PlumeData>(name + "plume_data", 1000)));
 	}
 
     ros::ServiceServer saveDataSub = nh.advertiseService("save", saveData);

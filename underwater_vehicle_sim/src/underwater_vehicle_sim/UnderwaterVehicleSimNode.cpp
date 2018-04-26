@@ -19,14 +19,14 @@ int main(int argc, char **argv)
     nh.getParam("underwater_vehicle_sim/hertz", hertz);
     ros::Rate r(hertz); //Hz at which to run the sim loop
     
-    ros::Publisher clockSpeedPub = nh.advertise<std_msgs::Float64>("/clock_server/speed_up_factor", 1, true);
+    ros::Publisher clockSpeedPub = nh.advertise<std_msgs::Float64>("clock_server/speed_up_factor", 1, true);
     std_msgs::Float64 slowSim;
     slowSim.data = 1;
     clockSpeedPub.publish(slowSim);
 
     UnderwaterVehicleSim sim(nh);
 
-    ros::ServiceClient modelDataClient = nh.serviceClient<model_server::GetModelData>("/get_model_data");
+    ros::ServiceClient modelDataClient = nh.serviceClient<model_server::GetModelData>("get_model_data");
 
     //Wait for model
     if(nh.hasParam("model_type"))

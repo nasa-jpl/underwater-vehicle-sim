@@ -29,7 +29,7 @@ FourDOFPropulsionController::FourDOFPropulsionController(ros::NodeHandle control
     minSeafloorDistance(10.0),
     pointPathServer(controlNode, "point_path", boost::bind(&FourDOFPropulsionController::executePointPath, this, _1, &pointPathServer), false),
     dynamicLawnmowerServer(controlNode, "dynamic_lawnmower", boost::bind(&FourDOFPropulsionController::executeDynamicLawnmower, this, _1, &dynamicLawnmowerServer), false),
-    plumeClient(controlNode.serviceClient<data_server::GetPlumeData>("/data_server/get_plume"))
+    plumeClient(controlNode.serviceClient<data_server::GetPlumeData>("data_server/get_plume"))
 {
     velocityPub = vehicleNode.advertise<geometry_msgs::Twist>(propModuleName + "/command_velocity", 1000);
 
@@ -82,7 +82,7 @@ void FourDOFPropulsionController::executePointPath(const vehicle_auto_control::P
         tf::StampedTransform transform;
         try
         {
-            listener.waitForTransform("/word", "/" + vehicleName,
+            listener.waitForTransform("/world", "/" + vehicleName,
                                       ros::Time(0), ros::Duration(5.0));
             listener.lookupTransform("/world", "/" + vehicleName,  
                                      ros::Time(0), transform);
@@ -203,7 +203,7 @@ void FourDOFPropulsionController::executeDynamicLawnmower(const vehicle_auto_con
         tf::StampedTransform transform;
         try
         {
-            listener.waitForTransform("/word", "/" + vehicleName,
+            listener.waitForTransform("/world", "/" + vehicleName,
                                       ros::Time(0), ros::Duration(5.0));
             listener.lookupTransform("/world", "/" + vehicleName,  
                                      ros::Time(0), transform);
