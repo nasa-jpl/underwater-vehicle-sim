@@ -50,6 +50,7 @@ int main(int argc, char **argv)
         }
         plannersCompleted = updatePlannersCompleted;
 
+        ros::spinOnce();
         r.sleep();
     }
     return 0;

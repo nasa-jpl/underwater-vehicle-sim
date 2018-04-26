@@ -34,7 +34,8 @@ NestedBinVentPlanner::NestedBinVentPlanner(ros::NodeHandle& nh, std::unique_ptr<
     logPub(nh.advertise<std_msgs::String>("planner_log/log", 1000)),
     goalState("running"),
     finalSurvey(nullptr),
-    phase(SearchPhase::none)
+    phase(SearchPhase::none),
+    spiralData(nullptr, 0, tf::Vector3(0,0,0), 300000, 0)
 {
     ROS_INFO("Planner: Waiting for data server...");
     dataClient.waitForExistence();
@@ -57,6 +58,33 @@ NestedBinVentPlanner::NestedBinVentPlanner(ros::NodeHandle& nh, std::unique_ptr<
     nh.getParam("planner/inital_spacing", initalSpacing);
     nh.getParam("planner/final_spacing", finalSpacing);
     nh.getParam("planner/fail_time", failTime);
+
+    dataSub = nh.subscribe("/data_server/" + vehicleName + "/plume_data", 0, &NestedBinVentPlanner::receivePlumeData, this);
+}
+
+void NestedBinVentPlanner::receivePlumeData(const data_server::PlumeData::ConstPtr& msg)
+{
+    if((phase == SearchPhase::dynamic || phase == SearchPhase::nested) &&
+       dataTree)
+    {
+        PlumeDataEntry newPlumeData(msg->time,
+                                    msg->x,
+                                    msg->y,
+                                    msg->h,
+                                    msg->plume_strength);
+        dataTree->addData(newPlumeData);
+    }
+    else if(phase == SearchPhase::spiral)
+    {
+        PlumeDataEntry newPlumeData(msg->time,
+                                    msg->x,
+                                    msg->y,
+                                    msg->h,
+                                    msg->plume_strength);
+        spiralData.addData(newPlumeData);
+    }
+
+
 }
 
 std::shared_ptr<Plan> NestedBinVentPlanner::plan()
@@ -94,8 +122,7 @@ std::shared_ptr<Plan> NestedBinVentPlanner::plan()
     }
     else if(phase == SearchPhase::spiral)
     {
-
-        DataNode spiralData = getLatestSpiralData();
+        ROS_INFO("Planner: Update Spiral");
         bool valid = newSpiralPlumeIntersect(spiralData, detectionThreshold);
 
         if(valid)
@@ -113,6 +140,7 @@ std::shared_ptr<Plan> NestedBinVentPlanner::plan()
             const tf::Vector3 closestOrigin = dataTree->getClosestNodeOrigin(maxLoc, 1);
             addInitalLawnmowers(returnPlan, closestOrigin, plumeHeight);
 
+            spiralData.clear();
             //Log data to file
             std::stringstream ss;
             ss.precision(5);
@@ -122,12 +150,12 @@ std::shared_ptr<Plan> NestedBinVentPlanner::plan()
         else
         {
             returnPlan = spiralPlan;
+            returnPlan->resetInterrupted();
             phase = SearchPhase::spiral;
         }
     }
     else if(phase == SearchPhase::dynamic || phase == SearchPhase::nested)
     {
-        addRecentDataToTree();
         std::set<DataNode*, DataNode::PointerCompare> queuedMaxima = getUnexploredMaxima();
 
         if(queuedMaxima.size() > 0)
@@ -206,6 +234,7 @@ std::shared_ptr<Plan> NestedBinVentPlanner::plan()
             {
                 returnPlan = spiralPlan;
                 phase = SearchPhase::spiral;
+                ROS_INFO("Planner: Resume Spiral");
             }
         }
     }

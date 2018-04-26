@@ -21,6 +21,7 @@
 
 #include "plume_detector/PlumeDataEntry.h"
 #include "data_server/GetPlumeData.h"
+#include "data_server/PlumeData.h"
 
 class NestedBinVentPlanner : public Planner
 {
@@ -49,6 +50,9 @@ public:
 private:
 
     enum SearchPhase {none, spiral, dynamic, nested };
+
+    void receivePlumeData(const data_server::PlumeData::ConstPtr& msg);
+
     void publishLog(std::string log);
 
     bool isCompleted(std::shared_ptr<Plan> plan);
@@ -81,6 +85,9 @@ private:
     std::shared_ptr<Plan> dynamicPlan;
 
     std::unique_ptr<DataTree> dataTree;
+    DataNode spiralData;
+
+    ros::Subscriber dataSub;
     std::map<std::shared_ptr<Plan>, DataNode*> plannedMaxima;
 
 

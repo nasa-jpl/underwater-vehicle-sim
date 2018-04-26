@@ -18,7 +18,7 @@
 DynamicLawnmowerSimActionExecutor::DynamicLawnmowerSimActionExecutor(ros::NodeHandle& nh, std::string vehicleName) :
 	vehicleName(vehicleName),
 	nh(nh),
-	dynamicLawnmowerClient("/vehicle_controller/"  + vehicleName + "/dynamic_lawnmower", true),
+	dynamicLawnmowerClient("/vehicle_controller/"  + vehicleName + "/dynamic_lawnmower", false),
 	velPublisher(nh.advertise<vehicle_auto_control::Velocity>("/vehicle_controller/" + vehicleName + "/command_target_velocity", 1000, true))
 {
 	infoClient = nh.serviceClient<underwater_vehicle_sim::GetVehicleInfo>("vehicles/get_info");
@@ -33,7 +33,7 @@ DynamicLawnmowerSimActionExecutor::DynamicLawnmowerSimActionExecutor(ros::NodeHa
 DynamicLawnmowerSimActionExecutor::DynamicLawnmowerSimActionExecutor(const DynamicLawnmowerSimActionExecutor& other) :
 	vehicleName(other.vehicleName),
 	nh(other.nh),
-	dynamicLawnmowerClient("/vehicle_controller/"  + vehicleName + "/dynamic_lawnmower", true)
+	dynamicLawnmowerClient("/vehicle_controller/"  + vehicleName + "/dynamic_lawnmower", false)
 {
 	infoClient = nh.serviceClient<underwater_vehicle_sim::GetVehicleInfo>("vehicles/get_info");
 	infoClient.waitForExistence();
