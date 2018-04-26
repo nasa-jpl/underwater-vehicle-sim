@@ -13,8 +13,9 @@
 #include "underwater_vehicle_sim/GetVehicleInfo.h"
 
 #include "actionlib/client/simple_action_client.h"
+#include "actionlib/server/simple_action_server.h"
+#include "vent_planner/ExecuteDynamicLawnmowerAction.h"
 #include "vehicle_auto_control/DynamicLawnmowerAction.h"
-
 
 class DynamicLawnmowerSimActionExecutor : public ActionExecutor<DynamicLawnmowerAction>
 {
@@ -27,7 +28,8 @@ public:
     * Executes the yoyo action in the ros simulation with the given parameters
     */
     bool execute(std::shared_ptr<DynamicLawnmowerAction> action) override;
-    
+
+
     /**
     * Monitors and updates the state of the yoyo action in the ros simulation 
     * All monitoring is done with action callbacks so this method is not used here
@@ -53,6 +55,9 @@ private:
                     const actionlib::SimpleClientGoalState& state,
                     const vehicle_auto_control::DynamicLawnmowerResultConstPtr& result);
 
+    void executeAction(const vent_planner::ExecuteDynamicLawnmowerGoalConstPtr& goal,
+                       actionlib::SimpleActionServer<vent_planner::ExecuteDynamicLawnmowerAction>* as);
+
     /**
     * Callback that occurs when the action goes active
     */
@@ -71,6 +76,7 @@ private:
     ros::ServiceClient infoClient;
     underwater_vehicle_sim::GetVehicleInfo::Response vehicleInfo;
     ros::Publisher velPublisher;
+    actionlib::SimpleActionServer<vent_planner::ExecuteDynamicLawnmowerAction> actionServer;
 
     bool replanNextUpdate;
     

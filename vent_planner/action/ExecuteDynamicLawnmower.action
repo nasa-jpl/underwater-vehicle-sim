@@ -1,0 +1,18 @@
+#goal definition
+geometry_msgs/Point startLocation
+int32 currentTrack
+int32 currentSection
+float64 alongTrackDirection
+float64 acrossTrackDirection
+float64 trackSpacing
+float64 targetHeight
+int32 minSectionsPerTrack
+float64 continueThreshold
+int32 trackSectionThreshold
+---
+#result definition
+int32 totalTrackLines
+---
+#feedback
+int32 currentTrack
+int32 currentSection

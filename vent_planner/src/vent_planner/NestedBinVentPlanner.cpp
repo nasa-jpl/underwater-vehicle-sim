@@ -27,9 +27,9 @@ NestedBinVentPlanner::NestedBinVentPlanner(ros::NodeHandle& nh, std::unique_ptr<
     actionFactory(std::move(actionFactory)),
     lastPlan(ros::Time::now()),
     vehicleName(vehicleName),
-    dataClient(nh.serviceClient<data_server::GetData>("/data_server/get")),
-    latestDataClient(nh.serviceClient<data_server::GetLatestData>("/data_server/get_latest")),
-    plumeClient(nh.serviceClient<data_server::GetPlumeData>("/data_server/get_plume")),
+    dataClient(nh.serviceClient<data_server::GetData>("data_server/get")),
+    latestDataClient(nh.serviceClient<data_server::GetLatestData>("data_server/get_latest")),
+    plumeClient(nh.serviceClient<data_server::GetPlumeData>("data_server/get_plume")),
     goalPub(nh.advertise<std_msgs::String>("planner/goal", 1, true)),
     logPub(nh.advertise<std_msgs::String>("planner_log/log", 1000)),
     goalState("running"),
@@ -59,7 +59,7 @@ NestedBinVentPlanner::NestedBinVentPlanner(ros::NodeHandle& nh, std::unique_ptr<
     nh.getParam("planner/final_spacing", finalSpacing);
     nh.getParam("planner/fail_time", failTime);
 
-    dataSub = nh.subscribe("/data_server/" + vehicleName + "/plume_data", 0, &NestedBinVentPlanner::receivePlumeData, this);
+    dataSub = nh.subscribe("data_server/" + vehicleName + "/plume_data", 0, &NestedBinVentPlanner::receivePlumeData, this);
 }
 
 void NestedBinVentPlanner::receivePlumeData(const data_server::PlumeData::ConstPtr& msg)

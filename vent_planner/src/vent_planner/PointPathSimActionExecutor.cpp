@@ -18,7 +18,7 @@
 PointPathSimActionExecutor::PointPathSimActionExecutor(ros::NodeHandle& nh, std::string vehicleName) :
 	vehicleName(vehicleName),
 	nh(nh),
-	pointPathClient("/vehicle_controller/"  + vehicleName + "/point_path", true),
+	pointPathClient("vehicle_controller/"  + vehicleName + "/point_path", true),
 	replanGoingUp(true),
 	currentPointOffset(0)
 {
@@ -35,7 +35,7 @@ PointPathSimActionExecutor::PointPathSimActionExecutor(const PointPathSimActionE
 	vehicleName(other.vehicleName),
 	nh(other.nh),
 	currentPointOffset(other.currentPointOffset),
-	pointPathClient("/vehicle_controller/"  + vehicleName + "/point_path", true)
+	pointPathClient("vehicle_controller/"  + vehicleName + "/point_path", true)
 {
 	infoClient = nh.serviceClient<underwater_vehicle_sim::GetVehicleInfo>("vehicles/get_info");
 	infoClient.waitForExistence();
@@ -63,7 +63,7 @@ bool PointPathSimActionExecutor::execute(std::shared_ptr<PointPathAction> action
 
 	if(vehicleInfo.propModuleType == "FourDOFPropulsion")
 	{
-		std::string velSub = "/vehicle_controller/" + vehicleName + "/command_target_velocity";
+		std::string velSub = "vehicle_controller/" + vehicleName + "/command_target_velocity";
 		if(!hasPublisher(velSub))
 		{
 			publishers.insert(std::make_pair(velSub, nh.advertise<vehicle_auto_control::Velocity>(velSub, 1000, true)));
@@ -131,7 +131,7 @@ void PointPathSimActionExecutor::cancel(std::shared_ptr<PointPathAction> action)
 	try
 	{
 		tf::StampedTransform transform;
-		listener.waitForTransform("/word", "/" + vehicleName, ros::Time(0), ros::Duration(5.0));
+		listener.waitForTransform("/world", "/" + vehicleName, ros::Time(0), ros::Duration(5.0));
 		listener.lookupTransform("/world", "/" + vehicleName, ros::Time(0), transform);
 		action->setInterruptPoint(transform.getOrigin());
 	}

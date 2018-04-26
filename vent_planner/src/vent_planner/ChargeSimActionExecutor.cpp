@@ -24,8 +24,8 @@ ChargeSimActionExecutor::ChargeSimActionExecutor(ros::NodeHandle& nh, std::strin
 	info.request.name = vehicleName;
 	infoClient.call(info);
 	vehicleInfo = info.response;
-    pub = nh.advertise<std_msgs::Float64>("/vehicles/" + vehicleName + "charging", 1000);
-    sub = nh.subscribe("/vehicles/" + vehicleName + "/power", 1, &ChargeSimActionExecutor::charge_Remaining_Callback, this);
+    pub = nh.advertise<std_msgs::Float64>("vehicles/" + vehicleName + "charging", 1000);
+    sub = nh.subscribe("vehicles/" + vehicleName + "/power", 1, &ChargeSimActionExecutor::charge_Remaining_Callback, this);
     charge_msg.data = 1;
 }
 
@@ -40,8 +40,8 @@ ChargeSimActionExecutor::ChargeSimActionExecutor(const ChargeSimActionExecutor& 
 	info.request.name = vehicleName;
 	infoClient.call(info);
 	vehicleInfo = info.response;
-    pub = nh.advertise<std_msgs::Float64>("/vehicles/" + vehicleName + "/charging", 1000);
-    sub = nh.subscribe("/vehicles/" + vehicleName + "/power", 1, &ChargeSimActionExecutor::charge_Remaining_Callback, this);
+    pub = nh.advertise<std_msgs::Float64>("vehicles/" + vehicleName + "/charging", 1000);
+    sub = nh.subscribe("vehicles/" + vehicleName + "/power", 1, &ChargeSimActionExecutor::charge_Remaining_Callback, this);
     charge_msg.data = 1;
 }
 

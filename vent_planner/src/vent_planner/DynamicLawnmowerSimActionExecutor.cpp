@@ -13,15 +13,19 @@
 #include "vehicle_auto_control/Velocity.h"
 
 #include "actionlib/client/simple_action_client.h"
+#include "actionlib/server/simple_action_server.h"
+
+#include "vent_planner/ExecuteDynamicLawnmowerAction.h"
 #include "vehicle_auto_control/DynamicLawnmowerAction.h"
 
 DynamicLawnmowerSimActionExecutor::DynamicLawnmowerSimActionExecutor(ros::NodeHandle& nh, std::string vehicleName) :
 	vehicleName(vehicleName),
 	nh(nh),
-	dynamicLawnmowerClient("/vehicle_controller/"  + vehicleName + "/dynamic_lawnmower", false),
-	velPublisher(nh.advertise<vehicle_auto_control::Velocity>("/vehicle_controller/" + vehicleName + "/command_target_velocity", 1000, true))
+	dynamicLawnmowerClient("planner/"  + vehicleName + "/dynamic_lawnmower", false),
+	velPublisher(nh.advertise<vehicle_auto_control::Velocity>("/vehicle_controller/" + vehicleName + "/command_target_velocity", 1000, true)),
+    actionServer(nh, "planner/"  + vehicleName + "/dynamic_lawnmower", boost::bind(&DynamicLawnmowerSimActionExecutor::executeAction, this, _1, &actionServer), false)
 {
-	infoClient = nh.serviceClient<underwater_vehicle_sim::GetVehicleInfo>("vehicles/get_info");
+	infoClient = nh.serviceClient<underwater_vehicle_sim::GetVehicleInfo>("/vehicles/get_info");
 	infoClient.waitForExistence();
 
 	underwater_vehicle_sim::GetVehicleInfo info;
@@ -33,9 +37,10 @@ DynamicLawnmowerSimActionExecutor::DynamicLawnmowerSimActionExecutor(ros::NodeHa
 DynamicLawnmowerSimActionExecutor::DynamicLawnmowerSimActionExecutor(const DynamicLawnmowerSimActionExecutor& other) :
 	vehicleName(other.vehicleName),
 	nh(other.nh),
-	dynamicLawnmowerClient("/vehicle_controller/"  + vehicleName + "/dynamic_lawnmower", false)
+	dynamicLawnmowerClient("planner/"  + vehicleName + "/dynamic_lawnmower", false),
+    actionServer(nh, "planner/"  + vehicleName + "/dynamic_lawnmower", boost::bind(&DynamicLawnmowerSimActionExecutor::executeAction, this, _1, &actionServer), false)
 {
-	infoClient = nh.serviceClient<underwater_vehicle_sim::GetVehicleInfo>("vehicles/get_info");
+	infoClient = nh.serviceClient<underwater_vehicle_sim::GetVehicleInfo>("/vehicles/get_info");
 	infoClient.waitForExistence();
 
 	underwater_vehicle_sim::GetVehicleInfo info;
@@ -53,7 +58,6 @@ std::unique_ptr<ActionExecutor<DynamicLawnmowerAction>> DynamicLawnmowerSimActio
 
 bool DynamicLawnmowerSimActionExecutor::execute(std::shared_ptr<DynamicLawnmowerAction> action)
 {
-
 
 	//targetSlope can only be on the interval (0, 90) degrees
 	if(action->targetSlope >= M_PI / 2 || action->targetSlope <= 0)
@@ -106,8 +110,14 @@ bool DynamicLawnmowerSimActionExecutor::execute(std::shared_ptr<DynamicLawnmower
 
 	//replan at the start of each action, i.e. the end of the previous action
 	replanNextUpdate = true;
-	
+
 	return true;
+}
+
+void DynamicLawnmowerSimActionExecutor::executeAction(const vent_planner::ExecuteDynamicLawnmowerGoalConstPtr& goal,
+													  actionlib::SimpleActionServer<vent_planner::ExecuteDynamicLawnmowerAction>* as)
+{
+
 }
 
 void DynamicLawnmowerSimActionExecutor::cancel(std::shared_ptr<DynamicLawnmowerAction> action)

@@ -8,12 +8,15 @@ project(vent_planner)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED
+			 actionlib_msgs
+			 geometry_msgs
 			 roscpp
  			 tf
  			 underwater_vehicle_sim REQUIRED
-       data_server REQUIRED
+       			 data_server REQUIRED
  			 planner REQUIRED
-       planner_log REQUIRED)
+       			 planner_log REQUIRED
+			 message_generation)
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -63,17 +66,17 @@ find_package(catkin REQUIRED
 # )
 
 ## Generate actions in the 'action' folder
-# add_action_files(
-#   FILES
-#   Action1.action
-#   Action2.action
-# )
+ add_action_files(
+   FILES
+   ExecuteDynamicLawnmower.action
+ )
 
 ## Generate added messages and services with any dependencies listed here
-# generate_messages(
-#   DEPENDENCIES
-#   std_msgs  # Or other packages containing msgs
-# )
+ generate_messages(
+   DEPENDENCIES
+   geometry_msgs
+   actionlib_msgs  # Or other packages containing msgs
+ )
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##

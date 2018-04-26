@@ -25,9 +25,9 @@ NestedSpiralVentPlanner::NestedSpiralVentPlanner(ros::NodeHandle& nh, std::uniqu
     initalPlan(false),
     plumeHeight(0),
     vehicleName(vehicleName),
-    dataClient(nh.serviceClient<data_server::GetData>("/data_server/get")),
-    latestDataClient(nh.serviceClient<data_server::GetLatestData>("/data_server/get_latest")),
-    plumeClient(nh.serviceClient<data_server::GetPlumeData>("/data_server/get_plume"))
+    dataClient(nh.serviceClient<data_server::GetData>("data_server/get")),
+    latestDataClient(nh.serviceClient<data_server::GetLatestData>("data_server/get_latest")),
+    plumeClient(nh.serviceClient<data_server::GetPlumeData>("data_server/get_plume"))
 {
     ROS_INFO("Planner: Waiting for data server...");
     dataClient.waitForExistence();
