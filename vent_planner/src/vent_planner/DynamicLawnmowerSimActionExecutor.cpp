@@ -7,7 +7,6 @@
 #include "planner_framework/Action.h"
 #include "data_server/GetPlumeData.h"
 #include "vehicle_auto_control/Velocity.h"
-#include "vehicle_auto_control/DynamicLawnmowerAction.h"
 #include "vent_planner/DynamicLawnmowerSimActionExecutor.h"
 
 DynamicLawnmowerSimActionExecutor::DynamicLawnmowerSimActionExecutor(ros::NodeHandle& nh, std::string vehicleName, double loopHertz) :

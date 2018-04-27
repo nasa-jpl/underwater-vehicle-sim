@@ -20,8 +20,12 @@
  <rosparam param="vehicles/v1/start_power">100</rosparam>
  <rosparam param="vehicles/v1/start_dataCapacity">100</rosparam>
 
+
  <rosparam param="vehicles/v1/propModuleName">prop_v1</rosparam>
  <rosparam param="vehicles/v1/prop_v1/type">FourDOFPropulsion</rosparam>
+ <rosparam param="/vehicles/v1/prop_v1/max_linear_velocity">1.5</rosparam>
+ <rosparam param="/vehicles/v1/prop_v1/max_vertical_velocity">0.25</rosparam>
+ <rosparam param="/vehicles/v1/prop_v1/max_rotate_velocity">0</rosparam>
 
  <rosparam param="vehicles/v2/start_x">0</rosparam>
  <rosparam param="vehicles/v2/start_y">0</rosparam>

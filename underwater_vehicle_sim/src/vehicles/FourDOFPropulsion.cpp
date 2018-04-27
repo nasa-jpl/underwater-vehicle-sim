@@ -11,11 +11,46 @@
 FourDOFPropulsion::FourDOFPropulsion(std::string name, ros::NodeHandle& parentNH) :
 	PropulsionModule(name, "FourDOFPropulsion", parentNH)
 {
-	nh.param("max_linear_velocity", maxLinVelocity, std::numeric_limits<double>::max());
-	nh.param("max_vertical_velocity", maxVertVelocity, std::numeric_limits<double>::max());
-	nh.param("max_rotate_velocity", maxRotVelocity, std::numeric_limits<double>::max());
+    if(nh.hasParam("max_linear_velocity"))
+    {
+        nh.getParam("max_linear_velocity", maxLinVelocity);
+        if(maxLinVelocity < 0)
+        {
+            maxLinVelocity = 0;
+        }
+    }
+    else
+    {
+        maxLinVelocity = std::numeric_limits<double>::max();
+    }
 
-	modelClient = nh.serviceClient<model_server::GetModelData>("get_model_data");
+    if(nh.hasParam("max_vertical_velocity"))
+    {
+        nh.getParam("max_vertical_velocity", maxVertVelocity);
+        if(maxVertVelocity < 0)
+        {
+            maxVertVelocity = 0;
+        }
+    }
+    else
+    {
+        maxVertVelocity = std::numeric_limits<double>::max();
+    }
+
+    if(nh.hasParam("max_rotate_velocity"))
+    {
+        nh.getParam("max_rotate_velocity", maxRotVelocity);
+        if(maxRotVelocity < 0)
+        {
+            maxRotVelocity = 0;
+        }
+    }
+    else
+    {
+        maxRotVelocity = std::numeric_limits<double>::max();
+    }
+
+	modelClient = nh.serviceClient<model_server::GetModelData>("/get_model_data");
 	commandVelocitySub = nh.subscribe("command_velocity", 1, &FourDOFPropulsion::commandVelocityCallback, this);
 
 	rotVelocity.setX(0);
@@ -30,11 +65,69 @@ FourDOFPropulsion::FourDOFPropulsion(std::string name, ros::NodeHandle& parentNH
 
 void FourDOFPropulsion::commandVelocityCallback(const geometry_msgs::Twist::ConstPtr& vel)
 {
-	linVelocity.setX((fabs(vel->linear.x) < maxLinVelocity) ? vel->linear.x : maxLinVelocity);
-	linVelocity.setY((fabs(vel->linear.y) < maxLinVelocity) ? vel->linear.y : maxLinVelocity);
-	linVelocity.setZ((fabs(vel->linear.z) < maxVertVelocity) ? vel->linear.z : maxVertVelocity);
+    if((fabs(vel->linear.x) < maxLinVelocity))
+    {
+        linVelocity.setX(vel->linear.x);
+    }
+    else
+    {
+        if(vel->linear.x >= 0)
+        {
+            linVelocity.setX(maxLinVelocity);
+        }
+        else
+        {
+            linVelocity.setX(-maxLinVelocity);
+        }
+    }
 
-	rotVelocity.setZ((fabs(vel->angular.z) < maxRotVelocity) ? vel->angular.z : maxRotVelocity);
+    if((fabs(vel->linear.y) < maxLinVelocity))
+    {
+        linVelocity.setY(vel->linear.y);
+    }
+    else
+    {
+        if(vel->linear.y >= 0)
+        {
+            linVelocity.setY(maxLinVelocity);
+        }
+        else
+        {
+            linVelocity.setY(-maxLinVelocity);
+        }
+    }
+
+    if((fabs(vel->linear.z) < maxVertVelocity))
+    {
+        linVelocity.setZ(vel->linear.z);
+    }
+            else
+    {
+        if(vel->linear.z >= 0)
+        {
+            linVelocity.setZ(maxVertVelocity);
+        }
+        else
+        {
+            linVelocity.setZ(-maxVertVelocity);
+        }
+    }
+
+    if((fabs(vel->angular.z) < maxRotVelocity))
+    {
+        rotVelocity.setZ(vel->angular.z);
+    }
+            else
+    {
+        if(vel->angular.z >= 0)
+        {
+            rotVelocity.setZ(maxRotVelocity);
+        }
+        else
+        {
+            rotVelocity.setZ(-maxRotVelocity);
+        }
+    }
 }
 
 

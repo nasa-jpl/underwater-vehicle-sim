@@ -8,7 +8,7 @@
 #include "tf/transform_listener.h"
 
 ros::ServiceClient client;
-
+/*
 TEST(FourDOFPropulsion, TestVehicleLinearMovement){
         //Initalize ROS node handle
         ros::NodeHandle n;
@@ -41,13 +41,13 @@ TEST(FourDOFPropulsion, TestVehicleLinearMovement){
         geometry_msgs::Vector3 lin;
         geometry_msgs::Vector3 rot;
 
-        lin.x = 1.5;
-        lin.y = -0.5;
-        lin.z = -0.25;
+        lin.x = 1.5; //max set to 1.5
+        lin.y = -0.5; //max set to 0.5
+        lin.z = -0.25; //max set to 0.25
 
         rot.x = 0;
         rot.y = 0;
-        rot.z = 0;
+        rot.z = 0.0; //max set to 0
 
         msg.linear = lin;
         msg.angular = rot;
@@ -334,7 +334,7 @@ TEST(FourDOFPropulsion, TestVehicleRotationalThenLinearMovement) {
         ASSERT_TRUE(yCorrect);
         ASSERT_TRUE(zCorrect);
 }
-
+*/
 TEST(FourDOFPropulsion, TestSeafloorImpact) {
         //Initalize ROS node handle
         ros::NodeHandle n;
