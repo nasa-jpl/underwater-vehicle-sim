@@ -15,7 +15,7 @@ DataBroadcasterModule::DataBroadcasterModule(std::string name, ros::NodeHandle& 
 {
 
 	dataRecorder = nh.advertise<underwater_vehicle_sim::VehicleData>("data", 1000);
-	client = nh.serviceClient<model_server::GetModelData>("get_model_data");
+	client = nh.serviceClient<model_server::GetModelData>("/get_model_data");
 }
 
 void DataBroadcasterModule::update(std::string name, const ros::Time& lastTime, const tf::Vector3& position, double& powerCapacity, double& dataCapacity) 

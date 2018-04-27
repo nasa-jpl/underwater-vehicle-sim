@@ -18,7 +18,7 @@
 class SimVentActionFactory : public VentActionFactory
 {
 public:
-    SimVentActionFactory(ros::NodeHandle& nh);
+    SimVentActionFactory(ros::NodeHandle& nh, double loopHertz);
     ~SimVentActionFactory() {}
 
     std::shared_ptr<PointPathAction> createPointPathAction(const std::string& vehicleName,
@@ -54,6 +54,7 @@ std::shared_ptr<DynamicLawnmowerAction> createDynamicLawnmowerAction(const std::
                                                                          const int trackSectionThreshold) override;
 private:
 	ros::NodeHandle& nh;
+	double loopHertz;
 };
 
 #endif

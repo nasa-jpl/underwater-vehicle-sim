@@ -28,9 +28,6 @@ private:
 	*/
 	void executePointPath(const vehicle_auto_control::PointPathGoalConstPtr& goal, 
 						  actionlib::SimpleActionServer<vehicle_auto_control::PointPathAction>* as);
-	
-	void executeDynamicLawnmower(const vehicle_auto_control::DynamicLawnmowerGoalConstPtr& goal, 
-						  			   actionlib::SimpleActionServer<vehicle_auto_control::DynamicLawnmowerAction>* as);
 
 	/**
 	*Processes the data for the dynamic lawnmower action
@@ -79,7 +76,6 @@ private:
 	ros::Subscriber velocitySub;
 	ros::Publisher velocityPub;
 
-	actionlib::SimpleActionServer<vehicle_auto_control::DynamicLawnmowerAction> dynamicLawnmowerServer;
 	actionlib::SimpleActionServer<vehicle_auto_control::PointPathAction> pointPathServer;
 	ros::ServiceClient plumeClient;
 	tf::TransformListener listener;

@@ -28,7 +28,6 @@ FourDOFPropulsionController::FourDOFPropulsionController(ros::NodeHandle control
     latestVehicleDepth(0),
     minSeafloorDistance(10.0),
     pointPathServer(controlNode, "point_path", boost::bind(&FourDOFPropulsionController::executePointPath, this, _1, &pointPathServer), false),
-    dynamicLawnmowerServer(controlNode, "dynamic_lawnmower", boost::bind(&FourDOFPropulsionController::executeDynamicLawnmower, this, _1, &dynamicLawnmowerServer), false),
     plumeClient(controlNode.serviceClient<data_server::GetPlumeData>("data_server/get_plume"))
 {
     velocityPub = vehicleNode.advertise<geometry_msgs::Twist>(propModuleName + "/command_velocity", 1000);
@@ -41,7 +40,6 @@ FourDOFPropulsionController::FourDOFPropulsionController(ros::NodeHandle control
 
     velocitySub = controlNode.subscribe("command_target_velocity", 1, &FourDOFPropulsionController::getTargetVelocityCommand, this);
     pointPathServer.start();
-    dynamicLawnmowerServer.start();
 }
 
 void FourDOFPropulsionController::getTargetVelocityCommand(const vehicle_auto_control::Velocity vel)
@@ -78,7 +76,6 @@ void FourDOFPropulsionController::executePointPath(const vehicle_auto_control::P
 
     while(currentPoint < pathPoints.size() && ros::ok())
     {
-
         tf::StampedTransform transform;
         try
         {
@@ -158,191 +155,6 @@ void FourDOFPropulsionController::executePointPath(const vehicle_auto_control::P
         as->setSucceeded(result);
     }
     
-}
-
-void FourDOFPropulsionController::executeDynamicLawnmower(const vehicle_auto_control::DynamicLawnmowerGoalConstPtr& goal, 
-                                                          actionlib::SimpleActionServer<vehicle_auto_control::DynamicLawnmowerAction>* as)
-{
-    //Feedback and Results for the action
-    vehicle_auto_control::DynamicLawnmowerFeedback feedback;
-    vehicle_auto_control::DynamicLawnmowerResult result;
-
-    //Rate at which to run the control loop
-    ros::Rate r(loopHertz);
-    bool operating = true;
-
-    
-    int currentTrack = goal->currentTrack;
-    int currentSection = goal->currentSection;
-    
-    tf::Vector3 startLocation;
-    startLocation.setX(goal->startLocation.x);
-    startLocation.setY(goal->startLocation.y);
-    startLocation.setZ(goal->startLocation.z);
-
-    int sectionsUnderThreshold = 0;
-    std::vector<double> sectionAverages;
-
-
-    bool trackUnderThreshold = true;
-    int sectionsCompletedInTrack = 0;
-
-    int lastTrack = currentTrack - 1;
-
-    tf::Vector3 currentPoint = getPoint(startLocation, 
-                                        goal->trackSpacing, 
-                                        goal->alongTrackDirection,
-                                        goal->acrossTrackDirection,
-                                        currentTrack, 
-                                        currentSection);
-
-    
-    ros::Time lastTime = ros::Time::now();
-    while(operating && ros::ok())
-    {
-        tf::StampedTransform transform;
-        try
-        {
-            listener.waitForTransform("/world", "/" + vehicleName,
-                                      ros::Time(0), ros::Duration(5.0));
-            listener.lookupTransform("/world", "/" + vehicleName,  
-                                     ros::Time(0), transform);
-
-            if(isAtPoint(transform, currentPoint, false))
-            {
-                
-                if(lastTrack == currentTrack)
-                {
-                    data_server::GetPlumeData srv;
-                    srv.request.name = vehicleName;
-                    srv.request.start_time = lastTime;
-                    srv.request.end_time = ros::Time::now();
-                    plumeClient.call(srv);
-                    
-                    lastTime = ros::Time::now();
-
-                    //process the plume data
-                    bool overThresh = processData(srv.response.plume_val, sectionAverages, goal->continueThreshold);
-
-                    //Track how many sections have been under the threshold and the averages of those sections
-                    if(!overThresh)
-                    {
-                            sectionsUnderThreshold++;
-                    }
-                    else
-                    {
-                        trackUnderThreshold = false;
-                        sectionsUnderThreshold = 0;
-                    }
-                    ROS_INFO("SECTIONS UNDER THRESH: %i", sectionsUnderThreshold);
-                }
-                
-                //update last track information
-                lastTrack = currentTrack;
-
-                //Make sure a specified number of sections have been completed on this track before going to the next
-                //Go to next track or finish the lawnmower if needed, also go to next track if at the edge of the survey area
-                bool nextTrack = true;
-
-                if(sectionsCompletedInTrack >= goal->minSectionsPerTrack &&
-                   sectionsUnderThreshold >= goal->trackSectionThreshold)
-                {
-                    //Determines if the average for each section is less than the last.
-                    //This prevents the vehicle from turning if heading towards more plume
-                    for(unsigned int i = sectionAverages.size() - goal->trackSectionThreshold; i < sectionAverages.size() - 1; i++)
-                    {
-                        if(sectionAverages[i] < sectionAverages[i + 1])
-                        {
-                            nextTrack = false;
-                            break;
-                        }
-                    }
-                }
-                else
-                {
-                    nextTrack = false;
-                }
-
-                //Update current section and current track accordingly
-                if(nextTrack || (currentTrack % 2 == 1 && currentSection == 0))
-                {
-                    currentTrack++;
-                    ROS_INFO("CURRENT TRACK: %i", currentTrack);
-                    if(trackUnderThreshold)
-                    {
-                        operating = false;
-                    }
-                    else
-                    {
-                        //reset the consecutive sections under the threshold
-                        sectionsUnderThreshold = 0;
-                        trackUnderThreshold = true;
-
-                        sectionsCompletedInTrack = 0;
-                        sectionAverages.clear();
-                    }   
-                }
-                else
-                {
-                    if(currentTrack % 2 == 0)
-                    {
-                        currentSection++;
-                    }
-                    else
-                    {
-                        currentSection--;
-                    }
-                    
-                    ROS_INFO("CURRENT SECTION: %i", currentSection);
-
-                    sectionsCompletedInTrack++;
-                }                  
-
-                currentPoint = getPoint(startLocation, 
-                                        goal->trackSpacing, 
-                                        goal->alongTrackDirection,
-                                        goal->acrossTrackDirection,
-                                        currentTrack, 
-                                        currentSection);
-            }
-
-            //send feedback
-            feedback.currentTrack = currentTrack;
-            feedback.currentSection = currentSection;
-            as->publishFeedback(feedback);
-            
-            //handle preempt request
-            if(as->isPreemptRequested() || !ros::ok())
-            {
-                ROS_INFO("Auto Controller: Dynamic Lawnmower Action Preempted");
-                trackUnderThreshold = false; //prevents the actions from declaring success when preempted
-                //Stop vehicle
-                sendVelocityCommand(0,0,0,0);
-                as->setPreempted();
-                break;
-            }
-
-            goToPoint(transform, currentPoint, goal->targetHeight);
-        }
-        catch (tf::TransformException ex){
-            ROS_ERROR("%s",ex.what());
-        }
-
-        r.sleep();
-    }
-
-    if(trackUnderThreshold)
-    {
-        ROS_INFO("Auto Controller: Dynamic Lawnmower Action Done, Succeeded");
-        
-        //Stop vehicle
-        sendVelocityCommand(0,0,0,0);
-
-        result.totalTrackLines = currentTrack;
-        
-        as->setSucceeded(result);
-    }
-
 }
 
 bool FourDOFPropulsionController::processData(std::vector<float>& values, std::vector<double>& sectionAverages, double continueThreshold)
