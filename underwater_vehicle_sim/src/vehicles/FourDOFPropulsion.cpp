@@ -1,9 +1,8 @@
+#include <algorithm>
+#include <limits>
+
 #include "ros/ros.h"
-
 #include "vehicles/FourDOFPropulsion.h"
-#include "tf/transform_broadcaster.h"
-#include "tf/transform_listener.h"
-
 #include "model_server/GetModelData.h"
 
 #define SECONDS_IN_DAY 86400
@@ -12,8 +11,9 @@
 FourDOFPropulsion::FourDOFPropulsion(std::string name, ros::NodeHandle& parentNH) :
 	PropulsionModule(name, "FourDOFPropulsion", parentNH)
 {
-	nh.getParam("max_linear_velocity", maxLinVelocity);
-	nh.getParam("max_rotate_velocity", maxRotVelocity);
+	nh.param("max_linear_velocity", maxLinVelocity, std::numeric_limits<double>::max());
+	nh.param("max_vertical_velocity", maxVertVelocity, std::numeric_limits<double>::max());
+	nh.param("max_rotate_velocity", maxRotVelocity, std::numeric_limits<double>::max());
 
 	modelClient = nh.serviceClient<model_server::GetModelData>("get_model_data");
 	commandVelocitySub = nh.subscribe("command_velocity", 1, &FourDOFPropulsion::commandVelocityCallback, this);
@@ -30,11 +30,11 @@ FourDOFPropulsion::FourDOFPropulsion(std::string name, ros::NodeHandle& parentNH
 
 void FourDOFPropulsion::commandVelocityCallback(const geometry_msgs::Twist::ConstPtr& vel)
 {
-	linVelocity.setX(vel->linear.x);
-	linVelocity.setY(vel->linear.y);
-	linVelocity.setZ(vel->linear.z);
+	linVelocity.setX((fabs(vel->linear.x) < maxLinVelocity) ? vel->linear.x : maxLinVelocity);
+	linVelocity.setY((fabs(vel->linear.y) < maxLinVelocity) ? vel->linear.y : maxLinVelocity);
+	linVelocity.setZ((fabs(vel->linear.z) < maxVertVelocity) ? vel->linear.z : maxVertVelocity);
 
-	rotVelocity.setZ(vel->angular.z);
+	rotVelocity.setZ((fabs(vel->angular.z) < maxRotVelocity) ? vel->angular.z : maxRotVelocity);
 }
 
 
@@ -45,7 +45,7 @@ void FourDOFPropulsion::move(ros::Time& lastTime, tf::Quaternion& rotation, tf::
 	lastTime = ros::Time::now();
 
 	//Get the total linear movement in the vehicle frame
-	tf::Vector3 totalLinMovement = linVelocity * elapsedTime.toSec(); 
+	tf::Vector3 totalLinMovement = linVelocity * elapsedTime.toSec();
 	
 	//rotate the total linear movement to be in the world frame
 	totalLinMovement = totalLinMovement.rotate(rotation.getAxis(), rotation.getAngle());

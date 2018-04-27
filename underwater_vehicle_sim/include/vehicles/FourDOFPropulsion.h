@@ -35,14 +35,19 @@ private:
 
 private:
 	/**
-	*Max linear velocity for all DOF
+	*Max linear velocity for x,y
 	*/
-	float maxLinVelocity;
+	double maxLinVelocity;
+
+	/**
+	*Max linear velocity for z
+	*/
+	double maxVertVelocity;
 	
 	/**
 	*Max rotational velocity for all DOF
 	*/
-	float maxRotVelocity;
+	double maxRotVelocity;
 
 	/**
 	*Current linear velocity for this module
