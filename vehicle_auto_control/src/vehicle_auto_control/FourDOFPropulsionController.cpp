@@ -5,15 +5,10 @@
 #include "tf/transform_listener.h"
 #include "actionlib/server/simple_action_server.h"
 
-#include "geometry_msgs/PointStamped.h"
-
 #include "vehicle_auto_control/Velocity.h"
 #include "vehicle_auto_control/FourDOFPropulsionController.h"
 
-#include "vehicle_auto_control/DynamicLawnmowerAction.h"
 #include "vehicle_auto_control/PointPathAction.h"
-
-#include "underwater_vehicle_sim/VehicleData.h"
 
 #include "data_server/GetPlumeData.h"
 
@@ -157,25 +152,6 @@ void FourDOFPropulsionController::executePointPath(const vehicle_auto_control::P
     
 }
 
-bool FourDOFPropulsionController::processData(std::vector<float>& values, std::vector<double>& sectionAverages, double continueThreshold)
-{
-    bool overThresh = false;
-    double averageVal = 0;
-    for(unsigned int i = 0; i < values.size(); i++)
-    {
-        if(values[i] >= continueThreshold)
-        {
-            overThresh = true;
-        }
-        averageVal += values[i];
-    }
-    
-    averageVal /= values.size();
-    sectionAverages.push_back(averageVal);
-
-    return overThresh;
-}
-
 void FourDOFPropulsionController::transformPointToVehicleFrame(geometry_msgs::PointStamped& pointOut, tf::StampedTransform& transform, tf::Vector3& point)
 {
     geometry_msgs::PointStamped pointIn;
@@ -215,29 +191,6 @@ void FourDOFPropulsionController::goToPoint(tf::StampedTransform& location, tf::
     double newForwVel = scaleHorizontalVelocity(location, point);
 
     sendVelocityCommand(newForwVel, 0, newRotVel, newVertVel);
-}
-
-tf::Vector3 FourDOFPropulsionController::getPoint(const tf::Vector3& startLocation, 
-                                                  const double sectionSize, 
-                                                  const double alongTrackDirection, 
-                                                  const double acrossTrackDirection, 
-                                                  const int currentTrack, 
-                                                  const int currentSection)
-{
-    tf::Vector3 point;
-
-    //Calculate across track location
-    point.setX(startLocation.getX() + cos(acrossTrackDirection) * sectionSize * currentTrack);
-    point.setY(startLocation.getY() + sin(acrossTrackDirection) * sectionSize * currentTrack);
-
-    //Add along track location to across track location
-    point.setX(point.getX() + cos(alongTrackDirection) * sectionSize * currentSection);
-    point.setY(point.getY() + sin(alongTrackDirection) * sectionSize * currentSection);
-
-
-    point.setZ(startLocation.getZ());
-
-    return point;
 }
 
 double FourDOFPropulsionController::scaleHorizontalVelocity(tf::Transform& location, tf::Vector3& point)

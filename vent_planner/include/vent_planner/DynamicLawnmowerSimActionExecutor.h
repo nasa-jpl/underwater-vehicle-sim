@@ -6,17 +6,16 @@
 
 #include "ros/ros.h"
 #include "tf/transform_listener.h"
-
-#include "planner_framework/ActionExecutor.h"
-#include "vent_planner/actions/DynamicLawnmowerAction.h"
-
-#include "underwater_vehicle_sim/GetVehicleInfo.h"
-
 #include "actionlib/client/simple_action_client.h"
 #include "actionlib/server/simple_action_server.h"
-#include "vent_planner/ExecuteDynamicLawnmowerAction.h"
-#include "vehicle_auto_control/DynamicLawnmowerAction.h"
+
+#include "planner_framework/ActionExecutor.h"
+#include "underwater_vehicle_sim/GetVehicleInfo.h"
+
 #include "vehicle_auto_control/PointPathAction.h"
+#include "vent_planner/actions/DynamicLawnmowerAction.h"
+#include "vent_planner/DynamicLawnmowerRosAction.h"
+
 
 class DynamicLawnmowerSimActionExecutor : public ActionExecutor<DynamicLawnmowerAction>
 {
@@ -54,10 +53,10 @@ private:
     */
     void actionDone(std::shared_ptr<DynamicLawnmowerAction> action,
                     const actionlib::SimpleClientGoalState& state,
-                    const vent_planner::ExecuteDynamicLawnmowerResultConstPtr& result);
+                    const vent_planner::DynamicLawnmowerRosResultConstPtr& result);
 
-    void executeAction(const vent_planner::ExecuteDynamicLawnmowerGoalConstPtr& goal,
-                       actionlib::SimpleActionServer<vent_planner::ExecuteDynamicLawnmowerAction>* as);
+    void executeAction(const vent_planner::DynamicLawnmowerRosGoalConstPtr& goal,
+                       actionlib::SimpleActionServer<vent_planner::DynamicLawnmowerRosAction>* as);
 
     void sendPointPathGoal(const std::vector<tf::Vector3>& points);
     void sendPointPathGoal(const tf::Vector3& point);
@@ -85,7 +84,7 @@ private:
      * @param feedback Feedback pointer
      */
     void actionFeedback(std::shared_ptr<DynamicLawnmowerAction> action,
-                        const vent_planner::ExecuteDynamicLawnmowerFeedbackConstPtr& feedback);
+                        const vent_planner::DynamicLawnmowerRosFeedbackConstPtr& feedback);
 
 private:
     ros::NodeHandle& nh;
@@ -93,16 +92,16 @@ private:
     ros::ServiceClient plumeClient;
     underwater_vehicle_sim::GetVehicleInfo::Response vehicleInfo;
     ros::Publisher velPublisher;
-    actionlib::SimpleActionServer<vent_planner::ExecuteDynamicLawnmowerAction> actionServer;
+    actionlib::SimpleActionServer<vent_planner::DynamicLawnmowerRosAction> actionServer;
 
     double loopHertz;
     bool replanNextUpdate;
     
     std::string vehicleName;
 
-    actionlib::SimpleActionClient<vent_planner::ExecuteDynamicLawnmowerAction> dynamicLawnmowerClient;
+    actionlib::SimpleActionClient<vent_planner::DynamicLawnmowerRosAction> dynamicLawnmowerClient;
     actionlib::SimpleActionClient<vehicle_auto_control::PointPathAction> pointPathClient;
-    vent_planner::ExecuteDynamicLawnmowerGoal dynamicLawnmowerGoal;
+    vent_planner::DynamicLawnmowerRosGoal dynamicLawnmowerGoal;
 
     tf::TransformListener listener;
 

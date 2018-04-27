@@ -29,11 +29,6 @@ private:
 	void executePointPath(const vehicle_auto_control::PointPathGoalConstPtr& goal, 
 						  actionlib::SimpleActionServer<vehicle_auto_control::PointPathAction>* as);
 
-	/**
-	*Processes the data for the dynamic lawnmower action
-	*/
-	bool processData(std::vector<float>& values, std::vector<double>& sectionAverages, double continueThreshold);
-
 	void getTargetVelocityCommand(const vehicle_auto_control::Velocity vel);
 
 	void getVehicleData(const underwater_vehicle_sim::VehicleData data);
@@ -65,12 +60,6 @@ private:
 	*/
 	void transformPointToVehicleFrame(geometry_msgs::PointStamped& pointOut, tf::StampedTransform& transform, tf::Vector3& point);
 
-	tf::Vector3 getPoint(const tf::Vector3& startLocation, 
-						 const double sectionSize, 
-						 const double alongTrackDirection, 
-						 const double acrossTrackDirection, 
-						 const int currentTrack, 
-						 const int currentSection);
 private:
 	//Subscribers, publishers, and listeners
 	ros::Subscriber velocitySub;
