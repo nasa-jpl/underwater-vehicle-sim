@@ -35,6 +35,7 @@ DynamicLawnmowerSimActionExecutor::DynamicLawnmowerSimActionExecutor(const Dynam
 	nh(other.nh),
 	dynamicLawnmowerClient("planner/"  + vehicleName + "/dynamic_lawnmower", false),
     pointPathClient("vehicle_controller/"  + vehicleName + "/point_path", false),
+    velPublisher(nh.advertise<vehicle_auto_control::Velocity>("/vehicle_controller/" + vehicleName + "/command_target_velocity", 1000, true)),
     actionServer(nh, "planner/"  + vehicleName + "/dynamic_lawnmower", boost::bind(&DynamicLawnmowerSimActionExecutor::executeAction, this, _1, &actionServer), false),
     loopHertz(other.loopHertz),
     plumeClient(nh.serviceClient<data_server::GetPlumeData>("data_server/get_plume"))
@@ -187,7 +188,7 @@ void DynamicLawnmowerSimActionExecutor::executeAction(const vent_planner::Dynami
                     //Stop vehicle
                     pointPathClient.cancelAllGoals();
                     as->setPreempted();
-                    break;
+                    operating = false;
                 }
                 else if(state == actionlib::SimpleClientGoalState::ABORTED ||
                         state == actionlib::SimpleClientGoalState::REJECTED ||
@@ -294,17 +295,27 @@ void DynamicLawnmowerSimActionExecutor::executeAction(const vent_planner::Dynami
 
                 }
 
-                //send feedback
-                feedback.currentTrack = currentTrack;
-                feedback.currentSection = currentSection;
-                as->publishFeedback(feedback);
+                if(operating)
+                {
+                    //send feedback
+                    feedback.currentTrack = currentTrack;
+                    feedback.currentSection = currentSection;
+                    as->publishFeedback(feedback);
+                }
+
+
             }
         }
         catch (tf::TransformException ex){
             ROS_ERROR("%s",ex.what());
         }
 
-        r.sleep();
+        if(operating)
+        {
+            r.sleep();
+        }
+
+
     }
 
     if(trackUnderThreshold)
