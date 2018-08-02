@@ -25,7 +25,7 @@ float speedUpFactor;
 void startModelLoad()
 {
     std_msgs::Float64 slowSim;
-    slowSim.data = 0;
+    slowSim.data = 1;
     clockSpeedPub.publish(slowSim);
 }
 
@@ -85,6 +85,7 @@ int main(int argc, char **argv)
 
     clockSpeedPub = n.advertise<std_msgs::Float64>("clock_server/speed_up_factor", 1, true);
     n.param<float>("speed_up_factor", speedUpFactor, 1);
+    startModelLoad();
 
     if(!n.getParam("model_type", model_type))
     {
@@ -158,5 +159,6 @@ int main(int argc, char **argv)
     dataService = n.advertiseService("get_model_data", getModelData);
   	ROS_INFO("Model Loaded");
 
+    endModelLoad();
     ros::spin();
 }
