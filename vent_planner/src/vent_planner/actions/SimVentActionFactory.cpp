@@ -16,7 +16,7 @@
 #include "vent_planner/actions/DataTransferAction.h"
 
 
-SimVentActionFactory::SimVentActionFactory(ros::NodeHandle& nh, double loopHertz) :
+SimVentActionFactory::SimVentActionFactory(ros::NodeHandle& nh) :
     nh(nh),
     loopHertz(loopHertz)
 {}
@@ -73,7 +73,7 @@ std::shared_ptr<DynamicLawnmowerAction> SimVentActionFactory::createDynamicLawnm
                                                                                            const double continueThreshold,
                                                                                            const int trackSectionThreshold)
 {
-    std::unique_ptr<ActionExecutor<DynamicLawnmowerAction>> executor(new DynamicLawnmowerSimActionExecutor(nh, vehicleName, loopHertz));
+    std::unique_ptr<ActionExecutor<DynamicLawnmowerAction>> executor(new DynamicLawnmowerSimActionExecutor(nh, vehicleName));
     return std::unique_ptr<DynamicLawnmowerAction>(new DynamicLawnmowerAction(std::move(executor),
                                                                               targetHorizontalVelocity, 
                                                                               targetRotationalVelocity,

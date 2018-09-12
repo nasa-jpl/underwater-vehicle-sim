@@ -9,7 +9,7 @@
 #include "vehicle_auto_control/Velocity.h"
 #include "vent_planner/executors/DynamicLawnmowerSimActionExecutor.h"
 
-DynamicLawnmowerSimActionExecutor::DynamicLawnmowerSimActionExecutor(ros::NodeHandle& nh, std::string vehicleName, double loopHertz) :
+DynamicLawnmowerSimActionExecutor::DynamicLawnmowerSimActionExecutor(ros::NodeHandle& nh, std::string vehicleName) :
 	vehicleName(vehicleName),
 	nh(nh),
 	dynamicLawnmowerClient("planner/"  + vehicleName + "/dynamic_lawnmower", false),

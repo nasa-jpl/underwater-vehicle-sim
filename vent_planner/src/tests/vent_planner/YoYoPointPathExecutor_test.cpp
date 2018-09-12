@@ -14,8 +14,8 @@
 #include "planner_framework/PlanDispatcher.h"
 
 #include "vent_planner/actions/PointPathAction.h"
-#include "vent_planner/PointPathSimActionExecutor.h"
-#include "vent_planner/SimVentActionFactory.h"
+#include "vent_planner/executors/PointPathSimActionExecutor.h"
+#include "vent_planner/actions/SimVentActionFactory.h"
 #include "vehicle_auto_control/Velocity.h"
 
 
@@ -32,11 +32,11 @@ TEST(PointPathExecutor, FourDOFPropulsionControllerWithoutYoYo){
 
     std::vector<tf::Vector3> allPoints;
 
-    tf::Vector3 point1(15, -15, -50);
-    tf::Vector3 point2(15, 0, -55);
+    tf::Vector3 point1(10, -10, -50);
+    tf::Vector3 point2(10, 0, -55);
 
-    tf::Vector3 point3(15, -10, -45);
-    tf::Vector3 point4(10, 0, -43);
+    tf::Vector3 point3(10, 0, -45);
+    tf::Vector3 point4(0, 0, -43);
 
     points1.push_back(point1);
     points1.push_back(point2);
@@ -137,11 +137,11 @@ TEST(PointPathExecutor, FourDOFPropulsionControllerWithYoYo){
 
     std::vector<tf::Vector3> allPoints;
 
-    tf::Vector3 point1(15, -15, -50);
-    tf::Vector3 point2(15, 0, -50);
+    tf::Vector3 point1(10, -10, -50);
+    tf::Vector3 point2(10, 0, -55);
 
-    tf::Vector3 point3(15, -10, -50);
-    tf::Vector3 point4(10, 0, -50);
+    tf::Vector3 point3(10, 0, -45);
+    tf::Vector3 point4(0, 0, -43);
 
     points1.push_back(point1);
     points1.push_back(point2);
@@ -268,11 +268,11 @@ TEST(PointPathExecutor, PlanPrempting){
 
     tf::Vector3 point0(0, 0, -50);
 
-    tf::Vector3 point1(15, -15, -50);
-    tf::Vector3 point2(-10, 0, -50);
+    tf::Vector3 point1(10, -10, -50);
+    tf::Vector3 point2(10, 0, -55);
 
-    tf::Vector3 point3(15, -10, -50);
-    tf::Vector3 point4(10, 0, -50);
+    tf::Vector3 point3(10, 0, -45);
+    tf::Vector3 point4(0, 0, -43);
 
     points0.push_back(point0);
 

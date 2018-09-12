@@ -20,7 +20,7 @@
 class DynamicLawnmowerSimActionExecutor : public ActionExecutor<DynamicLawnmowerAction>
 {
 public:
-    DynamicLawnmowerSimActionExecutor(ros::NodeHandle& nh, std::string vehicleName, double loopHertz);
+    DynamicLawnmowerSimActionExecutor(ros::NodeHandle& nh, std::string vehicleName);
     DynamicLawnmowerSimActionExecutor(const DynamicLawnmowerSimActionExecutor& other);
     ~DynamicLawnmowerSimActionExecutor() {}
 

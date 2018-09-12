@@ -18,7 +18,7 @@
 class SimVentActionFactory : public VentActionFactory
 {
 public:
-    SimVentActionFactory(ros::NodeHandle& nh, double loopHertz);
+    SimVentActionFactory(ros::NodeHandle& nh);
     ~SimVentActionFactory() {}
 
     std::shared_ptr<PointPathAction> createPointPathAction(const std::string& vehicleName,
