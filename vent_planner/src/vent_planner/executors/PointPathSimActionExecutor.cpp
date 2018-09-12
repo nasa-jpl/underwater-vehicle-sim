@@ -13,7 +13,7 @@
 #include "vehicle_auto_control/Velocity.h"
 
 #include "actionlib/client/simple_action_client.h"
-#include "vehicle_auto_control/PointPathAction.h"
+#include "vehicle_auto_control/PointPathRosAction.h"
 
 PointPathSimActionExecutor::PointPathSimActionExecutor(ros::NodeHandle& nh, std::string vehicleName) :
 	vehicleName(vehicleName),
@@ -88,7 +88,7 @@ bool PointPathSimActionExecutor::execute(std::shared_ptr<PointPathAction> action
 	}
 
 	//Creates an action goal and sends it to the action server for point path movement
-	pointPathGoal = vehicle_auto_control::PointPathGoal();
+	pointPathGoal = vehicle_auto_control::PointPathRosGoal();
 
 	if(action->getDoInterruptPoint())
 	{
@@ -157,7 +157,7 @@ bool PointPathSimActionExecutor::triggerReplan(std::shared_ptr<PointPathAction> 
 
 void PointPathSimActionExecutor::actionDone(std::shared_ptr<PointPathAction> action,
 					const actionlib::SimpleClientGoalState& state,
-                	const vehicle_auto_control::PointPathResultConstPtr& result)
+                	const vehicle_auto_control::PointPathRosResultConstPtr& result)
 {
 	if(state == actionlib::SimpleClientGoalState::RECALLED ||
 	   state == actionlib::SimpleClientGoalState::PREEMPTED)
@@ -195,7 +195,7 @@ void PointPathSimActionExecutor::actionActive(std::shared_ptr<PointPathAction> a
 }
 
 void PointPathSimActionExecutor::actionFeedback(std::shared_ptr<PointPathAction> action,
-					const vehicle_auto_control::PointPathFeedbackConstPtr& feedback)
+					const vehicle_auto_control::PointPathRosFeedbackConstPtr& feedback)
 {
 	//Get the current point from the feedback
 	unsigned int adjustedCurrentPoint = feedback->currentPoint;

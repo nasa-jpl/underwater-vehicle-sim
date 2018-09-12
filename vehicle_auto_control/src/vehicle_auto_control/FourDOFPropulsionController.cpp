@@ -60,7 +60,7 @@ void FourDOFPropulsionController::update(void)
 
 void FourDOFPropulsionController::goalPointPathCB(void)
 {
-    vehicle_auto_control::PointPathGoalConstPtr pointPathGoal = pointPathServer.acceptNewGoal();
+    vehicle_auto_control::PointPathRosGoalConstPtr pointPathGoal = pointPathServer.acceptNewGoal();
     ROS_DEBUG("Point Path New Goal");
     currentPoint = 0;
     goingUp = true;
@@ -88,8 +88,8 @@ void FourDOFPropulsionController::preemptPointPathCB(void)
 
 void FourDOFPropulsionController::pointPathUpdate(void)
 {
-    vehicle_auto_control::PointPathFeedback feedback;
-    vehicle_auto_control::PointPathResult result;
+    vehicle_auto_control::PointPathRosFeedback feedback;
+    vehicle_auto_control::PointPathRosResult result;
 
     if(!pointPathServer.isActive())
     {

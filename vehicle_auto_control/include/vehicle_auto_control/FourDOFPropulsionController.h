@@ -7,7 +7,7 @@
 
 #include "vehicle_auto_control/PropulsionController.h"
 #include "vehicle_auto_control/Velocity.h"
-#include "vehicle_auto_control/PointPathAction.h"
+#include "vehicle_auto_control/PointPathRosAction.h"
 
 #include "underwater_vehicle_sim/VehicleData.h"
 
@@ -33,8 +33,8 @@ private:
 	/**
 	*Controls the vehicle when following a list of points
 	*/
-	void executePointPath(const vehicle_auto_control::PointPathGoalConstPtr& goal, 
-						  actionlib::SimpleActionServer<vehicle_auto_control::PointPathAction>* as);
+	void executePointPath(const vehicle_auto_control::PointPathRosGoalConstPtr& goal, 
+						  actionlib::SimpleActionServer<vehicle_auto_control::PointPathRosAction>* as);
 
 	void getTargetVelocityCommand(const vehicle_auto_control::Velocity vel);
 
@@ -80,7 +80,7 @@ private:
 
 	unsigned int currentPoint;
     bool goingUp;
-	actionlib::SimpleActionServer<vehicle_auto_control::PointPathAction> pointPathServer;
+	actionlib::SimpleActionServer<vehicle_auto_control::PointPathRosAction> pointPathServer;
 
 	ros::ServiceClient plumeClient;
 	tf::TransformListener listener;
