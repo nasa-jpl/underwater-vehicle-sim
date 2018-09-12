@@ -12,8 +12,8 @@
 
 #include "data_server/GetPlumeData.h"
 
-FourDOFPropulsionController::FourDOFPropulsionController(ros::NodeHandle controlNode, ros::NodeHandle vehicleNode, std::string propModuleName, std::string dataModuleName, std::string vehicleName, float loopHertz) :
-    PropulsionController(controlNode, vehicleNode, vehicleName, loopHertz),
+FourDOFPropulsionController::FourDOFPropulsionController(ros::NodeHandle controlNode, ros::NodeHandle vehicleNode, std::string propModuleName, std::string dataModuleName, std::string vehicleName) :
+    PropulsionController(controlNode, vehicleNode, vehicleName),
     targetHorzVelocity(0),
     targetRotVelocity(0),
     targetVertVelocity(0),
@@ -22,7 +22,7 @@ FourDOFPropulsionController::FourDOFPropulsionController(ros::NodeHandle control
     latestSonarDepth(1000),
     latestVehicleDepth(0),
     minSeafloorDistance(10.0),
-    pointPathServer(controlNode, "point_path", boost::bind(&FourDOFPropulsionController::executePointPath, this, _1, &pointPathServer), false),
+    pointPathServer(controlNode, "point_path", false),
     plumeClient(controlNode.serviceClient<data_server::GetPlumeData>("data_server/get_plume"))
 {
     velocityPub = vehicleNode.advertise<geometry_msgs::Twist>(propModuleName + "/command_velocity", 1000);
@@ -34,6 +34,9 @@ FourDOFPropulsionController::FourDOFPropulsionController(ros::NodeHandle control
     }
 
     velocitySub = controlNode.subscribe("command_target_velocity", 1, &FourDOFPropulsionController::getTargetVelocityCommand, this);
+    
+    pointPathServer.registerGoalCallback(boost::bind(&FourDOFPropulsionController::goalPointPathCB, this));
+    pointPathServer.registerPreemptCallback(boost::bind(&FourDOFPropulsionController::preemptPointPathCB, this));
     pointPathServer.start();
 }
 
@@ -50,106 +53,113 @@ void FourDOFPropulsionController::getVehicleData(const underwater_vehicle_sim::V
     latestVehicleDepth = data.h;
 }
 
-void FourDOFPropulsionController::executePointPath(const vehicle_auto_control::PointPathGoalConstPtr& goal, 
-                                                   actionlib::SimpleActionServer<vehicle_auto_control::PointPathAction>* as)
+void FourDOFPropulsionController::update(void) 
 {
-    //Feedback and Results for the action
-    vehicle_auto_control::PointPathFeedback feedback;
-    vehicle_auto_control::PointPathResult result;
+    pointPathUpdate();
+}
 
-    //Rate at which to run the control loop
-    ros::Rate r(loopHertz);
-
-    std::vector<tf::Vector3> pathPoints;
-    for(auto point: goal->points)
+void FourDOFPropulsionController::goalPointPathCB(void)
+{
+    vehicle_auto_control::PointPathGoalConstPtr pointPathGoal = pointPathServer.acceptNewGoal();
+    ROS_INFO("Auto Controller: Point Path New Goal");
+    currentPoint = 0;
+    goingUp = true;
+    pathPoints.clear();
+    for(auto point: pointPathGoal->points)
     {
         pathPoints.emplace_back(point.x, point.y, point.z);
     }
+    yoyo = pointPathGoal->yoyo;
+    upperDepth = pointPathGoal->upperDepth;
+    lowerDepth = pointPathGoal->lowerDepth;
+}
 
-    unsigned int currentPoint = 0;
-    bool goingUp = true;
+void FourDOFPropulsionController::preemptPointPathCB(void)
+{
+    ROS_INFO("Auto Controller: Point Path Action Preempted CB");
 
-    while(currentPoint < pathPoints.size() && ros::ok())
+    //Stop the vehicle
+    sendVelocityCommand(0, 0, 0, 0);
+
+    currentPoint = 0;
+    goingUp = true;
+    pointPathServer.setPreempted();
+}
+
+void FourDOFPropulsionController::pointPathUpdate(void)
+{
+    vehicle_auto_control::PointPathFeedback feedback;
+    vehicle_auto_control::PointPathResult result;
+
+    if(!pointPathServer.isActive())
     {
-        tf::StampedTransform transform;
-        try
+        return;
+    }
+
+    tf::StampedTransform transform;
+    try
+    {
+        listener.waitForTransform("/world", "/" + vehicleName,
+                                  ros::Time(0), ros::Duration(5.0));
+        listener.lookupTransform("/world", "/" + vehicleName,  
+                                 ros::Time(0), transform);
+        if(currentPoint < pathPoints.size())
         {
-            listener.waitForTransform("/world", "/" + vehicleName,
-                                      ros::Time(0), ros::Duration(5.0));
-            listener.lookupTransform("/world", "/" + vehicleName,  
-                                     ros::Time(0), transform);
-
-            if(currentPoint < pathPoints.size())
+            if(isAtPoint(transform, pathPoints[currentPoint], !yoyo))
             {
-                if(isAtPoint(transform, pathPoints[currentPoint], !goal->yoyo))
-                {
-                    currentPoint++;
-                }
+                currentPoint++;
             }
-                        
-            feedback.currentPoint = currentPoint;
-            feedback.goingUp = goingUp;
-            as->publishFeedback(feedback);
-            
-            if(as->isPreemptRequested() || !ros::ok())
+        }
+        
+        if(yoyo)
+        {
+            if(transform.getOrigin().getZ() + verticalError > upperDepth || transform.getOrigin().getZ() + verticalError >= 0)
             {
-                ROS_INFO("Auto Controller: Point Path Action Preempted");
-
-                //Stop vehicle
-                sendVelocityCommand(0,0,0,0);
-                as->setPreempted();
-                break;
+                goingUp = false;
             }
-
-            if(goal->yoyo)
+            else if(transform.getOrigin().getZ() - verticalError < lowerDepth || fabs(latestSonarDepth - minSeafloorDistance) <= verticalError)
             {
-                if(transform.getOrigin().getZ() + verticalError > goal->upperDepth || transform.getOrigin().getZ() + verticalError >= 0)
-                {
-                    goingUp = false;
-                }
-                else if(transform.getOrigin().getZ() - verticalError < goal->lowerDepth || fabs(latestSonarDepth - minSeafloorDistance) <= verticalError)
-                {
-                    goingUp = true;
-                }
+                goingUp = true;
             }
-            
-            if(currentPoint < pathPoints.size())
+        }
+        
+        if(currentPoint < pathPoints.size())
+        {
+            double targetHeight = 0;
+            if(yoyo)
             {
-                double targetHeight = 0;
-                if(goal->yoyo)
-                {
-                    targetHeight = goingUp ? goal->upperDepth : goal->lowerDepth;
-                }
-                else
-                {
-                    targetHeight = pathPoints[currentPoint].getZ();
-                }
-
-                goToPoint(transform, pathPoints[currentPoint], targetHeight);
+                targetHeight = goingUp ? upperDepth : lowerDepth;
             }
             else
             {
-                //Stop the vehicle
-                sendVelocityCommand(0, 0, 0, 0);
+                targetHeight = pathPoints[currentPoint].getZ();
             }
-            
+
+            goToPoint(transform, pathPoints[currentPoint], targetHeight);
         }
-        catch (tf::TransformException ex){
-            ROS_ERROR("%s",ex.what());
+        else
+        {
+            //Stop the vehicle
+            sendVelocityCommand(0, 0, 0, 0);
         }
-        r.sleep();
+        
     }
+    catch (tf::TransformException ex){
+        ROS_ERROR("%s",ex.what());
+    }
+
+
+    feedback.currentPoint = currentPoint;
+    feedback.goingUp = goingUp;
+    pointPathServer.publishFeedback(feedback);
 
     if(currentPoint == pathPoints.size())
     {
         ROS_INFO("Auto Controller: Point Path Action Done, Succeeded");
         
-        //Stop vehicle
-        sendVelocityCommand(0,0,0,0);
         result.totalPoints = currentPoint;
-        as->setSucceeded(result);
+        pointPathServer.setSucceeded(result);
     }
-    
 }
 
 void FourDOFPropulsionController::transformPointToVehicleFrame(geometry_msgs::PointStamped& pointOut, tf::StampedTransform& transform, tf::Vector3& point)

@@ -9,7 +9,7 @@
 #include "tf/LinearMath/Vector3.h"
 
 #include "planner_framework/Planner.h"
-#include "vent_planner/VentActionFactory.h"
+#include "vent_planner/actions/VentActionFactory.h"
 
 #include "data_server/DataServerEntry.h"
 

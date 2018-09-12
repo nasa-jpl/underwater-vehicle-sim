@@ -4,8 +4,8 @@
 #include "planner_framework/SimplePlanServer.h"
 #include "planner_framework/PlanDispatcher.h"
 
-#include "vent_planner/VentActionFactory.h"
-#include "vent_planner/SimVentActionFactory.h"
+#include "vent_planner/actions/VentActionFactory.h"
+#include "vent_planner/actions/SimVentActionFactory.h"
 #include "vent_planner/NestedBinVentPlanner.h"
 
 int main(int argc, char **argv)

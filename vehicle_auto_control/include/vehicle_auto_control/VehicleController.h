@@ -11,10 +11,9 @@
 class VehicleController
 {
 public:
-	VehicleController(ros::NodeHandle& parentNH, float loopHertz);
-
+	VehicleController(ros::NodeHandle& parentNH);
+    void update(void);
 private:
-	float loopHertz;
 	ros::NodeHandle& nh;
 	ros::ServiceClient infoClient;
 	std::vector<std::unique_ptr<PropulsionController>> propControllers;

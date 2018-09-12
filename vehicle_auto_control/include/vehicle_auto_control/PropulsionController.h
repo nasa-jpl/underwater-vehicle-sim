@@ -14,19 +14,17 @@ class PropulsionController
 {
 
 public:
-	PropulsionController(ros::NodeHandle controlNode, ros::NodeHandle vehicleNode, std::string vehicleName, float loopHertz);
+	PropulsionController(ros::NodeHandle controlNode, ros::NodeHandle vehicleNode, std::string vehicleName);
 	virtual ~PropulsionController() {}
 
 	
-	virtual void update()=0;
+	virtual void update(void)=0;
 
 	static std::unique_ptr<PropulsionController> makePropulsionController(std::string vehicleName, 
 																		  underwater_vehicle_sim::GetVehicleInfo info,
-																		  ros::NodeHandle& parentNH,
-																		  float loopHertz);	
+																		  ros::NodeHandle& parentNH);	
 
 protected:
-	float loopHertz;
 	ros::NodeHandle controlNode;
 	ros::NodeHandle vehicleNode;
 	std::string vehicleName;

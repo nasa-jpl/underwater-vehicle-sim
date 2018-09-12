@@ -10,7 +10,7 @@
 #include "data_server/GetData.h"
 #include "data_server/GetLatestData.h"
 
-#include "vent_planner/VentActionFactory.h"
+#include "vent_planner/actions/VentActionFactory.h"
 #include "vent_planner/NestedSpiralVentPlanner.h"
 
 #include "data_server/DataServerEntry.h"

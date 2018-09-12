@@ -15,13 +15,21 @@ class FourDOFPropulsionController : public PropulsionController
 {
 
 public:
-	FourDOFPropulsionController(ros::NodeHandle controlNode, ros::NodeHandle vehicleNode, std::string propModuleName, std::string dataModuleName, std::string vehicleName, float loopHertz);
+	FourDOFPropulsionController(ros::NodeHandle controlNode, ros::NodeHandle vehicleNode, std::string propModuleName, std::string dataModuleName, std::string vehicleName);
 	~FourDOFPropulsionController() {}
 
-	void update() {}
-
+	void update(void);
 private:
 
+	/**
+	* Accepts new goals for the SimpleActionServer
+	*/ 
+	void goalPointPathCB(void);
+	void preemptPointPathCB(void);
+
+
+	
+	void pointPathUpdate(void);
 	/**
 	*Controls the vehicle when following a list of points
 	*/
@@ -64,7 +72,16 @@ private:
 	ros::Subscriber velocitySub;
 	ros::Publisher velocityPub;
 
+	
+	std::vector<tf::Vector3> pathPoints;
+	bool yoyo;
+	int upperDepth;
+	int lowerDepth;
+
+	unsigned int currentPoint;
+    bool goingUp;
 	actionlib::SimpleActionServer<vehicle_auto_control::PointPathAction> pointPathServer;
+
 	ros::ServiceClient plumeClient;
 	tf::TransformListener listener;
 
@@ -75,10 +92,6 @@ private:
 	ros::Subscriber dataSub;
 	double latestSonarDepth;
 	double latestVehicleDepth;
-
-	//YoYo Settings
-	double yoyoUpperDepth;
-	double yoyoLowerDepth;
 
 	//Error bars for claiming the vehicle is at a point
 	double lateralError;

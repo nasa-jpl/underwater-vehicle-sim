@@ -11,7 +11,7 @@
 #include "data_server/GetData.h"
 #include "data_server/GetLatestData.h"
 
-#include "vent_planner/VentActionFactory.h"
+#include "vent_planner/actions/VentActionFactory.h"
 #include "vent_planner/NestedBinVentPlanner.h"
 
 #include "data_server/DataServerEntry.h"
@@ -35,7 +35,8 @@ NestedBinVentPlanner::NestedBinVentPlanner(ros::NodeHandle& nh, std::unique_ptr<
     goalState("running"),
     finalSurvey(nullptr),
     phase(SearchPhase::none),
-    spiralData(nullptr, 0, tf::Vector3(0,0,0), 300000, 0)
+    spiralData(nullptr, 0, tf::Vector3(0,0,0), 300000, 0),
+    dynamicLawnmowerController(nh, vehicleName)
 {
     ROS_INFO("Planner: Waiting for data server...");
     dataClient.waitForExistence();
@@ -89,6 +90,7 @@ void NestedBinVentPlanner::receivePlumeData(const data_server::PlumeData::ConstP
 
 std::shared_ptr<Plan> NestedBinVentPlanner::plan()
 {
+    ROS_INFO("Planner: plan()");
     //Amount to reduce the bin size each nested pattern
     double nestedSizeFactor = 3;
     double detectionThreshold = 0.5;
@@ -474,6 +476,7 @@ void NestedBinVentPlanner::addInitalLawnmowers(std::shared_ptr<Plan> plan, const
                                                                                      4,
                                                                                      0.5,
                                                                                      2);
+                                                                                     
 
     plan->addAction(lawnmower0);
     plan->addAction(lawnmower1);

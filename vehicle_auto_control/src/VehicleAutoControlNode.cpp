@@ -14,8 +14,14 @@ int main(int argc, char **argv)
         exit(1);
     }
 
-    VehicleController controller(nh, loopHertz);
+    VehicleController controller(nh);
 
-    ros::spin();
-    return 0;
+    ros::Rate loop(loopHertz);
+    while(ros::ok())
+    {
+        controller.update();
+        ros::spinOnce();
+        loop.sleep();
+    }
+        return 0;
 }

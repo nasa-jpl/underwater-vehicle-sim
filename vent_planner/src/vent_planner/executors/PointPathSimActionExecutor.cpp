@@ -8,7 +8,7 @@
 
 #include "planner_framework/Action.h"
 
-#include "vent_planner/PointPathSimActionExecutor.h"
+#include "vent_planner/executors/PointPathSimActionExecutor.h"
 #include "vent_planner/actions/PointPathAction.h"
 #include "vehicle_auto_control/Velocity.h"
 
@@ -52,9 +52,9 @@ std::unique_ptr<ActionExecutor<PointPathAction>> PointPathSimActionExecutor::clo
     return a;
 }
 
-
 bool PointPathSimActionExecutor::execute(std::shared_ptr<PointPathAction> action)
 {
+	ROS_INFO("Planner: Point Path Action Execute");
 	//targetSlope can only be on the interval (0, 90) degrees
 	if(action->yoyo && (action->targetSlope >= M_PI / 2 || action->targetSlope <= 0))
 	{
@@ -119,6 +119,7 @@ bool PointPathSimActionExecutor::execute(std::shared_ptr<PointPathAction> action
 	pointPathGoal.yoyo = action->yoyo;
 
 	pointPathClient.waitForServer();
+	ROS_INFO("Planner: Point Path Send Goal");
 	pointPathClient.sendGoal(pointPathGoal,
 							 boost::bind(&PointPathSimActionExecutor::actionDone, this, action, _1, _2),
 							 boost::bind(&PointPathSimActionExecutor::actionActive, this, action),
@@ -158,7 +159,7 @@ void PointPathSimActionExecutor::actionDone(std::shared_ptr<PointPathAction> act
 					const actionlib::SimpleClientGoalState& state,
                 	const vehicle_auto_control::PointPathResultConstPtr& result)
 {
-	ROS_INFO("Planner: ActionDone Start");
+	ROS_INFO("Planner: Point Path ActionDone Start");
 	if(state == actionlib::SimpleClientGoalState::RECALLED ||
 	   state == actionlib::SimpleClientGoalState::PREEMPTED)
 	{
@@ -185,7 +186,7 @@ void PointPathSimActionExecutor::actionDone(std::shared_ptr<PointPathAction> act
 	//Add the currentPointOffset as we did not necessarily start at point 0
 	adjustedCurrentPoint += currentPointOffset;
 
-	ROS_INFO("Planner: ActionDone End");
+	ROS_INFO("Planner: Point Path ActionDone End");
 }
 
 void PointPathSimActionExecutor::actionActive(std::shared_ptr<PointPathAction> action)

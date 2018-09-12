@@ -1,18 +1,17 @@
-#include "vent_planner/SimVentActionFactory.h"
-
 #include <unordered_map>
 #include <memory>
 
 #include "ros/ros.h"
 
-#include "vent_planner/VentActionFactory.h"
+#include "vent_planner/actions/SimVentActionFactory.h"
+#include "vent_planner/actions/VentActionFactory.h"
 #include "vent_planner/actions/PointPathAction.h"
 #include "vent_planner/actions/DynamicLawnmowerAction.h"
-#include "vent_planner/PointPathSimActionExecutor.h"
-#include "vent_planner/ChargeSimActionExecutor.h"
-#include "vent_planner/DataTransferSimActionExecutor.h"
+#include "vent_planner/executors/PointPathSimActionExecutor.h"
+#include "vent_planner/executors/ChargeSimActionExecutor.h"
+#include "vent_planner/executors/DataTransferSimActionExecutor.h"
 
-#include "vent_planner/DynamicLawnmowerSimActionExecutor.h"
+#include "vent_planner/executors/DynamicLawnmowerSimActionExecutor.h"
 #include "vent_planner/actions/ChargeAction.h"
 #include "vent_planner/actions/DataTransferAction.h"
 

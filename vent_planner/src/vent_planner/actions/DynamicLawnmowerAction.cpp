@@ -1,5 +1,7 @@
 #include <memory>
 
+#include "ros/ros.h"
+
 #include "vent_planner/actions/DynamicLawnmowerAction.h"
 #include "planner_framework/ActionExecutor.h"
 
@@ -58,6 +60,7 @@ std::shared_ptr<Action> DynamicLawnmowerAction::clone() const
 
 void DynamicLawnmowerAction::executeAction()
 {
+    ROS_INFO("Planner: Dynamic Lawnmower Action, call executor.execute()");
     bool success = executor->execute(shared_from_this());
 
     if(!success)

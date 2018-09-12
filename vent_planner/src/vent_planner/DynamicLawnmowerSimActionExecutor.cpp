@@ -7,7 +7,7 @@
 #include "planner_framework/Action.h"
 #include "data_server/GetPlumeData.h"
 #include "vehicle_auto_control/Velocity.h"
-#include "vent_planner/DynamicLawnmowerSimActionExecutor.h"
+#include "vent_planner/executors/DynamicLawnmowerSimActionExecutor.h"
 
 DynamicLawnmowerSimActionExecutor::DynamicLawnmowerSimActionExecutor(ros::NodeHandle& nh, std::string vehicleName, double loopHertz) :
 	vehicleName(vehicleName),
@@ -60,6 +60,7 @@ std::unique_ptr<ActionExecutor<DynamicLawnmowerAction>> DynamicLawnmowerSimActio
 
 bool DynamicLawnmowerSimActionExecutor::execute(std::shared_ptr<DynamicLawnmowerAction> action)
 {
+    ROS_INFO("Planner: Dynamic Lawnmower Action Execute");
 	//targetSlope can only be on the interval (0, 90) degrees
 	if(action->targetSlope >= M_PI / 2 || action->targetSlope <= 0)
 	{
@@ -103,6 +104,7 @@ bool DynamicLawnmowerSimActionExecutor::execute(std::shared_ptr<DynamicLawnmower
 	dynamicLawnmowerGoal.trackSectionThreshold = action->trackSectionThreshold;
 
 	dynamicLawnmowerClient.waitForServer();
+    ROS_INFO("Planner: Dynamic Lawnmower Send Goal");
 	dynamicLawnmowerClient.sendGoal(dynamicLawnmowerGoal,
 							 boost::bind(&DynamicLawnmowerSimActionExecutor::actionDone, this, action, _1, _2),
 							 boost::bind(&DynamicLawnmowerSimActionExecutor::actionActive, this, action),
@@ -117,6 +119,7 @@ bool DynamicLawnmowerSimActionExecutor::execute(std::shared_ptr<DynamicLawnmower
 void DynamicLawnmowerSimActionExecutor::executeAction(const vent_planner::DynamicLawnmowerRosGoalConstPtr& goal,
 													  actionlib::SimpleActionServer<vent_planner::DynamicLawnmowerRosAction>* as)
 {
+    ROS_INFO("Planner: Dynamic Lawnmower executeAction: START, %f %f", goal->alongTrackDirection, goal->acrossTrackDirection);
     //Feedback and Results for the action
     vent_planner::DynamicLawnmowerRosFeedback feedback;
     vent_planner::DynamicLawnmowerRosResult result;
@@ -146,7 +149,7 @@ void DynamicLawnmowerSimActionExecutor::executeAction(const vent_planner::Dynami
     ros::Time lastTime = ros::Time::now();
 
     bool waitingForCommand = true;
-
+    bool complete = true;
     while(operating && ros::ok())
     {
         tf::StampedTransform transform;
@@ -158,44 +161,59 @@ void DynamicLawnmowerSimActionExecutor::executeAction(const vent_planner::Dynami
                                      ros::Time(0), transform);
 
 
-            if(waitingForCommand)
-            {
-                tf::Vector3 currentPoint = getPoint(startLocation,
+            tf::Vector3 currentPoint = getPoint(startLocation,
                                         goal->trackSpacing,
                                         goal->alongTrackDirection,
                                         goal->acrossTrackDirection,
                                         currentTrack,
                                         currentSection);
 
-                if(operating)
-                {
-                    sendPointPathGoal(currentPoint);
-                    ROS_INFO("Planner: Sent Dynamic Lawnmower Point Path Goal");
-                    waitingForCommand = false;
-                }
-
-
-            }
-            else
+    
+            if(complete && operating)
             {
-                actionlib::SimpleClientGoalState state = pointPathClient.getState();
+                sendPointPathGoal(currentPoint);
+            }
+
+            complete = pointPathClient.waitForResult();     
+            ROS_INFO("Planner: Dynamic Lawnmower Point Path Wait Complete: %d", complete);
+            actionlib::SimpleClientGoalState state = pointPathClient.getState();
+            if(state == actionlib::SimpleClientGoalState::PENDING)
+            {
+                ROS_INFO("Planner: Dynamic Lawnmower Point Path Wait State: PENDING");
+            }
+            else if(state == actionlib::SimpleClientGoalState::ACTIVE)
+            {
+                ROS_INFO("Planner: Dynamic Lawnmower Point Path Wait State: ACTIVE");
+            }
+            else if(state == actionlib::SimpleClientGoalState::REJECTED)
+            {
+                ROS_INFO("Planner: Dynamic Lawnmower Point Path Wait State: REJECTED");
+            }
+            else if(state == actionlib::SimpleClientGoalState::PREEMPTED)
+            {
+                ROS_INFO("Planner: Dynamic Lawnmower Point Path Wait State: PREEMPTED");
+            }
+            else if(state == actionlib::SimpleClientGoalState::ABORTED)
+            {
+                ROS_INFO("Planner: Dynamic Lawnmower Point Path Wait State: ABORTED");
+            }
+            else if(state == actionlib::SimpleClientGoalState::SUCCEEDED)
+            {
+                ROS_INFO("Planner: Dynamic Lawnmower Point Path Wait State: SUCCEEDED");
+            }
+            else if(state == actionlib::SimpleClientGoalState::LOST)
+            {
+                ROS_INFO("Planner: Dynamic Lawnmower Point Path Wait State: LOST");
+            }
+            
+            if(complete)
+            {
 
                 if(as->isPreemptRequested() || !ros::ok())
                 {
                     ROS_INFO("Planner: Dynamic Lawnmower Action Preempted");
                     trackUnderThreshold = false; //prevents the actions from declaring success when preempted
-
-                    //Stop vehicle
-                    pointPathClient.cancelAllGoals();
-                    as->setPreempted();
                     operating = false;
-                }
-                else if(state == actionlib::SimpleClientGoalState::ABORTED ||
-                        state == actionlib::SimpleClientGoalState::REJECTED ||
-                        state == actionlib::SimpleClientGoalState::RECALLED)
-                {
-
-                    waitingForCommand = true;
                 }
                 else if(state == actionlib::SimpleClientGoalState::SUCCEEDED)
                 {
@@ -302,8 +320,6 @@ void DynamicLawnmowerSimActionExecutor::executeAction(const vent_planner::Dynami
                     feedback.currentSection = currentSection;
                     as->publishFeedback(feedback);
                 }
-
-
             }
         }
         catch (tf::TransformException ex){
@@ -318,14 +334,29 @@ void DynamicLawnmowerSimActionExecutor::executeAction(const vent_planner::Dynami
 
     }
 
+    ROS_INFO("Planner: DynamicLawnmower Point Path Cancel All Goals");
+    pointPathClient.cancelAllGoals();
+
     if(trackUnderThreshold)
     {
-        ROS_INFO("Auto Controller: Dynamic Lawnmower Action Done, Succeeded");
+        ROS_INFO("Planner: Dynamic Lawnmower Action Done, Succeeded");
 
         result.totalTrackLines = currentTrack;
 
         as->setSucceeded(result);
     }
+    else if(as->isPreemptRequested())
+    {
+        //Stop vehicle
+        ROS_INFO("Planner: Dynamic Lawnmower Action Done, Preempted");
+        as->setPreempted();
+    }
+    else
+    {
+        ROS_INFO("Planner: Dynamic Lawnmower Action Done, Aborted");
+        as->setAborted();
+    }
+    ROS_INFO("Planner: Dynamic Lawnmower executeAction: END, %f %f", goal->alongTrackDirection, goal->acrossTrackDirection);
 }
 
 void DynamicLawnmowerSimActionExecutor::sendPointPathGoal(const tf::Vector3& point)
@@ -353,6 +384,7 @@ void DynamicLawnmowerSimActionExecutor::sendPointPathGoal(const std::vector<tf::
     pointPathGoal.lowerDepth = 0;
     pointPathGoal.yoyo = false;
 
+    ROS_INFO("Planner: Dynamic Lawnmower Point Path Send Goal");
     pointPathClient.waitForServer();
     pointPathClient.sendGoal(pointPathGoal);
 }
@@ -400,6 +432,7 @@ bool DynamicLawnmowerSimActionExecutor::processData(std::vector<float>& values, 
 
 void DynamicLawnmowerSimActionExecutor::cancel(std::shared_ptr<DynamicLawnmowerAction> action)
 {
+    ROS_INFO("Planner: DynamicLawnmower Cancel");
 	dynamicLawnmowerClient.cancelAllGoals();
 }
 
@@ -407,6 +440,11 @@ bool DynamicLawnmowerSimActionExecutor::triggerReplan(std::shared_ptr<DynamicLaw
 {
 	bool replanReturn = replanNextUpdate;
 	replanNextUpdate = false;
+    if(replanReturn)
+    {
+        ROS_INFO("Planner: DynamicLawnmower Replan");
+    }
+
 	return replanReturn;
 }
 

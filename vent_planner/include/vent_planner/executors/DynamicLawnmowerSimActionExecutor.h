@@ -58,21 +58,6 @@ private:
     void executeAction(const vent_planner::DynamicLawnmowerRosGoalConstPtr& goal,
                        actionlib::SimpleActionServer<vent_planner::DynamicLawnmowerRosAction>* as);
 
-    void sendPointPathGoal(const std::vector<tf::Vector3>& points);
-    void sendPointPathGoal(const tf::Vector3& point);
-
-    tf::Vector3 getPoint(const tf::Vector3& startLocation,
-                         const double sectionSize,
-                         const double alongTrackDirection,
-                         const double acrossTrackDirection,
-                         const int currentTrack,
-                         const int currentSection);
-
-    /**
-	*Processes the data for the dynamic lawnmower action
-	*/
-    bool processData(std::vector<float>& values, std::vector<double>& sectionAverages, double continueThreshold);
-
     /**
     * Callback that occurs when the action goes active
     */
@@ -89,22 +74,14 @@ private:
 private:
     ros::NodeHandle& nh;
     ros::ServiceClient infoClient;
-    ros::ServiceClient plumeClient;
     underwater_vehicle_sim::GetVehicleInfo::Response vehicleInfo;
     ros::Publisher velPublisher;
-    actionlib::SimpleActionServer<vent_planner::DynamicLawnmowerRosAction> actionServer;
 
-    double loopHertz;
     bool replanNextUpdate;
-    
     std::string vehicleName;
 
     actionlib::SimpleActionClient<vent_planner::DynamicLawnmowerRosAction> dynamicLawnmowerClient;
-    actionlib::SimpleActionClient<vehicle_auto_control::PointPathAction> pointPathClient;
     vent_planner::DynamicLawnmowerRosGoal dynamicLawnmowerGoal;
-
-    tf::TransformListener listener;
-
 };
 
 #endif

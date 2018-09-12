@@ -3,9 +3,8 @@
 
 #include "underwater_vehicle_sim/GetVehicleInfo.h"
 
-VehicleController::VehicleController(ros::NodeHandle& parentNH, float loopHertz) :
-nh(parentNH),
-loopHertz(loopHertz)
+VehicleController::VehicleController(ros::NodeHandle& parentNH) :
+nh(parentNH)
 {
 	//Create the vehicle objects
 	std::vector<std::string> vehicleNames;
@@ -22,7 +21,15 @@ loopHertz(loopHertz)
 
 		if(info.response.propModuleName != "")
 		{
-			propControllers.push_back(PropulsionController::makePropulsionController(name, info, nh, loopHertz));
+			propControllers.push_back(PropulsionController::makePropulsionController(name, info, nh));
 		}
+	}
+}
+
+void VehicleController::update(void)
+{
+	for(unsigned int i = 0; i < propControllers.size(); i++)
+	{
+		propControllers[i]->update();
 	}
 }

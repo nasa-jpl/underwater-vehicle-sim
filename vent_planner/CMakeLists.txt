@@ -128,14 +128,15 @@ include_directories(
 ## Declare a C++ library
  add_library(vent_planner
    src/vent_planner/actions/PointPathAction.cpp
-   src/vent_planner/PointPathSimActionExecutor.cpp
+   src/vent_planner/executors/PointPathSimActionExecutor.cpp
    src/vent_planner/actions/DynamicLawnmowerAction.cpp
-   src/vent_planner/DynamicLawnmowerSimActionExecutor.cpp
+   src/vent_planner/executors/DynamicLawnmowerSimActionExecutor.cpp
    src/vent_planner/actions/ChargeAction.cpp
    src/vent_planner/actions/DataTransferAction.cpp
-   src/vent_planner/ChargeSimActionExecutor.cpp
-   src/vent_planner/DataTransferSimActionExecutor.cpp
-   src/vent_planner/SimVentActionFactory.cpp
+   src/vent_planner/executors/ChargeSimActionExecutor.cpp
+   src/vent_planner/executors/DataTransferSimActionExecutor.cpp
+   src/vent_planner/actions/SimVentActionFactory.cpp
+   src/vent_planner/controllers/DynamicLawnmowerController.cpp
    src/vent_planner/NestedSpiralVentPlanner.cpp
    src/vent_planner/NestedBinVentPlanner.cpp
    src/vent_planner/DataTree.cpp
