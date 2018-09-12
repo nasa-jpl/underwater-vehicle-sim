@@ -38,7 +38,7 @@ NestedBinVentPlanner::NestedBinVentPlanner(ros::NodeHandle& nh, std::unique_ptr<
     spiralData(nullptr, 0, tf::Vector3(0,0,0), 300000, 0),
     dynamicLawnmowerController(nh, vehicleName)
 {
-    ROS_INFO("Planner: Waiting for data server...");
+    ROS_INFO("Waiting for data server...");
     dataClient.waitForExistence();
     latestDataClient.waitForExistence();
     plumeClient.waitForExistence();
@@ -90,7 +90,7 @@ void NestedBinVentPlanner::receivePlumeData(const data_server::PlumeData::ConstP
 
 std::shared_ptr<Plan> NestedBinVentPlanner::plan()
 {
-    ROS_INFO("Planner: plan()");
+    ROS_INFO("Plan");
     //Amount to reduce the bin size each nested pattern
     double nestedSizeFactor = 3;
     double detectionThreshold = 0.5;
@@ -105,7 +105,7 @@ std::shared_ptr<Plan> NestedBinVentPlanner::plan()
             returnPlan = std::shared_ptr<Plan>(new Plan());
             spiralPlan = returnPlan;
 
-            ROS_INFO("Planner: Generate inital plan");
+            ROS_INFO("Generate inital plan");
             tf::Vector3 vehicleLocation(latestEntry.x, latestEntry.y, latestEntry.h);
             std::vector<tf::Vector3> spiralPoints = makeSpiral(vehicleLocation, 0, spiralSpacing, 100000);
             std::shared_ptr<Action> newAction = actionFactory->createPointPathAction(vehicleName,
@@ -124,7 +124,7 @@ std::shared_ptr<Plan> NestedBinVentPlanner::plan()
     }
     else if(phase == SearchPhase::spiral)
     {
-        ROS_INFO("Planner: Update Spiral");
+        ROS_INFO("Update spiral plan");
         bool valid = newSpiralPlumeIntersect(spiralData, detectionThreshold);
 
         if(valid)
@@ -162,19 +162,19 @@ std::shared_ptr<Plan> NestedBinVentPlanner::plan()
 
         if(queuedMaxima.size() > 0)
         {
-            ROS_INFO("Planner: Do next maxima");
+            ROS_INFO("Do next maxima");
             auto lastElement = queuedMaxima.end();
             --lastElement;
             DataNode* maximum = *lastElement;
 
             double nestedBinSize = maximum->getSize() / nestedSizeFactor;
 
-            ROS_INFO("Planner: Starting new maxima search; Nested Bins Size: %f, Max: %f", nestedBinSize, maximum->getMaxVal().val);
+            ROS_INFO("Starting new maxima search; Nested Bins Size: %f, Max: %f", nestedBinSize, maximum->getMaxVal().val);
             std::vector<DataNode*> neighbors = maximum->getInitalizedNeighbors();
 
             //Check for goal completion.
             //This should be moved to a seperate function at some point
-            ROS_INFO("Planner: Check for goal state nestedBinSize: %f, finalSpacing: %f", nestedBinSize, finalSpacing);
+            ROS_INFO("Check for goal state nestedBinSize: %f, finalSpacing: %f", nestedBinSize, finalSpacing);
 
             bool isFinalSurvey = isGoalSurvey(nestedBinSize, maximum, neighbors);
 
@@ -209,7 +209,7 @@ std::shared_ptr<Plan> NestedBinVentPlanner::plan()
                                                                                                     nestedPattern,
                                                                                                     false);
 
-            ROS_INFO("Planner: New nested lawnmower, Current Point: %i, Total Points: %lu", lawnmowerAction->getCurrentPoint(), nestedPattern.size());
+            ROS_INFO("New nested lawnmower, Current Point: %i, Total Points: %lu", lawnmowerAction->getCurrentPoint(), nestedPattern.size());
             returnPlan = std::shared_ptr<Plan>(new Plan());
             returnPlan->addAction(lawnmowerAction);
             plannedMaxima.insert(std::make_pair(returnPlan, maximum));
@@ -236,7 +236,7 @@ std::shared_ptr<Plan> NestedBinVentPlanner::plan()
             {
                 returnPlan = spiralPlan;
                 phase = SearchPhase::spiral;
-                ROS_INFO("Planner: Resume Spiral");
+                ROS_INFO("Resume Spiral");
             }
         }
     }
@@ -244,7 +244,7 @@ std::shared_ptr<Plan> NestedBinVentPlanner::plan()
     if(finalSurvey && isCompleted(finalSurvey))
     {
         goalState = "success";
-        ROS_INFO("Planner: Set goal state: success");
+        ROS_INFO("Set goal state: success");
     }
 
     //updates the goal state and publishes it
@@ -261,17 +261,17 @@ std::shared_ptr<Plan> NestedBinVentPlanner::plan()
 
 bool NestedBinVentPlanner::isCompleted(std::shared_ptr<Plan> plan)
 {
-    ROS_INFO("Planner: Check for completed");
+    ROS_INFO("Check for completed plan");
     for(auto action : plan->getActions())
     {
         if(!(action->getState() == Action::State::COMPLETED ||
              action->getState() == Action::State::FAILED))
         {
-            ROS_INFO("Planner: Not completed");
+            ROS_INFO("Plan not completed");
             return false;
         }
     }
-    ROS_INFO("Planner: Completed");
+    ROS_INFO("Plan completed");
     return true;
 }
 
@@ -333,7 +333,7 @@ void NestedBinVentPlanner::initalizeDataTree(tf::Vector3 centerLocation)
         dataTree = std::unique_ptr<DataTree>(new DataTree(centerLocation,
                                                           numPartitions * initalSpacing));
         dataTree->getRoot().partition(numPartitions);
-        ROS_INFO("Planner: Initalize data bins, numPartitions: %i, size: %f", numPartitions, numPartitions * initalSpacing);
+        ROS_INFO("Initalize data bins, numPartitions: %i, size: %f", numPartitions, numPartitions * initalSpacing);
     }
 }
 
@@ -387,7 +387,7 @@ std::set<DataNode*, DataNode::PointerCompare> NestedBinVentPlanner::getUnexplore
 {
     std::set<DataNode*, DataNode::PointerCompare> queuedMaxima;
     const std::vector<DataNode*> binMaxima = dataTree->getMaxima();
-    ROS_INFO("Planner: Maxima Found: %lu", binMaxima.size());
+    ROS_INFO("Maxima Found: %lu", binMaxima.size());
     for(unsigned int i = 0; i < binMaxima.size(); i++)
     {
         bool found = false;
@@ -395,7 +395,7 @@ std::set<DataNode*, DataNode::PointerCompare> NestedBinVentPlanner::getUnexplore
         {
             if(*(it->second) == *binMaxima[i])
             {
-                ROS_INFO("Planner: Check plannedMaxima Found: %p, Val: %f, X: %f, Y: %f, Level: %i",(void*)binMaxima[i], binMaxima[i]->getMaxVal().val, binMaxima[i]->getCenterLocation().getX(),
+                ROS_INFO("Check plannedMaxima Found: %p, Val: %f, X: %f, Y: %f, Level: %i",(void*)binMaxima[i], binMaxima[i]->getMaxVal().val, binMaxima[i]->getCenterLocation().getX(),
                          binMaxima[i]->getCenterLocation().getY(),
                          binMaxima[i]->getNodeLevel());
                 found = true;
@@ -408,7 +408,7 @@ std::set<DataNode*, DataNode::PointerCompare> NestedBinVentPlanner::getUnexplore
             unsigned long queueSize = queuedMaxima.size();
             queuedMaxima.insert(binMaxima[i]);
 
-            ROS_INFO("Planner: Added maximum to queue: %p, Val: %f, X: %f, Y: %f, Level: %i", (void*)binMaxima[i], binMaxima[i]->getMaxVal().val,
+            ROS_INFO("Added maximum to queue: %p, Val: %f, X: %f, Y: %f, Level: %i", (void*)binMaxima[i], binMaxima[i]->getMaxVal().val,
                      binMaxima[i]->getCenterLocation().getX(),
                      binMaxima[i]->getCenterLocation().getY(),
                      binMaxima[i]->getNodeLevel());
@@ -500,7 +500,7 @@ bool NestedBinVentPlanner::isGoalSurvey(double nestedBinSize, DataNode* maximum,
         {
             if(&smallestCenter == neighbor)
             {
-                ROS_INFO("Planner: Set final survey");
+                ROS_INFO("Set final survey");
                 goalSurvey = true;
             }
         }

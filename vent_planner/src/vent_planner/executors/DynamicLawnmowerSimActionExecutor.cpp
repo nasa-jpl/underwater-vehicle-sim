@@ -48,11 +48,11 @@ std::unique_ptr<ActionExecutor<DynamicLawnmowerAction>> DynamicLawnmowerSimActio
 
 bool DynamicLawnmowerSimActionExecutor::execute(std::shared_ptr<DynamicLawnmowerAction> action)
 {
-    ROS_INFO("Planner: Dynamic Lawnmower Action Execute");
+    ROS_DEBUG("Execute dynamic lawnmower action");
 	//targetSlope can only be on the interval (0, 90) degrees
 	if(action->targetSlope >= M_PI / 2 || action->targetSlope <= 0)
 	{
-		ROS_INFO("Planner: Dynamic Lawnmower Action Executor: Invalid target slope");
+		ROS_WARN("Dynamic lawnmower action has invalid target slope");
 	   return false;
 	}
 
@@ -72,7 +72,7 @@ bool DynamicLawnmowerSimActionExecutor::execute(std::shared_ptr<DynamicLawnmower
 	}
 	else //If the prop module is not known then this cannot be completed
 	{
-		ROS_INFO("Planner: Dynamic Lawnmower Action Executor: Unknown prop module");
+		ROS_WARN("%s has unknown prop module. Cannot execute dynamic lawnmower", vehicleName);
 		return false;
 	}
 
@@ -95,7 +95,7 @@ bool DynamicLawnmowerSimActionExecutor::execute(std::shared_ptr<DynamicLawnmower
 	dynamicLawnmowerGoal.trackSectionThreshold = action->trackSectionThreshold;
 
 	dynamicLawnmowerClient.waitForServer();
-    ROS_INFO("Planner: Dynamic Lawnmower Send Goal");
+    ROS_INFO("Send goal to dynamic lawnmower action server");
 	dynamicLawnmowerClient.sendGoal(dynamicLawnmowerGoal,
 							 boost::bind(&DynamicLawnmowerSimActionExecutor::actionDone, this, action, _1, _2),
 							 boost::bind(&DynamicLawnmowerSimActionExecutor::actionActive, this, action),
@@ -109,7 +109,7 @@ bool DynamicLawnmowerSimActionExecutor::execute(std::shared_ptr<DynamicLawnmower
 
 void DynamicLawnmowerSimActionExecutor::cancel(std::shared_ptr<DynamicLawnmowerAction> action)
 {
-    ROS_INFO("Planner: DynamicLawnmower Cancel");
+    ROS_INFO("Cancel dynamic lawnmower action");
 	dynamicLawnmowerClient.cancelAllGoals();
 }
 
@@ -119,7 +119,7 @@ bool DynamicLawnmowerSimActionExecutor::triggerReplan(std::shared_ptr<DynamicLaw
 	replanNextUpdate = false;
     if(replanReturn)
     {
-        ROS_INFO("Planner: DynamicLawnmower Replan");
+        ROS_INFO("Replan during dynamic lawnmower action");
     }
 
 	return false;
@@ -129,23 +129,23 @@ void DynamicLawnmowerSimActionExecutor::actionDone(std::shared_ptr<DynamicLawnmo
 					const actionlib::SimpleClientGoalState& state,
                 	const vent_planner::DynamicLawnmowerRosResultConstPtr& result)
 {
-	ROS_INFO("Planner: DynamicLawnmower ActionDone Start");
 	if(state == actionlib::SimpleClientGoalState::RECALLED ||
 	   state == actionlib::SimpleClientGoalState::PREEMPTED)
 	{
 		action->setState(Action::State::INTERRUPTED);
+		ROS_INFO("Dynamic lawnmower action interrupted");
 	}
 	else if(state == actionlib::SimpleClientGoalState::REJECTED ||
 			state == actionlib::SimpleClientGoalState::ABORTED)
 	{
 		action->setState(Action::State::FAILED);
+		ROS_INFO("Dynamic lawnmower action failed");
 	}
 	else if(state == actionlib::SimpleClientGoalState::SUCCEEDED)
 	{
 		action->setState(Action::State::COMPLETED);
+		ROS_INFO("Dynamic lawnmower action completed");
 	}
-
-	ROS_INFO("Planner: DynamicLawnmower ActionDone End");
 }
 
 void DynamicLawnmowerSimActionExecutor::actionActive(std::shared_ptr<DynamicLawnmowerAction> action)

@@ -81,7 +81,7 @@ void DynamicLawnmowerController::pointPathDone(const actionlib::SimpleClientGoal
 
     if(state == actionlib::SimpleClientGoalState::SUCCEEDED)
     {
-        ROS_INFO("DynamicLawnmowerController: Point Path == SUCCEEDED");
+        ROS_INFO("Dynamic lawnmower point path succeeded");
 
         //Update section over theshold information
         if(lastTrack == currentTrack)
@@ -107,7 +107,7 @@ void DynamicLawnmowerController::pointPathDone(const actionlib::SimpleClientGoal
                 trackUnderThreshold = false;
                 sectionsUnderThreshold = 0;
             }
-            ROS_INFO("SECTIONS UNDER THRESH: %i", sectionsUnderThreshold);
+            ROS_DEBUG("Dynamic lawnmower sections under threshold: %i", sectionsUnderThreshold);
         }
 
         //update last track information
@@ -140,7 +140,7 @@ void DynamicLawnmowerController::pointPathDone(const actionlib::SimpleClientGoal
         if(nextTrack || (currentTrack % 2 == 1 && currentSection == 0))
         {
             currentTrack++;
-            ROS_INFO("CURRENT TRACK: %i", currentTrack);
+            ROS_DEBUG("Dynamic lawnmower current track: %i", currentTrack);
             if(!trackUnderThreshold)
             {
                 //reset the consecutive sections under the threshold
@@ -166,19 +166,19 @@ void DynamicLawnmowerController::pointPathDone(const actionlib::SimpleClientGoal
                 currentSection--;
             }
 
-            ROS_INFO("CURRENT SECTION: %i", currentSection);
+            ROS_INFO("Dynamic lawnmower current section: %i", currentSection);
 
             sectionsCompletedInTrack++;
         }
     }
     else
     {
-        ROS_INFO("DynamicLawnmowerController: Point Path != SUCCEEDED");
+        ROS_INFO("Dynamic lawnmower point path failed");
     }
 
     if(dynamicLawnmowerComplete)
     {
-        ROS_INFO("Planner: Dynamic Lawnmower Action set succeeded");
+        ROS_INFO("Dynamic Lawnmower action set succeeded");
         vent_planner::DynamicLawnmowerRosResult result;
         result.totalTrackLines = currentTrack;
         dynamicLawnmowerServer.setSucceeded(result);
@@ -215,7 +215,7 @@ void DynamicLawnmowerController::sendPointPathGoal(const std::vector<tf::Vector3
     pointPathGoal.lowerDepth = 0;
     pointPathGoal.yoyo = false;
 
-    ROS_INFO("Planner: Dynamic Lawnmower Point Path Send Goal");
+    ROS_INFO("Dynamic lawnmower send goal to point path server");
     pointPathClient.waitForServer();
     pointPathClient.sendGoal(pointPathGoal,
         boost::bind(&DynamicLawnmowerController::pointPathDone, this, _1, _2),

@@ -54,7 +54,7 @@ std::unique_ptr<ActionExecutor<PointPathAction>> PointPathSimActionExecutor::clo
 
 bool PointPathSimActionExecutor::execute(std::shared_ptr<PointPathAction> action)
 {
-	ROS_INFO("Planner: Point Path Action Execute");
+	ROS_INFO("Execute point path action");
 	//targetSlope can only be on the interval (0, 90) degrees
 	if(action->yoyo && (action->targetSlope >= M_PI / 2 || action->targetSlope <= 0))
 	{
@@ -119,7 +119,7 @@ bool PointPathSimActionExecutor::execute(std::shared_ptr<PointPathAction> action
 	pointPathGoal.yoyo = action->yoyo;
 
 	pointPathClient.waitForServer();
-	ROS_INFO("Planner: Point Path Send Goal");
+	ROS_INFO("Send goal to point path server");
 	pointPathClient.sendGoal(pointPathGoal,
 							 boost::bind(&PointPathSimActionExecutor::actionDone, this, action, _1, _2),
 							 boost::bind(&PointPathSimActionExecutor::actionActive, this, action),
@@ -159,20 +159,22 @@ void PointPathSimActionExecutor::actionDone(std::shared_ptr<PointPathAction> act
 					const actionlib::SimpleClientGoalState& state,
                 	const vehicle_auto_control::PointPathResultConstPtr& result)
 {
-	ROS_INFO("Planner: Point Path ActionDone Start");
 	if(state == actionlib::SimpleClientGoalState::RECALLED ||
 	   state == actionlib::SimpleClientGoalState::PREEMPTED)
 	{
 		action->setState(Action::State::INTERRUPTED);
+		ROS_INFO("Point path action interrupted");
 	}
 	else if(state == actionlib::SimpleClientGoalState::REJECTED ||
 			state == actionlib::SimpleClientGoalState::ABORTED)
 	{
 		action->setState(Action::State::FAILED);
+		ROS_INFO("Point path action failed");
 	}
 	else if(state == actionlib::SimpleClientGoalState::SUCCEEDED)
 	{
 		action->setState(Action::State::COMPLETED);
+		ROS_INFO("Point path action completed");
 	}
 
 	//Get the current point from the feedback
@@ -185,8 +187,6 @@ void PointPathSimActionExecutor::actionDone(std::shared_ptr<PointPathAction> act
 	}
 	//Add the currentPointOffset as we did not necessarily start at point 0
 	adjustedCurrentPoint += currentPointOffset;
-
-	ROS_INFO("Planner: Point Path ActionDone End");
 }
 
 void PointPathSimActionExecutor::actionActive(std::shared_ptr<PointPathAction> action)
@@ -220,7 +220,7 @@ void PointPathSimActionExecutor::actionFeedback(std::shared_ptr<PointPathAction>
 	if(adjustedCurrentPoint != action->getCurrentPoint())
 	{
 		//Wait until we have reached point 1 before any replanning
-		ROS_INFO("PointPath Executor: Point Reached - Adjusted point: %i, Action Point: %i", adjustedCurrentPoint, action->getCurrentPoint());
+		ROS_DEBUG("Point Reached - Adjusted point: %i, Action Point: %i", adjustedCurrentPoint, action->getCurrentPoint());
 		if(!action->yoyo && action->getCurrentPoint() >= 1)
 		{
 			replanNextUpdate = true;

@@ -120,9 +120,9 @@ bool getPlumeData(data_server::GetPlumeData::Request &req,
 bool saveData(data_server::SaveData::Request &req,
 			  data_server::SaveData::Response &res)
 {
-	ROS_INFO("DataServer: Start Saving Data");
+	ROS_INFO("Start Saving Data");
 	server.saveToFile(req.filename);
-	ROS_INFO("DataServer: Finished Saving Data");
+	ROS_INFO("Finished Saving Data");
 
 	res.success = true;
 	return true;

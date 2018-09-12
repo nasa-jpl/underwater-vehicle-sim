@@ -60,12 +60,12 @@ std::shared_ptr<Action> DynamicLawnmowerAction::clone() const
 
 void DynamicLawnmowerAction::executeAction()
 {
-    ROS_INFO("Planner: Dynamic Lawnmower Action, call executor.execute()");
     bool success = executor->execute(shared_from_this());
 
     if(!success)
     {
         state = Action::State::FAILED;
+        ROS_INFO("Dynamic lawnmower action failed");
     }
 }
 

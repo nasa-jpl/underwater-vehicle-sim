@@ -29,7 +29,7 @@ NestedSpiralVentPlanner::NestedSpiralVentPlanner(ros::NodeHandle& nh, std::uniqu
     latestDataClient(nh.serviceClient<data_server::GetLatestData>("data_server/get_latest")),
     plumeClient(nh.serviceClient<data_server::GetPlumeData>("data_server/get_plume"))
 {
-    ROS_INFO("Planner: Waiting for data server...");
+    ROS_INFO("Waiting for data server...");
     dataClient.waitForExistence();
     latestDataClient.waitForExistence();
     plumeClient.waitForExistence();
@@ -59,17 +59,17 @@ NestedSpiralVentPlanner::NestedSpiralVentPlanner(ros::NodeHandle& nh, std::uniqu
 
 std::shared_ptr<Plan> NestedSpiralVentPlanner::plan()
 {
-    ROS_INFO("Planner: Plan Start");
+    ROS_INFO("Plan Start");
     //Pop the top plan if it has been completed
     if(plans.size() > 0 && isCompleted(plans.top()))
     {
-        ROS_INFO("Planner: Finished Plan");
+        ROS_INFO("Finished Plan");
         plans.pop();
         currentPlumeData.pop();
 
         if(plans.size() > 0)
         {
-            ROS_INFO("Planner: Restart previous plan");
+            ROS_INFO("Restart previous plan");
             lastPlan = ros::Time::now();
             plans.top()->resetInterrupted();
             return plans.top();
@@ -77,7 +77,7 @@ std::shared_ptr<Plan> NestedSpiralVentPlanner::plan()
     }
     else
     {
-        ROS_INFO("Planner: No Finished Plan");
+        ROS_INFO("No Finished Plan");
     }
 
     //Create inital plan and push it onto the stack
@@ -88,7 +88,7 @@ std::shared_ptr<Plan> NestedSpiralVentPlanner::plan()
         DataServerEntry latestEntry;
         if(getLatestData(latestEntry))
         {
-            ROS_INFO("Planner: Generate Inital Plan");
+            ROS_INFO("Generate Inital Plan");
             tf::Vector3 vehicleLocation(latestEntry.x, latestEntry.y, latestEntry.h);
             std::vector<tf::Vector3> spiralPoints = makeSpiral(vehicleLocation, 0, initalSpacing, 100000);
             std::shared_ptr<Action> newAction = actionFactory->createPointPathAction(vehicleName,
@@ -113,24 +113,24 @@ std::shared_ptr<Plan> NestedSpiralVentPlanner::plan()
             initalPlan = true;
 
             lastPlan = ros::Time::now();
-            ROS_INFO("Planner: Plan Generated");
+            ROS_INFO("Plan Generated");
             return plan;
         }
     }
     else
     {
-        ROS_INFO("Planner: Plan");
+        ROS_INFO("Plan");
         data_server::GetPlumeData srv;
         srv.request.name = vehicleName;
         srv.request.start_time = lastPlan;
         srv.request.end_time = ros::Time::now();
 
-        ROS_INFO("Planner: Get plume data");
+        ROS_INFO("Get plume data");
         plumeClient.call(srv);
 
         unsigned long dataStart = plumeData[currentPlumeData.top()].size();
 
-        ROS_INFO("Planner: Add plume data: %lu, Data Size: %lu, Vector Index: %lu", dataStart, srv.response.time.size(), currentPlumeData.top());
+        ROS_INFO("Add plume data: %lu, Data Size: %lu, Vector Index: %lu", dataStart, srv.response.time.size(), currentPlumeData.top());
         for(unsigned int i = 0; i < srv.response.time.size(); i++)
         {
             plumeData[currentPlumeData.top()].emplace_back(srv.response.time[i],
@@ -149,7 +149,7 @@ std::shared_ptr<Plan> NestedSpiralVentPlanner::plan()
         if(plans.size() == 1)
         {
             //Get height of the plume for this last yo
-            ROS_INFO("Planner: Get plume height");
+            ROS_INFO("Get plume height");
             gotHeight = getHeightOfPlume(plumeData[currentPlumeData.top()], dataStart, plumeX, plumeY, plumeHeight, plumeStrength);
         }
         else
@@ -158,7 +158,7 @@ std::shared_ptr<Plan> NestedSpiralVentPlanner::plan()
             getPlumeMax(plumeData[currentPlumeData.top()], dataStart, plumeX, plumeY, plumeStrength);
         }
         
-        ROS_INFO("Planner: Finish get plume data");
+        ROS_INFO("Finish get plume data");
         if(gotHeight && triggerNewSpiral(plumeStrength) && !std::isnan(plumeX) && !std::isnan(plumeY) && !std::isinf(plumeX) && !std::isinf(plumeY))
         {
             int devFactor = plans.size();
@@ -167,7 +167,7 @@ std::shared_ptr<Plan> NestedSpiralVentPlanner::plan()
 
             if(spacing >= finalSpacing)
             {
-                ROS_INFO("Planner: Trigger new spiral; level: %lu, x: %f, y: %f, height: %f, spacing: %f, size: %f ", plans.size(), plumeX, plumeY, plumeHeight, spacing, size);
+                ROS_INFO("Trigger new spiral; level: %lu, x: %f, y: %f, height: %f, spacing: %f, size: %f ", plans.size(), plumeX, plumeY, plumeHeight, spacing, size);
             
 
                 std::shared_ptr<Plan> plan(new Plan());
@@ -201,11 +201,11 @@ std::shared_ptr<Plan> NestedSpiralVentPlanner::plan()
     if(plans.size() > 0)
     {
         plans.top()->resetInterrupted();
-        ROS_INFO("Planner: Top plan sent");
+        ROS_INFO("Top plan sent");
         return plans.top();
     }
 
-     ROS_INFO("Planner: NUll plan sent");
+     ROS_INFO("NUll plan sent");
     return nullptr;
 }
 
@@ -374,17 +374,17 @@ bool NestedSpiralVentPlanner::getHeightOfPlume(const std::vector<PlumeDataEntry>
 
 bool NestedSpiralVentPlanner::isCompleted(std::shared_ptr<Plan> plan)
 {
-    ROS_INFO("Planner: Check for completed");
+    ROS_INFO("Check for completed");
     for(auto action : plan->getActions())
     {
         if(!(action->getState() == Action::State::COMPLETED || 
              action->getState() == Action::State::FAILED))
         {
-            ROS_INFO("Planner: Not Completed: %i", action->getState());
+            ROS_INFO("Not Completed: %i", action->getState());
             return false;
         }
     }
-    ROS_INFO("Planner: Completed");
+    ROS_INFO("Completed");
     return true;
 }
 

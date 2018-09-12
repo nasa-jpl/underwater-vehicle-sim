@@ -41,13 +41,13 @@ DataBins::~DataBins() {}
 
 const std::vector<std::reference_wrapper<DataBin>> DataBins::getLocalMaxima()
 {
-    ROS_INFO("DataBins: Num Bins: %lu, Bin Level: %i", bins.size(), binLevel);
+    ROS_DEBUG("Data bins local maxima. Num Bins: %lu, Bin Level: %i", bins.size(), binLevel);
     std::vector<std::reference_wrapper<DataBin>> maxima;
     for (auto& it : bins) 
     {
         if(it.second.nestedBins)
         {
-            ROS_INFO("DataBins: Nested Bin LocalMaxima");
+            ROS_DEBUG("Call data bins nested local maxima");
             std::vector<std::reference_wrapper<DataBin>> nestedMaxima = it.second.nestedBins->getLocalMaxima();
             maxima.insert(maxima.end(), nestedMaxima.begin(), nestedMaxima.end());
         }
@@ -74,7 +74,7 @@ const std::vector<std::reference_wrapper<DataBin>> DataBins::getLocalMaxima()
 
         if(maximum)
         {
-            ROS_INFO("DataBins: Max Found, %p, Val: %f X: %f Y: %f BinLevel: %i neighbors.size(): %lu, Num Neighbors: %i", (void*)&(it.second), 
+            ROS_DEBUG("DataBins max found, %p, Val: %f X: %f Y: %f BinLevel: %i neighbors.size(): %lu, Num Neighbors: %i", (void*)&(it.second), 
                                                                                 it.second.getMaxVal(), 
                                                                                 it.second.getCenterLocation().getX(), 
                                                                                 it.second.getCenterLocation().getY(), 

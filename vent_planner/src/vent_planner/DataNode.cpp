@@ -517,7 +517,7 @@ const double DataNode::getHeightOfPlume()
         return false;
     }
 
-    ROS_INFO("Planner: GET PLUME HEIGHT, numBins: %i, maxHeight: %f, minHeight: %f, binSize: %u", numBins, maxHeight, minHeight, binSize);
+    ROS_DEBUG("Get plume height, numBins: %i, maxHeight: %f, minHeight: %f, binSize: %u", numBins, maxHeight, minHeight, binSize);
     std::vector<double> bins(numBins, 0);
     std::vector<int> binCount(numBins, 0);
 

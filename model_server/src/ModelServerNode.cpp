@@ -103,6 +103,7 @@ int main(int argc, char **argv)
         }
 
         model.reset(new FVCOM(fvcom_directory, &startModelLoad, &endModelLoad, 1000, 1000, 10, 10, 100));
+        ROS_INFO("FVCOM Model Loaded: %s", fvcom_directory);
     }
     else if(model_type == "constant")
     {
@@ -121,6 +122,7 @@ int main(int argc, char **argv)
         n.getParam("model/depth", depth);
 
         model.reset(new ConstantModel(u, v, temp, salt, dye, depth));
+        ROS_INFO("Constant Model Loaded");
     } 
     else if(model_type == "linear")
     {
@@ -149,6 +151,7 @@ int main(int argc, char **argv)
         n.getParam("model/depth", depth);
 
         model.reset(new LinearModel(u, v, temp, salt, dye, depth, zeroDistance, centerX, centerY, type));
+        ROS_INFO("Linear Model Loaded");
     }   
     else
     {
@@ -157,7 +160,6 @@ int main(int argc, char **argv)
     }
 
     dataService = n.advertiseService("get_model_data", getModelData);
-  	ROS_INFO("Model Loaded");
 
     endModelLoad();
     ros::spin();

@@ -10,7 +10,7 @@ float speedUpFactor, simStartTime;
 void getSpeedUpFactor(const std_msgs::Float64 factor)
 {
     speedUpFactor = fabs(factor.data);
-    ROS_INFO("Set clock speed factor: %f", speedUpFactor);
+    ROS_DEBUG("Set clock speed factor: %f", speedUpFactor);
 }
 
 int main(int argc, char **argv)

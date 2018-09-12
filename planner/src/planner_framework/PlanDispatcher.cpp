@@ -12,12 +12,13 @@ running(false)
 
 void PlanDispatcher::run()
 {
-	ROS_INFO("Run PlanDispatcher");
+	ROS_INFO("Run Plan Dispatcher");
 	running = true;
 }
 
 void PlanDispatcher::stop()
 {
+	ROS_INFO("Stop Plan Dispatcher");
 	running = false;
 }
 
@@ -25,21 +26,21 @@ void PlanDispatcher::setPlan(std::shared_ptr<Plan> newPlan)
 {
 	if(newPlan && newPlan != plan)
 	{
-		ROS_INFO("PlanDispatcher: Check for running plan");
+		ROS_INFO("Check for running plan");
 		if(running)
 		{
-			ROS_INFO("PlanDispatcher: Stop runnning plan");
+			ROS_INFO("Stop runnning plan");
 			running = false;
 			if(plan && currentAction < plan->getActions().size())
 			{
-				ROS_INFO("PlanDispatcher: Cancel previous action");
+				ROS_INFO("Cancel current action");
 				plan->getActions()[currentAction]->cancel();
 			}
 		}
 		
 		plan = newPlan;
 		currentAction = plan->getNextAction();
-		ROS_INFO("PlanDispatcher: Set new plan, Start on action: %i", currentAction);
+		ROS_INFO("Set new plan, Start on action: %i", currentAction);
 	}
 }
 
@@ -52,7 +53,7 @@ bool PlanDispatcher::triggerReplan()
 			//replan because the current plan is finished 
 			if(currentAction >= plan->getActions().size())
 			{
-				ROS_INFO("PlanDispatcher: At end of plan, replan. Current Action: %i, Plan Size: %lu", currentAction, plan->getActions().size());
+				ROS_INFO("At end of plan, replan. Current Action: %i, Plan Size: %lu", currentAction, plan->getActions().size());
 				return true;
 			}
 			else
@@ -83,19 +84,18 @@ void PlanDispatcher::update()
 		if(action->getState() == Action::State::PLANNED) //execute the next action
 		{
 			action->execute();
-			ROS_INFO("PlanDispatcher: Execute action");
+			ROS_INFO("Execute action %i", currentAction);
 		}
 		else if(action->getState() == Action::State::DISPATCHED ||
 				action->getState() == Action::State::EXECUTING) //moniter the current action
 		{
 			action->monitor();
-
 		}
 		else if(action->getState() == Action::State::COMPLETED || //Move on to the next action
 				action->getState() == Action::State::FAILED)
 		{
 			currentAction++;
-			ROS_INFO("PlanDispatcher: Next Action: %i", currentAction);
+			ROS_INFO("Action finished, next action %i", currentAction);
 		}
 	}
 }
