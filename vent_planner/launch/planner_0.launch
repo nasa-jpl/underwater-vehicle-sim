@@ -35,7 +35,6 @@
  <node pkg="underwater_vehicle_sim" type="underwater_vehicle_sim_node" name="underwater_vehicle_sim" output="screen"/>
  <node pkg="model_server" type="model_server_node" name="model_server" output="screen"/>
  <node pkg="data_server" type="data_server_node" name="data_server" output="screen"/>
- <node pkg="plume_detector" type="plume_detector_node" name="plume_detector" output="screen"/>
 
  <node pkg="vehicle_auto_control" type="vehicle_auto_control_node" name="vehicle_auto_control" output="screen"/> 
  <node pkg="vent_planner" type="vent_planner_node" name="vent_planner" output="screen"/>
