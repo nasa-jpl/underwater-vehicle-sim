@@ -103,7 +103,7 @@ int main(int argc, char **argv)
         }
 
         model.reset(new FVCOM(fvcom_directory, &startModelLoad, &endModelLoad, 1000, 1000, 10, 10, 100));
-        ROS_INFO("FVCOM Model Loaded: %s", fvcom_directory);
+        ROS_INFO("FVCOM Model Loaded: %s", fvcom_directory.c_str());
     }
     else if(model_type == "constant")
     {
