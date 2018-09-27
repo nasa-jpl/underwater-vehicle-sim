@@ -70,12 +70,12 @@ void DynamicLawnmowerController::pointPathActive(void)
 {
 }
 
-void DynamicLawnmowerController::pointPathFeedback(const vehicle_auto_control::PointPathFeedbackConstPtr& feedback)
+void DynamicLawnmowerController::pointPathFeedback(const vehicle_auto_control::PointPathRosFeedbackConstPtr& feedback)
 {
 }
 
 void DynamicLawnmowerController::pointPathDone(const actionlib::SimpleClientGoalState& state,
-                       const vehicle_auto_control::PointPathResultConstPtr& result)
+                       const vehicle_auto_control::PointPathRosResultConstPtr& result)
 {
     bool dynamicLawnmowerComplete = false;
 
@@ -200,7 +200,7 @@ void DynamicLawnmowerController::sendPointPathGoal(const tf::Vector3& point)
 void DynamicLawnmowerController::sendPointPathGoal(const std::vector<tf::Vector3>& points)
 {
     //Creates an action goal and sends it to the action server for point path movement
-    vehicle_auto_control::PointPathGoal pointPathGoal = vehicle_auto_control::PointPathGoal();
+    vehicle_auto_control::PointPathRosGoal pointPathGoal = vehicle_auto_control::PointPathRosGoal();
 
     for(tf::Vector3 point : points)
     {

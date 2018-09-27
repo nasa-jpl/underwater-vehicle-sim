@@ -8,7 +8,7 @@
 #include "vehicle_auto_control/Velocity.h"
 #include "vehicle_auto_control/FourDOFPropulsionController.h"
 
-#include "vehicle_auto_control/PointPathAction.h"
+#include "vehicle_auto_control/PointPathRosAction.h"
 
 #include "data_server/GetPlumeData.h"
 
@@ -55,11 +55,26 @@ void FourDOFPropulsionController::getVehicleData(const underwater_vehicle_sim::V
 
 void FourDOFPropulsionController::update(void) 
 {
-    pointPathUpdate();
+    if(!pointPathServer.isActive())
+    {
+        pointPathUpdate();
+    }
+}
+
+void FourDOFPropulsionController::cancelAllMovement(void)
+{
+    //Stop the vehicle
+    sendVelocityCommand(0, 0, 0, 0);
+
+    if(pointPathServer.isActive())
+    {
+        pointPathServer.setPreempted();
+    }
 }
 
 void FourDOFPropulsionController::goalPointPathCB(void)
 {
+    cancelAllMovement();
     vehicle_auto_control::PointPathRosGoalConstPtr pointPathGoal = pointPathServer.acceptNewGoal();
     ROS_DEBUG("Point Path New Goal");
     currentPoint = 0;
@@ -81,8 +96,6 @@ void FourDOFPropulsionController::preemptPointPathCB(void)
     //Stop the vehicle
     sendVelocityCommand(0, 0, 0, 0);
 
-    currentPoint = 0;
-    goingUp = true;
     pointPathServer.setPreempted();
 }
 
@@ -90,11 +103,6 @@ void FourDOFPropulsionController::pointPathUpdate(void)
 {
     vehicle_auto_control::PointPathRosFeedback feedback;
     vehicle_auto_control::PointPathRosResult result;
-
-    if(!pointPathServer.isActive())
-    {
-        return;
-    }
 
     tf::StampedTransform transform;
     try
@@ -147,7 +155,6 @@ void FourDOFPropulsionController::pointPathUpdate(void)
     catch (tf::TransformException ex){
         ROS_ERROR("%s",ex.what());
     }
-
 
     feedback.currentPoint = currentPoint;
     feedback.goingUp = goingUp;

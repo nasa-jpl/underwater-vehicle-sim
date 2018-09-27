@@ -8,6 +8,8 @@
 #include "vehicle_auto_control/PropulsionController.h"
 #include "vehicle_auto_control/Velocity.h"
 #include "vehicle_auto_control/PointPathRosAction.h"
+#include "vehicle_auto_control/CirclePathRosAction.h"
+
 
 #include "underwater_vehicle_sim/VehicleData.h"
 
@@ -22,24 +24,15 @@ public:
 private:
 
 	/**
-	* Accepts new goals for the SimpleActionServer
+	* Accepts new goals for the PointPath SimpleActionServer
 	*/ 
 	void goalPointPathCB(void);
 	void preemptPointPathCB(void);
-
-
-	
 	void pointPathUpdate(void);
-	/**
-	*Controls the vehicle when following a list of points
-	*/
-	void executePointPath(const vehicle_auto_control::PointPathRosGoalConstPtr& goal, 
-						  actionlib::SimpleActionServer<vehicle_auto_control::PointPathRosAction>* as);
 
 	void getTargetVelocityCommand(const vehicle_auto_control::Velocity vel);
 
 	void getVehicleData(const underwater_vehicle_sim::VehicleData data);
-
 
 	void sendVelocityCommand(double cmdForwardVelocity, double cmdLateralVelocity, double cmdRotVelocity, double cmdVertVelocity);
 
@@ -67,25 +60,31 @@ private:
 	*/
 	void transformPointToVehicleFrame(geometry_msgs::PointStamped& pointOut, tf::StampedTransform& transform, tf::Vector3& point);
 
+	/**
+	*Cancels all actionlib goals related to vehicle movements
+	*/
+	void cancelAllMovement(void);
+
 private:
 	//Subscribers, publishers, and listeners
 	ros::Subscriber velocitySub;
 	ros::Publisher velocityPub;
 
-	
+	//Point Path Goal Parameters
+	actionlib::SimpleActionServer<vehicle_auto_control::PointPathRosAction> pointPathServer;
 	std::vector<tf::Vector3> pathPoints;
+	unsigned int currentPoint;
+
+	//Shared Parameters
 	bool yoyo;
 	int upperDepth;
 	int lowerDepth;
 
-	unsigned int currentPoint;
+	//State variables
     bool goingUp;
-	actionlib::SimpleActionServer<vehicle_auto_control::PointPathRosAction> pointPathServer;
 
 	ros::ServiceClient plumeClient;
 	tf::TransformListener listener;
-
-	std::string currentTask;
 
 	std::vector<tf::Vector3> pointPath;
 

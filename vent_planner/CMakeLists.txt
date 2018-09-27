@@ -8,15 +8,15 @@ project(vent_planner)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED
-	     actionlib_msgs
-	     geometry_msgs
-	     roscpp
- 	     tf
- 	     underwater_vehicle_sim
-       	     data_server
- 	     planner
-       	     planner_log
-	     message_generation)
+      	     actionlib_msgs
+      	     geometry_msgs
+      	     roscpp
+       	     tf
+       	     underwater_vehicle_sim
+             data_server
+       	     planner
+             planner_log
+      	     message_generation)
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -139,6 +139,7 @@ include_directories(
    src/vent_planner/controllers/DynamicLawnmowerController.cpp
    src/vent_planner/NestedSpiralVentPlanner.cpp
    src/vent_planner/NestedBinVentPlanner.cpp
+   src/vent_planner/SurfaceGradientVentPlanner.cpp
    src/vent_planner/DataTree.cpp
    src/vent_planner/DataNode.cpp
  )

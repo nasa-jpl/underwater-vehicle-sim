@@ -40,7 +40,7 @@ public:
     std::shared_ptr<ChargeAction> createChargeAction(const std::string& vehicleName) override;
     std::shared_ptr<DataTransferAction> createDataTransferAction(const std::string& vehicleName) override;
 
-std::shared_ptr<DynamicLawnmowerAction> createDynamicLawnmowerAction(const std::string& vehicleName,
+    std::shared_ptr<DynamicLawnmowerAction> createDynamicLawnmowerAction(const std::string& vehicleName,
                                                                          const double targetHorizontalVelocity, 
                                                                          const double targetRotationalVelocity,
                                                                          const double targetSlope,

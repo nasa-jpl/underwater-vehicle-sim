@@ -12,7 +12,7 @@
 #include "planner_framework/ActionExecutor.h"
 #include "underwater_vehicle_sim/GetVehicleInfo.h"
 
-#include "vehicle_auto_control/PointPathAction.h"
+#include "vehicle_auto_control/PointPathRosAction.h"
 #include "vent_planner/actions/DynamicLawnmowerAction.h"
 #include "vent_planner/DynamicLawnmowerRosAction.h"
 

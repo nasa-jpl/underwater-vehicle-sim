@@ -6,7 +6,7 @@
 #include "actionlib/server/simple_action_server.h"
 #include "actionlib/client/simple_action_client.h"
 
-#include "vehicle_auto_control/PointPathAction.h"
+#include "vehicle_auto_control/PointPathRosAction.h"
 #include "vent_planner/DynamicLawnmowerRosAction.h"
 
 #include "tf/LinearMath/Vector3.h"
@@ -25,9 +25,9 @@ private:
     void preemptCB(void);
     
     void pointPathActive(void);
-    void pointPathFeedback(const vehicle_auto_control::PointPathFeedbackConstPtr& feedback);
+    void pointPathFeedback(const vehicle_auto_control::PointPathRosFeedbackConstPtr& feedback);
     void pointPathDone(const actionlib::SimpleClientGoalState& state,
-                       const vehicle_auto_control::PointPathResultConstPtr& result);
+                       const vehicle_auto_control::PointPathRosResultConstPtr& result);
 
     void sendPointPathGoal(const std::vector<tf::Vector3>& points);
     void sendPointPathGoal(const tf::Vector3& point);
@@ -46,7 +46,7 @@ private:
 
 private:
     actionlib::SimpleActionServer<vent_planner::DynamicLawnmowerRosAction> dynamicLawnmowerServer;
-    actionlib::SimpleActionClient<vehicle_auto_control::PointPathAction> pointPathClient;
+    actionlib::SimpleActionClient<vehicle_auto_control::PointPathRosAction> pointPathClient;
     ros::ServiceClient plumeClient;
 
     bool replanNextUpdate;
