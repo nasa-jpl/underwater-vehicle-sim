@@ -72,7 +72,7 @@ bool DynamicLawnmowerSimActionExecutor::execute(std::shared_ptr<DynamicLawnmower
 	}
 	else //If the prop module is not known then this cannot be completed
 	{
-		ROS_WARN("%s has unknown prop module. Cannot execute dynamic lawnmower", vehicleName);
+		ROS_WARN("%s has unknown prop module. Cannot execute dynamic lawnmower", vehicleName.c_str());
 		return false;
 	}
 
