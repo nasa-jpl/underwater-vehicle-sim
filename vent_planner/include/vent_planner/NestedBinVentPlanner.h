@@ -56,8 +56,6 @@ private:
 
     void publishLog(std::string log);
 
-    bool isCompleted(std::shared_ptr<Plan> plan);
-
     DataNode getLatestSpiralData();
     bool newSpiralPlumeIntersect(DataNode& spiralData, double detectionThreshold);
 

@@ -227,7 +227,7 @@ std::shared_ptr<Plan> NestedBinVentPlanner::plan()
         }
         else
         {
-            if(!isCompleted(dynamicPlan))
+            if(!dynamicPlan->isCompleted())
             {
                 returnPlan = dynamicPlan;
                 phase = SearchPhase::dynamic;
@@ -241,7 +241,7 @@ std::shared_ptr<Plan> NestedBinVentPlanner::plan()
         }
     }
 
-    if(finalSurvey && isCompleted(finalSurvey))
+    if(finalSurvey && finalSurvey->isCompleted())
     {
         goalState = "success";
         ROS_INFO("Set goal state: success");
@@ -257,22 +257,6 @@ std::shared_ptr<Plan> NestedBinVentPlanner::plan()
     }
 
     return returnPlan;
-}
-
-bool NestedBinVentPlanner::isCompleted(std::shared_ptr<Plan> plan)
-{
-    ROS_INFO("Check for completed plan");
-    for(auto action : plan->getActions())
-    {
-        if(!(action->getState() == Action::State::COMPLETED ||
-             action->getState() == Action::State::FAILED))
-        {
-            ROS_INFO("Plan not completed");
-            return false;
-        }
-    }
-    ROS_INFO("Plan completed");
-    return true;
 }
 
 DataNode NestedBinVentPlanner::getLatestSpiralData()
