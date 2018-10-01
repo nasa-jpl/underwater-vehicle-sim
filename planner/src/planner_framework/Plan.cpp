@@ -41,3 +41,16 @@ unsigned int Plan::getNextAction()
 	}
 	return actions.size();
 }
+
+bool Plan::isCompleted()
+{
+	for(auto action : actions)
+	{
+		if(!(action->getState() == Action::State::COMPLETED ||
+			 action->getState() == Action::State::FAILED))
+		{
+			return false;
+		}
+	}
+	return true;
+}

@@ -36,6 +36,13 @@ public:
 
 	unsigned int getNextAction();
 
+	/**
+	 * Checks if the plan is finished. A finished plan checks if all
+	 * actions were completed, either successfully or failed.
+	 * @return If the plan has been completed or not
+	 */
+	bool isCompleted();
+
 private:
 	std::vector<std::shared_ptr<Action>> actions;
 };
