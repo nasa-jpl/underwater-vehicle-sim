@@ -55,7 +55,7 @@ void FourDOFPropulsionController::getVehicleData(const underwater_vehicle_sim::V
 
 void FourDOFPropulsionController::update(void) 
 {
-    if(!pointPathServer.isActive())
+    if(pointPathServer.isActive())
     {
         pointPathUpdate();
     }

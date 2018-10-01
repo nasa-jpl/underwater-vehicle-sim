@@ -8,7 +8,6 @@
 #include "vehicle_auto_control/PropulsionController.h"
 #include "vehicle_auto_control/Velocity.h"
 #include "vehicle_auto_control/PointPathRosAction.h"
-#include "vehicle_auto_control/CirclePathRosAction.h"
 
 
 #include "underwater_vehicle_sim/VehicleData.h"

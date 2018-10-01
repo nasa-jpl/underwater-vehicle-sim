@@ -7,8 +7,7 @@
 #include "ros/ros.h"
 #include "tf/transform_listener.h"
 #include "actionlib/client/simple_action_client.h"
-#include "vehicle_auto_control/PointPathAction.h"
-#include "vehicle_auto_control/DynamicLawnmowerAction.h"
+#include "vehicle_auto_control/PointPathRosAction.h"
 #include "vehicle_auto_control/Velocity.h"
 
 ros::ServiceClient client;
@@ -22,10 +21,10 @@ TEST(PointPath, PointPathController){
     tf::TransformListener listener;
 
     targetVelPub = nh.advertise<vehicle_auto_control::Velocity>("/vehicle_controller/v1/command_target_velocity", 1000);    
-    actionlib::SimpleActionClient<vehicle_auto_control::PointPathAction> ac("/vehicle_controller/v1/point_path", true);
+    actionlib::SimpleActionClient<vehicle_auto_control::PointPathRosAction> ac("/vehicle_controller/v1/point_path", true);
 
     vehicle_auto_control::Velocity maxVelMsg;
-    vehicle_auto_control::PointPathGoal pointPathMsg;
+    vehicle_auto_control::PointPathRosGoal pointPathMsg;
 
     maxVelMsg.horizontalVelocity = 1.0;
     maxVelMsg.verticalVelocity = 1.0;
@@ -115,10 +114,10 @@ TEST(PointPath, YoYoPointPathController){
     tf::TransformListener listener;
 
     targetVelPub = nh.advertise<vehicle_auto_control::Velocity>("/vehicle_controller/v0/command_target_velocity", 1000);
-    actionlib::SimpleActionClient<vehicle_auto_control::PointPathAction> ac("/vehicle_controller/v0/point_path", true);
+    actionlib::SimpleActionClient<vehicle_auto_control::PointPathRosAction> ac("/vehicle_controller/v0/point_path", true);
 
     vehicle_auto_control::Velocity maxVelMsg;
-    vehicle_auto_control::PointPathGoal pointPathMsg;
+    vehicle_auto_control::PointPathRosGoal pointPathMsg;
 
     maxVelMsg.horizontalVelocity = 1.0;
     maxVelMsg.verticalVelocity = 1.0;
