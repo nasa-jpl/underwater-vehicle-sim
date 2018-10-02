@@ -36,18 +36,6 @@ public:
 
     DataServerEntry getLatestData();
 
-    static std::vector<tf::Vector3> makeSpiral(tf::Vector3 startLocation, 
-                                        double startDirection, 
-                                        double spacing, 
-                                        double size);
-
-    static std::vector<tf::Vector3> makeLawnmower(const tf::Vector3& startLocation,
-                                                  double alongTrackDirection,
-                                                  double acrossTrackDirection,
-                                                  double alongTrackSize,
-                                                  double acrossTrackSize,
-                                                  double spacing);
-
 private:
 
     enum SearchPhase {none, spiral, dynamic, nested };

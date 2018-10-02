@@ -142,6 +142,7 @@ include_directories(
    src/vent_planner/SurfaceGradientVentPlanner.cpp
    src/vent_planner/DataTree.cpp
    src/vent_planner/DataNode.cpp
+   src/vent_planner/CreatePathUtil.cpp
  )
 
 ## Add cmake target dependencies of the library

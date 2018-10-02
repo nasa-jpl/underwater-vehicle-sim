@@ -22,6 +22,8 @@
 #include "vent_planner/DataNode.h"
 #include "vent_planner/DataTree.h"
 
+#include "vent_planner/CreatePathUtil.h"
+
 NestedBinVentPlanner::NestedBinVentPlanner(ros::NodeHandle& nh, std::unique_ptr<VentActionFactory> actionFactory, std::string vehicleName) :
     nh(nh),
     actionFactory(std::move(actionFactory)),
@@ -107,7 +109,7 @@ std::shared_ptr<Plan> NestedBinVentPlanner::plan()
 
             ROS_INFO("Generate inital plan");
             tf::Vector3 vehicleLocation(latestEntry.x, latestEntry.y, latestEntry.h);
-            std::vector<tf::Vector3> spiralPoints = makeSpiral(vehicleLocation, 0, spiralSpacing, 100000);
+            std::vector<tf::Vector3> spiralPoints = create_path_util::makeSpiral(vehicleLocation, 0, spiralSpacing, 100000);
             std::shared_ptr<Action> newAction = actionFactory->createPointPathAction(vehicleName,
                                                                                      1.0,
                                                                                      0.349066,
@@ -195,7 +197,7 @@ std::shared_ptr<Plan> NestedBinVentPlanner::plan()
                                       maximum->getCenterLocation().getY() - (maximum->getSize() * 1.5) + (nestedBinSize / 2),
                                       maximum->getHeightOfPlume());
 
-            std::vector<tf::Vector3> nestedPattern = makeLawnmower(startLocation,
+            std::vector<tf::Vector3> nestedPattern = create_path_util::makeLawnmower(startLocation,
                                                                    0,
                                                                    M_PI / 2,
                                                                    (nestedSizeFactor * 3 - 1) * nestedBinSize,
@@ -259,30 +261,6 @@ std::shared_ptr<Plan> NestedBinVentPlanner::plan()
     return returnPlan;
 }
 
-DataNode NestedBinVentPlanner::getLatestSpiralData()
-{
-    DataNode spiralData(nullptr, 0, tf::Vector3(0,0,0), 300000, 0);
-    data_server::GetPlumeData srv;
-    srv.request.name = vehicleName;
-    srv.request.start_time = lastPlan;
-    srv.request.end_time = ros::Time::now();
-
-    plumeClient.call(srv);
-
-    spiralData.clear(); //Clear data so we can easily calculate plume height and max value
-    for(unsigned int i = 0; i < srv.response.time.size(); i++)
-    {
-        PlumeDataEntry newPlumeData(srv.response.time[i],
-                               srv.response.x[i],
-                               srv.response.y[i],
-                               srv.response.h[i],
-                               srv.response.plume_val[i]);
-        spiralData.addData(newPlumeData);
-    }
-
-    return spiralData;
-}
-
 bool NestedBinVentPlanner::newSpiralPlumeIntersect(DataNode& spiralData, double detectionThreshold)
 {
     PlumeDataEntry maxVal = spiralData.getMaxVal();
@@ -318,29 +296,6 @@ void NestedBinVentPlanner::initalizeDataTree(tf::Vector3 centerLocation)
                                                           numPartitions * initalSpacing));
         dataTree->getRoot().partition(numPartitions);
         ROS_INFO("Initalize data bins, numPartitions: %i, size: %f", numPartitions, numPartitions * initalSpacing);
-    }
-}
-
-void NestedBinVentPlanner::addRecentDataToTree()
-{
-    if(dataTree)
-    {
-        data_server::GetPlumeData srv;
-        srv.request.name = vehicleName;
-        srv.request.start_time = lastPlan;
-        srv.request.end_time = ros::Time::now();
-
-        plumeClient.call(srv);
-
-        for(unsigned int i = 0; i < srv.response.time.size(); i++)
-        {
-            PlumeDataEntry newPlumeData(srv.response.time[i],
-                                   srv.response.x[i],
-                                   srv.response.y[i],
-                                   srv.response.h[i],
-                                   srv.response.plume_val[i]);
-            dataTree->addData(newPlumeData);
-        }
     }
 }
 
@@ -509,94 +464,6 @@ void NestedBinVentPlanner::updateGoal()
             goalState = "failed";
         }
     }
-}
-
-std::vector<tf::Vector3> NestedBinVentPlanner::makeSpiral(tf::Vector3 startLocation, double startDirection, double spacing, double size)
-{
-    std::vector<tf::Vector3> spiral;
-    spiral.push_back(startLocation);
-
-    tf::Vector3 location = startLocation;
-
-    const std::vector<double> directions = {startDirection, 
-                                            startDirection + (M_PI / 2), 
-                                            startDirection + M_PI, 
-                                            startDirection + (M_PI * 3 / 2)};
-
-    unsigned int currentDirection = 0;
-    unsigned int lengthIndex = 1;
-
-    while(lengthIndex * spacing <= size)
-    {
-        //Transect1 at transectLength
-        location.setX(location.getX() + (cos(directions[currentDirection]) * spacing * lengthIndex));
-        location.setY(location.getY() + (sin(directions[currentDirection]) * spacing * lengthIndex));
-        location.setZ(startLocation.getZ());
-        spiral.push_back(location);
-        currentDirection = (currentDirection + 1) % directions.size();
-        
-        //Transect2 at transectLength
-        location.setX(location.getX() + (cos(directions[currentDirection]) * spacing * lengthIndex));
-        location.setY(location.getY() + (sin(directions[currentDirection]) * spacing * lengthIndex));
-        location.setZ(startLocation.getZ());
-        spiral.push_back(location);
-        currentDirection = (currentDirection + 1) % directions.size();
-        
-        lengthIndex++;
-    }
-
-    //Final transect to finish out the spiral, same transect length as the last segment
-    location.setX(location.getX() + (cos(directions[currentDirection]) * spacing * (lengthIndex - 1)));
-    location.setY(location.getY() + (sin(directions[currentDirection]) * spacing * (lengthIndex - 1)));
-    location.setZ(startLocation.getZ());
-    spiral.push_back(location);
-
-    return spiral;
-}
-
-std::vector<tf::Vector3> NestedBinVentPlanner::makeLawnmower(const tf::Vector3& startLocation,
-                                                    double alongTrackDirection,
-                                                    double acrossTrackDirection,
-                                                    double alongTrackSize,
-                                                    double acrossTrackSize,
-                                                    double spacing)
-{
-    std::vector<tf::Vector3> lawnmower;
-    lawnmower.push_back(startLocation);
-
-    tf::Vector3 location = startLocation;
-    const std::vector<double> directions = {alongTrackDirection, 
-                                            acrossTrackDirection, 
-                                            alongTrackDirection - M_PI, 
-                                            acrossTrackDirection};
-
-    const std::vector<double> distance = {alongTrackSize, 
-                                          spacing, 
-                                          alongTrackSize, 
-                                          spacing};                   
-
-    
-
-    unsigned legIndex = 0;
-    unsigned trackIndex = 0;
-    while(spacing * trackIndex <= acrossTrackSize)
-    {
-        //Transect1 at transectLength
-        location.setX(location.getX() + (cos(directions[legIndex]) * distance[legIndex]));
-        location.setY(location.getY() + (sin(directions[legIndex]) * distance[legIndex]));
-        location.setZ(startLocation.getZ());
-        lawnmower.push_back(location);
-
-        if(legIndex == 0 || legIndex == 2)
-        {
-            trackIndex++;
-        }
-        legIndex = (legIndex + 1) % directions.size();
-
-        
-    }
-
-    return lawnmower;
 }
 
 void NestedBinVentPlanner::publishLog(std::string log)
