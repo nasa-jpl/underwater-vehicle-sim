@@ -48,7 +48,7 @@ private:
     bool newSpiralPlumeIntersect(DataNode& spiralData, double detectionThreshold);
 
     void initalizeDataTree(tf::Vector3 centerLocation);
-    void addRecentDataToTree();
+
     /**
     *Sets the parameter returnEntry to the latest data from the vehicle
     *@param returnEntry Output for the latest data
