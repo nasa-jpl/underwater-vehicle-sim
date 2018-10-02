@@ -14,6 +14,12 @@ namespace create_path_util
                                            double alongTrackSize,
                                            double acrossTrackSize,
                                            double spacing);
+
+    std::vector<tf::Vector3> makePolygon(const tf::Vector3& center,
+                                         const unsigned int sides,
+                                         const double radius,
+                                         const double initalPointHeading,
+                                         const bool clockwise);
 }
 
 #endif

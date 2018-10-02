@@ -87,3 +87,41 @@ std::vector<tf::Vector3> create_path_util::makeLawnmower(const tf::Vector3& star
 
     return lawnmower;
 }
+
+std::vector<tf::Vector3> create_path_util::makePolygon(const tf::Vector3& center,
+                                                       const unsigned int sides,
+                                                       const double radius,
+                                                       const double initialPointHeading,
+                                                       const bool clockwise)
+{
+    std::vector<tf::Vector3> polygon;
+
+    double angleInterval = (2 * M_PI) / sides;
+    double currentPointHeading = initialPointHeading;
+    //Add 1 to sides so start and end points are the same
+    for(unsigned int i = 0; i < sides + 1; i++)
+    {
+        //sin and cos are reveresed (x = sin(theta), y = cos(theta))
+        //becuase this is a heading with north up (+y)
+        double xOffset = radius * sin(currentPointHeading);
+        double yOffset = radius * cos(currentPointHeading);
+
+        tf::Vector3 point;
+        point.setX(center.getX() + xOffset);
+        point.setY(center.getY() + yOffset);
+        point.setZ(center.getZ());
+        polygon.push_back(point);
+
+        if(clockwise)
+        {
+            currentPointHeading += angleInterval;
+        }
+        else
+        {
+            currentPointHeading -= angleInterval;
+        }
+        
+    }
+
+    return polygon;
+}
