@@ -63,7 +63,7 @@ std::shared_ptr<Plan> NestedSpiralVentPlanner::plan()
 {
     ROS_INFO("Plan Start");
     //Pop the top plan if it has been completed
-    if(plans.size() > 0 && isCompleted(plans.top()))
+    if(plans.size() > 0 && plans.top()->isCompleted())
     {
         ROS_INFO("Finished Plan");
         plans.pop();
@@ -371,22 +371,6 @@ bool NestedSpiralVentPlanner::getHeightOfPlume(const std::vector<PlumeDataEntry>
     plumeStrength = maxBinVal;
     plumeX = maxBinX;
     plumeY = maxBinY;
-    return true;
-}
-
-bool NestedSpiralVentPlanner::isCompleted(std::shared_ptr<Plan> plan)
-{
-    ROS_INFO("Check for completed");
-    for(auto action : plan->getActions())
-    {
-        if(!(action->getState() == Action::State::COMPLETED || 
-             action->getState() == Action::State::FAILED))
-        {
-            ROS_INFO("Not Completed: %i", action->getState());
-            return false;
-        }
-    }
-    ROS_INFO("Completed");
     return true;
 }
 

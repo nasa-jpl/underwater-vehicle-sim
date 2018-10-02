@@ -35,8 +35,6 @@ private:
     bool getHeightOfPlume(const std::vector<PlumeDataEntry>& data, const unsigned int dataStart, double& plumeX, double& plumeY, double& plumeHeight, double& plumeStrength);
     void getPlumeMax(const std::vector<PlumeDataEntry>& data, const unsigned int dataStart, double& plumeX, double& plumeY, double& plumeStrength);
 
-    bool isCompleted(std::shared_ptr<Plan> plan);
-
     bool isDone();
     /**
     *Sets the parameter returnEntry to the latest data from the vehicle
