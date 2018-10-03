@@ -68,3 +68,47 @@ void SurfaceGradientVentPlanner::updateGoal()
         }
     }
 }
+
+bool SurfaceGradientVentPlanner::fitPlane(std::vector<tf::Vector3>& points, double& a0, double& a1, double& b)
+{
+    //compute mean
+    tf::Vector3 mean(0,0,0);
+
+    for(tf::Vector3& point : points)
+    {
+        mean += point;
+    }
+    mean /= points.size();
+
+    double xxSum = 0;
+    double xySum = 0;
+    double xhSum = 0;
+    double yySum = 0;
+    double yhSum = 0;
+
+    for(tf::Vector3& point : points)
+    {
+        tf::Vector3 diff = point - mean;
+        xxSum += diff.getX() * diff.getX();
+        xySum += diff.getX() * diff.getY();
+        xhSum += diff.getX() * diff.getZ();
+        yySum += diff.getY() * diff.getY();
+        yhSum += diff.getY() * diff.getZ();
+    }
+
+    double det = xxSum * yySum - xySum * xySum;
+    if(det != 0)
+    {
+        double barA0 = (yySum * xhSum - xySum * yhSum) / det;
+        double barA1 = (xxSum * yhSum - xySum * xhSum) / det;
+
+        a0 = barA0;
+        a1 = barA1;
+        b = mean.getZ() - barA0 * mean.getX() - barA1 * mean.getY();
+
+        return true;
+    }
+
+    //Invalid point inputs
+    return false;
+}

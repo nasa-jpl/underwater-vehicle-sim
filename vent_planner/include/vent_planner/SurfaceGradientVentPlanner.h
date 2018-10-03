@@ -21,11 +21,13 @@ public:
 
     std::shared_ptr<Plan> plan();
 
-    
+    static bool fitPlane(std::vector<tf::Vector3>& points, double& a0, double& a1, double& b);
 private:
 
     void publishGoal();
     void updateGoal();
+
+    
 
 private:
 
