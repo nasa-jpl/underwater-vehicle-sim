@@ -18,7 +18,7 @@
 #include "plume_detector/PlumeDataEntry.h"
 #include "data_server/GetPlumeData.h"
 
-#include "vent_planner/CreatePathUtil.h"
+#include "vent_planner/util/CreatePathUtil.h"
 
 NestedSpiralVentPlanner::NestedSpiralVentPlanner(ros::NodeHandle& nh, std::unique_ptr<VentActionFactory> actionFactory, std::string vehicleName) :
     nh(nh),

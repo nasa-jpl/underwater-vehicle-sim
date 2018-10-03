@@ -4,7 +4,7 @@
 
 #include "tf/LinearMath/Vector3.h"
 
-#include "vent_planner/CreatePathUtil.h"
+#include "vent_planner/util/CreatePathUtil.h"
 
 TEST(PatternGeneration, Spiral)
 {

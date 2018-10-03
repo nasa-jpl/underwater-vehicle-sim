@@ -22,7 +22,7 @@
 #include "vent_planner/DataNode.h"
 #include "vent_planner/DataTree.h"
 
-#include "vent_planner/CreatePathUtil.h"
+#include "vent_planner/util/CreatePathUtil.h"
 
 NestedBinVentPlanner::NestedBinVentPlanner(ros::NodeHandle& nh, std::unique_ptr<VentActionFactory> actionFactory, std::string vehicleName) :
     nh(nh),

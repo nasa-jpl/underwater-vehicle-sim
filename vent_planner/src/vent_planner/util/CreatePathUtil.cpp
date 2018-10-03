@@ -1,4 +1,4 @@
-#include "vent_planner/CreatePathUtil.h"
+#include "vent_planner/util/CreatePathUtil.h"
 
 std::vector<tf::Vector3> create_path_util::makeSpiral(tf::Vector3 startLocation, double startDirection, double spacing, double size)
 {
