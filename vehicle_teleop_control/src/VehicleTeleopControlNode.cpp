@@ -97,13 +97,13 @@ int main(int argc, char **argv)
         {
             case KEYCODE_L:
                 ROS_DEBUG("LEFT");
-                rotateZ = 1.0;
+                rotateZ = -1.0;
                 dirty = true;
                 break;
 
             case KEYCODE_R:
                 ROS_DEBUG("RIGHT");
-                rotateZ = -1.0;
+                rotateZ = 1.0;
                 dirty = true;
                 break;
 

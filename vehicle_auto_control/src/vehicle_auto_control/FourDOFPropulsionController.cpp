@@ -257,20 +257,20 @@ double FourDOFPropulsionController::scaleRotationalVelocity(double angleError, d
     {
         if(crossZ >= 0)
         {
-            return targetRotVelocity;
+            return -targetRotVelocity;
         }
         else
         {
-            return -targetRotVelocity;
+            return targetRotVelocity;
         }
     }
 
     if(crossZ >= 0)
     {
-        return targetRotVelocity * (angleError / angleErrorScale);
+        return -targetRotVelocity * (angleError / angleErrorScale);
     }
     
-    return -targetRotVelocity * (angleError / angleErrorScale);
+    return targetRotVelocity * (angleError / angleErrorScale);
 }
 
 void FourDOFPropulsionController::sendVelocityCommand(double cmdForwardVelocity, double cmdLateralVelocity, double cmdRotVelocity, double cmdVertVelocity)

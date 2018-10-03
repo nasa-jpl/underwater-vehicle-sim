@@ -21,13 +21,24 @@ public:
 
     std::shared_ptr<Plan> plan();
 
+    /**
+    *Fits plane to points using least squares minimizing distance in z direction.
+    *Output in format h = a0x + a1y + b.
+    *@param points Input points
+    *@param a0 Output scalar
+    *@param a1 Output scalar
+    *@param b Output scalar
+    */
     static bool fitPlane(std::vector<tf::Vector3>& points, double& a0, double& a1, double& b);
+
+    static double planeGradientHeading(const double a0, const double a1);
+
 private:
 
     void publishGoal();
     void updateGoal();
 
-    
+
 
 private:
 

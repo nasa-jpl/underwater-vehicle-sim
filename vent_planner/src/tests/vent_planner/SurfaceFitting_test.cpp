@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include <math.h>
+#include <cmath>
 
 #include "tf/LinearMath/Vector3.h"
 #include "vent_planner/SurfaceGradientVentPlanner.h"
@@ -43,6 +43,7 @@ TEST(SurfaceFitting, PlaneFit)
 
     planesEqual(normal1Test1, point1Test1,
                 normal2Test1, point2Test1);
+    ASSERT_TRUE(std::isnan(SurfaceGradientVentPlanner::planeGradientHeading(a0Test1, a1Test1)));
 
     //TEST 2
     std::vector<tf::Vector3> pointsTest2;
@@ -64,6 +65,7 @@ TEST(SurfaceFitting, PlaneFit)
 
     planesEqual(normal1Test2, point1Test2,
                 normal2Test2, point2Test2);
+    ASSERT_TRUE(std::isnan(SurfaceGradientVentPlanner::planeGradientHeading(a0Test2, a1Test2)));
 
     //TEST 3
     std::vector<tf::Vector3> pointsTest3;
@@ -86,6 +88,7 @@ TEST(SurfaceFitting, PlaneFit)
 
     planesEqual(normal1Test3, point1Test3,
                 normal2Test3, point2Test3);
+    ASSERT_NEAR(M_PI / 2, SurfaceGradientVentPlanner::planeGradientHeading(a0Test3, a1Test3), 0.00001);
 
     //TEST 4
     std::vector<tf::Vector3> pointsTest4;
@@ -105,6 +108,7 @@ TEST(SurfaceFitting, PlaneFit)
 
     ASSERT_TRUE(SurfaceGradientVentPlanner::fitPlane(pointsTest4, a0Test4, a1Test4, bTest4));
 
+
     tf::Vector3 normal1Test4(a0Test4, a1Test4, -1);
     tf::Vector3 point1Test4(0,0, bTest4);
 
@@ -113,8 +117,9 @@ TEST(SurfaceFitting, PlaneFit)
 
     planesEqual(normal1Test4, point1Test4,
                 normal2Test4, point2Test4);
+    ASSERT_TRUE(std::isnan(SurfaceGradientVentPlanner::planeGradientHeading(a0Test4, a1Test4)));
 
-    //TEST 4
+    //TEST 5
     std::vector<tf::Vector3> pointsTest5;
     pointsTest5.emplace_back(0, 0, 0);
     pointsTest5.emplace_back(10, 0, 0);
@@ -126,6 +131,72 @@ TEST(SurfaceFitting, PlaneFit)
 
     ASSERT_FALSE(SurfaceGradientVentPlanner::fitPlane(pointsTest5, a0Test5, a1Test5, bTest5));
 
+    //TEST 6
+    std::vector<tf::Vector3> pointsTest6;
+    pointsTest6.emplace_back(0, 0, 40);
+    pointsTest6.emplace_back(5, 0, 45);
+    pointsTest6.emplace_back(10, 10, 50);
+    pointsTest6.emplace_back(10, -10, 50);
+
+    double a0Test6 = 0;
+    double a1Test6 = 0;
+    double bTest6 = 0;
+
+    ASSERT_TRUE(SurfaceGradientVentPlanner::fitPlane(pointsTest6, a0Test6, a1Test6, bTest6));
+
+    tf::Vector3 normal1Test6(a0Test6, a1Test6, -1);
+    tf::Vector3 point1Test6(0,0, bTest6);
+
+    tf::Vector3 normal2Test6(-1,0,1);
+    tf::Vector3 point2Test6(0,0,40);
+
+    planesEqual(normal1Test6, point1Test6,
+                normal2Test6, point2Test6);
+    ASSERT_NEAR(-M_PI / 2, SurfaceGradientVentPlanner::planeGradientHeading(a0Test6, a1Test6), 0.00001);
+
+    //TEST 7
+    std::vector<tf::Vector3> pointsTest7;
+    pointsTest7.emplace_back(0, 0, 40);
+    pointsTest7.emplace_back(10, 10, 50);
+    pointsTest7.emplace_back(-10, 10, 50);
+
+    double a0Test7 = 0;
+    double a1Test7 = 0;
+    double bTest7 = 0;
+
+    ASSERT_TRUE(SurfaceGradientVentPlanner::fitPlane(pointsTest7, a0Test7, a1Test7, bTest7));
+
+    tf::Vector3 normal1Test7(a0Test7, a1Test7, -1);
+    tf::Vector3 point1Test7(0,0, bTest7);
+
+    tf::Vector3 normal2Test7(0,-1,1);
+    tf::Vector3 point2Test7(0,0,40);
+
+    planesEqual(normal1Test7, point1Test7,
+                normal2Test7, point2Test7);
+    ASSERT_NEAR(-M_PI, SurfaceGradientVentPlanner::planeGradientHeading(a0Test7, a1Test7), 0.00001);
+
+    //TEST 8
+    std::vector<tf::Vector3> pointsTest8;
+    pointsTest8.emplace_back(0, 0, 60);
+    pointsTest8.emplace_back(10, 10, 50);
+    pointsTest8.emplace_back(-10, 10, 50);
+
+    double a0Test8 = 0;
+    double a1Test8 = 0;
+    double bTest8 = 0;
+
+    ASSERT_TRUE(SurfaceGradientVentPlanner::fitPlane(pointsTest8, a0Test8, a1Test8, bTest8));
+
+    tf::Vector3 normal1Test8(a0Test8, a1Test8, -1);
+    tf::Vector3 point1Test8(0,0, bTest8);
+
+    tf::Vector3 normal2Test8(0,1,1);
+    tf::Vector3 point2Test8(0,0,60);
+
+    planesEqual(normal1Test8, point1Test8,
+                normal2Test8, point2Test8);
+    ASSERT_NEAR(0, SurfaceGradientVentPlanner::planeGradientHeading(a0Test8, a1Test8), 0.00001);
 }
 
 

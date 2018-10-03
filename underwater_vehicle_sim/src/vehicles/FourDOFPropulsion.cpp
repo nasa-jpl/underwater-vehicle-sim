@@ -149,9 +149,10 @@ void FourDOFPropulsion::move(ros::Time& lastTime, tf::Quaternion& rotation, tf::
 	//create a Quaternion to represent rotation using the axis of rotation and angle of rotation
 	tf::Quaternion totalRotMovement;
 
+    //Z rotation is negative because heading increases clockwise
 	totalRotMovement.setRPY(rotVelocity.getX() * elapsedTime.toSec(),
 							rotVelocity.getY() * elapsedTime.toSec(),
-							rotVelocity.getZ() * elapsedTime.toSec());
+							-rotVelocity.getZ() * elapsedTime.toSec());
 	
 	//Apply the rotation to the current rotation of the vehicle
 	rotation *= totalRotMovement;

@@ -69,6 +69,30 @@ void SurfaceGradientVentPlanner::updateGoal()
     }
 }
 
+double SurfaceGradientVentPlanner::planeGradientHeading(const double a0, const double a1)
+{
+    if(a0 == 0 && a1 == 0)
+    {
+        return std::numeric_limits<double>::quiet_NaN();
+    }
+
+    tf::Vector3 normal(-a0, -a1, 0);
+    tf::Vector3 north(0,1,0);
+    tf::Vector3 cross = north.cross(normal);
+
+    if(cross.getZ() >= 0)
+    {
+        return -north.angle(normal);
+    }
+    else
+    {
+        return north.angle(normal);
+    }
+
+
+    return std::numeric_limits<double>::quiet_NaN();
+}
+
 bool SurfaceGradientVentPlanner::fitPlane(std::vector<tf::Vector3>& points, double& a0, double& a1, double& b)
 {
     //compute mean
