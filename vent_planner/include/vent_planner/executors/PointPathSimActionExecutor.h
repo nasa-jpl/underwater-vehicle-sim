@@ -76,7 +76,7 @@ private:
 
     bool replanGoingUp;
     bool replanNextUpdate;
-    
+    ros::Time lastReplan;
     std::string vehicleName;
 
     actionlib::SimpleActionClient<vehicle_auto_control::PointPathRosAction> pointPathClient;

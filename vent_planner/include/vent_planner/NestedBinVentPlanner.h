@@ -20,7 +20,6 @@
 
 #include "data_server/DataServerEntry.h"
 
-#include "plume_detector/PlumeDataEntry.h"
 #include "data_server/GetPlumeData.h"
 #include "data_server/PlumeData.h"
 

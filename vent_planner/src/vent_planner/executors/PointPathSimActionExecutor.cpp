@@ -20,7 +20,9 @@ PointPathSimActionExecutor::PointPathSimActionExecutor(ros::NodeHandle& nh, std:
 	nh(nh),
 	pointPathClient("vehicle_controller/"  + vehicleName + "/point_path", true),
 	replanGoingUp(true),
-	currentPointOffset(0)
+	currentPointOffset(0),
+	replanNextUpdate(false),
+	lastReplan(ros::Time::now())
 {
 	infoClient = nh.serviceClient<underwater_vehicle_sim::GetVehicleInfo>("vehicles/get_info");
 	infoClient.waitForExistence();
@@ -35,7 +37,8 @@ PointPathSimActionExecutor::PointPathSimActionExecutor(const PointPathSimActionE
 	vehicleName(other.vehicleName),
 	nh(other.nh),
 	currentPointOffset(other.currentPointOffset),
-	pointPathClient("vehicle_controller/"  + vehicleName + "/point_path", true)
+	pointPathClient("vehicle_controller/"  + vehicleName + "/point_path", true),
+	replanNextUpdate(false)
 {
 	infoClient = nh.serviceClient<underwater_vehicle_sim::GetVehicleInfo>("vehicles/get_info");
 	infoClient.waitForExistence();
@@ -146,7 +149,7 @@ void PointPathSimActionExecutor::cancel(std::shared_ptr<PointPathAction> action)
 
 bool PointPathSimActionExecutor::triggerReplan(std::shared_ptr<PointPathAction> action)
 {
-	if(action->replan && replanNextUpdate)
+	if(replanNextUpdate)
 	{
 		replanNextUpdate = false;
 		return true;
@@ -209,10 +212,25 @@ void PointPathSimActionExecutor::actionFeedback(std::shared_ptr<PointPathAction>
 	//Add the currentPointOffset as we did not necessarily start at point 0
 	adjustedCurrentPoint += currentPointOffset;
 
-	if(action->yoyo &&
-	   feedback->goingUp != action->getGoingUp() &&
-	   action->getCurrentPoint() >= 1 &&
-	   (!action->getDoInterruptPoint() || (action->getDoInterruptPoint() && feedback->currentPoint >= 1)))
+
+	//Check for replan
+	if(action->replanType == PointPathAction::ReplanType::ON_POINT_REACHED &&
+	   action->getCurrentPoint() >= 1 && //at least at the first point
+	   adjustedCurrentPoint != action->getCurrentPoint()) //reached a new point
+	{
+		replanNextUpdate = true;
+	}
+	else if(action->replanType == PointPathAction::ReplanType::ON_YOYO_TURN && 
+			action->yoyo && //insure we are yoyoing
+			feedback->goingUp != action->getGoingUp() && //at top or bottom of yoyo
+	   		action->getCurrentPoint() >= 1 && //at least at the first point
+	   		(!action->getDoInterruptPoint() || (action->getDoInterruptPoint() && feedback->currentPoint >= 1))) //past the interrupt point
+	{
+		replanNextUpdate = true;
+	}
+	else if(action->replanType == PointPathAction::ReplanType::PERIODIC,
+		    action->getCurrentPoint() >= 1 && 
+		    (ros::Time::now() - lastReplan).toSec() > action->periodicReplanTime)
 	{
 		replanNextUpdate = true;
 	}
@@ -221,15 +239,9 @@ void PointPathSimActionExecutor::actionFeedback(std::shared_ptr<PointPathAction>
 	{
 		//Wait until we have reached point 1 before any replanning
 		ROS_DEBUG("Point Reached - Adjusted point: %i, Action Point: %i", adjustedCurrentPoint, action->getCurrentPoint());
-		if(!action->yoyo && action->getCurrentPoint() >= 1)
-		{
-			replanNextUpdate = true;
-		}
 		action->setCurrentPoint(adjustedCurrentPoint);
 		action->addPointReachedTime(ros::Time::now());
 	}
-
-	
 
 	action->setGoingUp(feedback->goingUp);
 }

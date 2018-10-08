@@ -19,40 +19,53 @@ public:
     SurfaceGradientVentPlanner(ros::NodeHandle& nh, std::unique_ptr<VentActionFactory> actionFactory, std::string vehicleName);
     ~SurfaceGradientVentPlanner() {}
 
+    void receivePlumeData(const data_server::PlumeData::ConstPtr& msg);
+
     std::shared_ptr<Plan> plan();
-
-    /**
-    *Fits plane to points using least squares minimizing distance in z direction.
-    *Output in format h = a0x + a1y + b.
-    *@param points Input points
-    *@param a0 Output scalar
-    *@param a1 Output scalar
-    *@param b Output scalar
-    */
-    static bool fitPlane(std::vector<tf::Vector3>& points, double& a0, double& a1, double& b);
-
-    static double planeGradientHeading(const double a0, const double a1);
 
 private:
 
     void publishGoal();
     void updateGoal();
 
-
+    /**
+    *Sets the parameter returnEntry to the latest data from the vehicle
+    *@param returnEntry Output for the latest data
+    *@return True if getting the latest data was successful
+    **/
+    bool getLatestData(DataServerEntry& returnEntry);
 
 private:
 
-    enum SearchPhase { INITIAL_PLAN, CALC_GRADIENT, FOLLOW_GRADIENT };
+    enum SearchPhase { INITIAL_PLAN, SPIRAL, PLAN_GRADIENT, CALC_GRADIENT, FOLLOW_GRADIENT };
 
     std::unique_ptr<VentActionFactory> actionFactory;  
     std::string goalState;
     std::string vehicleName;
     ros::NodeHandle& nh;
 
+    ros::ServiceClient latestDataClient;
+    ros::Subscriber dataSub;
+    std::vector<tf::Vector3> currentData;
+    DataNode spiralData;
+
+    double plumeHeight;
+    double gradientDirection;
+
     SearchPhase currentPlannerStage;
 
+    std::shared_ptr<Plan> spiralPlan;
+    std::shared_ptr<Plan> gradientPlan;
+
+    tf::Vector3 gradientLocation;
+
+    double spiralSpacing;
     double failTime;
     ros::Publisher goalPub;
+
+    double detectionThreshold;
+    double gradientCalcRadius;
+    double gradientFollowDistance;
 };
 
 #endif

@@ -10,7 +10,8 @@ PointPathAction::PointPathAction(std::unique_ptr<ActionExecutor<PointPathAction>
                                  const double upperDepth,
                                  const double lowerDepth,
                                  const std::vector<tf::Vector3>& points,
-                                 const bool replan) :
+                                 const ReplanType replanType,
+                                 const double periodicReplanTime) :
     executor(std::move(executor)),
     targetHorizontalVelocity(targetHorizontalVelocity),
     targetRotationalVelocity(targetRotationalVelocity),
@@ -19,7 +20,8 @@ PointPathAction::PointPathAction(std::unique_ptr<ActionExecutor<PointPathAction>
     lowerDepth(lowerDepth),
     yoyo(true),
     points(points),
-    replan(replan),
+    replanType(replanType),
+    periodicReplanTime(periodicReplanTime),
     currentPoint(0),
     doInterruptPoint(false)
 {}
@@ -29,18 +31,20 @@ PointPathAction::PointPathAction(std::unique_ptr<ActionExecutor<PointPathAction>
                                  const double targetRotationalVelocity,
                                  const double targetSlope,
                                  const std::vector<tf::Vector3>& points,
-                                 const bool replan) :
-                                 executor(std::move(executor)),
-                                 targetHorizontalVelocity(targetHorizontalVelocity),
-                                 targetRotationalVelocity(targetRotationalVelocity),
-                                 targetSlope(targetSlope),
-                                 upperDepth(0),
-                                 lowerDepth(0),
-                                 yoyo(false),
-                                 points(points),
-                                 replan(replan),
-                                 currentPoint(0),
-                                 doInterruptPoint(false)
+                                 const ReplanType replanType,
+                                 const double periodicReplanTime) :
+    executor(std::move(executor)),
+    targetHorizontalVelocity(targetHorizontalVelocity),
+    targetRotationalVelocity(targetRotationalVelocity),
+    targetSlope(targetSlope),
+    upperDepth(0),
+    lowerDepth(0),
+    yoyo(false),
+    points(points),
+    replanType(replanType),
+    periodicReplanTime(periodicReplanTime),
+    currentPoint(0),
+    doInterruptPoint(false)
 {}
 
 PointPathAction::PointPathAction(const PointPathAction& action) :
@@ -53,7 +57,8 @@ PointPathAction::PointPathAction(const PointPathAction& action) :
     lowerDepth(action.lowerDepth),
     yoyo(action.yoyo),
     points(action.points),
-    replan(action.replan),
+    replanType(action.replanType),
+    periodicReplanTime(action.periodicReplanTime),
     doInterruptPoint(action.doInterruptPoint),
     interruptPoint(action.interruptPoint)
 {}

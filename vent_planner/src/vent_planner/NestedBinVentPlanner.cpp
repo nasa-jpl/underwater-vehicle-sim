@@ -16,7 +16,6 @@
 
 #include "data_server/DataServerEntry.h"
 
-#include "plume_detector/PlumeDataEntry.h"
 #include "data_server/GetPlumeData.h"
 
 #include "vent_planner/DataNode.h"
@@ -117,7 +116,8 @@ std::shared_ptr<Plan> NestedBinVentPlanner::plan()
                                                                                      -100,
                                                                                      -2000,
                                                                                      spiralPoints,
-                                                                                     true);
+                                                                                     PointPathAction::ReplanType::ON_YOYO_TURN,
+                                                                                     0);
             returnPlan->addAction(newAction);
             publishLog(vehicleName + ",Spiral");
 
@@ -144,7 +144,6 @@ std::shared_ptr<Plan> NestedBinVentPlanner::plan()
             const tf::Vector3 closestOrigin = dataTree->getClosestNodeOrigin(maxLoc, 1);
             addInitalLawnmowers(returnPlan, closestOrigin, plumeHeight);
 
-            spiralData.clear();
             //Log data to file
             std::stringstream ss;
             ss.precision(5);
@@ -157,6 +156,8 @@ std::shared_ptr<Plan> NestedBinVentPlanner::plan()
             returnPlan->resetInterrupted();
             phase = SearchPhase::spiral;
         }
+
+        spiralData.clear();
     }
     else if(phase == SearchPhase::dynamic || phase == SearchPhase::nested)
     {
@@ -209,7 +210,8 @@ std::shared_ptr<Plan> NestedBinVentPlanner::plan()
                                                                                                     0.349066,
                                                                                                     0.523599, //30 deg
                                                                                                     nestedPattern,
-                                                                                                    false);
+                                                                                                    PointPathAction::ReplanType::NONE,
+                                                                                                    0);
 
             ROS_INFO("New nested lawnmower, Current Point: %i, Total Points: %lu", lawnmowerAction->getCurrentPoint(), nestedPattern.size());
             returnPlan = std::shared_ptr<Plan>(new Plan());

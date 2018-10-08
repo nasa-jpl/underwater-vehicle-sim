@@ -28,14 +28,16 @@ public:
                                                            const double upperDepth,
                                                            const double lowerDepth,
                                                            const std::vector<tf::Vector3>& points,
-                                                           const bool replan) override;
+                                                           const PointPathAction::ReplanType replan,
+                                                           const double periodicReplanTime) override;
 
     std::shared_ptr<PointPathAction> createPointPathAction(const std::string& vehicleName,
                                                            const double targetHorizontalVelocity, 
                                                            const double targetRotationalVelocity,
                                                            const double targetSlope,
                                                            const std::vector<tf::Vector3>& points,
-                                                           const bool replan) override;
+                                                           const PointPathAction::ReplanType replan,
+                                                           const double periodicReplanTime) override;
 
     std::shared_ptr<ChargeAction> createChargeAction(const std::string& vehicleName) override;
     std::shared_ptr<DataTransferAction> createDataTransferAction(const std::string& vehicleName) override;

@@ -2,6 +2,8 @@
 #include <iostream>
 #include <string>
 
+#include "ros/ros.h"
+
 #include "vent_planner/util/Plane.h"
 
 Plane::Plane(double a, double b, double c, double d) :
@@ -31,6 +33,7 @@ void Plane::reverse()
 
 double Plane::getHeightGradientHeading()
 {
+    ROS_INFO("Plane Phase a b: %f %f", a, b);
     if(a == 0 && b == 0)
     {
         return std::numeric_limits<double>::quiet_NaN();
@@ -105,8 +108,22 @@ Plane Plane::fitPlaneToPoints(std::vector<tf::Vector3>& points)
     double yySum = 0;
     double yhSum = 0;
 
+    ROS_INFO("Plane Phase mean: %f %f %f", mean.getX(), mean.getY(), mean.getZ());
     for(tf::Vector3& point : points)
     {
+        if(std::isnan(point.getX()))
+        {
+            ROS_INFO("Plane Phase point.getX() nan");
+        }
+        else if(std::isnan(point.getY()))
+        {
+            ROS_INFO("Plane Phase point.getY() nan");
+        }
+        else if(std::isnan(point.getZ()))
+        {
+            ROS_INFO("Plane Phase point.getZ() nan");
+        }
+
         tf::Vector3 diff = point - mean;
         xxSum += diff.getX() * diff.getX();
         xySum += diff.getX() * diff.getY();

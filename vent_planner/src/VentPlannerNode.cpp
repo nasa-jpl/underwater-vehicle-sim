@@ -6,7 +6,9 @@
 
 #include "vent_planner/actions/VentActionFactory.h"
 #include "vent_planner/actions/SimVentActionFactory.h"
+#include "vent_planner/NestedSpiralVentPlanner.h"
 #include "vent_planner/NestedBinVentPlanner.h"
+#include "vent_planner/SurfaceGradientVentPlanner.h"
 
 int main(int argc, char **argv)
 {
@@ -17,6 +19,13 @@ int main(int argc, char **argv)
     if(!nh.getParam("planner/hertz", loopHertz))
     {
         ROS_FATAL("Parameter \"planner/hertz\" not present in the parameter server.");
+        exit(1);
+    }
+
+    std::string plannerType;
+    if(!nh.getParam("planner/type", plannerType))
+    {
+        ROS_FATAL("Parameter \"planner/type\" not present in the parameter server.");
         exit(1);
     }
 
@@ -33,7 +42,20 @@ int main(int argc, char **argv)
     {
         std::unique_ptr<PlanDispatcher> dispatcher(new PlanDispatcher());
         std::unique_ptr<VentActionFactory> factory(new SimVentActionFactory(nh));
-        std::unique_ptr<Planner> planner(new NestedBinVentPlanner(nh, std::move(factory), name));
+        std::unique_ptr<Planner> planner;
+        if(plannerType == "SurfaceGradient")
+        {
+            planner.reset(new SurfaceGradientVentPlanner(nh, std::move(factory), name));
+        }
+        else if(plannerType == "NestedBin")
+        {
+            planner.reset(new NestedBinVentPlanner(nh, std::move(factory), name));
+        }
+        else if(plannerType == "NestedSpiral")
+        {
+            planner.reset(new NestedSpiralVentPlanner(nh, std::move(factory), name));
+        }
+        
         servers.emplace_back(nh, std::move(dispatcher), std::move(planner));
     }
 
