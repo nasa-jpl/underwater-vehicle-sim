@@ -62,7 +62,7 @@ public:
     void cancel();
 
     void setCurrentPoint(const int point);
-    const int getCurrentPoint();
+    const int getCurrentPoint() const;
 
     void setGoingUp(const bool goingUp);
     const bool getGoingUp();

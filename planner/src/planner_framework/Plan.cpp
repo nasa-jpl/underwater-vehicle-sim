@@ -29,7 +29,7 @@ const std::vector<std::shared_ptr<Action>>& Plan::getActions()
 	return actions;
 }
 
-unsigned int Plan::getNextAction()
+unsigned int Plan::getNextAction() const
 {
 	for(unsigned int i = 0; i <  actions.size(); i++)
 	{
@@ -42,7 +42,7 @@ unsigned int Plan::getNextAction()
 	return actions.size();
 }
 
-bool Plan::isCompleted()
+bool Plan::isCompleted() const
 {
 	for(auto action : actions)
 	{

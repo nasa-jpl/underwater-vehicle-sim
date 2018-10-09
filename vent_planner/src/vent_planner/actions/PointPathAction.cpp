@@ -108,7 +108,7 @@ void PointPathAction::setCurrentPoint(const int point)
     currentPoint = point;
 }
 
-const int PointPathAction::getCurrentPoint()
+const int PointPathAction::getCurrentPoint() const
 {
     return currentPoint;
 }

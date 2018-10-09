@@ -14,7 +14,7 @@ void Action::execute()
 	executeAction();
 }
 
-Action::State Action::getState()
+Action::State Action::getState() const
 {
 	return state;
 }

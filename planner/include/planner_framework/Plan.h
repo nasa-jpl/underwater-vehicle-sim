@@ -34,14 +34,14 @@ public:
 	*/
 	void resetInterrupted();
 
-	unsigned int getNextAction();
+	unsigned int getNextAction() const;
 
 	/**
 	 * Checks if the plan is finished. A finished plan checks if all
 	 * actions were completed, either successfully or failed.
 	 * @return If the plan has been completed or not
 	 */
-	bool isCompleted();
+	bool isCompleted() const;
 
 private:
 	std::vector<std::shared_ptr<Action>> actions;

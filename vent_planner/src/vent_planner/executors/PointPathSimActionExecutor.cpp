@@ -152,6 +152,7 @@ bool PointPathSimActionExecutor::triggerReplan(std::shared_ptr<PointPathAction> 
 	if(replanNextUpdate)
 	{
 		replanNextUpdate = false;
+		lastReplan = ros::Time::now();
 		return true;
 	}
 
@@ -211,8 +212,7 @@ void PointPathSimActionExecutor::actionFeedback(std::shared_ptr<PointPathAction>
 
 	//Add the currentPointOffset as we did not necessarily start at point 0
 	adjustedCurrentPoint += currentPointOffset;
-
-
+	
 	//Check for replan
 	if(action->replanType == PointPathAction::ReplanType::ON_POINT_REACHED &&
 	   action->getCurrentPoint() >= 1 && //at least at the first point
@@ -228,7 +228,7 @@ void PointPathSimActionExecutor::actionFeedback(std::shared_ptr<PointPathAction>
 	{
 		replanNextUpdate = true;
 	}
-	else if(action->replanType == PointPathAction::ReplanType::PERIODIC,
+	else if(action->replanType == PointPathAction::ReplanType::PERIODIC &&
 		    action->getCurrentPoint() >= 1 && 
 		    (ros::Time::now() - lastReplan).toSec() > action->periodicReplanTime)
 	{

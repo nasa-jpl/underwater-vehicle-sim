@@ -47,7 +47,7 @@ public:
 	/**
 	* Gets the state of this action.
 	*/
-	State getState();
+	State getState() const;
 
 	void setState(State newState);
 	

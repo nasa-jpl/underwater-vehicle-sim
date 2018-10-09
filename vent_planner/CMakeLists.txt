@@ -143,6 +143,7 @@ include_directories(
    src/vent_planner/DataTree.cpp
    src/vent_planner/DataNode.cpp
    src/vent_planner/util/CreatePathUtil.cpp
+   src/vent_planner/util/MathUtil.cpp
    src/vent_planner/util/Plane.cpp
  )
 
@@ -231,6 +232,9 @@ if (CATKIN_ENABLE_TESTING)
 
  catkin_add_gtest(surface_fit_test src/tests/vent_planner/SurfaceFitting_test.cpp)
  target_link_libraries(surface_fit_test vent_planner ${catkin_LIBRARIES})
+
+ catkin_add_gtest(math_util_test src/tests/vent_planner/MathUtil_test.cpp)
+ target_link_libraries(math_util_test vent_planner ${catkin_LIBRARIES})
 
  add_rostest_gtest(yoyo_point_path_executor_test tests/vent_planner/YoYoPointPathExecutor.test src/tests/vent_planner/YoYoPointPathExecutor_test.cpp)
 

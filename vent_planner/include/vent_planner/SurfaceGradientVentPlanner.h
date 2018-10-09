@@ -35,9 +35,11 @@ private:
     **/
     bool getLatestData(DataServerEntry& returnEntry);
 
+    bool endGradientFollow();
+
 private:
 
-    enum SearchPhase { INITIAL_PLAN, SPIRAL, PLAN_GRADIENT, CALC_GRADIENT, FOLLOW_GRADIENT };
+    enum SearchPhase { INITIAL_PLAN, SPIRAL, PLAN_GRADIENT, CALC_GRADIENT, FOLLOW_GRADIENT, OBSERVE_FOLLOW_GRADIENT};
 
     std::unique_ptr<VentActionFactory> actionFactory;  
     std::string goalState;
@@ -54,8 +56,9 @@ private:
 
     SearchPhase currentPlannerStage;
 
-    std::shared_ptr<Plan> spiralPlan;
-    std::shared_ptr<Plan> gradientPlan;
+    std::shared_ptr<const Plan> gradientCirclePlan;
+    std::shared_ptr<const Plan> gradientFollowPlan;
+    std::shared_ptr<const PointPathAction> gradientFollowAction;
 
     tf::Vector3 gradientLocation;
 
@@ -65,7 +68,11 @@ private:
 
     double detectionThreshold;
     double gradientCalcRadius;
-    double gradientFollowDistance;
+
+    double gradientMinFollowDistance;
+    double gradientMaxFollowDistance;
+    double gradientThreshold;
+    double gradientWindow;
 };
 
 #endif
