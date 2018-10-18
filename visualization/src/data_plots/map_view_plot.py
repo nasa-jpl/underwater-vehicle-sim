@@ -26,7 +26,7 @@ def plotData(data, measurement):
     
     axes.set_xlabel('X (m)', fontsize=28)
     axes.set_ylabel('Y (m)', fontsize=28)
-    plt.title("Hydrothermal Vent Search Simulation", fontsize=32)
+    plt.title("Gradient Hill Climbing Search Simulation", fontsize=32)
     cbar = plt.colorbar(points)
     cbar.ax.tick_params(labelsize=24) 
     cbar.set_label("Neutrally Buoyant Tracer", fontsize=28)

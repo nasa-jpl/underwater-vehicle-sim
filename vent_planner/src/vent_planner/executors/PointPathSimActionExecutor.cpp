@@ -22,7 +22,8 @@ PointPathSimActionExecutor::PointPathSimActionExecutor(ros::NodeHandle& nh, std:
 	replanGoingUp(true),
 	currentPointOffset(0),
 	replanNextUpdate(false),
-	lastReplan(ros::Time::now())
+	lastReplan(ros::Time::now()),
+	distanceSinceReplan(0)
 {
 	infoClient = nh.serviceClient<underwater_vehicle_sim::GetVehicleInfo>("vehicles/get_info");
 	infoClient.waitForExistence();
@@ -38,7 +39,9 @@ PointPathSimActionExecutor::PointPathSimActionExecutor(const PointPathSimActionE
 	nh(other.nh),
 	currentPointOffset(other.currentPointOffset),
 	pointPathClient("vehicle_controller/"  + vehicleName + "/point_path", true),
-	replanNextUpdate(false)
+	replanNextUpdate(false),
+	lastReplan(other.lastReplan),
+	distanceSinceReplan(other.distanceSinceReplan)
 {
 	infoClient = nh.serviceClient<underwater_vehicle_sim::GetVehicleInfo>("vehicles/get_info");
 	infoClient.waitForExistence();
@@ -88,6 +91,18 @@ bool PointPathSimActionExecutor::execute(std::shared_ptr<PointPathAction> action
 	else //If the prop module is not known then this cannot be completed
 	{
 		return false;
+	}
+
+	try
+	{
+		tf::StampedTransform transform;
+		listener.waitForTransform("/world", "/" + vehicleName, ros::Time(0), ros::Duration(5.0));
+		listener.lookupTransform("/world", "/" + vehicleName, ros::Time(0), transform);
+		lastLocation = transform.getOrigin();
+	}
+	catch (tf::TransformException ex)
+	{
+		ROS_ERROR("%s",ex.what());
 	}
 
 	//Creates an action goal and sends it to the action server for point path movement
@@ -153,6 +168,7 @@ bool PointPathSimActionExecutor::triggerReplan(std::shared_ptr<PointPathAction> 
 	{
 		replanNextUpdate = false;
 		lastReplan = ros::Time::now();
+		distanceSinceReplan = 0;
 		return true;
 	}
 
@@ -228,11 +244,32 @@ void PointPathSimActionExecutor::actionFeedback(std::shared_ptr<PointPathAction>
 	{
 		replanNextUpdate = true;
 	}
-	else if(action->replanType == PointPathAction::ReplanType::PERIODIC &&
+	else if(action->replanType == PointPathAction::ReplanType::PERIODIC_TIME &&
 		    action->getCurrentPoint() >= 1 && 
-		    (ros::Time::now() - lastReplan).toSec() > action->periodicReplanTime)
+		    (ros::Time::now() - lastReplan).toSec() > action->periodicReplanValue)
 	{
 		replanNextUpdate = true;
+	}
+	else if(action->replanType == PointPathAction::ReplanType::PERIODIC_DISTANCE &&
+		    action->getCurrentPoint() >= 1)
+	{
+		try
+		{
+			tf::StampedTransform transform;
+			listener.waitForTransform("/world", "/" + vehicleName, ros::Time(0), ros::Duration(5.0));
+			listener.lookupTransform("/world", "/" + vehicleName, ros::Time(0), transform);
+			distanceSinceReplan += transform.getOrigin().distance(lastLocation);
+			lastLocation = transform.getOrigin();
+		}
+		catch (tf::TransformException ex)
+		{
+			ROS_ERROR("%s",ex.what());
+		}
+
+		if(distanceSinceReplan >= action->periodicReplanValue)
+		{
+			replanNextUpdate = true;
+		}
 	}
 
 	if(adjustedCurrentPoint != action->getCurrentPoint())

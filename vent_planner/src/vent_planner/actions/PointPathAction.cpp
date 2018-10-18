@@ -11,7 +11,7 @@ PointPathAction::PointPathAction(std::unique_ptr<ActionExecutor<PointPathAction>
                                  const double lowerDepth,
                                  const std::vector<tf::Vector3>& points,
                                  const ReplanType replanType,
-                                 const double periodicReplanTime) :
+                                 const double periodicReplanValue) :
     executor(std::move(executor)),
     targetHorizontalVelocity(targetHorizontalVelocity),
     targetRotationalVelocity(targetRotationalVelocity),
@@ -21,7 +21,7 @@ PointPathAction::PointPathAction(std::unique_ptr<ActionExecutor<PointPathAction>
     yoyo(true),
     points(points),
     replanType(replanType),
-    periodicReplanTime(periodicReplanTime),
+    periodicReplanValue(periodicReplanValue),
     currentPoint(0),
     doInterruptPoint(false)
 {}
@@ -32,7 +32,7 @@ PointPathAction::PointPathAction(std::unique_ptr<ActionExecutor<PointPathAction>
                                  const double targetSlope,
                                  const std::vector<tf::Vector3>& points,
                                  const ReplanType replanType,
-                                 const double periodicReplanTime) :
+                                 const double periodicReplanValue) :
     executor(std::move(executor)),
     targetHorizontalVelocity(targetHorizontalVelocity),
     targetRotationalVelocity(targetRotationalVelocity),
@@ -42,7 +42,7 @@ PointPathAction::PointPathAction(std::unique_ptr<ActionExecutor<PointPathAction>
     yoyo(false),
     points(points),
     replanType(replanType),
-    periodicReplanTime(periodicReplanTime),
+    periodicReplanValue(periodicReplanValue),
     currentPoint(0),
     doInterruptPoint(false)
 {}
@@ -58,7 +58,7 @@ PointPathAction::PointPathAction(const PointPathAction& action) :
     yoyo(action.yoyo),
     points(action.points),
     replanType(action.replanType),
-    periodicReplanTime(action.periodicReplanTime),
+    periodicReplanValue(action.periodicReplanValue),
     doInterruptPoint(action.doInterruptPoint),
     interruptPoint(action.interruptPoint)
 {}

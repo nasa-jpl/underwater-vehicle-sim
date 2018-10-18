@@ -13,7 +13,9 @@
 class PointPathAction : public Action, public std::enable_shared_from_this<PointPathAction>
 {
 public:
-    enum ReplanType {NONE, ON_POINT_REACHED, ON_YOYO_TURN, PERIODIC};
+    //If more or complex ReplanTypes are needed we might want to 
+    //look at another method of implementing them, i.e. callbacks, class
+    enum ReplanType {NONE, ON_POINT_REACHED, ON_YOYO_TURN, PERIODIC_TIME, PERIODIC_DISTANCE};
 
     PointPathAction(std::unique_ptr<ActionExecutor<PointPathAction>> executor,
                     const double targetHorizontalVelocity, 
@@ -23,7 +25,7 @@ public:
                     const double lowerDepth,
                     const std::vector<tf::Vector3>& points,
                     const ReplanType replanType,
-                    const double periodicReplanTime);
+                    const double periodicReplanValue);
 
     PointPathAction(std::unique_ptr<ActionExecutor<PointPathAction>> executor,
                     const double targetHorizontalVelocity, 
@@ -31,7 +33,7 @@ public:
                     const double targetSlope,
                     const std::vector<tf::Vector3>& points,
                     const ReplanType replanType,
-                    const double periodicReplanTime);
+                    const double periodicReplanValue);
 
     PointPathAction(const PointPathAction& action);
 
@@ -74,9 +76,6 @@ public:
 
     void addPointReachedTime(const ros::Time& time);
     const std::vector<ros::Time>& getPointReachedTimes();
-
-    //If more or complex ReplanTypes are needed we might want to 
-    //look at another method of implementing them, i.e. callbacks, class
     
 
 public:
@@ -90,7 +89,7 @@ public:
     const double upperDepth;
     const double lowerDepth;
     const ReplanType replanType;
-    const double periodicReplanTime;
+    const double periodicReplanValue;
 
 private:
     std::unique_ptr<ActionExecutor<PointPathAction>> executor;

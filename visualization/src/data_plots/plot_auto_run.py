@@ -67,31 +67,32 @@ def readLaunch(filename):
 
 def processRun(run):
     run["stats"] = readStats(run["stats_file"])
-    #run["data"] = file_util.load_csv_first_and_last(run["data_file"])
-    run["data"] = file_util.load(run["data_file"])
-    run["launch"] = readLaunch(run["launch_file"])
-    run["log"] = readLog(run["log_file"])
+    if run["stats"]["success"]:
+        #run["data"] = file_util.load_csv_first_and_last(run["data_file"])
+        run["data"] = file_util.load(run["data_file"])
+        run["launch"] = readLaunch(run["launch_file"])
+        run["log"] = readLog(run["log_file"])
 
-    run["stats"]["time"] = run["data"]["time"][-1] - run["data"]["time"][0]
+        run["stats"]["time"] = run["data"]["time"][-1] - run["data"]["time"][0]
 
-    run["stats"]["spiral_time"] = 0
-    run["stats"]["dynamic_lawnmower_time"] = 0
-    run["stats"]["nested_lawnmower_time"] = 0
+        run["stats"]["spiral_time"] = 0
+        run["stats"]["dynamic_lawnmower_time"] = 0
+        run["stats"]["nested_lawnmower_time"] = 0
 
-    for i in xrange(1, len(run["log"])):
-        prevTime = run["log"][i - 1]["time"]
-        currTime = run["log"][i]["time"]
+        for i in xrange(1, len(run["log"])):
+            prevTime = run["log"][i - 1]["time"]
+            currTime = run["log"][i]["time"]
 
-        if prevTime <= 58 * 24 * 60 * 60:
-            if run["log"][i - 1]["entry"][1] == "Spiral":
-                run["stats"]["spiral_time"] += currTime - prevTime
-            elif run["log"][i - 1]["entry"][1] == "DynamicLawnmower":
-                run["stats"]["dynamic_lawnmower_time"] += currTime - prevTime
-            elif run["log"][i - 1]["entry"][1] == "NestedLawnmower":
-                run["stats"]["nested_lawnmower_time"] += currTime - prevTime
+            if prevTime <= 58 * 24 * 60 * 60:
+                if run["log"][i - 1]["entry"][1] == "Spiral":
+                    run["stats"]["spiral_time"] += currTime - prevTime
+                elif run["log"][i - 1]["entry"][1] == "DynamicLawnmower":
+                    run["stats"]["dynamic_lawnmower_time"] += currTime - prevTime
+                elif run["log"][i - 1]["entry"][1] == "NestedLawnmower":
+                    run["stats"]["nested_lawnmower_time"] += currTime - prevTime
 
-    #get rid of data so it can be garbage collected
-  #  run["data"] = []
+        #get rid of data so it can be garbage collected
+      #  run["data"] = []
 
 def displayRun(run):
     print(run["launch_file"])
@@ -109,6 +110,18 @@ def getSuccessRate(runs):
 
     return float(success) / len(runs)
 
+def calcDistTravelled(run):
+    distTravelled = []
+    distTravelledFailed = []
+    runDistTravelled = 0
+    dataPointsSize = len(run["data"]["x"])
+
+    for i in xrange(1, dataPointsSize):
+        runDistTravelled += math.sqrt((run["data"]["x"][i] - run["data"]["x"][i - 1])**2 + 
+                                      (run["data"]["y"][i] - run["data"]["y"][i - 1])**2)
+
+    return runDistTravelled
+
 def plotTimeVsDistance(runs):
     print("Plot Time Vs Distance")
     totalTime = []
@@ -116,10 +129,12 @@ def plotTimeVsDistance(runs):
     dynamicTime = []
     nestedTime = []
 
+    
     dist = []
     x = []
     y = []
 
+    
     distFailed = []
     totalTimeFailed = []
     spiralTimeFailed = []
@@ -232,16 +247,22 @@ def main(argv):
     print("Loading Runs...")
     runs = getRunFiles(directory) 
    
+    distTravelled = []
     for run in runs:
         processRun(run)
+        if run["stats"]["success"]:
+            distTravelled.append(calcDistTravelled(run))
+            run["data"] = None
+
 
     #plotTimeVsDistance(runs)
     print("Success Rate: " + str(getSuccessRate(runs)))        
 
-    for run in runs:
-        if run["launch_file"] == "./paper_output/6000m_30000m/planner_10_launch/planner_10.launch":
-            map_view_plot.plotSurveyType(run["data"], run["log"])
-        displayRun(run)
+    print("Average Distance: " + str(sum(distTravelled) / len(distTravelled)))
+#    for run in runs:
+#        if run["launch_file"] == "./paper_output/6000m_30000m/planner_10_launch/planner_10.launch":
+#            map_view_plot.plotSurveyType(run["data"], run["log"])
+#        displayRun(run)
 
 if __name__ == "__main__":
     main(sys.argv)

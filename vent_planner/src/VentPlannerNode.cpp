@@ -9,6 +9,7 @@
 #include "vent_planner/NestedSpiralVentPlanner.h"
 #include "vent_planner/NestedBinVentPlanner.h"
 #include "vent_planner/SurfaceGradientVentPlanner.h"
+#include "vent_planner/DirectionSetVentPlanner.h"
 
 int main(int argc, char **argv)
 {
@@ -54,6 +55,10 @@ int main(int argc, char **argv)
         else if(plannerType == "NestedSpiral")
         {
             planner.reset(new NestedSpiralVentPlanner(nh, std::move(factory), name));
+        }
+        else if(plannerType == "DirectionSet")
+        {
+            planner.reset(new DirectionSetVentPlanner(nh, std::move(factory), name));
         }
         
         servers.emplace_back(nh, std::move(dispatcher), std::move(planner));

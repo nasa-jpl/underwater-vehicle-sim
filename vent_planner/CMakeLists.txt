@@ -140,6 +140,7 @@ include_directories(
    src/vent_planner/NestedSpiralVentPlanner.cpp
    src/vent_planner/NestedBinVentPlanner.cpp
    src/vent_planner/SurfaceGradientVentPlanner.cpp
+   src/vent_planner/DirectionSetVentPlanner.cpp
    src/vent_planner/DataTree.cpp
    src/vent_planner/DataNode.cpp
    src/vent_planner/util/CreatePathUtil.cpp

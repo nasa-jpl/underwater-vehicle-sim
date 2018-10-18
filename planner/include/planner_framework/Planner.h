@@ -13,6 +13,8 @@ public:
 
 	virtual std::shared_ptr<Plan> plan()=0;
 
+protected:
+    enum GoalState {RUNNING, FAILED, SUCCESS};
 private:
 };
 

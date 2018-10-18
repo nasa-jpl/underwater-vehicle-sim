@@ -22,8 +22,8 @@ def callback(data):
     cdata.append(data.dye)
 
 def init():
-    ax.set_xlim(-20000,20000)
-    ax.set_ylim(-20000,20000)
+    ax.set_xlim(-50000,50000)
+    ax.set_ylim(-50000,50000)
     return sc,
 
 def update(frame):

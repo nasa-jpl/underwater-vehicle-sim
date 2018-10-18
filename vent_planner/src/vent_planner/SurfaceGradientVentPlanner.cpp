@@ -258,7 +258,7 @@ std::shared_ptr<Plan> SurfaceGradientVentPlanner::plan()
                                                                                           0.349066,
                                                                                           0.523599, //30 deg
                                                                                           linePoints,
-                                                                                          PointPathAction::ReplanType::PERIODIC,
+                                                                                          PointPathAction::ReplanType::PERIODIC_DISTANCE,
                                                                                           200);
 
          //Save this action in a shared ptr so we can check how much we have completed later
