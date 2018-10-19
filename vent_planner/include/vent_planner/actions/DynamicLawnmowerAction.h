@@ -61,9 +61,23 @@ int getCurrentSection();
 void setCurrentTrack(int currentTrack);
 void setCurrentSection(int currentSection);
 
+double getTargetHorizontalVelocity() const;
+double getTargetRotationalVelocity() const;
+double getTargetSlope() const;
+tf::Vector3 getStartLocation() const;
+double getAlongTrackDirection() const;
+double getAcrossTrackDirection() const;
+double getTrackSpacing() const;
+double getTargetHeight() const;
+int getMinSectionsPerTrack() const;
+double getContinueThreshold() const;
+int getTrackSectionThreshold() const;
 
-public:
 
+private:
+std::unique_ptr<ActionExecutor<DynamicLawnmowerAction>> executor;
+
+//Parameters
 const double targetHorizontalVelocity;
 const double targetRotationalVelocity;
 const double targetSlope;
@@ -72,14 +86,11 @@ const double alongTrackDirection;
 const double acrossTrackDirection;
 const double trackSpacing;
 const double targetHeight;
-
 const int minSectionsPerTrack;
 const double continueThreshold;
 const int trackSectionThreshold;
 
-private:
-std::unique_ptr<ActionExecutor<DynamicLawnmowerAction>> executor;
-
+//Track action progress
 int currentTrack;
 int currentSection;
 

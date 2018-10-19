@@ -62,7 +62,7 @@ bool PointPathSimActionExecutor::execute(std::shared_ptr<PointPathAction> action
 {
 	ROS_INFO("Execute point path action");
 	//targetSlope can only be on the interval (0, 90) degrees
-	if(action->yoyo && (action->targetSlope >= M_PI / 2 || action->targetSlope <= 0))
+	if(action->getYoyo() && (action->getTargetSlope() >= M_PI / 2 || action->getTargetSlope() <= 0))
 	{
 		return false;
 	}
@@ -77,12 +77,12 @@ bool PointPathSimActionExecutor::execute(std::shared_ptr<PointPathAction> action
 
 		//Send target velocities command
 		vehicle_auto_control::Velocity velMsg;
-		velMsg.horizontalVelocity = action->targetHorizontalVelocity;
+		velMsg.horizontalVelocity = action->getTargetHorizontalVelocity();
 
 		//Calculate the target vertical velocity based on target horizontal velocity and target slope
-		velMsg.verticalVelocity = action->targetHorizontalVelocity * (sin(action->targetSlope) / cos(action->targetSlope));
+		velMsg.verticalVelocity = action->getTargetHorizontalVelocity() * (sin(action->getTargetSlope()) / cos(action->getTargetSlope()));
 
-		velMsg.rotationalVelocity = action->targetRotationalVelocity;
+		velMsg.rotationalVelocity = action->getTargetRotationalVelocity();
 	
 		auto publisher = publishers.find(velSub); 
 		publisher->second.publish(velMsg);
@@ -119,9 +119,9 @@ bool PointPathSimActionExecutor::execute(std::shared_ptr<PointPathAction> action
 	}
 
 	currentPointOffset = action->getCurrentPoint();
-	for(unsigned int i = action->getCurrentPoint(); i < action->points.size(); i++)
+	for(unsigned int i = action->getCurrentPoint(); i < action->getPoints().size(); i++)
 	{
-		auto point = action->points[i];
+		auto point = action->getPoints()[i];
 		geometry_msgs::Point p;
 		p.x = point.getX();
 		p.y = point.getY();
@@ -132,9 +132,9 @@ bool PointPathSimActionExecutor::execute(std::shared_ptr<PointPathAction> action
 	//Set so the triggerReplan function knows when the yoyo direction changes
 	replanGoingUp = true;
 
-	pointPathGoal.upperDepth = action->upperDepth;
-	pointPathGoal.lowerDepth = action->lowerDepth;
-	pointPathGoal.yoyo = action->yoyo;
+	pointPathGoal.upperDepth = action->getUpperDepth();
+	pointPathGoal.lowerDepth = action->getLowerDepth();
+	pointPathGoal.yoyo = action->getYoyo();
 
 	pointPathClient.waitForServer();
 	ROS_INFO("Send goal to point path server");
@@ -230,27 +230,27 @@ void PointPathSimActionExecutor::actionFeedback(std::shared_ptr<PointPathAction>
 	adjustedCurrentPoint += currentPointOffset;
 	
 	//Check for replan
-	if(action->replanType == PointPathAction::ReplanType::ON_POINT_REACHED &&
+	if(action->getReplanType() == PointPathAction::ReplanType::ON_POINT_REACHED &&
 	   action->getCurrentPoint() >= 1 && //at least at the first point
 	   adjustedCurrentPoint != action->getCurrentPoint()) //reached a new point
 	{
 		replanNextUpdate = true;
 	}
-	else if(action->replanType == PointPathAction::ReplanType::ON_YOYO_TURN && 
-			action->yoyo && //insure we are yoyoing
+	else if(action->getReplanType() == PointPathAction::ReplanType::ON_YOYO_TURN && 
+			action->getYoyo() && //insure we are yoyoing
 			feedback->goingUp != action->getGoingUp() && //at top or bottom of yoyo
 	   		action->getCurrentPoint() >= 1 && //at least at the first point
 	   		(!action->getDoInterruptPoint() || (action->getDoInterruptPoint() && feedback->currentPoint >= 1))) //past the interrupt point
 	{
 		replanNextUpdate = true;
 	}
-	else if(action->replanType == PointPathAction::ReplanType::PERIODIC_TIME &&
+	else if(action->getReplanType() == PointPathAction::ReplanType::PERIODIC_TIME &&
 		    action->getCurrentPoint() >= 1 && 
-		    (ros::Time::now() - lastReplan).toSec() > action->periodicReplanValue)
+		    (ros::Time::now() - lastReplan).toSec() > action->getPeriodicReplanValue())
 	{
 		replanNextUpdate = true;
 	}
-	else if(action->replanType == PointPathAction::ReplanType::PERIODIC_DISTANCE &&
+	else if(action->getReplanType() == PointPathAction::ReplanType::PERIODIC_DISTANCE &&
 		    action->getCurrentPoint() >= 1)
 	{
 		try
@@ -266,7 +266,7 @@ void PointPathSimActionExecutor::actionFeedback(std::shared_ptr<PointPathAction>
 			ROS_ERROR("%s",ex.what());
 		}
 
-		if(distanceSinceReplan >= action->periodicReplanValue)
+		if(distanceSinceReplan >= action->getPeriodicReplanValue())
 		{
 			replanNextUpdate = true;
 		}

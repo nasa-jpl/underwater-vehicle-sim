@@ -81,8 +81,8 @@ bool SurfaceGradientVentPlanner::endGradientFollow()
     
     //Check that we are at least a window size past the initial point on the circle's edge
     if(gradientFollowAction->getCurrentPoint() >= 1 &&
-        math_util::xyDistance(lastPoint, gradientFollowAction->points[0]) >= gradientWindow &&
-        math_util::xyDistance(lastPoint, gradientFollowAction->points[0]) >= gradientMinFollowDistance)
+        math_util::xyDistance(lastPoint, gradientFollowAction->getPoints()[0]) >= gradientWindow &&
+        math_util::xyDistance(lastPoint, gradientFollowAction->getPoints()[0]) >= gradientMinFollowDistance)
     {
         
         //Find start of data to use for follow gradient calculation
@@ -123,9 +123,9 @@ bool SurfaceGradientVentPlanner::endGradientFollow()
         
         math_util::linearLeastSquares(x, y, slope, yIntercept);
 
-        ROS_INFO("Last point distance: %f, window: %f, min: %f", math_util::xyDistance(lastPoint, gradientFollowAction->points[0]), gradientWindow, gradientMinFollowDistance);
+        ROS_INFO("Last point distance: %f, window: %f, min: %f", math_util::xyDistance(lastPoint, gradientFollowAction->getPoints()[0]), gradientWindow, gradientMinFollowDistance);
         ROS_INFO("Last Point x: %f, y: %f", lastPoint.getX(), lastPoint.getY());
-        ROS_INFO("Action Point x: %f, y: %f, z: %f", gradientFollowAction->points[0].getX(), gradientFollowAction->points[0].getY(), gradientFollowAction->points[0].getZ());
+        ROS_INFO("Action Point x: %f, y: %f, z: %f", gradientFollowAction->getPoints()[0].getX(), gradientFollowAction->getPoints()[0].getY(), gradientFollowAction->getPoints()[0].getZ());
         ROS_INFO("Follow Phase calculated gradient: %f, threshold: %f", slope, gradientThreshold);
 
         return slope < gradientThreshold;

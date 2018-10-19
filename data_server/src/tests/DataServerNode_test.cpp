@@ -3,7 +3,7 @@
 #include "ros/ros.h"
 
 #include <cmath>
-#include "underwater_vehicle_sim/VehicleData.h"
+#include "underwater_vehicle_msgs/VehicleData.h"
 #include "data_server/GetData.h"
 #include "data_server/PlumeData.h"
 #include "std_msgs/String.h"

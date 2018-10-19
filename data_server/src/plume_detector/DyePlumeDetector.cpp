@@ -3,7 +3,7 @@
 #include "plume_detector/PlumeDetector.h"
 #include "plume_detector/DyePlumeDetector.h"
 
-#include "underwater_vehicle_sim/VehicleData.h"
+#include "underwater_vehicle_msgs/VehicleData.h"
 #include "plume_detector/PlumeDataEntry.h"
 #include "data_server/GetData.h"
 
@@ -14,7 +14,7 @@ DyePlumeDetector::DyePlumeDetector() {}
 
 DyePlumeDetector::DyePlumeDetector(DyePlumeDetector&& other) {}
 
-float DyePlumeDetector::calcPlumeStrength(std::string name, const underwater_vehicle_sim::VehicleData::ConstPtr& newData, DataServer dataServer)
+float DyePlumeDetector::calcPlumeStrength(std::string name, const underwater_vehicle_msgs::VehicleData::ConstPtr& newData, DataServer dataServer)
 {
     return newData->dye;
 }

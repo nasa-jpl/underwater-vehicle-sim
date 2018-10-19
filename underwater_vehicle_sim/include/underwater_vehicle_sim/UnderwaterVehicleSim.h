@@ -2,7 +2,7 @@
 #define UNDERWATER_VEHICLE_SIM_H
 
 #include "vehicles/Vehicle.h"
-#include "underwater_vehicle_sim/GetVehicleInfo.h"
+#include "underwater_vehicle_msgs/GetVehicleInfo.h"
 
 /**
  * Class used to simulate underwater vehicles using a model
@@ -19,8 +19,8 @@ public:
 	void update();
 
 private:
-	bool getVehicleInfo(underwater_vehicle_sim::GetVehicleInfo::Request &req,
-				  						  underwater_vehicle_sim::GetVehicleInfo::Response &res);
+	bool getVehicleInfo(underwater_vehicle_msgs::GetVehicleInfo::Request &req,
+				  						  underwater_vehicle_msgs::GetVehicleInfo::Response &res);
 private:
 	/**
 	* All the vehicles in the simulation

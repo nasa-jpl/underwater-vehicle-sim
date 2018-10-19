@@ -34,13 +34,6 @@ int main(int argc, char **argv)
         modelDataClient.waitForExistence();
     }
 
-    float speedUpFactor;
-    nh.param<float>("speed_up_factor", speedUpFactor, 1);
-
-    std_msgs::Float64 startSim;
-    startSim.data = speedUpFactor;
-    clockSpeedPub.publish(startSim);
-
     //Run the simulation loop
     while(ros::ok())
     {

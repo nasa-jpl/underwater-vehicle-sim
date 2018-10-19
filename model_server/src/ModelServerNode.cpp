@@ -40,7 +40,6 @@ void endModelLoad()
 bool getModelData(model_server::GetModelData::Request &req,
 				  model_server::GetModelData::Response &res)
 {   
-//    ROS_INFO("CALL MODEL DATA: %f %f %f %f", req.x, req.y, req.h, req.time);
     try
     {
         ModelData data = model->getData(req.x, req.y, req.h, req.time);
@@ -62,16 +61,6 @@ bool getModelData(model_server::GetModelData::Request &req,
         res.salt = data.salt;
         res.depth = data.depth;
     }
-    /*catch (const std::exception& ex)
-    {
-        ROS_INFO("CAUGHT EXCEPTION: %s", ex.what());
-        ROS_INFO("CALL: %f %f %f %f", req.x, req.y, req.h, req.time);
-        throw ex;
-    } 
-    catch (...)
-    {
-        ROS_INFO("CAUGHT UNKNOWN EXCEPTION: %f %f %f %f", req.x, req.y, req.h, req.time);
-    }*/
     
 	return true;
 }
@@ -161,6 +150,5 @@ int main(int argc, char **argv)
 
     dataService = n.advertiseService("get_model_data", getModelData);
 
-    endModelLoad();
     ros::spin();
 }

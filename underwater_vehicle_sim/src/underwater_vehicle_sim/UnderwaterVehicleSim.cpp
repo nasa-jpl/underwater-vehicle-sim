@@ -1,5 +1,5 @@
 #include "underwater_vehicle_sim/UnderwaterVehicleSim.h"
-#include "underwater_vehicle_sim/GetVehicleInfo.h"
+#include "underwater_vehicle_msgs/GetVehicleInfo.h"
 
 #include "vehicles/Vehicle.h"
 
@@ -26,8 +26,8 @@ void UnderwaterVehicleSim::update()
 	}
 }
 
-bool UnderwaterVehicleSim::getVehicleInfo(underwater_vehicle_sim::GetVehicleInfo::Request &req,
-				  						  underwater_vehicle_sim::GetVehicleInfo::Response &res)
+bool UnderwaterVehicleSim::getVehicleInfo(underwater_vehicle_msgs::GetVehicleInfo::Request &req,
+				  						  underwater_vehicle_msgs::GetVehicleInfo::Response &res)
 {
 	for(Vehicle& vehicle : vehicles)
 	{

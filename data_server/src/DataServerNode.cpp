@@ -6,8 +6,8 @@
 #include "data_server/GetData.h"
 #include "data_server/SaveData.h"
 #include "std_msgs/String.h"
-#include "underwater_vehicle_sim/VehicleData.h"
-#include "underwater_vehicle_sim/GetVehicleInfo.h"
+#include "underwater_vehicle_msgs/VehicleData.h"
+#include "underwater_vehicle_msgs/GetVehicleInfo.h"
 #include "data_server/GetData.h"
 #include "data_server/GetLatestData.h"
 #include "data_server/GetPlumeData.h"
@@ -21,7 +21,7 @@ DataServer server;
 std::unique_ptr<PlumeDetector> plumeDetector;
 std::map<std::string, ros::Publisher> plumePubs;
 
-void recieveData(const underwater_vehicle_sim::VehicleData::ConstPtr& msg)
+void recieveData(const underwater_vehicle_msgs::VehicleData::ConstPtr& msg)
 {
     float plumeVal = plumeDetector->calcPlumeStrength(msg->name, msg, server);
 
@@ -135,7 +135,7 @@ int main(int argc, char **argv)
 
     std::vector<std::string> vehicleNames;
     nh.getParam("/vehicles/names", vehicleNames);
-	ros::ServiceClient infoClient = nh.serviceClient<underwater_vehicle_sim::GetVehicleInfo>("/vehicles/get_info");
+	ros::ServiceClient infoClient = nh.serviceClient<underwater_vehicle_msgs::GetVehicleInfo>("/vehicles/get_info");
 	infoClient.waitForExistence();
 
 	std::vector<ros::Subscriber> subscribers;
@@ -144,7 +144,7 @@ int main(int argc, char **argv)
 
 	for(std::string& name : vehicleNames)
 	{
-		underwater_vehicle_sim::GetVehicleInfo info;
+		underwater_vehicle_msgs::GetVehicleInfo info;
 		info.request.name = name;
 		infoClient.call(info);
 

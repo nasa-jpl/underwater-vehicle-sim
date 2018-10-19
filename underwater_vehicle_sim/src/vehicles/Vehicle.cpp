@@ -13,7 +13,7 @@
 #include "vehicles/DataCapacityModule.h"
 #include "vehicles/FourDOFPropulsion.h"
 
-#include "underwater_vehicle_sim/VehicleData.h"
+#include "underwater_vehicle_msgs/VehicleData.h"
 
 
 
@@ -102,7 +102,7 @@ void Vehicle::update()
 	}
 }
 
-void Vehicle::getInfo(underwater_vehicle_sim::GetVehicleInfo::Response &res)
+void Vehicle::getInfo(underwater_vehicle_msgs::GetVehicleInfo::Response &res)
 {
     if(propulsionModule)
     {

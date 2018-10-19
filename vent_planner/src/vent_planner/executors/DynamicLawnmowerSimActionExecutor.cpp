@@ -50,7 +50,7 @@ bool DynamicLawnmowerSimActionExecutor::execute(std::shared_ptr<DynamicLawnmower
 {
     ROS_DEBUG("Execute dynamic lawnmower action");
 	//targetSlope can only be on the interval (0, 90) degrees
-	if(action->targetSlope >= M_PI / 2 || action->targetSlope <= 0)
+	if(action->getTargetSlope() >= M_PI / 2 || action->getTargetSlope() <= 0)
 	{
 		ROS_WARN("Dynamic lawnmower action has invalid target slope");
 	   return false;
@@ -60,12 +60,12 @@ bool DynamicLawnmowerSimActionExecutor::execute(std::shared_ptr<DynamicLawnmower
 	{
 		//Send target velocities command
 		vehicle_auto_control::Velocity velMsg;
-		velMsg.horizontalVelocity = action->targetHorizontalVelocity;
+		velMsg.horizontalVelocity = action->getTargetHorizontalVelocity();
 
 		//Calculate the target vertical velocity based on target horizontal velocity and target slope
-		velMsg.verticalVelocity = action->targetHorizontalVelocity * (sin(action->targetSlope) / cos(action->targetSlope));
+		velMsg.verticalVelocity = action->getTargetHorizontalVelocity() * (sin(action->getTargetSlope()) / cos(action->getTargetSlope()));
 
-		velMsg.rotationalVelocity = action->targetRotationalVelocity;
+		velMsg.rotationalVelocity = action->getTargetRotationalVelocity();
 	
 		velPublisher.publish(velMsg);
 
@@ -79,20 +79,20 @@ bool DynamicLawnmowerSimActionExecutor::execute(std::shared_ptr<DynamicLawnmower
 	//Creates an action goal and sends it to the action server for point path movement
 	dynamicLawnmowerGoal = vent_planner::DynamicLawnmowerRosGoal();
 
-	dynamicLawnmowerGoal.startLocation.x = action->startLocation.getX();
-	dynamicLawnmowerGoal.startLocation.y = action->startLocation.getY();
-	dynamicLawnmowerGoal.startLocation.z = action->startLocation.getZ();
+	dynamicLawnmowerGoal.startLocation.x = action->getStartLocation().getX();
+	dynamicLawnmowerGoal.startLocation.y = action->getStartLocation().getY();
+	dynamicLawnmowerGoal.startLocation.z = action->getStartLocation().getZ();
 
 	dynamicLawnmowerGoal.currentTrack = action->getCurrentTrack();
 	dynamicLawnmowerGoal.currentSection = action->getCurrentSection();
-	dynamicLawnmowerGoal.alongTrackDirection = action->alongTrackDirection;
-	dynamicLawnmowerGoal.acrossTrackDirection = action->acrossTrackDirection;
-	dynamicLawnmowerGoal.trackSpacing = action->trackSpacing;
-	dynamicLawnmowerGoal.targetHeight = action->targetHeight;
+	dynamicLawnmowerGoal.alongTrackDirection = action->getAlongTrackDirection();
+	dynamicLawnmowerGoal.acrossTrackDirection = action->getAcrossTrackDirection();
+	dynamicLawnmowerGoal.trackSpacing = action->getTrackSpacing();
+	dynamicLawnmowerGoal.targetHeight = action->getTargetHeight();
 
-	dynamicLawnmowerGoal.minSectionsPerTrack = action->minSectionsPerTrack;
-	dynamicLawnmowerGoal.continueThreshold = action->continueThreshold;
-	dynamicLawnmowerGoal.trackSectionThreshold = action->trackSectionThreshold;
+	dynamicLawnmowerGoal.minSectionsPerTrack = action->getMinSectionsPerTrack();
+	dynamicLawnmowerGoal.continueThreshold = action->getContinueThreshold();
+	dynamicLawnmowerGoal.trackSectionThreshold = action->getTrackSectionThreshold();
 
 	dynamicLawnmowerClient.waitForServer();
     ROS_INFO("Send goal to dynamic lawnmower action server");

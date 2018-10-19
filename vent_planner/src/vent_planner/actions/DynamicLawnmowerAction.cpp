@@ -111,3 +111,58 @@ void DynamicLawnmowerAction::setCurrentSection(int currentSection)
 {
     this->currentSection = currentSection;
 }
+
+double DynamicLawnmowerAction::getTargetHorizontalVelocity() const
+{
+    return targetHorizontalVelocity;
+}
+
+double DynamicLawnmowerAction::getTargetRotationalVelocity() const
+{
+    return targetRotationalVelocity;
+}
+
+double DynamicLawnmowerAction::getTargetSlope() const
+{
+    return targetSlope;
+}
+
+tf::Vector3 DynamicLawnmowerAction::getStartLocation() const
+{
+    return startLocation;
+}
+
+double DynamicLawnmowerAction::getAlongTrackDirection() const
+{
+    return alongTrackDirection;
+}
+
+double DynamicLawnmowerAction::getAcrossTrackDirection() const
+{
+    return acrossTrackDirection;
+}
+
+double DynamicLawnmowerAction::getTrackSpacing() const
+{
+    return trackSpacing;
+}
+
+double DynamicLawnmowerAction::getTargetHeight() const
+{
+    return targetHeight;
+}
+
+int DynamicLawnmowerAction::getMinSectionsPerTrack() const
+{
+    return minSectionsPerTrack;
+}
+
+double DynamicLawnmowerAction::getContinueThreshold() const
+{
+    return continueThreshold;
+}
+
+int DynamicLawnmowerAction::getTrackSectionThreshold() const
+{
+    return trackSectionThreshold;
+}

@@ -21,16 +21,9 @@ public:
                     const double targetHorizontalVelocity, 
                     const double targetRotationalVelocity,
                     const double targetSlope,
+                    const bool yoyo,
                     const double upperDepth,
                     const double lowerDepth,
-                    const std::vector<tf::Vector3>& points,
-                    const ReplanType replanType,
-                    const double periodicReplanValue);
-
-    PointPathAction(std::unique_ptr<ActionExecutor<PointPathAction>> executor,
-                    const double targetHorizontalVelocity, 
-                    const double targetRotationalVelocity,
-                    const double targetSlope,
                     const std::vector<tf::Vector3>& points,
                     const ReplanType replanType,
                     const double periodicReplanValue);
@@ -78,8 +71,21 @@ public:
     const std::vector<ros::Time>& getPointReachedTimes();
     
 
-public:
+    double getTargetHorizontalVelocity() const;
+    double getTargetRotationalVelocity() const;
+    std::vector<tf::Vector3> getPoints() const;
 
+    bool getYoyo() const;
+    double getTargetSlope() const;
+    double getUpperDepth() const;
+    double getLowerDepth() const;
+    ReplanType getReplanType() const;
+    double getPeriodicReplanValue() const;
+
+private:
+    std::unique_ptr<ActionExecutor<PointPathAction>> executor;
+
+    //Parameters
     const double targetHorizontalVelocity;
     const double targetRotationalVelocity;
     const std::vector<tf::Vector3> points;
@@ -90,9 +96,6 @@ public:
     const double lowerDepth;
     const ReplanType replanType;
     const double periodicReplanValue;
-
-private:
-    std::unique_ptr<ActionExecutor<PointPathAction>> executor;
 
     /**
     * Set to true when interrupted to indicate that the interruptPoint is the next point

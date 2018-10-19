@@ -37,6 +37,7 @@ std::shared_ptr<PointPathAction> SimVentActionFactory::createPointPathAction(con
                                                                 targetHorizontalVelocity,
                                                                 targetRotationalVelocity,
                                                                 targetSlope,
+                                                                true,
                                                                 upperDepth,
                                                                 lowerDepth,
                                                                 points,
@@ -59,6 +60,9 @@ std::shared_ptr<PointPathAction> SimVentActionFactory::createPointPathAction(con
                                                                 targetHorizontalVelocity,
                                                                 targetRotationalVelocity,
                                                                 targetSlope,
+                                                                false,
+                                                                0,
+                                                                0,
                                                                 points,
                                                                 replan,
                                                                 periodicReplanTime));

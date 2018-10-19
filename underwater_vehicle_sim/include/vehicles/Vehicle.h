@@ -11,7 +11,7 @@
 #include "vehicles/GeneralModule.h"
 #include "vehicles/PropulsionModule.h"
 
-#include "underwater_vehicle_sim/GetVehicleInfo.h"
+#include "underwater_vehicle_msgs/GetVehicleInfo.h"
 
 #include "model_server/GetModelData.h"
 
@@ -29,7 +29,7 @@ public:
 	void update();
 
 	std::string getName();
-	void getInfo(underwater_vehicle_sim::GetVehicleInfo::Response &res);
+	void getInfo(underwater_vehicle_msgs::GetVehicleInfo::Response &res);
 	
 private:
 

@@ -7,6 +7,7 @@ PointPathAction::PointPathAction(std::unique_ptr<ActionExecutor<PointPathAction>
                                  const double targetHorizontalVelocity,
                                  const double targetRotationalVelocity,
                                  const double targetSlope,
+                                 const bool yoyo,
                                  const double upperDepth,
                                  const double lowerDepth,
                                  const std::vector<tf::Vector3>& points,
@@ -16,30 +17,9 @@ PointPathAction::PointPathAction(std::unique_ptr<ActionExecutor<PointPathAction>
     targetHorizontalVelocity(targetHorizontalVelocity),
     targetRotationalVelocity(targetRotationalVelocity),
     targetSlope(targetSlope),
+    yoyo(yoyo),
     upperDepth(upperDepth),
     lowerDepth(lowerDepth),
-    yoyo(true),
-    points(points),
-    replanType(replanType),
-    periodicReplanValue(periodicReplanValue),
-    currentPoint(0),
-    doInterruptPoint(false)
-{}
-
-PointPathAction::PointPathAction(std::unique_ptr<ActionExecutor<PointPathAction>> executor,
-                                 const double targetHorizontalVelocity,
-                                 const double targetRotationalVelocity,
-                                 const double targetSlope,
-                                 const std::vector<tf::Vector3>& points,
-                                 const ReplanType replanType,
-                                 const double periodicReplanValue) :
-    executor(std::move(executor)),
-    targetHorizontalVelocity(targetHorizontalVelocity),
-    targetRotationalVelocity(targetRotationalVelocity),
-    targetSlope(targetSlope),
-    upperDepth(0),
-    lowerDepth(0),
-    yoyo(false),
     points(points),
     replanType(replanType),
     periodicReplanValue(periodicReplanValue),
@@ -152,4 +132,49 @@ void PointPathAction::addPointReachedTime(const ros::Time& time)
 const std::vector<ros::Time>& PointPathAction::getPointReachedTimes()
 {
     return pointReachedTimes;
+}
+
+double PointPathAction::getTargetHorizontalVelocity() const
+{
+    return targetHorizontalVelocity;
+}
+
+double PointPathAction::getTargetRotationalVelocity() const
+{
+    return targetRotationalVelocity;
+}
+
+std::vector<tf::Vector3> PointPathAction::getPoints() const
+{
+    return points;
+}
+
+bool PointPathAction::getYoyo() const
+{
+    return yoyo;
+}
+
+double PointPathAction::getTargetSlope() const
+{
+    return targetSlope;
+}
+
+double PointPathAction::getUpperDepth() const
+{
+    return upperDepth;
+}
+
+double PointPathAction::getLowerDepth() const
+{
+    return lowerDepth;
+}
+
+PointPathAction::ReplanType PointPathAction::getReplanType() const
+{
+    return replanType;
+}
+
+double PointPathAction::getPeriodicReplanValue() const
+{
+    return periodicReplanValue;
 }

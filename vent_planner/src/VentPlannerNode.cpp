@@ -11,6 +11,8 @@
 #include "vent_planner/SurfaceGradientVentPlanner.h"
 #include "vent_planner/DirectionSetVentPlanner.h"
 
+#include "data_server/GetLatestData.h"
+
 int main(int argc, char **argv)
 {
     ros::init(argc, argv, "vent_planner");
@@ -65,6 +67,22 @@ int main(int argc, char **argv)
     }
 
     ROS_INFO("Planner Initalized");
+
+    //Wait until the simulation starts to proceed
+    ros::ServiceClient vehicleInfoClient = nh.serviceClient<underwater_vehicle_sim::GetVehicleInfo>("vehicles/get_info");
+    vehicleInfoClient.waitForExistence();
+
+    //Wait until valid data starts streaming
+    ros::ServiceClient dataServerClient = nh.serviceClient<data_server::GetLatestData>("data_server/get_latest");
+    dataServerClient.waitForExistence();
+    data_server::GetLatestData srv;
+    srv.request.name = vehicleNames[0];
+    while(!dataServerClient.call(srv))
+    {
+       ros::WallDuration sleepDuration(1.0);
+       sleepDuration.sleep();
+    }
+    
     bool plannersCompleted = false;
     ros::Rate r(loopHertz);
     while(!plannersCompleted && ros::ok())
