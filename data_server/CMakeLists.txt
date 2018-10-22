@@ -10,7 +10,7 @@ project(data_server)
 find_package(catkin REQUIRED
   roscpp
   message_generation
-  underwater_vehicle_sim
+  underwater_vehicle_msgs
 )
 
 ## System dependencies are found with CMake's conventions
@@ -60,6 +60,7 @@ find_package(catkin REQUIRED
    GetPlumeData.srv
    GetLatestData.srv
    SaveData.srv
+   ClearData.srv
  )
 
 ## Generate actions in the 'action' folder
@@ -202,8 +203,8 @@ target_link_libraries(data_server ${catkin_LIBRARIES} stdc++fs)
 
    target_link_libraries(data_server_test data_server ${catkin_LIBRARIES} stdc++fs)
 
-   add_rostest_gtest(data_server_node_test tests/DataServerNode.test src/tests/DataServerNode_test.cpp)
-   target_link_libraries(data_server_node_test data_server ${catkin_LIBRARIES} ${NETCDF_LIBRARIES} stdc++fs)
+   add_rostest_gtest(data_server_node_interface_test tests/DataServerNodeInterface.test src/tests/DataServerNodeInterface_test.cpp)
+   target_link_libraries(data_server_node_interface_test data_server ${catkin_LIBRARIES} ${NETCDF_LIBRARIES} stdc++fs)
  endif()
 
 ## Add folders to be run by python nosetests

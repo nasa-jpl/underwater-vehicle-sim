@@ -8,10 +8,13 @@
 #include "std_msgs/String.h"
 #include "underwater_vehicle_msgs/VehicleData.h"
 #include "underwater_vehicle_msgs/GetVehicleInfo.h"
+
 #include "data_server/GetData.h"
+#include "data_server/ClearData.h"
 #include "data_server/GetLatestData.h"
 #include "data_server/GetPlumeData.h"
 #include "data_server/PlumeData.h"
+
 #include "plume_detector/PlumeDetector.h"
 #include "plume_detector/DyePlumeDetector.h"
 #include "plume_detector/PlumeDataEntry.h"
@@ -69,6 +72,7 @@ bool getLatestData(data_server::GetLatestData::Request &req,
 	res.temp = entry.temp;
 	res.dye = entry.dye;
 	res.salt = entry.salt;
+    res.sonarDepth = entry.sonarDepth;
 
 	return true;
 }
@@ -98,6 +102,13 @@ bool getData(data_server::GetData::Request &req,
 	}
 
 	return true;
+}
+
+bool clearData(data_server::ClearData::Request &req,
+               data_server::ClearData::Response &res)
+{
+    server.clear(req.name);
+    return true;
 }
 
 bool getPlumeData(data_server::GetPlumeData::Request &req,
@@ -147,14 +158,15 @@ int main(int argc, char **argv)
 		underwater_vehicle_msgs::GetVehicleInfo info;
 		info.request.name = name;
 		infoClient.call(info);
-
-		for(unsigned i = 0; i < info.response.moduleNames.size(); i++)
+		
+        for(unsigned i = 0; i < info.response.moduleNames.size(); i++)
 		{
 
 			if(info.response.moduleTypes[i] == "DataBroadcaster")
 			{
 
 				subscribers.push_back(nh.subscribe("/vehicles/" + name + "/" + info.response.moduleNames[i] + "/data", 5000, recieveData));
+                std::string str = "/vehicles/" + name + "/" + info.response.moduleNames[i] + "/data";
 			}
 		}
 
@@ -165,6 +177,7 @@ int main(int argc, char **argv)
 
     ros::ServiceServer saveDataSub = nh.advertiseService("save", saveData);
     ros::ServiceServer serviceGet = nh.advertiseService("get", getData);
+    ros::ServiceServer serviceClear = nh.advertiseService("clear", clearData);
     ros::ServiceServer serviceGetPlume = nh.advertiseService("get_plume", getPlumeData);
     ros::ServiceServer serviceGetLatest = nh.advertiseService("get_latest", getLatestData);
 

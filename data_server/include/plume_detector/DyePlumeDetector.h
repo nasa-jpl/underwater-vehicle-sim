@@ -15,8 +15,8 @@ public:
 
 	virtual ~DyePlumeDetector() {}
 
-	float calcPlumeStrength(std::string name, const underwater_vehicle_msgs::VehicleData::ConstPtr& newData, DataServer dataServer);
-	std::vector<PlumeDataEntry> getPlumeData(std::string vehicleName, ros::Time startTime, ros::Time endTime, DataServer dataServer);
+	float calcPlumeStrength(std::string name, const underwater_vehicle_msgs::VehicleData::ConstPtr& newData, DataServer& dataServer);
+	std::vector<PlumeDataEntry> getPlumeData(std::string vehicleName, ros::Time startTime, ros::Time endTime, DataServer& dataServer);
 
 private:
 

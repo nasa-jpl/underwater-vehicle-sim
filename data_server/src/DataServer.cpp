@@ -45,6 +45,15 @@ void DataServer::putData(std::string sourceName, DataServerEntry entry)
 	}
 }
 
+void DataServer::clear(std::string sourceName)
+{
+    if(data.count(sourceName))
+    {
+        std::vector<DataServerEntry>& dataEntries = data[sourceName];
+        dataEntries.clear();
+    }
+}
+
 std::vector<DataServerEntry>::iterator DataServer::getStartTime(std::string sourceName, ros::Time time)
 {
 	//Check to see if sourceName is in the map

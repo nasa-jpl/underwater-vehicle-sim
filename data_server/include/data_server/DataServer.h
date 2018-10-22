@@ -83,6 +83,12 @@ public:
 	unsigned int size(std::string sourceName);
 	
 	/**
+	 *Clears all data for a specific source
+	 *@param sourceName Source to clear
+	 */
+	void clear(std::string sourceName);
+
+	/**
 	*Puts data in a list in the data server
 	*@param sourceName List to put the data in
 	*@param entry Data to put in the list

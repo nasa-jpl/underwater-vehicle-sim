@@ -14,12 +14,12 @@ DyePlumeDetector::DyePlumeDetector() {}
 
 DyePlumeDetector::DyePlumeDetector(DyePlumeDetector&& other) {}
 
-float DyePlumeDetector::calcPlumeStrength(std::string name, const underwater_vehicle_msgs::VehicleData::ConstPtr& newData, DataServer dataServer)
+float DyePlumeDetector::calcPlumeStrength(std::string name, const underwater_vehicle_msgs::VehicleData::ConstPtr& newData, DataServer& dataServer)
 {
     return newData->dye;
 }
 
-std::vector<PlumeDataEntry> DyePlumeDetector::getPlumeData(std::string vehicleName, ros::Time startTime, ros::Time endTime, DataServer dataServer)
+std::vector<PlumeDataEntry> DyePlumeDetector::getPlumeData(std::string vehicleName, ros::Time startTime, ros::Time endTime, DataServer& dataServer)
 {
 	std::vector<PlumeDataEntry> plumeData;
     std::vector<DataServerEntry>::iterator start = dataServer.getStartTime(vehicleName, startTime);
