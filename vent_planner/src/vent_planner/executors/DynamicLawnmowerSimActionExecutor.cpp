@@ -15,10 +15,10 @@ DynamicLawnmowerSimActionExecutor::DynamicLawnmowerSimActionExecutor(ros::NodeHa
 	dynamicLawnmowerClient("planner/"  + vehicleName + "/dynamic_lawnmower", false),
 	velPublisher(nh.advertise<vehicle_auto_control::Velocity>("/vehicle_controller/" + vehicleName + "/command_target_velocity", 1000, true))
 {
-	infoClient = nh.serviceClient<underwater_vehicle_sim::GetVehicleInfo>("/vehicles/get_info");
+	infoClient = nh.serviceClient<underwater_vehicle_msgs::GetVehicleInfo>("/vehicles/get_info");
 	infoClient.waitForExistence();
 
-	underwater_vehicle_sim::GetVehicleInfo info;
+	underwater_vehicle_msgs::GetVehicleInfo info;
 	info.request.name = vehicleName;
 	infoClient.call(info);
 	vehicleInfo = info.response;
@@ -30,10 +30,10 @@ DynamicLawnmowerSimActionExecutor::DynamicLawnmowerSimActionExecutor(const Dynam
 	dynamicLawnmowerClient("planner/"  + vehicleName + "/dynamic_lawnmower", false),
     velPublisher(nh.advertise<vehicle_auto_control::Velocity>("/vehicle_controller/" + vehicleName + "/command_target_velocity", 1000, true))
 {
-	infoClient = nh.serviceClient<underwater_vehicle_sim::GetVehicleInfo>("/vehicles/get_info");
+	infoClient = nh.serviceClient<underwater_vehicle_msgs::GetVehicleInfo>("/vehicles/get_info");
 	infoClient.waitForExistence();
 
-	underwater_vehicle_sim::GetVehicleInfo info;
+	underwater_vehicle_msgs::GetVehicleInfo info;
 	info.request.name = vehicleName;
 	infoClient.call(info);
 	vehicleInfo = info.response;

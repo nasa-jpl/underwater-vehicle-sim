@@ -17,10 +17,10 @@ DataTransferSimActionExecutor::DataTransferSimActionExecutor(ros::NodeHandle& nh
 	vehicleName(vehicleName),
 	nh(nh)
 {
-	infoClient = nh.serviceClient<underwater_vehicle_sim::GetVehicleInfo>("vehicles/get_info");
+	infoClient = nh.serviceClient<underwater_vehicle_msgs::GetVehicleInfo>("vehicles/get_info");
 	infoClient.waitForExistence();
 
-	underwater_vehicle_sim::GetVehicleInfo info;
+	underwater_vehicle_msgs::GetVehicleInfo info;
 	info.request.name = vehicleName;
 	infoClient.call(info);
 	vehicleInfo = info.response;
@@ -33,10 +33,10 @@ DataTransferSimActionExecutor::DataTransferSimActionExecutor(const DataTransferS
 	vehicleName(other.vehicleName),
 	nh(other.nh)
 {
-	infoClient = nh.serviceClient<underwater_vehicle_sim::GetVehicleInfo>("vehicles/get_info");
+	infoClient = nh.serviceClient<underwater_vehicle_msgs::GetVehicleInfo>("vehicles/get_info");
 	infoClient.waitForExistence();
 
-	underwater_vehicle_sim::GetVehicleInfo info;
+	underwater_vehicle_msgs::GetVehicleInfo info;
 	info.request.name = vehicleName;
 	infoClient.call(info);
 	vehicleInfo = info.response;

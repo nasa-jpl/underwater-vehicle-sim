@@ -65,68 +65,80 @@ FourDOFPropulsion::FourDOFPropulsion(std::string name, ros::NodeHandle& parentNH
 
 void FourDOFPropulsion::commandVelocityCallback(const geometry_msgs::Twist::ConstPtr& vel)
 {
-    if((fabs(vel->linear.x) < maxLinVelocity))
+    if(std::isfinite(vel->linear.x))
     {
-        linVelocity.setX(vel->linear.x);
-    }
-    else
-    {
-        if(vel->linear.x >= 0)
+        if((fabs(vel->linear.x) < maxLinVelocity))
         {
-            linVelocity.setX(maxLinVelocity);
+            linVelocity.setX(vel->linear.x);
         }
         else
         {
-            linVelocity.setX(-maxLinVelocity);
-        }
-    }
-
-    if((fabs(vel->linear.y) < maxLinVelocity))
-    {
-        linVelocity.setY(vel->linear.y);
-    }
-    else
-    {
-        if(vel->linear.y >= 0)
-        {
-            linVelocity.setY(maxLinVelocity);
-        }
-        else
-        {
-            linVelocity.setY(-maxLinVelocity);
-        }
-    }
-
-    if((fabs(vel->linear.z) < maxVertVelocity))
-    {
-        linVelocity.setZ(vel->linear.z);
-    }
+            if(vel->linear.x >= 0)
+            {
+                linVelocity.setX(maxLinVelocity);
+            }
             else
-    {
-        if(vel->linear.z >= 0)
-        {
-            linVelocity.setZ(maxVertVelocity);
-        }
-        else
-        {
-            linVelocity.setZ(-maxVertVelocity);
+            {
+                linVelocity.setX(-maxLinVelocity);
+            }
         }
     }
 
-    if((fabs(vel->angular.z) < maxRotVelocity))
+    if(std::isfinite(vel->linear.y))
     {
-        rotVelocity.setZ(vel->angular.z);
-    }
-            else
-    {
-        if(vel->angular.z >= 0)
+        if((fabs(vel->linear.y) < maxLinVelocity))
         {
-            rotVelocity.setZ(maxRotVelocity);
+            linVelocity.setY(vel->linear.y);
         }
         else
         {
-            rotVelocity.setZ(-maxRotVelocity);
+            if(vel->linear.y >= 0)
+            {
+                linVelocity.setY(maxLinVelocity);
+            }
+            else
+            {
+                linVelocity.setY(-maxLinVelocity);
+            }
         }
+    }
+
+    if(std::isfinite(vel->linear.z))
+    {
+        if((fabs(vel->linear.z) < maxVertVelocity))
+        {
+            linVelocity.setZ(vel->linear.z);
+        }
+        else
+        {
+            if(vel->linear.z >= 0)
+            {
+                linVelocity.setZ(maxVertVelocity);
+            }
+            else
+            {
+                linVelocity.setZ(-maxVertVelocity);
+            }
+        }
+    }
+
+    if(std::isfinite(vel->angular.z))
+    {
+        if((fabs(vel->angular.z) < maxRotVelocity))
+        {
+            rotVelocity.setZ(vel->angular.z);
+        }
+        else
+        {
+            if(vel->angular.z >= 0)
+            {
+                rotVelocity.setZ(maxRotVelocity);
+            }
+            else
+            {
+                rotVelocity.setZ(-maxRotVelocity);
+            }
+        }  
     }
 }
 
@@ -139,7 +151,7 @@ void FourDOFPropulsion::move(ros::Time& lastTime, tf::Quaternion& rotation, tf::
 
 	//Get the total linear movement in the vehicle frame
 	tf::Vector3 totalLinMovement = linVelocity * elapsedTime.toSec();
-	
+
 	//rotate the total linear movement to be in the world frame
 	totalLinMovement = totalLinMovement.rotate(rotation.getAxis(), rotation.getAngle());
 

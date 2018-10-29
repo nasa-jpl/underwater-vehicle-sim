@@ -7,10 +7,10 @@
 
 #include "vehicle_auto_control/PropulsionController.h"
 #include "vehicle_auto_control/Velocity.h"
-#include "vehicle_auto_control/PointPathRosAction.h"
+#include "vehicle_auto_control/GoToXYRosAction.h"
+#include "vehicle_auto_control/GoToZRosAction.h"
 
-
-#include "underwater_vehicle_sim/VehicleData.h"
+#include "underwater_vehicle_msgs/VehicleData.h"
 
 class FourDOFPropulsionController : public PropulsionController
 {
@@ -23,34 +23,43 @@ public:
 private:
 
 	/**
-	* Accepts new goals for the PointPath SimpleActionServer
+	* Accepts new goals for the GoToXY SimpleActionServer
 	*/ 
-	void goalPointPathCB(void);
-	void preemptPointPathCB(void);
-	void pointPathUpdate(void);
+	void goalGoToXYCB(void);
+	void preemptGoToXYCB(void);
+	void goToXYUpdate(void);
+
+	/**
+	* Accepts new goals for the GoToZ SimpleActionServer
+	*/ 
+	void goalGoToZCB(void);
+	void preemptGoToZCB(void);
+	void goToZUpdate(void);
+
 
 	void getTargetVelocityCommand(const vehicle_auto_control::Velocity vel);
 
-	void getVehicleData(const underwater_vehicle_sim::VehicleData data);
+	void getVehicleData(const underwater_vehicle_msgs::VehicleData data);
 
 	void sendVelocityCommand(double cmdForwardVelocity, double cmdLateralVelocity, double cmdRotVelocity, double cmdVertVelocity);
 
-	/**
-	* Checks to see if the vehicle is at a specific point with the error values
-	* @param location Location of the vehicle
-	* @param point Point to check
-	*/
-	bool isAtPoint(tf::Transform& location, tf::Vector3& point, bool useZ);
+
+	bool isAtXY(tf::Transform& location);
+	bool isAtZ(tf::Transform& location);
 
 	double scaleHorizontalVelocity(tf::Transform& location, tf::Vector3& point);
 	double scaleVerticalVelocity(tf::Transform& location, double targetHeight);
 	double scaleRotationalVelocity(double angleError, double crossZ);
 
 	/**
-	*Sends the needed commands to go toward the specified point
-	*
+	*Sends the needed commands to go toward the specified xy location
 	*/
-	void goToPoint(tf::StampedTransform& location, tf::Vector3& point, double targetHeight);
+	void goToXY(tf::StampedTransform& location);
+
+	/**
+	*Sends the needed commands to go toward the specified z location
+	*/
+	void goToZ(tf::StampedTransform& location);
  	
  	/**
 	*Transforms the current point into the vehicle frame
@@ -60,9 +69,13 @@ private:
 	void transformPointToVehicleFrame(geometry_msgs::PointStamped& pointOut, tf::StampedTransform& transform, tf::Vector3& point);
 
 	/**
-	*Cancels all actionlib goals related to vehicle movements
+	*Cancels all actionlib goals related to vehicle movements in xy direction
 	*/
-	void cancelAllMovement(void);
+	void cancelXYMovement(void);
+	/**
+	*Cancels all actionlib goals related to vehicle movements in z direction
+	*/
+	void cancelZMovement(void);
 
 private:
 	//Subscribers, publishers, and listeners
@@ -70,22 +83,20 @@ private:
 	ros::Publisher velocityPub;
 
 	//Point Path Goal Parameters
-	actionlib::SimpleActionServer<vehicle_auto_control::PointPathRosAction> pointPathServer;
-	std::vector<tf::Vector3> pathPoints;
-	unsigned int currentPoint;
+	actionlib::SimpleActionServer<vehicle_auto_control::GoToXYRosAction> goToXYServer;
+	actionlib::SimpleActionServer<vehicle_auto_control::GoToZRosAction> goToZServer;
 
-	//Shared Parameters
-	bool yoyo;
-	int upperDepth;
-	int lowerDepth;
+	double targetX;
+	double targetY;
+	double targetZ;
 
-	//State variables
-    bool goingUp;
+	//Track the last sent velocity commands so we can update xy and z independently
+	double lastForwardVelocity;
+	double lastLateralVelocity;
+	double lastRotVelocity;
+	double lastVertVelocity;
 
-	ros::ServiceClient plumeClient;
 	tf::TransformListener listener;
-
-	std::vector<tf::Vector3> pointPath;
 
 	ros::Subscriber dataSub;
 	double latestSonarDepth;

@@ -23,15 +23,16 @@
 #include "vent_planner/util/MathUtil.h"
 #include "vent_planner/util/Plane.h"
 
-SurfaceGradientVentPlanner::SurfaceGradientVentPlanner(ros::NodeHandle& nh, std::unique_ptr<VentActionFactory> actionFactory, std::string vehicleName) :
+SurfaceGradientVentPlanner::SurfaceGradientVentPlanner(ros::NodeHandle& nh, std::unique_ptr<VentActionFactory> actionFactory, VehicleInfo vehicleInfo) :
     nh(nh),
     actionFactory(std::move(actionFactory)),
-    vehicleName(vehicleName),
+    vehicleInfo(vehicleInfo),
     goalState("running"),
     latestDataClient(nh.serviceClient<data_server::GetLatestData>("data_server/get_latest")),
     goalPub(nh.advertise<std_msgs::String>("planner/goal", 1, true)),
     currentPlannerStage(SearchPhase::INITIAL_PLAN),
-    spiralData(nullptr, 0, tf::Vector3(0,0,0), 300000, 0)
+    spiralData(nullptr, 0, tf::Vector3(0,0,0), 300000, 0),
+    pointPathController(nh, vehicleInfo)
 {
     nh.getParam("planner/fail_time", failTime);
     nh.getParam("planner/spiral_spacing", spiralSpacing);
@@ -43,7 +44,7 @@ SurfaceGradientVentPlanner::SurfaceGradientVentPlanner(ros::NodeHandle& nh, std:
     nh.getParam("planner/min_follow_distance", gradientMinFollowDistance);
     nh.getParam("planner/gradient_window", gradientWindow);
 
-    dataSub = nh.subscribe("data_server/" + vehicleName + "/plume_data", 0, &SurfaceGradientVentPlanner::receivePlumeData, this);
+    dataSub = nh.subscribe("data_server/" + vehicleInfo.getName() + "/plume_data", 0, &SurfaceGradientVentPlanner::receivePlumeData, this);
 }
 
 void SurfaceGradientVentPlanner::receivePlumeData(const data_server::PlumeData::ConstPtr& msg)
@@ -152,7 +153,7 @@ std::shared_ptr<Plan> SurfaceGradientVentPlanner::plan()
             ROS_INFO("Generate inital plan");
             tf::Vector3 vehicleLocation(latestEntry.x, latestEntry.y, latestEntry.h);
             std::vector<tf::Vector3> spiralPoints = create_path_util::makeSpiral(vehicleLocation, 0, spiralSpacing, 100000);
-            std::shared_ptr<Action> newAction = actionFactory->createPointPathAction(vehicleName,
+            std::shared_ptr<Action> newAction = actionFactory->createPointPathAction(vehicleInfo.getName(),
                                                                                      1.0,
                                                                                      0.349066,
                                                                                      0.523599, //30 deg
@@ -204,7 +205,7 @@ std::shared_ptr<Plan> SurfaceGradientVentPlanner::plan()
                                                    0, //initial heading
                                                    true); //clockwise
 
-            std::shared_ptr<Action> newAction = actionFactory->createPointPathAction(vehicleName,
+            std::shared_ptr<Action> newAction = actionFactory->createPointPathAction(vehicleInfo.getName(),
                                                                                      1.0,
                                                                                      0.349066,
                                                                                      0.523599, //30 deg
@@ -253,7 +254,7 @@ std::shared_ptr<Plan> SurfaceGradientVentPlanner::plan()
 
 
        
-        std::shared_ptr<PointPathAction> newAction = actionFactory->createPointPathAction(vehicleName,
+        std::shared_ptr<PointPathAction> newAction = actionFactory->createPointPathAction(vehicleInfo.getName(),
                                                                                           1.0,
                                                                                           0.349066,
                                                                                           0.523599, //30 deg
@@ -308,7 +309,7 @@ void SurfaceGradientVentPlanner::updateGoal()
 bool SurfaceGradientVentPlanner::getLatestData(DataServerEntry& returnEntry)
 {
     data_server::GetLatestData srv;
-    srv.request.name = vehicleName;
+    srv.request.name = vehicleInfo.getName();
 
     bool valid = latestDataClient.call(srv);
     if(valid)

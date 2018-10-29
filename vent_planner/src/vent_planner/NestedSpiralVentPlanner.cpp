@@ -20,16 +20,17 @@
 
 #include "vent_planner/util/CreatePathUtil.h"
 
-NestedSpiralVentPlanner::NestedSpiralVentPlanner(ros::NodeHandle& nh, std::unique_ptr<VentActionFactory> actionFactory, std::string vehicleName) :
+NestedSpiralVentPlanner::NestedSpiralVentPlanner(ros::NodeHandle& nh, std::unique_ptr<VentActionFactory> actionFactory, VehicleInfo vehicleInfo) :
     nh(nh),
     actionFactory(std::move(actionFactory)),
     lastPlan(ros::Time::now()),
     initalPlan(false),
     plumeHeight(0),
-    vehicleName(vehicleName),
+    vehicleInfo(vehicleInfo),
     dataClient(nh.serviceClient<data_server::GetData>("data_server/get")),
     latestDataClient(nh.serviceClient<data_server::GetLatestData>("data_server/get_latest")),
-    plumeClient(nh.serviceClient<data_server::GetPlumeData>("data_server/get_plume"))
+    plumeClient(nh.serviceClient<data_server::GetPlumeData>("data_server/get_plume")),
+    pointPathController(nh, vehicleInfo)
 {
     ROS_INFO("Waiting for data server...");
     dataClient.waitForExistence();
@@ -93,7 +94,7 @@ std::shared_ptr<Plan> NestedSpiralVentPlanner::plan()
             ROS_INFO("Generate Inital Plan");
             tf::Vector3 vehicleLocation(latestEntry.x, latestEntry.y, latestEntry.h);
             std::vector<tf::Vector3> spiralPoints = create_path_util::makeSpiral(vehicleLocation, 0, initalSpacing, 100000);
-            std::shared_ptr<Action> newAction = actionFactory->createPointPathAction(vehicleName,
+            std::shared_ptr<Action> newAction = actionFactory->createPointPathAction(vehicleInfo.getName(),
                                                                                     1.0,
                                                                                     0.349066,
                                                                                     0.523599, //30 deg
@@ -124,7 +125,7 @@ std::shared_ptr<Plan> NestedSpiralVentPlanner::plan()
     {
         ROS_INFO("Plan");
         data_server::GetPlumeData srv;
-        srv.request.name = vehicleName;
+        srv.request.name = vehicleInfo.getName();
         srv.request.start_time = lastPlan;
         srv.request.end_time = ros::Time::now();
 
@@ -177,7 +178,7 @@ std::shared_ptr<Plan> NestedSpiralVentPlanner::plan()
 
                 tf::Vector3 spiralLocation(plumeX, plumeY, plumeHeight);
                 std::vector<tf::Vector3> spiralPoints = create_path_util::makeSpiral(spiralLocation, 0, spacing, size);
-                std::shared_ptr<Action> newAction = actionFactory->createPointPathAction(vehicleName,
+                std::shared_ptr<Action> newAction = actionFactory->createPointPathAction(vehicleInfo.getName(),
                                                                                         1.0,
                                                                                         0.349066,
                                                                                         0.523599, //30 deg
@@ -379,7 +380,7 @@ bool NestedSpiralVentPlanner::getHeightOfPlume(const std::vector<PlumeDataEntry>
 bool NestedSpiralVentPlanner::getLatestData(DataServerEntry& returnEntry)
 {
     data_server::GetLatestData srv;
-    srv.request.name = vehicleName;
+    srv.request.name = vehicleInfo.getName();
 
     bool valid = latestDataClient.call(srv);
     if(valid)

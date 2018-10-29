@@ -23,11 +23,11 @@
 
 #include "vent_planner/util/CreatePathUtil.h"
 
-NestedBinVentPlanner::NestedBinVentPlanner(ros::NodeHandle& nh, std::unique_ptr<VentActionFactory> actionFactory, std::string vehicleName) :
+NestedBinVentPlanner::NestedBinVentPlanner(ros::NodeHandle& nh, std::unique_ptr<VentActionFactory> actionFactory, VehicleInfo vehicleInfo) :
     nh(nh),
     actionFactory(std::move(actionFactory)),
     lastPlan(ros::Time::now()),
-    vehicleName(vehicleName),
+    vehicleInfo(vehicleInfo),
     dataClient(nh.serviceClient<data_server::GetData>("data_server/get")),
     latestDataClient(nh.serviceClient<data_server::GetLatestData>("data_server/get_latest")),
     plumeClient(nh.serviceClient<data_server::GetPlumeData>("data_server/get_plume")),
@@ -37,7 +37,8 @@ NestedBinVentPlanner::NestedBinVentPlanner(ros::NodeHandle& nh, std::unique_ptr<
     finalSurvey(nullptr),
     phase(SearchPhase::none),
     spiralData(nullptr, 0, tf::Vector3(0,0,0), 300000, 0),
-    dynamicLawnmowerController(nh, vehicleName)
+    dynamicLawnmowerController(nh, vehicleInfo.getName()),
+    pointPathController(nh, vehicleInfo)
 {
     ROS_INFO("Waiting for data server...");
     dataClient.waitForExistence();
@@ -61,7 +62,7 @@ NestedBinVentPlanner::NestedBinVentPlanner(ros::NodeHandle& nh, std::unique_ptr<
     nh.getParam("planner/final_spacing", finalSpacing);
     nh.getParam("planner/fail_time", failTime);
 
-    dataSub = nh.subscribe("data_server/" + vehicleName + "/plume_data", 0, &NestedBinVentPlanner::receivePlumeData, this);
+    dataSub = nh.subscribe("data_server/" + vehicleInfo.getName() + "/plume_data", 0, &NestedBinVentPlanner::receivePlumeData, this);
 }
 
 void NestedBinVentPlanner::receivePlumeData(const data_server::PlumeData::ConstPtr& msg)
@@ -109,7 +110,7 @@ std::shared_ptr<Plan> NestedBinVentPlanner::plan()
             ROS_INFO("Generate inital plan");
             tf::Vector3 vehicleLocation(latestEntry.x, latestEntry.y, latestEntry.h);
             std::vector<tf::Vector3> spiralPoints = create_path_util::makeSpiral(vehicleLocation, 0, spiralSpacing, 100000);
-            std::shared_ptr<Action> newAction = actionFactory->createPointPathAction(vehicleName,
+            std::shared_ptr<Action> newAction = actionFactory->createPointPathAction(vehicleInfo.getName(),
                                                                                      1.0,
                                                                                      0.349066,
                                                                                      0.523599, //30 deg
@@ -119,7 +120,7 @@ std::shared_ptr<Plan> NestedBinVentPlanner::plan()
                                                                                      PointPathAction::ReplanType::ON_YOYO_TURN,
                                                                                      0);
             returnPlan->addAction(newAction);
-            publishLog(vehicleName + ",Spiral");
+            publishLog(vehicleInfo.getName() + ",Spiral");
 
             phase = SearchPhase::spiral;
         }
@@ -147,7 +148,7 @@ std::shared_ptr<Plan> NestedBinVentPlanner::plan()
             //Log data to file
             std::stringstream ss;
             ss.precision(5);
-            ss << std::fixed << vehicleName << ",DynamicLawnmower," << plumeHeight << "," << closestOrigin.getX() << "," << closestOrigin.getY() << "," << initalSpacing;
+            ss << std::fixed << vehicleInfo.getName() << ",DynamicLawnmower," << plumeHeight << "," << closestOrigin.getX() << "," << closestOrigin.getY() << "," << initalSpacing;
             publishLog(ss.str());
         }
         else
@@ -205,7 +206,7 @@ std::shared_ptr<Plan> NestedBinVentPlanner::plan()
                                                                    (nestedSizeFactor * 3 - 1) * nestedBinSize,
                                                                    nestedBinSize);
 
-            std::shared_ptr<PointPathAction> lawnmowerAction = actionFactory->createPointPathAction(vehicleName,
+            std::shared_ptr<PointPathAction> lawnmowerAction = actionFactory->createPointPathAction(vehicleInfo.getName(),
                                                                                                     1.0,
                                                                                                     0.349066,
                                                                                                     0.523599, //30 deg
@@ -226,7 +227,7 @@ std::shared_ptr<Plan> NestedBinVentPlanner::plan()
 
             std::stringstream ss;
             ss.precision(5);
-            ss << std::fixed << vehicleName << ",NestedLawnmower," << startLocation.getZ() << "," << startLocation.getX() << "," << startLocation.getY() << "," << nestedBinSize;
+            ss << std::fixed << vehicleInfo.getName() << ",NestedLawnmower," << startLocation.getZ() << "," << startLocation.getX() << "," << startLocation.getY() << "," << nestedBinSize;
             publishLog(ss.str());
         }
         else
@@ -304,7 +305,7 @@ void NestedBinVentPlanner::initalizeDataTree(tf::Vector3 centerLocation)
 bool NestedBinVentPlanner::getLatestData(DataServerEntry& returnEntry)
 {
     data_server::GetLatestData srv;
-    srv.request.name = vehicleName;
+    srv.request.name = vehicleInfo.getName();
 
     bool valid = latestDataClient.call(srv);
     if(valid)
@@ -366,7 +367,7 @@ void NestedBinVentPlanner::addInitalLawnmowers(std::shared_ptr<Plan> plan, const
     tf::Vector3 lawnmower2Start(centerLocation.getX() - initalSpacing / 2.0, centerLocation.getY() - initalSpacing / 2.0, plumeHeight);
     tf::Vector3 lawnmower3Start(centerLocation.getX() + initalSpacing / 2.0, centerLocation.getY() - initalSpacing / 2.0, plumeHeight);
 
-    std::shared_ptr<Action> lawnmower0 = actionFactory->createDynamicLawnmowerAction(vehicleName,
+    std::shared_ptr<Action> lawnmower0 = actionFactory->createDynamicLawnmowerAction(vehicleInfo.getName(),
                                                                                      1.0,
                                                                                      0.349066,
                                                                                      0.523599, //30 deg
@@ -379,7 +380,7 @@ void NestedBinVentPlanner::addInitalLawnmowers(std::shared_ptr<Plan> plan, const
                                                                                      0.5,
                                                                                      2);
 
-    std::shared_ptr<Action> lawnmower1 = actionFactory->createDynamicLawnmowerAction(vehicleName,
+    std::shared_ptr<Action> lawnmower1 = actionFactory->createDynamicLawnmowerAction(vehicleInfo.getName(),
                                                                                      1.0,
                                                                                      0.349066,
                                                                                      0.523599, //30 deg
@@ -392,7 +393,7 @@ void NestedBinVentPlanner::addInitalLawnmowers(std::shared_ptr<Plan> plan, const
                                                                                      0.5,
                                                                                      2);
 
-    std::shared_ptr<Action> lawnmower2 = actionFactory->createDynamicLawnmowerAction(vehicleName,
+    std::shared_ptr<Action> lawnmower2 = actionFactory->createDynamicLawnmowerAction(vehicleInfo.getName(),
                                                                                      1.0,
                                                                                      0.349066,
                                                                                      0.523599, //30 deg
@@ -405,7 +406,7 @@ void NestedBinVentPlanner::addInitalLawnmowers(std::shared_ptr<Plan> plan, const
                                                                                      0.5,
                                                                                      2);
 
-    std::shared_ptr<Action> lawnmower3 = actionFactory->createDynamicLawnmowerAction(vehicleName,
+    std::shared_ptr<Action> lawnmower3 = actionFactory->createDynamicLawnmowerAction(vehicleInfo.getName(),
                                                                                      1.0,
                                                                                      0.349066,
                                                                                      0.523599, //30 deg

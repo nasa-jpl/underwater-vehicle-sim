@@ -4,7 +4,7 @@
 
 DynamicLawnmowerController::DynamicLawnmowerController(ros::NodeHandle& nh, 
                                                        std::string vehicleName) :
-    pointPathClient(nh, "vehicle_controller/" + vehicleName + "/point_path", false),
+    pointPathClient(nh, "planner/" + vehicleName + "/point_path", false),
     dynamicLawnmowerServer(nh, "planner/" + vehicleName + "/dynamic_lawnmower", false),
     plumeClient(nh.serviceClient<data_server::GetPlumeData>("data_server/get_plume")),
     vehicleName(vehicleName)
@@ -29,7 +29,6 @@ void DynamicLawnmowerController::dynamicLawnmowerUpdate(void)
 
 void DynamicLawnmowerController::goalCB(void)
 {
-    pointPathClient.cancelAllGoals();
     vent_planner::DynamicLawnmowerRosGoalConstPtr dynamicLawnmowerGoal = 
         dynamicLawnmowerServer.acceptNewGoal();
 
@@ -70,12 +69,12 @@ void DynamicLawnmowerController::pointPathActive(void)
 {
 }
 
-void DynamicLawnmowerController::pointPathFeedback(const vehicle_auto_control::PointPathRosFeedbackConstPtr& feedback)
+void DynamicLawnmowerController::pointPathFeedback(const vent_planner::PointPathRosFeedbackConstPtr& feedback)
 {
 }
 
 void DynamicLawnmowerController::pointPathDone(const actionlib::SimpleClientGoalState& state,
-                       const vehicle_auto_control::PointPathRosResultConstPtr& result)
+                       const vent_planner::PointPathRosResultConstPtr& result)
 {
     bool dynamicLawnmowerComplete = false;
 
@@ -173,7 +172,7 @@ void DynamicLawnmowerController::pointPathDone(const actionlib::SimpleClientGoal
     }
     else
     {
-        ROS_INFO("Dynamic lawnmower point path failed");
+        ROS_INFO("Dynamic lawnmower point path failed: %s", state.toString().c_str());
     }
 
     if(dynamicLawnmowerComplete)
@@ -200,7 +199,7 @@ void DynamicLawnmowerController::sendPointPathGoal(const tf::Vector3& point)
 void DynamicLawnmowerController::sendPointPathGoal(const std::vector<tf::Vector3>& points)
 {
     //Creates an action goal and sends it to the action server for point path movement
-    vehicle_auto_control::PointPathRosGoal pointPathGoal = vehicle_auto_control::PointPathRosGoal();
+    vent_planner::PointPathRosGoal pointPathGoal = vent_planner::PointPathRosGoal();
 
     for(tf::Vector3 point : points)
     {

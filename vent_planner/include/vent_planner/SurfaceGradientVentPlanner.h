@@ -12,11 +12,14 @@
 #include "planner_framework/Planner.h"
 
 #include "vent_planner/actions/VentActionFactory.h"
+#include "vent_planner/controllers/PointPathController.h"
+
+#include "underwater_vehicle_msgs/VehicleInfo.h"
 
 class SurfaceGradientVentPlanner : public Planner
 {
 public:
-    SurfaceGradientVentPlanner(ros::NodeHandle& nh, std::unique_ptr<VentActionFactory> actionFactory, std::string vehicleName);
+    SurfaceGradientVentPlanner(ros::NodeHandle& nh, std::unique_ptr<VentActionFactory> actionFactory, VehicleInfo vehicleInfo);
     ~SurfaceGradientVentPlanner() {}
 
     void receivePlumeData(const data_server::PlumeData::ConstPtr& msg);
@@ -43,7 +46,7 @@ private:
 
     std::unique_ptr<VentActionFactory> actionFactory;  
     std::string goalState;
-    std::string vehicleName;
+    VehicleInfo vehicleInfo;
     ros::NodeHandle& nh;
 
     ros::ServiceClient latestDataClient;
@@ -73,6 +76,8 @@ private:
     double gradientMaxFollowDistance;
     double gradientThreshold;
     double gradientWindow;
+
+    PointPathController pointPathController;
 };
 
 #endif

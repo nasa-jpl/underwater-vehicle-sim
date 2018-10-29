@@ -10,16 +10,20 @@
 
 #include "planner_framework/Planner.h"
 #include "vent_planner/actions/VentActionFactory.h"
+#include "vent_planner/controllers/PointPathController.h"
 
 #include "data_server/DataServerEntry.h"
 
 #include "plume_detector/PlumeDataEntry.h"
 #include "data_server/GetPlumeData.h"
 
+
+#include "underwater_vehicle_msgs/VehicleInfo.h"
+
 class NestedSpiralVentPlanner : public Planner
 {
 public:
-    NestedSpiralVentPlanner(ros::NodeHandle& nh, std::unique_ptr<VentActionFactory> actionFactory, std::string vehicleName);
+    NestedSpiralVentPlanner(ros::NodeHandle& nh, std::unique_ptr<VentActionFactory> actionFactory, VehicleInfo vehicleInfo);
     ~NestedSpiralVentPlanner() {}
 
     std::shared_ptr<Plan> plan();
@@ -61,7 +65,7 @@ private:
 
     unsigned int yoyoUpperDepth;
     unsigned int yoyoLowerDepth;
-    std::string vehicleName;
+    VehicleInfo vehicleInfo;
     tf::Vector3 vehicleStartLocation;
 
     ros::ServiceClient dataClient;
@@ -70,6 +74,8 @@ private:
     ros::ServiceClient plumeClient;
 
     ros::NodeHandle& nh;
+
+    PointPathController pointPathController;
 };
 
 #endif

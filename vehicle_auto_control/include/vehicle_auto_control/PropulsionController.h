@@ -8,7 +8,7 @@
 
 #include "tf/transform_broadcaster.h"
 
-#include "underwater_vehicle_sim/GetVehicleInfo.h"
+#include "underwater_vehicle_msgs/GetVehicleInfo.h"
 
 class PropulsionController
 {
@@ -21,7 +21,7 @@ public:
 	virtual void update(void)=0;
 
 	static std::unique_ptr<PropulsionController> makePropulsionController(std::string vehicleName, 
-																		  underwater_vehicle_sim::GetVehicleInfo info,
+																		  underwater_vehicle_msgs::GetVehicleInfo info,
 																		  ros::NodeHandle& parentNH);	
 
 protected:

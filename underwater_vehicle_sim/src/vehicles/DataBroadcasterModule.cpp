@@ -5,7 +5,7 @@
 
 #include "model_server/GetModelData.h"
 
-#include "underwater_vehicle_sim/VehicleData.h"
+#include "underwater_vehicle_msgs/VehicleData.h"
 #include "vehicles/DataBroadcasterModule.h"
 
 #define SECONDS_IN_DAY 86400
@@ -14,7 +14,7 @@ DataBroadcasterModule::DataBroadcasterModule(std::string name, ros::NodeHandle& 
 	GeneralModule(name, "DataBroadcaster", parentNH, vehicleName)
 {
 
-	dataRecorder = nh.advertise<underwater_vehicle_sim::VehicleData>("data", 1000);
+	dataRecorder = nh.advertise<underwater_vehicle_msgs::VehicleData>("data", 1000);
 	client = nh.serviceClient<model_server::GetModelData>("/get_model_data");
 }
 
@@ -33,7 +33,7 @@ void DataBroadcasterModule::update(std::string name, const ros::Time& lastTime, 
 
 		if(success)
 		{
-			underwater_vehicle_sim::VehicleData data;
+			underwater_vehicle_msgs::VehicleData data;
 
 			data.name = name;
 			data.x = position.getX();

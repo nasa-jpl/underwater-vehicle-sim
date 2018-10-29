@@ -12,11 +12,14 @@
 #include "planner_framework/Planner.h"
 
 #include "vent_planner/actions/VentActionFactory.h"
+#include "vent_planner/controllers/PointPathController.h"
+
+#include "underwater_vehicle_msgs/VehicleInfo.h"
 
 class DirectionSetVentPlanner : public Planner
 {
 public:
-    DirectionSetVentPlanner(ros::NodeHandle& nh, std::unique_ptr<VentActionFactory> actionFactory, std::string vehicleName);
+    DirectionSetVentPlanner(ros::NodeHandle& nh, std::unique_ptr<VentActionFactory> actionFactory, VehicleInfo vehicleInfo);
     ~DirectionSetVentPlanner() {}
 
     void receivePlumeData(const data_server::PlumeData::ConstPtr& msg);
@@ -50,7 +53,7 @@ private:
 
     std::unique_ptr<VentActionFactory> actionFactory;  
     GoalState goalState;
-    std::string vehicleName;
+    VehicleInfo vehicleInfo;
     ros::NodeHandle& nh;
 
     //Vehicle Data
@@ -80,6 +83,8 @@ private:
     double numSectionsThreshold;
 
     ros::Publisher goalPub;
+
+    PointPathController pointPathController;
 };
 
 #endif

@@ -2,7 +2,7 @@
 
 import rospy
 from std_msgs.msg import String
-from underwater_vehicle_sim.msg import VehicleData
+from underwater_vehicle_msgs.msg import VehicleData
 
 import numpy as np
 import matplotlib.pyplot as plt

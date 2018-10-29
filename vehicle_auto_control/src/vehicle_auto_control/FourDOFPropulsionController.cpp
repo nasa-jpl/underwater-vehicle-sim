@@ -8,8 +8,6 @@
 #include "vehicle_auto_control/Velocity.h"
 #include "vehicle_auto_control/FourDOFPropulsionController.h"
 
-#include "vehicle_auto_control/PointPathRosAction.h"
-
 #include "data_server/GetPlumeData.h"
 
 FourDOFPropulsionController::FourDOFPropulsionController(ros::NodeHandle controlNode, ros::NodeHandle vehicleNode, std::string propModuleName, std::string dataModuleName, std::string vehicleName) :
@@ -22,8 +20,12 @@ FourDOFPropulsionController::FourDOFPropulsionController(ros::NodeHandle control
     latestSonarDepth(1000),
     latestVehicleDepth(0),
     minSeafloorDistance(10.0),
-    pointPathServer(controlNode, "point_path", false),
-    plumeClient(controlNode.serviceClient<data_server::GetPlumeData>("data_server/get_plume"))
+    lastForwardVelocity(0),
+    lastLateralVelocity(0),
+    lastRotVelocity(0),
+    lastVertVelocity(0),
+    goToXYServer(controlNode, "go_to_xy", false),
+    goToZServer(controlNode, "go_to_z", false)
 {
     velocityPub = vehicleNode.advertise<geometry_msgs::Twist>(propModuleName + "/command_velocity", 1000);
 
@@ -35,9 +37,14 @@ FourDOFPropulsionController::FourDOFPropulsionController(ros::NodeHandle control
 
     velocitySub = controlNode.subscribe("command_target_velocity", 1, &FourDOFPropulsionController::getTargetVelocityCommand, this);
     
-    pointPathServer.registerGoalCallback(boost::bind(&FourDOFPropulsionController::goalPointPathCB, this));
-    pointPathServer.registerPreemptCallback(boost::bind(&FourDOFPropulsionController::preemptPointPathCB, this));
-    pointPathServer.start();
+    goToXYServer.registerGoalCallback(boost::bind(&FourDOFPropulsionController::goalGoToXYCB, this));
+    goToXYServer.registerPreemptCallback(boost::bind(&FourDOFPropulsionController::preemptGoToXYCB, this));
+    goToXYServer.start();
+
+    goToZServer.registerGoalCallback(boost::bind(&FourDOFPropulsionController::goalGoToZCB, this));
+    goToZServer.registerPreemptCallback(boost::bind(&FourDOFPropulsionController::preemptGoToZCB, this));
+    goToZServer.start();
+
 }
 
 void FourDOFPropulsionController::getTargetVelocityCommand(const vehicle_auto_control::Velocity vel)
@@ -47,63 +54,69 @@ void FourDOFPropulsionController::getTargetVelocityCommand(const vehicle_auto_co
     targetVertVelocity = fabs(vel.verticalVelocity);
 }
 
-void FourDOFPropulsionController::getVehicleData(const underwater_vehicle_sim::VehicleData data)
+void FourDOFPropulsionController::getVehicleData(const underwater_vehicle_msgs::VehicleData data)
 {
     latestSonarDepth = data.sonarDepth;
     latestVehicleDepth = data.h;
 }
 
 void FourDOFPropulsionController::update(void) 
-{
-    if(pointPathServer.isActive())
+{ 
+    if(goToXYServer.isActive())
     {
-        pointPathUpdate();
+        goToXYUpdate();
+    }
+
+    if(goToZServer.isActive())
+    {
+        goToZUpdate();
     }
 }
 
-void FourDOFPropulsionController::cancelAllMovement(void)
+void FourDOFPropulsionController::cancelXYMovement(void)
 {
-    //Stop the vehicle
-    sendVelocityCommand(0, 0, 0, 0);
+     //Stop the vehicle in the xy direction
+    sendVelocityCommand(0, 0, 0, lastVertVelocity);
 
-    if(pointPathServer.isActive())
+    if(goToXYServer.isActive())
     {
-        pointPathServer.setPreempted();
+        goToXYServer.setPreempted();
     }
 }
 
-void FourDOFPropulsionController::goalPointPathCB(void)
+void FourDOFPropulsionController::cancelZMovement(void)
 {
-    cancelAllMovement();
-    vehicle_auto_control::PointPathRosGoalConstPtr pointPathGoal = pointPathServer.acceptNewGoal();
-    ROS_DEBUG("Point Path New Goal");
-    currentPoint = 0;
-    goingUp = true;
-    pathPoints.clear();
-    for(auto point: pointPathGoal->points)
+    //Stop the vehicle in the z direction
+    sendVelocityCommand(lastForwardVelocity, 
+                        lastLateralVelocity, 
+                        lastRotVelocity, 
+                        0); //Vertical Velocity
+
+    if(goToZServer.isActive())
     {
-        pathPoints.emplace_back(point.x, point.y, point.z);
+        goToZServer.setPreempted();
     }
-    yoyo = pointPathGoal->yoyo;
-    upperDepth = pointPathGoal->upperDepth;
-    lowerDepth = pointPathGoal->lowerDepth;
 }
 
-void FourDOFPropulsionController::preemptPointPathCB(void)
+void FourDOFPropulsionController::goalGoToXYCB(void)
 {
-    ROS_DEBUG("Point Path Action Preempted CB");
-
-    //Stop the vehicle
-    sendVelocityCommand(0, 0, 0, 0);
-
-    pointPathServer.setPreempted();
+    
+    sendVelocityCommand(0, 0, 0, lastVertVelocity);
+    vehicle_auto_control::GoToXYRosGoalConstPtr goToXYGoal = goToXYServer.acceptNewGoal();
+    
+    targetX = goToXYGoal->x;
+    targetY = goToXYGoal->y;
+    ROS_INFO("GoToXY server accepted a new goal - x:%f y:%f", targetX, targetY);
 }
 
-void FourDOFPropulsionController::pointPathUpdate(void)
+void FourDOFPropulsionController::preemptGoToXYCB(void)
 {
-    vehicle_auto_control::PointPathRosFeedback feedback;
-    vehicle_auto_control::PointPathRosResult result;
+    ROS_DEBUG("GoToXY server current goal is preempted");
+    cancelXYMovement();
+}
 
+void FourDOFPropulsionController::goToXYUpdate(void)
+{
     tf::StampedTransform transform;
     try
     {
@@ -111,60 +124,114 @@ void FourDOFPropulsionController::pointPathUpdate(void)
                                   ros::Time(0), ros::Duration(5.0));
         listener.lookupTransform("/world", "/" + vehicleName,  
                                  ros::Time(0), transform);
-        if(currentPoint < pathPoints.size())
-        {
-            if(isAtPoint(transform, pathPoints[currentPoint], !yoyo))
-            {
-                currentPoint++;
-            }
-        }
-        
-        if(yoyo)
-        {
-            if(transform.getOrigin().getZ() + verticalError > upperDepth || transform.getOrigin().getZ() + verticalError >= 0)
-            {
-                goingUp = false;
-            }
-            else if(transform.getOrigin().getZ() - verticalError < lowerDepth || fabs(latestSonarDepth - minSeafloorDistance) <= verticalError)
-            {
-                goingUp = true;
-            }
-        }
-        
-        if(currentPoint < pathPoints.size())
-        {
-            double targetHeight = 0;
-            if(yoyo)
-            {
-                targetHeight = goingUp ? upperDepth : lowerDepth;
-            }
-            else
-            {
-                targetHeight = pathPoints[currentPoint].getZ();
-            }
 
-            goToPoint(transform, pathPoints[currentPoint], targetHeight);
+        
+        vehicle_auto_control::GoToXYRosFeedback feedback;
+        feedback.x = transform.getOrigin().getX();
+        feedback.y = transform.getOrigin().getY();
+        goToXYServer.publishFeedback(feedback);
+
+        if(isAtXY(transform))
+        {
+            double xDifference = fabs(transform.getOrigin().getX() - targetX);
+            double yDifference = fabs(transform.getOrigin().getY() - targetY);
+
+            sqrt(yDifference * yDifference + xDifference * xDifference);
+
+            ROS_INFO("Vehicle is at GoToXY goal location - Goal XY %f, %f; Vehicle XY %f, %f; Diff: %f",
+                     transform.getOrigin().getX(),
+                     transform.getOrigin().getY(),
+                     targetX,
+                     targetY,
+                     sqrt(yDifference * yDifference + xDifference * xDifference));
+            sendVelocityCommand(0.0, 
+                                lastLateralVelocity, 
+                                0.0, 
+                                lastRotVelocity);
+
+            vehicle_auto_control::GoToXYRosResult result;
+            result.x = transform.getOrigin().getX();
+            result.y = transform.getOrigin().getY();
+            goToXYServer.setSucceeded(result);
         }
         else
         {
-            //Stop the vehicle
-            sendVelocityCommand(0, 0, 0, 0);
+            goToXY(transform);
+
+            //Z here to adjust to changing seafloor depth
+            if(!goToZServer.isActive())
+            {
+                goToZ(transform);
+            }
         }
-        
     }
     catch (tf::TransformException ex){
         ROS_ERROR("%s",ex.what());
     }
+}
 
-    feedback.currentPoint = currentPoint;
-    feedback.goingUp = goingUp;
-    pointPathServer.publishFeedback(feedback);
+void FourDOFPropulsionController::goalGoToZCB(void)
+{
+    
+    sendVelocityCommand(lastForwardVelocity, 
+                        lastLateralVelocity, 
+                        lastRotVelocity, 
+                        0); //Vertical Velocity
 
-    if(currentPoint == pathPoints.size())
+    vehicle_auto_control::GoToZRosGoalConstPtr goToZGoal = goToZServer.acceptNewGoal();
+
+    targetZ = goToZGoal->z;
+    ROS_INFO("GoToZ server accepted a new goal - z: %f", targetZ);
+}
+
+void FourDOFPropulsionController::preemptGoToZCB(void)
+{
+    ROS_INFO("GoToZ server current goal is preempted");
+    cancelZMovement();
+}
+
+void FourDOFPropulsionController::goToZUpdate(void)
+{
+    tf::StampedTransform transform;
+    try
     {
-        ROS_DEBUG("Point Path Action set succeeded");
-        result.totalPoints = currentPoint;
-        pointPathServer.setSucceeded(result);
+        listener.waitForTransform("/world", "/" + vehicleName,
+                                  ros::Time(0), ros::Duration(5.0));
+        listener.lookupTransform("/world", "/" + vehicleName,  
+                                 ros::Time(0), transform);
+
+        vehicle_auto_control::GoToZRosFeedback feedback;
+        feedback.z = transform.getOrigin().getZ();
+        goToZServer.publishFeedback(feedback);
+
+        if(isAtZ(transform))
+        {
+            double targetVertPosition = std::max(targetZ, latestVehicleDepth - latestSonarDepth + minSeafloorDistance);
+
+            double zDifference = fabs(transform.getOrigin().getZ() - targetVertPosition);
+
+            ROS_INFO("Vehicle is at GoToZ goal location - Target Z: %f; Vehicle Z: %f; Transform Time: %f; Current Time: %f; Difference: %f",
+                     targetVertPosition,
+                     transform.getOrigin().getZ(),
+                     transform.stamp_.toSec(),
+                     ros::Time::now().toSec(),
+                     zDifference);
+            sendVelocityCommand(lastForwardVelocity, 
+                                lastLateralVelocity, 
+                                lastRotVelocity, 
+                                0.0);
+
+            vehicle_auto_control::GoToZRosResult result;
+            result.z = transform.getOrigin().getZ();
+            goToZServer.setSucceeded(result); 
+        }
+        else
+        {
+            goToZ(transform);
+        }
+    }
+    catch (tf::TransformException ex){
+        ROS_ERROR("%s",ex.what());
     }
 }
 
@@ -181,32 +248,59 @@ void FourDOFPropulsionController::transformPointToVehicleFrame(geometry_msgs::Po
     listener.transformPoint("/" + vehicleName, pointIn, pointOut);
 }
 
-bool FourDOFPropulsionController::isAtPoint(tf::Transform& location, tf::Vector3& point, bool useZ)
+bool FourDOFPropulsionController::isAtXY(tf::Transform& location)
 {
-    double targetVertPosition = std::max(point.getZ(), latestVehicleDepth - latestSonarDepth + minSeafloorDistance);
+    double xDifference = fabs(location.getOrigin().getX() - targetX);
+    double yDifference = fabs(location.getOrigin().getY() - targetY);
 
-    double xDifference = fabs(location.getOrigin().getX() - point.getX());
-    double yDifference = fabs(location.getOrigin().getY() - point.getY());
-    double zDifference = fabs(location.getOrigin().getZ() - targetVertPosition);
-
-    return (!useZ || zDifference <= verticalError) && sqrt(yDifference * yDifference + xDifference * xDifference) <= lateralError;
+    return sqrt(yDifference * yDifference + xDifference * xDifference) <= lateralError;
 }
 
-void FourDOFPropulsionController::goToPoint(tf::StampedTransform& location, tf::Vector3& point, double targetHeight)
+bool FourDOFPropulsionController::isAtZ(tf::Transform& location)
+{
+    double targetVertPosition = std::max(targetZ, latestVehicleDepth - latestSonarDepth + minSeafloorDistance);
+
+    double zDifference = fabs(location.getOrigin().getZ() - targetVertPosition);
+
+    return zDifference <= verticalError;
+}
+
+
+void FourDOFPropulsionController::goToXY(tf::StampedTransform& location)
 {
     geometry_msgs::PointStamped pointOut;
+    tf::Vector3 point(targetX, targetY, 0);
+
     transformPointToVehicleFrame(pointOut, location, point);
     tf::Vector3 vehicleForward(1, 0, 0);
     tf::Vector3 targetPoint(pointOut.point.x, pointOut.point.y, 0);
     tf::Vector3 cross = vehicleForward.cross(targetPoint);
 
     double angle = vehicleForward.angle(targetPoint);       
+    double newRotVel = lastRotVelocity;
+    if(std::isfinite(angle))
+    {
+        newRotVel = scaleRotationalVelocity(angle, cross.getZ());
+        lastRotVelocity = newRotVel;
+    }
 
-    double newVertVel = scaleVerticalVelocity(location, targetHeight);
-    double newRotVel = scaleRotationalVelocity(angle, cross.getZ());
     double newForwVel = scaleHorizontalVelocity(location, point);
+    lastForwardVelocity = newForwVel;
+    sendVelocityCommand(newForwVel, 
+                        lastLateralVelocity, 
+                        newRotVel, 
+                        lastRotVelocity);
+}
 
-    sendVelocityCommand(newForwVel, 0, newRotVel, newVertVel);
+void FourDOFPropulsionController::goToZ(tf::StampedTransform& location)
+{
+    double newVertVel = scaleVerticalVelocity(location, targetZ);
+
+    lastVertVelocity = newVertVel;
+    sendVelocityCommand(lastForwardVelocity, 
+                        lastLateralVelocity, 
+                        lastRotVelocity, 
+                        newVertVel);
 }
 
 double FourDOFPropulsionController::scaleHorizontalVelocity(tf::Transform& location, tf::Vector3& point)
@@ -251,6 +345,7 @@ double FourDOFPropulsionController::scaleVerticalVelocity(tf::Transform& locatio
 
 double FourDOFPropulsionController::scaleRotationalVelocity(double angleError, double crossZ)
 {
+  //  ROS_INFO("SCALE ROTATE: %f %f %f", targetRotVelocity, angleError, crossZ);
     double angleErrorScale = M_PI; //60 degrees 
 
     if(angleError >= angleErrorScale)
@@ -269,7 +364,7 @@ double FourDOFPropulsionController::scaleRotationalVelocity(double angleError, d
     {
         return -targetRotVelocity * (angleError / angleErrorScale);
     }
-    
+
     return targetRotVelocity * (angleError / angleErrorScale);
 }
 
@@ -290,4 +385,9 @@ void FourDOFPropulsionController::sendVelocityCommand(double cmdForwardVelocity,
     commandMsg.linear = lin;
     commandMsg.angular = rot;
     velocityPub.publish(commandMsg);
+  /*  ROS_INFO("Send velocity command to vehicle - %f %f %f %f",
+        cmdForwardVelocity,
+        cmdLateralVelocity,
+        cmdRotVelocity,
+        cmdVertVelocity);*/
 }

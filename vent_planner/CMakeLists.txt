@@ -13,6 +13,7 @@ find_package(catkin REQUIRED
       	     roscpp
        	     tf
        	     underwater_vehicle_sim
+             underwater_vehicle_msgs
              data_server
        	     planner
              planner_log
@@ -69,6 +70,7 @@ find_package(catkin REQUIRED
  add_action_files(
    FILES
    DynamicLawnmowerRos.action
+   PointPathRos.action
  )
 
 ## Generate added messages and services with any dependencies listed here
@@ -137,6 +139,7 @@ include_directories(
    src/vent_planner/executors/DataTransferSimActionExecutor.cpp
    src/vent_planner/actions/SimVentActionFactory.cpp
    src/vent_planner/controllers/DynamicLawnmowerController.cpp
+   src/vent_planner/controllers/PointPathController.cpp
    src/vent_planner/NestedSpiralVentPlanner.cpp
    src/vent_planner/NestedBinVentPlanner.cpp
    src/vent_planner/SurfaceGradientVentPlanner.cpp
@@ -155,6 +158,7 @@ include_directories(
  
  target_link_libraries(vent_planner
    planner_framework
+   underwater_vehicle_msgs
    ${catkin_LIBRARIES}
  )
 

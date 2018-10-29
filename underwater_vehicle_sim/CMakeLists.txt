@@ -12,6 +12,7 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   std_msgs
   model_server
+  underwater_vehicle_msgs
 )
 
 ## System dependencies are found with CMake's conventions

@@ -11,7 +11,7 @@
 #include "planner_framework/ActionExecutor.h"
 #include "vent_planner/actions/ChargeAction.h"
 
-#include "underwater_vehicle_sim/GetVehicleInfo.h"
+#include "underwater_vehicle_msgs/GetVehicleInfo.h"
 
 #include "actionlib/client/simple_action_client.h"
 
@@ -49,7 +49,7 @@ public:
 private:
 	ros::NodeHandle& nh;
 	ros::ServiceClient infoClient;
-	underwater_vehicle_sim::GetVehicleInfo::Response vehicleInfo;
+	underwater_vehicle_msgs::GetVehicleInfo::Response vehicleInfo;
 
 	std::string vehicleName;
     std_msgs::Float64 charge_msg;

@@ -13,22 +13,22 @@
 #include "vehicle_auto_control/Velocity.h"
 
 #include "actionlib/client/simple_action_client.h"
-#include "vehicle_auto_control/PointPathRosAction.h"
+#include "vent_planner/PointPathRosAction.h"
 
 PointPathSimActionExecutor::PointPathSimActionExecutor(ros::NodeHandle& nh, std::string vehicleName) :
 	vehicleName(vehicleName),
 	nh(nh),
-	pointPathClient("vehicle_controller/"  + vehicleName + "/point_path", true),
+	pointPathClient("planner/"  + vehicleName + "/point_path", true),
 	replanGoingUp(true),
 	currentPointOffset(0),
 	replanNextUpdate(false),
 	lastReplan(ros::Time::now()),
 	distanceSinceReplan(0)
 {
-	infoClient = nh.serviceClient<underwater_vehicle_sim::GetVehicleInfo>("vehicles/get_info");
+	infoClient = nh.serviceClient<underwater_vehicle_msgs::GetVehicleInfo>("vehicles/get_info");
 	infoClient.waitForExistence();
 
-	underwater_vehicle_sim::GetVehicleInfo info;
+	underwater_vehicle_msgs::GetVehicleInfo info;
 	info.request.name = vehicleName;
 	infoClient.call(info);
 	vehicleInfo = info.response;
@@ -38,15 +38,15 @@ PointPathSimActionExecutor::PointPathSimActionExecutor(const PointPathSimActionE
 	vehicleName(other.vehicleName),
 	nh(other.nh),
 	currentPointOffset(other.currentPointOffset),
-	pointPathClient("vehicle_controller/"  + vehicleName + "/point_path", true),
+	pointPathClient("planner/"  + vehicleName + "/point_path", true),
 	replanNextUpdate(false),
 	lastReplan(other.lastReplan),
 	distanceSinceReplan(other.distanceSinceReplan)
 {
-	infoClient = nh.serviceClient<underwater_vehicle_sim::GetVehicleInfo>("vehicles/get_info");
+	infoClient = nh.serviceClient<underwater_vehicle_msgs::GetVehicleInfo>("vehicles/get_info");
 	infoClient.waitForExistence();
 
-	underwater_vehicle_sim::GetVehicleInfo info;
+	underwater_vehicle_msgs::GetVehicleInfo info;
 	info.request.name = vehicleName;
 	infoClient.call(info);
 	vehicleInfo = info.response;
@@ -106,7 +106,7 @@ bool PointPathSimActionExecutor::execute(std::shared_ptr<PointPathAction> action
 	}
 
 	//Creates an action goal and sends it to the action server for point path movement
-	pointPathGoal = vehicle_auto_control::PointPathRosGoal();
+	pointPathGoal = vent_planner::PointPathRosGoal();
 
 	if(action->getDoInterruptPoint())
 	{
@@ -177,7 +177,7 @@ bool PointPathSimActionExecutor::triggerReplan(std::shared_ptr<PointPathAction> 
 
 void PointPathSimActionExecutor::actionDone(std::shared_ptr<PointPathAction> action,
 					const actionlib::SimpleClientGoalState& state,
-                	const vehicle_auto_control::PointPathRosResultConstPtr& result)
+                	const vent_planner::PointPathRosResultConstPtr& result)
 {
 	if(state == actionlib::SimpleClientGoalState::RECALLED ||
 	   state == actionlib::SimpleClientGoalState::PREEMPTED)
@@ -215,7 +215,7 @@ void PointPathSimActionExecutor::actionActive(std::shared_ptr<PointPathAction> a
 }
 
 void PointPathSimActionExecutor::actionFeedback(std::shared_ptr<PointPathAction> action,
-					const vehicle_auto_control::PointPathRosFeedbackConstPtr& feedback)
+					const vent_planner::PointPathRosFeedbackConstPtr& feedback)
 {
 	//Get the current point from the feedback
 	unsigned int adjustedCurrentPoint = feedback->currentPoint;

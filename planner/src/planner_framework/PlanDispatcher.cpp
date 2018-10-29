@@ -83,8 +83,8 @@ void PlanDispatcher::update()
 		std::shared_ptr<Action> action = plan->getActions()[currentAction];
 		if(action->getState() == Action::State::PLANNED) //execute the next action
 		{
-			action->execute();
 			ROS_INFO("Execute action %i", currentAction);
+			action->execute();
 		}
 		else if(action->getState() == Action::State::DISPATCHED ||
 				action->getState() == Action::State::EXECUTING) //moniter the current action

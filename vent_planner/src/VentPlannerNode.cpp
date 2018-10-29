@@ -41,36 +41,42 @@ int main(int argc, char **argv)
 
     std::vector<SimplePlanServer> servers;
 
+    //Wait until the simulation starts to proceed
+    ros::ServiceClient vehicleInfoClient = nh.serviceClient<underwater_vehicle_msgs::GetVehicleInfo>("vehicles/get_info");
+    vehicleInfoClient.waitForExistence();
+
     for(auto& name : vehicleNames)
     {
+        underwater_vehicle_msgs::GetVehicleInfo getInfo;
+        getInfo.request.name = name;
+        vehicleInfoClient.call(getInfo);
+
+        VehicleInfo info(getInfo);
+        
         std::unique_ptr<PlanDispatcher> dispatcher(new PlanDispatcher());
         std::unique_ptr<VentActionFactory> factory(new SimVentActionFactory(nh));
         std::unique_ptr<Planner> planner;
         if(plannerType == "SurfaceGradient")
         {
-            planner.reset(new SurfaceGradientVentPlanner(nh, std::move(factory), name));
+            planner.reset(new SurfaceGradientVentPlanner(nh, std::move(factory), info));
         }
         else if(plannerType == "NestedBin")
         {
-            planner.reset(new NestedBinVentPlanner(nh, std::move(factory), name));
+            planner.reset(new NestedBinVentPlanner(nh, std::move(factory), info));
         }
         else if(plannerType == "NestedSpiral")
         {
-            planner.reset(new NestedSpiralVentPlanner(nh, std::move(factory), name));
+            planner.reset(new NestedSpiralVentPlanner(nh, std::move(factory), info));
         }
         else if(plannerType == "DirectionSet")
         {
-            planner.reset(new DirectionSetVentPlanner(nh, std::move(factory), name));
+            planner.reset(new DirectionSetVentPlanner(nh, std::move(factory), info));
         }
         
         servers.emplace_back(nh, std::move(dispatcher), std::move(planner));
     }
 
     ROS_INFO("Planner Initalized");
-
-    //Wait until the simulation starts to proceed
-    ros::ServiceClient vehicleInfoClient = nh.serviceClient<underwater_vehicle_sim::GetVehicleInfo>("vehicles/get_info");
-    vehicleInfoClient.waitForExistence();
 
     //Wait until valid data starts streaming
     ros::ServiceClient dataServerClient = nh.serviceClient<data_server::GetLatestData>("data_server/get_latest");

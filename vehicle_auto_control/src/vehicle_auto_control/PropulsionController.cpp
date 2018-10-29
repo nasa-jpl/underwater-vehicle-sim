@@ -6,7 +6,7 @@
 
 #include "tf/transform_broadcaster.h"
 
-#include "underwater_vehicle_sim/GetVehicleInfo.h"
+#include "underwater_vehicle_msgs/GetVehicleInfo.h"
 
 PropulsionController::PropulsionController(ros::NodeHandle controlNode, ros::NodeHandle vehicleNode, std::string vehicleName) :
 	controlNode(controlNode), 
@@ -15,7 +15,7 @@ PropulsionController::PropulsionController(ros::NodeHandle controlNode, ros::Nod
 {}
 
 std::unique_ptr<PropulsionController> PropulsionController::makePropulsionController(std::string vehicleName, 
-																					 underwater_vehicle_sim::GetVehicleInfo info,
+																					 underwater_vehicle_msgs::GetVehicleInfo info,
 																					 ros::NodeHandle& parentNH)
 {
 	if(info.response.propModuleType == "FourDOFPropulsion")

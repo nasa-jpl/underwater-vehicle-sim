@@ -13,6 +13,7 @@
 
 #include "vent_planner/actions/VentActionFactory.h"
 #include "vent_planner/controllers/DynamicLawnmowerController.h"
+#include "vent_planner/controllers/PointPathController.h"
 
 #include "vent_planner/DataNode.h"
 #include "vent_planner/DataTree.h"
@@ -23,10 +24,12 @@
 #include "data_server/GetPlumeData.h"
 #include "data_server/PlumeData.h"
 
+#include "underwater_vehicle_msgs/VehicleInfo.h"
+
 class NestedBinVentPlanner : public Planner
 {
 public:
-    NestedBinVentPlanner(ros::NodeHandle& nh, std::unique_ptr<VentActionFactory> actionFactory, std::string vehicleName);
+    NestedBinVentPlanner(ros::NodeHandle& nh, std::unique_ptr<VentActionFactory> actionFactory, VehicleInfo vehicleInfo);
     ~NestedBinVentPlanner() {}
 
     std::shared_ptr<Plan> plan();
@@ -85,7 +88,7 @@ private:
     double failTime;
     std::shared_ptr<Plan> finalSurvey;
 
-    std::string vehicleName;
+    VehicleInfo vehicleInfo;
 
     ros::ServiceClient dataClient;
     ros::ServiceClient latestDataClient;
@@ -97,6 +100,7 @@ private:
     std::string goalState;
 
     DynamicLawnmowerController dynamicLawnmowerController;
+    PointPathController pointPathController;
 };
 
 #endif

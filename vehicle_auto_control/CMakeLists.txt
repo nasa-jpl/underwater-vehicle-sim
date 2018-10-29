@@ -12,6 +12,7 @@ find_package(catkin REQUIRED COMPONENTS
  tf
  roscpp
  geometry_msgs
+ underwater_vehicle_msgs
  message_generation)
 
 ## System dependencies are found with CMake's conventions
@@ -63,7 +64,8 @@ find_package(catkin REQUIRED COMPONENTS
 ## Generate actions in the 'action' folder
  add_action_files(
    FILES
-   PointPathRos.action
+   GoToXYRos.action
+   GoToZRos.action
  )
 
 ## Generate added messages and services with any dependencies listed here

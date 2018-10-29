@@ -10,9 +10,9 @@
 #include "actionlib/server/simple_action_server.h"
 
 #include "planner_framework/ActionExecutor.h"
-#include "underwater_vehicle_sim/GetVehicleInfo.h"
+#include "underwater_vehicle_msgs/GetVehicleInfo.h"
 
-#include "vehicle_auto_control/PointPathRosAction.h"
+#include "vent_planner/PointPathRosAction.h"
 #include "vent_planner/actions/DynamicLawnmowerAction.h"
 #include "vent_planner/DynamicLawnmowerRosAction.h"
 
@@ -74,7 +74,7 @@ private:
 private:
     ros::NodeHandle& nh;
     ros::ServiceClient infoClient;
-    underwater_vehicle_sim::GetVehicleInfo::Response vehicleInfo;
+    underwater_vehicle_msgs::GetVehicleInfo::Response vehicleInfo;
     ros::Publisher velPublisher;
 
     bool replanNextUpdate;
