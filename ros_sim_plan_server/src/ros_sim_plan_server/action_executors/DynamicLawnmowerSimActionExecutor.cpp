@@ -77,7 +77,7 @@ bool DynamicLawnmowerSimActionExecutor::execute(std::shared_ptr<DynamicLawnmower
 	}
 
 	//Creates an action goal and sends it to the action server for point path movement
-	dynamicLawnmowerGoal = vent_planner::DynamicLawnmowerRosGoal();
+	dynamicLawnmowerGoal = ros_sim_plan_server::DynamicLawnmowerRosGoal();
 
 	dynamicLawnmowerGoal.startLocation.x = action->getStartLocation().getX();
 	dynamicLawnmowerGoal.startLocation.y = action->getStartLocation().getY();
@@ -127,7 +127,7 @@ bool DynamicLawnmowerSimActionExecutor::triggerReplan(std::shared_ptr<DynamicLaw
 
 void DynamicLawnmowerSimActionExecutor::actionDone(std::shared_ptr<DynamicLawnmowerAction> action,
 					const actionlib::SimpleClientGoalState& state,
-                	const vent_planner::DynamicLawnmowerRosResultConstPtr& result)
+                	const ros_sim_plan_server::DynamicLawnmowerRosResultConstPtr& result)
 {
 	if(state == actionlib::SimpleClientGoalState::RECALLED ||
 	   state == actionlib::SimpleClientGoalState::PREEMPTED)
@@ -154,7 +154,7 @@ void DynamicLawnmowerSimActionExecutor::actionActive(std::shared_ptr<DynamicLawn
 }
 
 void DynamicLawnmowerSimActionExecutor::actionFeedback(std::shared_ptr<DynamicLawnmowerAction> action,
-					const vent_planner::DynamicLawnmowerRosFeedbackConstPtr& feedback)
+					const ros_sim_plan_server::DynamicLawnmowerRosFeedbackConstPtr& feedback)
 {
 	action->setCurrentTrack(feedback->currentTrack);
 	action->setCurrentSection(feedback->currentSection);

@@ -1,6 +1,7 @@
 #ifndef PLAN_DATA_H
 #define PLAN_DATA_H
 
+#include <string>
 #include <map>
 
 #include "planner_framework/VehiclePose.h"

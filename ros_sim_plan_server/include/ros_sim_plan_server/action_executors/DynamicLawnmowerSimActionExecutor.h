@@ -12,9 +12,9 @@
 #include "planner_framework/ActionExecutor.h"
 #include "underwater_vehicle_msgs/GetVehicleInfo.h"
 
-#include "vent_planner/PointPathRosAction.h"
+#include "ros_sim_plan_server/PointPathRosAction.h"
 #include "vent_planner/actions/DynamicLawnmowerAction.h"
-#include "vent_planner/DynamicLawnmowerRosAction.h"
+#include "ros_sim_plan_server/DynamicLawnmowerRosAction.h"
 
 
 class DynamicLawnmowerSimActionExecutor : public ActionExecutor<DynamicLawnmowerAction>
@@ -53,10 +53,10 @@ private:
     */
     void actionDone(std::shared_ptr<DynamicLawnmowerAction> action,
                     const actionlib::SimpleClientGoalState& state,
-                    const vent_planner::DynamicLawnmowerRosResultConstPtr& result);
+                    const ros_sim_plan_server::DynamicLawnmowerRosResultConstPtr& result);
 
-    void executeAction(const vent_planner::DynamicLawnmowerRosGoalConstPtr& goal,
-                       actionlib::SimpleActionServer<vent_planner::DynamicLawnmowerRosAction>* as);
+    void executeAction(const ros_sim_plan_server::DynamicLawnmowerRosGoalConstPtr& goal,
+                       actionlib::SimpleActionServer<ros_sim_plan_server::DynamicLawnmowerRosAction>* as);
 
     /**
     * Callback that occurs when the action goes active
@@ -69,7 +69,7 @@ private:
      * @param feedback Feedback pointer
      */
     void actionFeedback(std::shared_ptr<DynamicLawnmowerAction> action,
-                        const vent_planner::DynamicLawnmowerRosFeedbackConstPtr& feedback);
+                        const ros_sim_plan_server::DynamicLawnmowerRosFeedbackConstPtr& feedback);
 
 private:
     ros::NodeHandle& nh;
@@ -80,8 +80,8 @@ private:
     bool replanNextUpdate;
     std::string vehicleName;
 
-    actionlib::SimpleActionClient<vent_planner::DynamicLawnmowerRosAction> dynamicLawnmowerClient;
-    vent_planner::DynamicLawnmowerRosGoal dynamicLawnmowerGoal;
+    actionlib::SimpleActionClient<ros_sim_plan_server::DynamicLawnmowerRosAction> dynamicLawnmowerClient;
+    ros_sim_plan_server::DynamicLawnmowerRosGoal dynamicLawnmowerGoal;
 };
 
 #endif

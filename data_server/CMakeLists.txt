@@ -16,6 +16,15 @@ find_package(catkin REQUIRED
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
 
+# Boost
+set(boost_min_ver 1.50.0)
+set(boost_libs system filesystem)
+find_package(Boost ${boost_min_ver})
+
+if(Boost_FOUND)
+    find_package(Boost ${boost_min_ver} COMPONENTS ${boost_libs})
+endif()
+
 
 ## Uncomment this if the package has a setup.py. This macro ensures
 ## modules and global scripts declared therein get installed
@@ -121,6 +130,7 @@ catkin_package(
 include_directories(
  include
  ${catkin_INCLUDE_DIRS}
+ ${Boost_INCLUDES}
 )
 
 ## Declare a C++ library
@@ -129,7 +139,7 @@ include_directories(
    src/plume_detector/DyePlumeDetector.cpp
  )
 
-target_link_libraries(data_server ${catkin_LIBRARIES} stdc++fs)
+target_link_libraries(data_server ${catkin_LIBRARIES} ${Boost_LIBRARIES} )
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
@@ -154,6 +164,7 @@ target_link_libraries(data_server ${catkin_LIBRARIES} stdc++fs)
 ## Specify libraries to link a library or executable target against
  target_link_libraries(${PROJECT_NAME}_node
    ${catkin_LIBRARIES}
+   ${Boost_LIBRARIES}
    data_server
  )
 
@@ -201,10 +212,10 @@ target_link_libraries(data_server ${catkin_LIBRARIES} stdc++fs)
  if(CATKIN_ENABLE_TESTING)
    catkin_add_gtest(data_server_test src/tests/DataServer_test.cpp WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 
-   target_link_libraries(data_server_test data_server ${catkin_LIBRARIES} stdc++fs)
+   target_link_libraries(data_server_test data_server ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 
    add_rostest_gtest(data_server_node_interface_test tests/DataServerNodeInterface.test src/tests/DataServerNodeInterface_test.cpp)
-   target_link_libraries(data_server_node_interface_test data_server ${catkin_LIBRARIES} ${NETCDF_LIBRARIES} stdc++fs)
+   target_link_libraries(data_server_node_interface_test data_server ${catkin_LIBRARIES} ${Boost_LIBRARIES})
  endif()
 
 ## Add folders to be run by python nosetests

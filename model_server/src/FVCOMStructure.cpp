@@ -7,10 +7,11 @@
 #include <limits>
 #include <algorithm>
 #include <iterator>
-#include <experimental/filesystem>
 
 #include "ros/ros.h"
-namespace fs = std::experimental::filesystem;
+
+#include <boost/filesystem.hpp>
+namespace fs = boost::filesystem;
 
 FVCOMStructure::FVCOMStructure() {}
 
@@ -88,7 +89,7 @@ void FVCOMStructure::loadStructureData(const std::string directory)
 	//Set start times and time dimensions from files
 	for(auto &filename : filenames)
 	{
-		netCDF::NcFile dataFile = netCDF::NcFile(filename, netCDF::NcFile::read);
+		netCDF::NcFile dataFile(filename, netCDF::NcFile::read);
 		timeDim += dataFile.getDim("time").getSize();
 		
 		std::vector<float> tempTimes;
@@ -110,7 +111,7 @@ void FVCOMStructure::loadStructureData(const std::string directory)
 	unsigned int currentIndex = 0;
 	for(auto &modelFile : modelFiles)
 	{
-		netCDF::NcFile dataFile = netCDF::NcFile(modelFile.filename, netCDF::NcFile::read);
+		netCDF::NcFile dataFile(modelFile.filename, netCDF::NcFile::read);
 		netCDF::NcVar timeVar = dataFile.getVar("time");
 
 		//Set the start time index for this file
@@ -122,7 +123,7 @@ void FVCOMStructure::loadStructureData(const std::string directory)
 		//move current index for next files
 		currentIndex += dataFile.getDim("time").getSize();
 	}
-	netCDF::NcFile dataFile = netCDF::NcFile(modelFiles[0].filename, netCDF::NcFile::read);
+	netCDF::NcFile dataFile(modelFiles[0].filename, netCDF::NcFile::read);
 
 	//Get dimensions of structure elements
 	unsigned int nodeDim = dataFile.getDim("node").getSize();
@@ -705,15 +706,15 @@ void FVCOMStructure::siglayInterpolation(FVCOMStructure::Point& interpolatePoint
 				siglay2Index = i;
 				break;
 			}
-			else if(dot > 0 && prevDot < 0 || //The sign of dot has changed so the siglay has been found
-				    dot < 0 && prevDot > 0)
+			else if((dot > 0 && prevDot < 0) || //The sign of dot has changed so the siglay has been found
+				    (dot < 0 && prevDot > 0))
 			{
 				siglay1Index = i - 1;
 				siglay2Index = i;
 				break;
 			}
-			else if(prevDot > 0 && prevDot < dot || //The distance from the plane to the point is increasing so we have passed it.
-					prevDot < 0 && prevDot > dot)   //If this occurs then it means the point is above the 0th siglay, use the 0th siglay
+			else if((prevDot > 0 && prevDot < dot) || //The distance from the plane to the point is increasing so we have passed it.
+					(prevDot < 0 && prevDot > dot))   //If this occurs then it means the point is above the 0th siglay, use the 0th siglay
 			{
 				siglay1Index = 0;
 				siglay2Index = 0;

@@ -1,4 +1,4 @@
-#ifndef POWER_CAPACTIY_MODULE_H
+#ifndef POWER_CAPACITY_MODULE_H
 #define POWER_CAPACITY_MODULE_H
 
 #include "tf/transform_broadcaster.h"

@@ -136,8 +136,6 @@ void FourDOFPropulsionController::goToXYUpdate(void)
             double xDifference = fabs(transform.getOrigin().getX() - targetX);
             double yDifference = fabs(transform.getOrigin().getY() - targetY);
 
-            sqrt(yDifference * yDifference + xDifference * xDifference);
-
             ROS_INFO("Vehicle is at GoToXY goal location - Goal XY %f, %f; Vehicle XY %f, %f; Diff: %f",
                      transform.getOrigin().getX(),
                      transform.getOrigin().getY(),

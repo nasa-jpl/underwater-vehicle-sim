@@ -13,7 +13,7 @@
 #include "underwater_vehicle_msgs/GetVehicleInfo.h"
 
 #include "actionlib/client/simple_action_client.h"
-#include "vent_planner/PointPathRosAction.h"
+#include "ros_sim_plan_server/PointPathRosAction.h"
 
 
 class PointPathSimActionExecutor : public ActionExecutor<PointPathAction>
@@ -53,7 +53,7 @@ private:
     */
     void actionDone(std::shared_ptr<PointPathAction> action,
                     const actionlib::SimpleClientGoalState& state,
-                    const vent_planner::PointPathRosResultConstPtr& result);
+                    const ros_sim_plan_server::PointPathRosResultConstPtr& result);
 
     /**
     * Callback that occurs when the action goes active
@@ -66,7 +66,7 @@ private:
      * @param feedback Feedback pointer
      */
     void actionFeedback(std::shared_ptr<PointPathAction> action,
-                        const vent_planner::PointPathRosFeedbackConstPtr& feedback);
+                        const ros_sim_plan_server::PointPathRosFeedbackConstPtr& feedback);
 
 private:
     ros::NodeHandle& nh;
@@ -81,8 +81,8 @@ private:
     tf::Vector3 lastLocation;
     std::string vehicleName;
 
-    actionlib::SimpleActionClient<vent_planner::PointPathRosAction> pointPathClient;
-    vent_planner::PointPathRosGoal pointPathGoal;
+    actionlib::SimpleActionClient<ros_sim_plan_server::PointPathRosAction> pointPathClient;
+    ros_sim_plan_server::PointPathRosGoal pointPathGoal;
 
     tf::TransformListener listener;
 

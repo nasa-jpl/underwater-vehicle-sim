@@ -40,11 +40,6 @@
   <!-- Use test_depend for packages you need only for testing: -->
   <!--   <test_depend>gtest</test_depend> -->
   <buildtool_depend>catkin</buildtool_depend>
-  <build_depend>roscpp</build_depend>
-  <build_depend>underwater_vehicle_sim</build_depend>
-
-  <exec_depend>roscpp</exec_depend>
-  <test_depend>rosunit</test_depend>
 
 
   <!-- The export tag contains other, unspecified, tags -->

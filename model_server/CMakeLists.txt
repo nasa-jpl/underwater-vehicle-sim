@@ -20,6 +20,15 @@ set (NETCDF_CXX "YES")
 find_package(NetCDF REQUIRED)
 # find_package(netCDF REQUIRED COMPONENTS system)
 
+# Boost
+set(boost_min_ver 1.50.0)
+set(boost_libs system filesystem)
+find_package(Boost ${boost_min_ver})
+
+if(Boost_FOUND)
+    find_package(Boost ${boost_min_ver} COMPONENTS ${boost_libs})
+endif()
+
 ## Uncomment this if the package has a setup.py. This macro ensures
 ## modules and global scripts declared therein get installed
 ## See http://ros.org/doc/api/catkin/html/user_guide/setup_dot_py.html
@@ -120,24 +129,25 @@ add_library(fvcom
    src/FVCOMStructure.cpp
    src/FVCOMChunk.cpp
  )
-target_link_libraries(fvcom ${catkin_LIBRARIES} ${NETCDF_LIBRARIES})
+target_link_libraries(fvcom ${catkin_LIBRARIES} ${NETCDF_LIBRARIES} ${Boost_LIBRARIES} netcdf_c++4)
 
 add_library(constant_model
    src/ConstantModel.cpp
  )
-target_link_libraries(constant_model ${catkin_LIBRARIES} ${NETCDF_LIBRARIES})
+target_link_libraries(constant_model ${catkin_LIBRARIES} ${NETCDF_LIBRARIES} ${Boost_LIBRARIES} netcdf_c++4)
 
 add_library(linear_model
    src/LinearModel.cpp
  )
-target_link_libraries(linear_model ${catkin_LIBRARIES} ${NETCDF_LIBRARIES})
+target_link_libraries(linear_model ${catkin_LIBRARIES} ${NETCDF_LIBRARIES} ${Boost_LIBRARIES} netcdf_c++4)
 
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 include_directories(
   include
   ${catkin_INCLUDE_DIRS}
-  ${NETCDF_INCLUDES} 
+  ${NETCDF_INCLUDES}
+  ${Boost_INCLUDES}
 )
 
 ## Add cmake target dependencies of the library
@@ -167,7 +177,8 @@ include_directories(
    linear_model 
    ${catkin_LIBRARIES}
    ${NETCDF_LIBRARIES}
-   stdc++fs
+   ${Boost_LIBRARIES}
+   netcdf_c++4
  )
 #############
 ## Install ##
@@ -216,13 +227,13 @@ if (CATKIN_ENABLE_TESTING)
  catkin_add_gtest(fvcom_chunk_test src/tests/FVCOMChunk_test.cpp WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
  catkin_add_gtest(fvcom_test src/tests/FVCOM_test.cpp WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 
- target_link_libraries(lru_cache_test ${catkin_LIBRARIES} stdc++fs)
- target_link_libraries(fvcom_structure_test fvcom ${catkin_LIBRARIES} ${NETCDF_LIBRARIES} stdc++fs)
- target_link_libraries(fvcom_chunk_test fvcom ${catkin_LIBRARIES} ${NETCDF_LIBRARIES} stdc++fs)
- target_link_libraries(fvcom_test fvcom ${catkin_LIBRARIES} ${NETCDF_LIBRARIES} stdc++fs)
+ target_link_libraries(lru_cache_test ${catkin_LIBRARIES})
+ target_link_libraries(fvcom_structure_test fvcom ${catkin_LIBRARIES} ${NETCDF_LIBRARIES} ${Boost_LIBRARIES} netcdf_c++4)
+ target_link_libraries(fvcom_chunk_test fvcom ${catkin_LIBRARIES} ${NETCDF_LIBRARIES} ${Boost_LIBRARIES} netcdf_c++4)
+ target_link_libraries(fvcom_test fvcom ${catkin_LIBRARIES} ${NETCDF_LIBRARIES} ${Boost_LIBRARIES} netcdf_c++4)
 
  add_rostest_gtest(model_node_interface_test tests/NodeInterface.test src/tests/NodeInterface_test.cpp)
- target_link_libraries(model_node_interface_test fvcom ${catkin_LIBRARIES} ${NETCDF_LIBRARIES} stdc++fs)
+ target_link_libraries(model_node_interface_test fvcom ${catkin_LIBRARIES} ${NETCDF_LIBRARIES} ${Boost_LIBRARIES} netcdf_c++4)
 
 endif()
 
