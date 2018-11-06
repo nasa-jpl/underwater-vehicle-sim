@@ -49,7 +49,7 @@ FVCOMChunk::FVCOMChunk(const std::vector<FVCOMStructure::ModelFile> modelFiles, 
 
 		for(unsigned int f = startModelFile; f <= endModelFile; f++)
 		{
-			netCDF::NcFile dataFile = netCDF::NcFile(modelFiles[f].filename, netCDF::NcFile::read);
+			netCDF::NcFile dataFile(modelFiles[f].filename, netCDF::NcFile::read);
 			netCDF::NcVar tempVar = dataFile.getVar("temp");
 			netCDF::NcVar saltVar = dataFile.getVar("salinity");
 			netCDF::NcVar dyeVar = dataFile.getVar("DYE");
@@ -111,7 +111,7 @@ FVCOMChunk::FVCOMChunk(const std::vector<FVCOMStructure::ModelFile> modelFiles, 
 
 		for(unsigned int f = startModelFile; f <= endModelFile; f++)
 		{
-			netCDF::NcFile dataFile = netCDF::NcFile(modelFiles[f].filename, netCDF::NcFile::read);
+			netCDF::NcFile dataFile(modelFiles[f].filename, netCDF::NcFile::read);
 			netCDF::NcVar uVar = dataFile.getVar("u");
 			netCDF::NcVar vVar = dataFile.getVar("v");
 
