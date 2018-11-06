@@ -37,24 +37,24 @@ public:
     /**
     *Executes the action using the provided executor
     */
-    void executeAction();
+    void executeAction() override;
 
     /**
     * Allows the action to trigger a replan
     */
-    bool triggerReplan();
+    bool triggerReplan() override;
 
     /**
     * Monitors the state of the action and updates it as needed
     */
-    void monitor();
+    void monitor() override;
 
     /**
     *Resets this action to a state as if it has not been executed.
     */
-    void reset();
+    void reset() override;
 
-    void cancel();
+    void cancel() override;
 
     void setCurrentPoint(const int point);
     const int getCurrentPoint() const;

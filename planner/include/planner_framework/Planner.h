@@ -8,8 +8,8 @@
 class Planner
 {
 public:
-	Planner() {}
-	~Planner() {}
+	Planner() {};
+	virtual ~Planner() {};
 
 	virtual std::shared_ptr<Plan> plan()=0;
 

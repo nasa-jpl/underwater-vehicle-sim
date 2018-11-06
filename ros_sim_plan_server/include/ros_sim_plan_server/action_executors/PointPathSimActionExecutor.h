@@ -32,7 +32,7 @@ public:
     * Monitors and updates the state of the yoyo action in the ros simulation 
     * All monitoring is done with action callbacks so this method is not used here
     */
-    void monitor(std::shared_ptr<PointPathAction> action) {}
+    void monitor(std::shared_ptr<PointPathAction> action) override {}
 
     /**
     * Allows the yoyo action to trigger a replan in the ros simulation 

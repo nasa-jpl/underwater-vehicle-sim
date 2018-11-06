@@ -36,13 +36,13 @@ public:
 	/**
 	* Allows the yoyo action to trigger a replan in the ros simulation 
 	*/
-	bool triggerReplan(std::shared_ptr<DataTransferAction> action) {}
+	bool triggerReplan(std::shared_ptr<DataTransferAction> action) override;
 
-	void cancel(std::shared_ptr<DataTransferAction> action) {}
+	void cancel(std::shared_ptr<DataTransferAction> action) override {}
 
     void transfer_Remaining_Callback(const std_msgs::Float64::ConstPtr& msg);
 
-    std::unique_ptr<ActionExecutor<DataTransferAction>> clone();
+    std::unique_ptr<ActionExecutor<DataTransferAction>> clone() override;
 private:
 	ros::NodeHandle& nh;
 	ros::ServiceClient infoClient;

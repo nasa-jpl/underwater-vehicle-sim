@@ -57,7 +57,6 @@ public:
                                                                          const int trackSectionThreshold) override;
 private:
     ros::NodeHandle& nh;
-    double loopHertz;
 };
 
 #endif

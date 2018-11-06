@@ -61,6 +61,11 @@ void ChargeSimActionExecutor::charge_Remaining_Callback(const std_msgs::Float64:
     charging_left = msg->data;
 }
 
+bool ChargeSimActionExecutor::triggerReplan(std::shared_ptr<ChargeAction> action) 
+{
+	return false;
+}
+
 std::unique_ptr<ActionExecutor<ChargeAction>> ChargeSimActionExecutor::clone()
 {
     std::unique_ptr<ActionExecutor<ChargeAction>> a(new ChargeSimActionExecutor(*this));

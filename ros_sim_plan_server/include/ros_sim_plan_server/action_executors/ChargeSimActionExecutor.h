@@ -37,13 +37,13 @@ public:
 	/**
 	* Allows the yoyo action to trigger a replan in the ros simulation 
 	*/
-	bool triggerReplan(std::shared_ptr<ChargeAction> action) {}
+	bool triggerReplan(std::shared_ptr<ChargeAction> action) override;
 
-	void cancel(std::shared_ptr<ChargeAction> action) {}
+	void cancel(std::shared_ptr<ChargeAction> action) override {}
 
     void charge_Remaining_Callback(const std_msgs::Float64::ConstPtr& msg);
 
-    std::unique_ptr<ActionExecutor<ChargeAction>> clone();
+    std::unique_ptr<ActionExecutor<ChargeAction>> clone() override;
 
 
 private:

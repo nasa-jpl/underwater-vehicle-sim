@@ -18,8 +18,7 @@
 
 
 ROSSimVentActionFactory::ROSSimVentActionFactory(ros::NodeHandle& nh) :
-    nh(nh),
-    loopHertz(loopHertz)
+    nh(nh)
 {}
 
 std::shared_ptr<PointPathAction> ROSSimVentActionFactory::createPointPathAction(const std::string& vehicleName,

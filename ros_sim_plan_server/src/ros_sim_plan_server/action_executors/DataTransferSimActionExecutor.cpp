@@ -61,6 +61,11 @@ void DataTransferSimActionExecutor::transfer_Remaining_Callback(const std_msgs::
     transfer_left = msg->data;
 }
 
+bool DataTransferSimActionExecutor::triggerReplan(std::shared_ptr<DataTransferAction> action) 
+{
+	return false;
+}
+
 std::unique_ptr<ActionExecutor<DataTransferAction>> DataTransferSimActionExecutor::clone()
 {
     std::unique_ptr<ActionExecutor<DataTransferAction>> a(new DataTransferSimActionExecutor(*this));
