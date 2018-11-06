@@ -3,25 +3,26 @@
 
 #include "ros/ros.h"
 
-#include "vent_planner/actions/SimVentActionFactory.h"
+#include "ros_sim_plan_server/ROSSimVentActionFactory.h"
 #include "vent_planner/actions/VentActionFactory.h"
 #include "vent_planner/actions/DynamicLawnmowerAction.h"
-
-#include "vent_planner/executors/PointPathSimActionExecutor.h"
-#include "vent_planner/executors/ChargeSimActionExecutor.h"
-#include "vent_planner/executors/DataTransferSimActionExecutor.h"
-
-#include "vent_planner/executors/DynamicLawnmowerSimActionExecutor.h"
 #include "vent_planner/actions/ChargeAction.h"
 #include "vent_planner/actions/DataTransferAction.h"
 
+#include "ros_sim_plan_server/action_executors/PointPathSimActionExecutor.h"
+#include "ros_sim_plan_server/action_executors/ChargeSimActionExecutor.h"
+#include "ros_sim_plan_server/action_executors/DataTransferSimActionExecutor.h"
+#include "ros_sim_plan_server/action_executors/DynamicLawnmowerSimActionExecutor.h"
 
-SimVentActionFactory::SimVentActionFactory(ros::NodeHandle& nh) :
+
+
+
+ROSSimVentActionFactory::ROSSimVentActionFactory(ros::NodeHandle& nh) :
     nh(nh),
     loopHertz(loopHertz)
 {}
 
-std::shared_ptr<PointPathAction> SimVentActionFactory::createPointPathAction(const std::string& vehicleName,
+std::shared_ptr<PointPathAction> ROSSimVentActionFactory::createPointPathAction(const std::string& vehicleName,
                                                                              const double targetHorizontalVelocity, 
                                                                              const double targetRotationalVelocity,
                                                                              const double targetSlope,
@@ -47,7 +48,7 @@ std::shared_ptr<PointPathAction> SimVentActionFactory::createPointPathAction(con
 
 
 
-std::shared_ptr<PointPathAction> SimVentActionFactory::createPointPathAction(const std::string& vehicleName,
+std::shared_ptr<PointPathAction> ROSSimVentActionFactory::createPointPathAction(const std::string& vehicleName,
                                                                              const double targetHorizontalVelocity, 
                                                                              const double targetRotationalVelocity,
                                                                              const double targetSlope,
@@ -68,7 +69,7 @@ std::shared_ptr<PointPathAction> SimVentActionFactory::createPointPathAction(con
                                                                 periodicReplanTime));
 }
 
-std::shared_ptr<DynamicLawnmowerAction> SimVentActionFactory::createDynamicLawnmowerAction(const std::string& vehicleName,
+std::shared_ptr<DynamicLawnmowerAction> ROSSimVentActionFactory::createDynamicLawnmowerAction(const std::string& vehicleName,
                                                                                            const double targetHorizontalVelocity, 
                                                                                            const double targetRotationalVelocity,
                                                                                            const double targetSlope,
@@ -97,15 +98,15 @@ std::shared_ptr<DynamicLawnmowerAction> SimVentActionFactory::createDynamicLawnm
 }
 
 
-std::shared_ptr<ChargeAction> SimVentActionFactory::createChargeAction(const std::string& vehicleName)
+std::shared_ptr<ChargeAction> ROSSimVentActionFactory::createChargeAction(const std::string& vehicleName)
 {
-	std::unique_ptr<ActionExecutor<ChargeAction>> executor(new ChargeSimActionExecutor(nh, vehicleName));
-	return std::unique_ptr<ChargeAction>(new ChargeAction(std::move(executor)));
+    std::unique_ptr<ActionExecutor<ChargeAction>> executor(new ChargeSimActionExecutor(nh, vehicleName));
+    return std::unique_ptr<ChargeAction>(new ChargeAction(std::move(executor)));
 }    
 
-std::shared_ptr<DataTransferAction> SimVentActionFactory::createDataTransferAction(const std::string& vehicleName)
+std::shared_ptr<DataTransferAction> ROSSimVentActionFactory::createDataTransferAction(const std::string& vehicleName)
 {
-	std::unique_ptr<ActionExecutor<DataTransferAction>> executor(new DataTransferSimActionExecutor(nh, vehicleName));
+    std::unique_ptr<ActionExecutor<DataTransferAction>> executor(new DataTransferSimActionExecutor(nh, vehicleName));
 
-	return std::unique_ptr<DataTransferAction>(new DataTransferAction(std::move(executor)));
+    return std::unique_ptr<DataTransferAction>(new DataTransferAction(std::move(executor)));
 }    

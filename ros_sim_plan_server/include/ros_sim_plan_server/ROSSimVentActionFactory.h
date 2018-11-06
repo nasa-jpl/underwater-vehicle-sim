@@ -1,5 +1,5 @@
-#ifndef SIM_VENT_ACTION_FACTORY_H
-#define SIM_VENT_ACTION_FACTORY_H
+#ifndef ROS_SIM_VENT_ACTION_FACTORY_H
+#define ROS_SIM_VENT_ACTION_FACTORY_H
 
 #include <unordered_map>
 #include <memory>
@@ -11,15 +11,16 @@
 #include "vent_planner/actions/DynamicLawnmowerAction.h"
 #include "vent_planner/actions/ChargeAction.h"
 #include "vent_planner/actions/DataTransferAction.h"
-#include "vent_planner/executors/PointPathSimActionExecutor.h"
-#include "vent_planner/executors/ChargeSimActionExecutor.h"
-#include "vent_planner/executors/DataTransferSimActionExecutor.h"
 
-class SimVentActionFactory : public VentActionFactory
+#include "ros_sim_plan_server/action_executors/PointPathSimActionExecutor.h"
+#include "ros_sim_plan_server/action_executors/ChargeSimActionExecutor.h"
+#include "ros_sim_plan_server/action_executors/DataTransferSimActionExecutor.h"
+
+class ROSSimVentActionFactory : public VentActionFactory
 {
 public:
-    SimVentActionFactory(ros::NodeHandle& nh);
-    ~SimVentActionFactory() {}
+    ROSSimVentActionFactory(ros::NodeHandle& nh);
+    ~ROSSimVentActionFactory() {}
 
     std::shared_ptr<PointPathAction> createPointPathAction(const std::string& vehicleName,
                                                            const double targetHorizontalVelocity, 
@@ -55,8 +56,8 @@ public:
                                                                          const double continueThreshold,
                                                                          const int trackSectionThreshold) override;
 private:
-	ros::NodeHandle& nh;
-	double loopHertz;
+    ros::NodeHandle& nh;
+    double loopHertz;
 };
 
 #endif

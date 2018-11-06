@@ -12,8 +12,6 @@
 #include "planner_framework/Planner.h"
 
 #include "vent_planner/actions/VentActionFactory.h"
-#include "vent_planner/controllers/DynamicLawnmowerController.h"
-#include "vent_planner/controllers/PointPathController.h"
 
 #include "vent_planner/DataNode.h"
 #include "vent_planner/DataTree.h"
@@ -98,9 +96,6 @@ private:
     ros::NodeHandle& nh;
 
     std::string goalState;
-
-    DynamicLawnmowerController dynamicLawnmowerController;
-    PointPathController pointPathController;
 };
 
 #endif

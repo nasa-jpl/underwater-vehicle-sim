@@ -36,6 +36,5 @@ bool UnderwaterVehicleSim::getVehicleInfo(underwater_vehicle_msgs::GetVehicleInf
 			vehicle.getInfo(res);
 		}
 	}
-	
 	return true;
 }

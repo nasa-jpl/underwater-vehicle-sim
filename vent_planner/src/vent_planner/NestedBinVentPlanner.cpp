@@ -36,9 +36,7 @@ NestedBinVentPlanner::NestedBinVentPlanner(ros::NodeHandle& nh, std::unique_ptr<
     goalState("running"),
     finalSurvey(nullptr),
     phase(SearchPhase::none),
-    spiralData(nullptr, 0, tf::Vector3(0,0,0), 300000, 0),
-    dynamicLawnmowerController(nh, vehicleInfo.getName()),
-    pointPathController(nh, vehicleInfo)
+    spiralData(nullptr, 0, tf::Vector3(0,0,0), 300000, 0)
 {
     ROS_INFO("Waiting for data server...");
     dataClient.waitForExistence();

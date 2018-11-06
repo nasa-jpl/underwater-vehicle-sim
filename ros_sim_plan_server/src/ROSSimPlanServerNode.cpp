@@ -1,21 +1,25 @@
 #include "ros/ros.h"
 
 #include "planner_framework/Planner.h"
-#include "planner_framework/SimplePlanServer.h"
 #include "planner_framework/PlanDispatcher.h"
+#include "ros_sim_plan_server/ROSSimPlanServer.h"
 
 #include "vent_planner/actions/VentActionFactory.h"
-#include "vent_planner/actions/SimVentActionFactory.h"
+#include "ros_sim_plan_server/ROSSimVentActionFactory.h"
+
 #include "vent_planner/NestedSpiralVentPlanner.h"
 #include "vent_planner/NestedBinVentPlanner.h"
 #include "vent_planner/SurfaceGradientVentPlanner.h"
 #include "vent_planner/DirectionSetVentPlanner.h"
 
+#include "ros_sim_plan_server/controllers/DynamicLawnmowerController.h"
+#include "ros_sim_plan_server/controllers/PointPathController.h"
+
 #include "data_server/GetLatestData.h"
 
 int main(int argc, char **argv)
 {
-    ros::init(argc, argv, "vent_planner");
+    ros::init(argc, argv, "ros_sim_plan_server");
     ros::NodeHandle nh;
 
     float loopHertz;
@@ -39,7 +43,10 @@ int main(int argc, char **argv)
         exit(1);
     }
 
-    std::vector<SimplePlanServer> servers;
+    std::vector<ROSSimPlanServer> servers;
+
+    std::vector<std::unique_ptr<DynamicLawnmowerController>> dynamicLawnmowerControllers;
+    std::vector<std::unique_ptr<PointPathController>> pointPathControllers;
 
     //Wait until the simulation starts to proceed
     ros::ServiceClient vehicleInfoClient = nh.serviceClient<underwater_vehicle_msgs::GetVehicleInfo>("vehicles/get_info");
@@ -52,9 +59,9 @@ int main(int argc, char **argv)
         vehicleInfoClient.call(getInfo);
 
         VehicleInfo info(getInfo);
-        
+
         std::unique_ptr<PlanDispatcher> dispatcher(new PlanDispatcher());
-        std::unique_ptr<VentActionFactory> factory(new SimVentActionFactory(nh));
+        std::unique_ptr<VentActionFactory> factory(new ROSSimVentActionFactory(nh));
         std::unique_ptr<Planner> planner;
         if(plannerType == "SurfaceGradient")
         {
@@ -73,6 +80,12 @@ int main(int argc, char **argv)
             planner.reset(new DirectionSetVentPlanner(nh, std::move(factory), info));
         }
         
+        std::unique_ptr<DynamicLawnmowerController> dynamicLawnmowerController(new DynamicLawnmowerController(nh, info.getName()));
+        std::unique_ptr<PointPathController> pointPathController(new PointPathController(nh, info));
+
+        dynamicLawnmowerControllers.push_back(std::move(dynamicLawnmowerController));
+        pointPathControllers.push_back(std::move(pointPathController));
+      
         servers.emplace_back(nh, std::move(dispatcher), std::move(planner));
     }
 

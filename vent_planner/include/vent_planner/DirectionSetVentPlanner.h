@@ -12,7 +12,6 @@
 #include "planner_framework/Planner.h"
 
 #include "vent_planner/actions/VentActionFactory.h"
-#include "vent_planner/controllers/PointPathController.h"
 
 #include "underwater_vehicle_msgs/VehicleInfo.h"
 
@@ -83,8 +82,6 @@ private:
     double numSectionsThreshold;
 
     ros::Publisher goalPub;
-
-    PointPathController pointPathController;
 };
 
 #endif

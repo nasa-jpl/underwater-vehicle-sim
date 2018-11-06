@@ -1,9 +1,10 @@
-#include "vent_planner/controllers/DynamicLawnmowerController.h"
+#include "ros_sim_plan_server/controllers/DynamicLawnmowerController.h"
 
 #include "data_server/GetPlumeData.h"
 
-DynamicLawnmowerController::DynamicLawnmowerController(ros::NodeHandle& nh, 
+DynamicLawnmowerController::DynamicLawnmowerController(ros::NodeHandle nh, 
                                                        std::string vehicleName) :
+    nh(nh),
     pointPathClient(nh, "planner/" + vehicleName + "/point_path", false),
     dynamicLawnmowerServer(nh, "planner/" + vehicleName + "/dynamic_lawnmower", false),
     plumeClient(nh.serviceClient<data_server::GetPlumeData>("data_server/get_plume")),
@@ -15,7 +16,7 @@ DynamicLawnmowerController::DynamicLawnmowerController(ros::NodeHandle& nh,
     dynamicLawnmowerServer.registerPreemptCallback(boost::bind(&DynamicLawnmowerController::preemptCB, this));
     dynamicLawnmowerServer.start();
 }
-    
+
 void DynamicLawnmowerController::dynamicLawnmowerUpdate(void)
 {
     tf::Vector3 currentPoint = getPoint(startLocation,
@@ -29,7 +30,7 @@ void DynamicLawnmowerController::dynamicLawnmowerUpdate(void)
 
 void DynamicLawnmowerController::goalCB(void)
 {
-    vent_planner::DynamicLawnmowerRosGoalConstPtr dynamicLawnmowerGoal = 
+    ros_sim_plan_server::DynamicLawnmowerRosGoalConstPtr dynamicLawnmowerGoal = 
         dynamicLawnmowerServer.acceptNewGoal();
 
     startLocation.setX(dynamicLawnmowerGoal->startLocation.x);
@@ -69,12 +70,12 @@ void DynamicLawnmowerController::pointPathActive(void)
 {
 }
 
-void DynamicLawnmowerController::pointPathFeedback(const vent_planner::PointPathRosFeedbackConstPtr& feedback)
+void DynamicLawnmowerController::pointPathFeedback(const ros_sim_plan_server::PointPathRosFeedbackConstPtr& feedback)
 {
 }
 
 void DynamicLawnmowerController::pointPathDone(const actionlib::SimpleClientGoalState& state,
-                       const vent_planner::PointPathRosResultConstPtr& result)
+                       const ros_sim_plan_server::PointPathRosResultConstPtr& result)
 {
     bool dynamicLawnmowerComplete = false;
 
@@ -178,7 +179,7 @@ void DynamicLawnmowerController::pointPathDone(const actionlib::SimpleClientGoal
     if(dynamicLawnmowerComplete)
     {
         ROS_INFO("Dynamic Lawnmower action set succeeded");
-        vent_planner::DynamicLawnmowerRosResult result;
+        ros_sim_plan_server::DynamicLawnmowerRosResult result;
         result.totalTrackLines = currentTrack;
         dynamicLawnmowerServer.setSucceeded(result);
     }
@@ -199,7 +200,7 @@ void DynamicLawnmowerController::sendPointPathGoal(const tf::Vector3& point)
 void DynamicLawnmowerController::sendPointPathGoal(const std::vector<tf::Vector3>& points)
 {
     //Creates an action goal and sends it to the action server for point path movement
-    vent_planner::PointPathRosGoal pointPathGoal = vent_planner::PointPathRosGoal();
+    ros_sim_plan_server::PointPathRosGoal pointPathGoal = ros_sim_plan_server::PointPathRosGoal();
 
     for(tf::Vector3 point : points)
     {

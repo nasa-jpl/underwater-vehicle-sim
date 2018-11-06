@@ -31,8 +31,7 @@ DirectionSetVentPlanner::DirectionSetVentPlanner(ros::NodeHandle& nh, std::uniqu
     latestDataClient(nh.serviceClient<data_server::GetLatestData>("data_server/get_latest")),
     goalPub(nh.advertise<std_msgs::String>("planner/goal", 1, true)),
     currentPlannerStage(SearchPhase::INITIAL_PLAN),
-    spiralData(nullptr, 0, tf::Vector3(0,0,0), 300000, 0),
-    pointPathController(nh, vehicleInfo)
+    spiralData(nullptr, 0, tf::Vector3(0,0,0), 300000, 0)
 {
     nh.getParam("planner/fail_time", failTime);
     nh.getParam("planner/spiral_spacing", spiralSpacing);

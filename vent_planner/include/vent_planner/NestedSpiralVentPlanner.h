@@ -10,7 +10,6 @@
 
 #include "planner_framework/Planner.h"
 #include "vent_planner/actions/VentActionFactory.h"
-#include "vent_planner/controllers/PointPathController.h"
 
 #include "data_server/DataServerEntry.h"
 
@@ -74,8 +73,6 @@ private:
     ros::ServiceClient plumeClient;
 
     ros::NodeHandle& nh;
-
-    PointPathController pointPathController;
 };
 
 #endif

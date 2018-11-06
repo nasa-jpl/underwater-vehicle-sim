@@ -1,9 +1,10 @@
-#include "vent_planner/controllers/PointPathController.h"
+#include "ros_sim_plan_server/controllers/PointPathController.h"
 
 #include "data_server/GetPlumeData.h"
 
-PointPathController::PointPathController(ros::NodeHandle& nh, 
+PointPathController::PointPathController(ros::NodeHandle nh, 
                                          VehicleInfo vehicleInfo) :
+    nh(nh),
     goToXYClient(nh, "vehicle_controller/" + vehicleInfo.getName() + "/go_to_xy", false),
     goToZClient(nh, "vehicle_controller/" + vehicleInfo.getName() + "/go_to_z", false),
     pointPathServer(nh, "planner/" + vehicleInfo.getName() + "/point_path", false),
@@ -37,7 +38,7 @@ void PointPathController::sendAllGoals(void)
         zDone = false;
         sendZGoal(pathPoints[currentPoint].getZ());
     }
-} 
+}
 
 void PointPathController::pointPathUpdate(void)
 {
@@ -48,7 +49,7 @@ void PointPathController::pointPathUpdate(void)
         if(currentPoint >= pathPoints.size())
         {
             ROS_DEBUG("Point path server set to succeeded");
-            vent_planner::PointPathRosResult result;
+            ros_sim_plan_server::PointPathRosResult result;
             result.totalPoints = currentPoint;
             pointPathServer.setSucceeded(result);
             return;
@@ -72,7 +73,7 @@ void PointPathController::yoyoUpdate(void)
 
 void PointPathController::sendFeedback(void)
 {
-    vent_planner::PointPathRosFeedback feedback;
+    ros_sim_plan_server::PointPathRosFeedback feedback;
     feedback.currentPoint = currentPoint;
     feedback.goingUp = goingUp;
     pointPathServer.publishFeedback(feedback);
@@ -81,7 +82,7 @@ void PointPathController::sendFeedback(void)
 void PointPathController::goalCB(void)
 {  
     ROS_INFO("Point path server accept new goal");
-    vent_planner::PointPathRosGoalConstPtr pointPathGoal = pointPathServer.acceptNewGoal();
+    ros_sim_plan_server::PointPathRosGoalConstPtr pointPathGoal = pointPathServer.acceptNewGoal();
     currentPoint = 0;
     goingUp = true;
     xyDone = false;

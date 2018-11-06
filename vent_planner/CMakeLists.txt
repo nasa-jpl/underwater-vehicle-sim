@@ -67,18 +67,18 @@ find_package(catkin REQUIRED
 # )
 
 ## Generate actions in the 'action' folder
- add_action_files(
-   FILES
-   DynamicLawnmowerRos.action
-   PointPathRos.action
- )
+# add_action_files(
+#   FILES
+#   action1.action
+#   PointPathRos.action
+# )
 
 ## Generate added messages and services with any dependencies listed here
- generate_messages(
-   DEPENDENCIES
-   geometry_msgs
-   actionlib_msgs  # Or other packages containing msgs
- )
+# generate_messages(
+#   DEPENDENCIES
+#   geometry_msgs
+#   actionlib_msgs  # Or other packages containing msgs
+# )
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##
@@ -112,7 +112,7 @@ find_package(catkin REQUIRED
 catkin_package(
   INCLUDE_DIRS include
 #  LIBRARIES vent_planner
-#  CATKIN_DEPENDS other_catkin_pkg
+  CATKIN_DEPENDS data_server
 #  DEPENDS system_lib
 )
 
@@ -130,16 +130,9 @@ include_directories(
 ## Declare a C++ library
  add_library(vent_planner
    src/vent_planner/actions/PointPathAction.cpp
-   src/vent_planner/executors/PointPathSimActionExecutor.cpp
    src/vent_planner/actions/DynamicLawnmowerAction.cpp
-   src/vent_planner/executors/DynamicLawnmowerSimActionExecutor.cpp
    src/vent_planner/actions/ChargeAction.cpp
    src/vent_planner/actions/DataTransferAction.cpp
-   src/vent_planner/executors/ChargeSimActionExecutor.cpp
-   src/vent_planner/executors/DataTransferSimActionExecutor.cpp
-   src/vent_planner/actions/SimVentActionFactory.cpp
-   src/vent_planner/controllers/DynamicLawnmowerController.cpp
-   src/vent_planner/controllers/PointPathController.cpp
    src/vent_planner/NestedSpiralVentPlanner.cpp
    src/vent_planner/NestedBinVentPlanner.cpp
    src/vent_planner/SurfaceGradientVentPlanner.cpp
@@ -161,29 +154,6 @@ include_directories(
    underwater_vehicle_msgs
    ${catkin_LIBRARIES}
  )
-
-## Declare a C++ executable
-## With catkin_make all packages are built within a single CMake context
-## The recommended prefix ensures that target names across packages don't collide
- add_executable(${PROJECT_NAME}_node src/VentPlannerNode.cpp)
-
-## Rename C++ executable without prefix
-## The above recommended prefix causes long target names, the following renames the
-## target back to the shorter version for ease of user use
-## e.g. "rosrun someones_pkg node" instead of "rosrun someones_pkg someones_pkg_node"
-# set_target_properties(${PROJECT_NAME}_node PROPERTIES OUTPUT_NAME node PREFIX "")
-
-## Add cmake target dependencies of the executable
-## same as for the library above
- add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-
-## Specify libraries to link a library or executable target against
- target_link_libraries(${PROJECT_NAME}_node
-   vent_planner
-   planner_framework
-   ${catkin_LIBRARIES}
- )
- 
 
 #############
 ## Install ##

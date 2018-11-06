@@ -6,17 +6,17 @@
 #include "actionlib/server/simple_action_server.h"
 #include "actionlib/client/simple_action_client.h"
 
-#include "vent_planner/PointPathRosAction.h"
-#include "vent_planner/DynamicLawnmowerRosAction.h"
+#include "ros_sim_plan_server/PointPathRosAction.h"
+#include "ros_sim_plan_server/DynamicLawnmowerRosAction.h"
 
 #include "tf/LinearMath/Vector3.h"
 
 class DynamicLawnmowerController
 {
 public:
-    DynamicLawnmowerController(ros::NodeHandle& nh, 
+    DynamicLawnmowerController(ros::NodeHandle nh, 
                                std::string vehicleName);
-    
+        
     ~DynamicLawnmowerController() {}
 
 private:
@@ -25,9 +25,9 @@ private:
     void preemptCB(void);
     
     void pointPathActive(void);
-    void pointPathFeedback(const vent_planner::PointPathRosFeedbackConstPtr& feedback);
+    void pointPathFeedback(const ros_sim_plan_server::PointPathRosFeedbackConstPtr& feedback);
     void pointPathDone(const actionlib::SimpleClientGoalState& state,
-                       const vent_planner::PointPathRosResultConstPtr& result);
+                       const ros_sim_plan_server::PointPathRosResultConstPtr& result);
 
     void sendPointPathGoal(const std::vector<tf::Vector3>& points);
     void sendPointPathGoal(const tf::Vector3& point);
@@ -45,9 +45,11 @@ private:
                      const int currentSection);
 
 private:
-    actionlib::SimpleActionServer<vent_planner::DynamicLawnmowerRosAction> dynamicLawnmowerServer;
-    actionlib::SimpleActionClient<vent_planner::PointPathRosAction> pointPathClient;
+    actionlib::SimpleActionServer<ros_sim_plan_server::DynamicLawnmowerRosAction> dynamicLawnmowerServer;
+    actionlib::SimpleActionClient<ros_sim_plan_server::PointPathRosAction> pointPathClient;
     ros::ServiceClient plumeClient;
+
+    ros::NodeHandle nh;
 
     bool replanNextUpdate;
 

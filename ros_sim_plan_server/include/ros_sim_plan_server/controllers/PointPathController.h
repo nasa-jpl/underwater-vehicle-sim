@@ -6,7 +6,7 @@
 #include "actionlib/server/simple_action_server.h"
 #include "actionlib/client/simple_action_client.h"
 
-#include "vent_planner/PointPathRosAction.h"
+#include "ros_sim_plan_server/PointPathRosAction.h"
 
 #include "tf/LinearMath/Vector3.h"
 
@@ -19,7 +19,7 @@
 class PointPathController
 {
 public:
-    PointPathController(ros::NodeHandle& nh, 
+    PointPathController(ros::NodeHandle nh, 
                         VehicleInfo vehicleInfo);
     
     ~PointPathController() {}
@@ -49,9 +49,11 @@ private:
     void sendZGoal(const double z);
 
 private:
-    actionlib::SimpleActionServer<vent_planner::PointPathRosAction> pointPathServer;
+    actionlib::SimpleActionServer<ros_sim_plan_server::PointPathRosAction> pointPathServer;
     actionlib::SimpleActionClient<vehicle_auto_control::GoToXYRosAction> goToXYClient;
     actionlib::SimpleActionClient<vehicle_auto_control::GoToZRosAction> goToZClient;
+
+    ros::NodeHandle nh;
 
     VehicleInfo vehicleInfo;
 
