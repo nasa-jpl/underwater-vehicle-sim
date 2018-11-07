@@ -197,13 +197,9 @@ include_directories(
 
 ## Add gtest based cpp test target and link libraries
 # catkin_add_gtest(${PROJECT_NAME}-test test/test_vehicle_auto_control.cpp)
-if (CATKIN_ENABLE_TESTING)
- find_package(rostest REQUIRED)
-
- add_rostest_gtest(point_path_test tests/vehicle_auto_control/PointPath.test src/tests/vehicle_auto_control/PointPath_test.cpp)
-
- target_link_libraries(point_path_test ${PROJECT_NAME} ${catkin_LIBRARIES} ${NETCDF_LIBRARIES} stdc++fs)
-endif()
+#if (CATKIN_ENABLE_TESTING)
+# find_package(rostest REQUIRED)
+#endif()
 
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)

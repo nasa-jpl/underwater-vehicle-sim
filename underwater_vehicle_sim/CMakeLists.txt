@@ -219,10 +219,10 @@ if (CATKIN_ENABLE_TESTING)
  add_rostest_gtest(four_dof_propulsion_test tests/vehicles/FourDOFPropulsion.test src/tests/vehicles/FourDOFPropulsion_test.cpp)
  add_rostest_gtest(data_broadcaster_module_test tests/vehicles/DataBroadcasterModule.test src/tests/vehicles/DataBroadcasterModule_test.cpp)
  
- target_link_libraries(clock_server_test ${catkin_LIBRARIES} ${NETCDF_LIBRARIES} stdc++fs)
- target_link_libraries(init_underwater_vehicle_sim_test underwater_vehicles ${catkin_LIBRARIES} ${NETCDF_LIBRARIES} stdc++fs)
- target_link_libraries(four_dof_propulsion_test underwater_vehicles ${catkin_LIBRARIES} ${NETCDF_LIBRARIES} stdc++fs)
- target_link_libraries(data_broadcaster_module_test underwater_vehicles ${catkin_LIBRARIES} ${NETCDF_LIBRARIES} stdc++fs)
+ target_link_libraries(clock_server_test ${catkin_LIBRARIES} ${NETCDF_LIBRARIES})
+ target_link_libraries(init_underwater_vehicle_sim_test underwater_vehicles ${catkin_LIBRARIES} ${NETCDF_LIBRARIES})
+ target_link_libraries(four_dof_propulsion_test underwater_vehicles ${catkin_LIBRARIES} ${NETCDF_LIBRARIES})
+ target_link_libraries(data_broadcaster_module_test underwater_vehicles ${catkin_LIBRARIES} ${NETCDF_LIBRARIES})
 endif()
 
 

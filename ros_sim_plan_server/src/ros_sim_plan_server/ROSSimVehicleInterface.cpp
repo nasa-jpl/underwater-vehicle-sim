@@ -19,6 +19,30 @@ ROSSimVehicleInterface::ROSSimVehicleInterface(ros::NodeHandle& nh, VehicleInfo 
     }
 }
 
+void ROSSimVehicleInterface::log(LogLevel level, std::string string)
+{
+    if(level == LogLevel::DEBUG)
+    {
+        ROS_DEBUG("%s", string.c_str());
+    }
+    else if(level == LogLevel::INFO)
+    {
+        ROS_INFO("%s", string.c_str());
+    }
+    else if(level == LogLevel::WARN)
+    {
+        ROS_WARN("%s", string.c_str());
+    }
+    else if(level == LogLevel::ERROR)
+    {
+        ROS_ERROR("%s", string.c_str());
+    }
+    else if(level == LogLevel::FATAL)
+    {
+        ROS_FATAL("%s", string.c_str());
+    }
+}
+
 void ROSSimVehicleInterface::getData()
 {
 

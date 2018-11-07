@@ -8,7 +8,6 @@
 
 #include "ros_sim_plan_server/action_executors/DataTransferSimActionExecutor.h"
 #include "vent_planner/actions/DataTransferAction.h"
-#include "vehicle_auto_control/Velocity.h"
 
 #include "actionlib/client/simple_action_client.h"
 #include "std_msgs/Float64.h"

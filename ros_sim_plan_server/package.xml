@@ -44,12 +44,14 @@
   <build_depend>planner</build_depend>
   <build_depend>vent_planner</build_depend>
   <build_depend>planner_log</build_depend>
+  <build_depend>vehicle_auto_control</build_depend>
   <build_depend>actionlib_msgs</build_depend>
 
   <exec_depend>roscpp</exec_depend>
   <exec_depend>planner</exec_depend>
   <exec_depend>vent_planner</exec_depend>
   <exec_depend>planner_log</exec_depend>
+  <exec_depend>vehicle_auto_control</exec_depend>
   <test_depend>rosunit</test_depend>
 
   <exec_depend>actionlib_msgs</exec_depend>

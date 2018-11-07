@@ -211,9 +211,6 @@ if (CATKIN_ENABLE_TESTING)
  catkin_add_gtest(math_util_test src/tests/vent_planner/MathUtil_test.cpp)
  target_link_libraries(math_util_test vent_planner ${catkin_LIBRARIES})
 
- add_rostest_gtest(yoyo_point_path_executor_test tests/vent_planner/YoYoPointPathExecutor.test src/tests/vent_planner/YoYoPointPathExecutor_test.cpp)
-
- target_link_libraries(yoyo_point_path_executor_test planner_framework vent_planner ${catkin_LIBRARIES} ${NETCDF_LIBRARIES} stdc++fs)
 endif()
 
 ## Add folders to be run by python nosetests

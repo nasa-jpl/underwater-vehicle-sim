@@ -12,14 +12,14 @@ class ROSSimVehicleInterface : VehicleInterface
 {
 public:
     ROSSimVehicleInterface(ros::NodeHandle& nh, VehicleInfo info);
-    ~ROSSimVehicleInterface() {}
+    ~ROSSimVehicleInterface() override = default;
 
+    void log(LogLevel level, std::string string) override;
     void getData() override;
     void registerDataCallback(std::function<void(const PlannerData&)> cb) override;
     VehiclePose getPosition() override;
 
 private:
-
     void receiveData(const underwater_vehicle_msgs::VehicleData::ConstPtr& msg);
 
 private:
