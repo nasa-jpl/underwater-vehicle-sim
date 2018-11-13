@@ -1,7 +1,5 @@
 #include <memory>
 
-#include "ros/ros.h"
-
 #include "vent_planner/actions/DynamicLawnmowerAction.h"
 #include "planner_framework/ActionExecutor.h"
 
@@ -10,7 +8,7 @@ DynamicLawnmowerAction::DynamicLawnmowerAction(std::unique_ptr<ActionExecutor<Dy
                                                const double targetHorizontalVelocity, 
                                                const double targetRotationalVelocity,
                                                const double targetSlope,
-                                               const tf::Vector3& startLocation,
+                                               const VehiclePose& startLocation,
                                                const double alongTrackDirection,
                                                const double acrossTrackDirection,
                                                const double trackSpacing,
@@ -65,7 +63,6 @@ void DynamicLawnmowerAction::executeAction()
     if(!success)
     {
         state = Action::State::FAILED;
-        ROS_INFO("Dynamic lawnmower action failed");
     }
 }
 
@@ -127,7 +124,7 @@ double DynamicLawnmowerAction::getTargetSlope() const
     return targetSlope;
 }
 
-tf::Vector3 DynamicLawnmowerAction::getStartLocation() const
+VehiclePose DynamicLawnmowerAction::getStartLocation() const
 {
     return startLocation;
 }

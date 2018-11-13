@@ -7,8 +7,6 @@
 #include <stack>
 #include <functional>
 
-#include "tf/LinearMath/Vector3.h"
-
 #include "planner_framework/Planner.h"
 
 #include "vent_planner/actions/VentActionFactory.h"
@@ -16,55 +14,47 @@
 #include "vent_planner/DataNode.h"
 #include "vent_planner/DataTree.h"
 
-
-#include "data_server/DataServerEntry.h"
-
-#include "data_server/GetPlumeData.h"
-#include "data_server/PlumeData.h"
-
-#include "underwater_vehicle_msgs/VehicleInfo.h"
-
 class NestedBinVentPlanner : public Planner
 {
 public:
-    NestedBinVentPlanner(ros::NodeHandle& nh, std::unique_ptr<VentActionFactory> actionFactory, VehicleInfo vehicleInfo);
+    struct Parameters; //Forward declard Parameters so we can use it in the constructor
+
+    NestedBinVentPlanner(std::unique_ptr<VentActionFactory> actionFactory, std::unique_ptr<VehicleInterface> vehicleInterface, Parameters parameters);
     ~NestedBinVentPlanner() {}
 
     std::shared_ptr<Plan> plan();
-
-    
-
-    DataServerEntry getLatestData();
 
 private:
 
     enum SearchPhase {none, spiral, dynamic, nested };
 
-    void receivePlumeData(const data_server::PlumeData::ConstPtr& msg);
+    void receivePlumeData(const PlannerData& data);
 
     void publishLog(std::string log);
 
     DataNode getLatestSpiralData();
     bool newSpiralPlumeIntersect(DataNode& spiralData, double detectionThreshold);
 
-    void initalizeDataTree(tf::Vector3 centerLocation);
+    void initalizeDataTree(VehiclePose centerLocation);
 
-    /**
-    *Sets the parameter returnEntry to the latest data from the vehicle
-    *@param returnEntry Output for the latest data
-    *@return True if getting the latest data was successful
-    **/
-    bool getLatestData(DataServerEntry& returnEntry);
     std::set<DataNode*, DataNode::PointerCompare> getUnexploredMaxima();
-    void addInitalLawnmowers(std::shared_ptr<Plan> plan, const tf::Vector3& centerLocation, double plumeHeight);
+    void addInitalLawnmowers(std::shared_ptr<Plan> plan, const VehiclePose& centerLocation, double plumeHeight);
 
 
     bool isGoalSurvey(double nestedBinSize, DataNode* maximum, std::vector<DataNode*>& neighbors);
-    void publishGoal();
-    void updateGoal();
+
+public:
+    struct Parameters 
+    {
+        double spiralSpacing;
+        double initalSpacing;
+        double finalSpacing;
+        double failTime;
+    };
 
 private:
     std::unique_ptr<VentActionFactory> actionFactory;
+    std::unique_ptr<VehicleInterface> vehicleInterface;
 
     SearchPhase phase;
 
@@ -74,28 +64,14 @@ private:
     std::unique_ptr<DataTree> dataTree;
     DataNode spiralData;
 
-    ros::Subscriber dataSub;
     std::map<std::shared_ptr<Plan>, DataNode*> plannedMaxima;
 
+    bool receivingData;
 
-    ros::Time lastPlan;
-
-    double spiralSpacing;
-    double initalSpacing;
-    double finalSpacing;
-    double failTime;
     std::shared_ptr<Plan> finalSurvey;
 
-    VehicleInfo vehicleInfo;
-
-    ros::ServiceClient dataClient;
-    ros::ServiceClient latestDataClient;
-    ros::ServiceClient plumeClient;
-    ros::Publisher goalPub;
-    ros::Publisher logPub;
-    ros::NodeHandle& nh;
-
-    std::string goalState;
+    //Planner Parameters
+    Parameters parameters;
 };
 
 #endif

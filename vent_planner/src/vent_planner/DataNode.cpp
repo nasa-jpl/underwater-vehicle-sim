@@ -1,16 +1,15 @@
 #include "vent_planner/DataNode.h"
-#include "tf/LinearMath/Vector3.h"
-#include "plume_detector/PlumeDataEntry.h"
 
-#include "ros/ros.h"
 #include <map>
-DataNode::DataNode(DataNode* parentNode, const unsigned int nodeLevel, const tf::Vector3 origin, double nodeSize, const unsigned nodeIndex) :
+
+DataNode::DataNode(DataNode* parentNode, const unsigned int nodeLevel, const VehiclePose origin, double nodeSize, const unsigned nodeIndex) :
     parentNode(parentNode),
     nodeLevel(nodeLevel),
     origin(origin),
     nodeSize(nodeSize),
     nodeIndex(nodeIndex),
-    partitioned(false)
+    partitioned(false),
+    dataMember("plume")
 {}
 
 DataNode::DataNode(const DataNode& other) :
@@ -23,28 +22,28 @@ DataNode::DataNode(const DataNode& other) :
     data(other.data),
     maxVal(other.maxVal),
     nodes(other.nodes),
-    partitionFactor(other.partitionFactor)
+    partitionFactor(other.partitionFactor),
+    dataMember(other.dataMember)
 {}
 
 DataNode::~DataNode() {}
 
-void DataNode::addData(const PlumeDataEntry& plumeData)
+void DataNode::addData(const PlannerData& newData)
 {
 
-    if(maxVal.val <= plumeData.val)
+    if(maxVal.getData()[dataMember] <= newData.getData()[dataMember])
     {
-        maxVal = plumeData;
+        maxVal = newData;
     }
 
     if(partitioned)
     {
-        tf::Vector3 dataVector(plumeData.x, plumeData.y, plumeData.h);
-        unsigned int nodeIndex = toNodeIndex(dataVector);
-        createAndGetChild(nodeIndex)->addData(plumeData);
+        unsigned int nodeIndex = toNodeIndex(newData.getPose());
+        createAndGetChild(nodeIndex)->addData(newData);
     }   
     else
     {
-        data.push_back(plumeData);
+        data.push_back(newData);
     }
 
 }
@@ -64,12 +63,12 @@ void DataNode::partition(int partitionFactor)
     
 }
 
-tf::Vector3 DataNode::getCenterLocation()
+VehiclePose DataNode::getCenterLocation()
 {
-    return tf::Vector3(origin.getX() + nodeSize / 2.0, origin.getY() + nodeSize / 2.0, origin.getZ());
+    return VehiclePose(origin.getX() + nodeSize / 2.0, origin.getY() + nodeSize / 2.0, origin.getZ());
 }
 
-DataNode& DataNode::getSmallestNode(const tf::Vector3& location)
+DataNode& DataNode::getSmallestNode(const VehiclePose& location)
 {
     if(!partitioned)
     {
@@ -87,9 +86,9 @@ DataNode& DataNode::getSmallestNode(const tf::Vector3& location)
     }
 }
 
-tf::Vector3 DataNode::getClosestNodeOrigin(const tf::Vector3& location, unsigned int targetNodeLevel)
+VehiclePose DataNode::getClosestNodeOrigin(const VehiclePose& location, unsigned int targetNodeLevel)
 {
-    tf::Vector3 baseOrigin;
+    VehiclePose baseOrigin;
     float baseSize = 0;
     if(!partitioned || targetNodeLevel == nodeLevel)
     {
@@ -131,7 +130,7 @@ tf::Vector3 DataNode::getClosestNodeOrigin(const tf::Vector3& location, unsigned
         y = baseOrigin.getY() + baseSize;
     }
 
-    return tf::Vector3(x, y, location.getZ());
+    return VehiclePose(x, y, location.getZ());
 }
 
 
@@ -255,7 +254,7 @@ int DataNode::getChildRelative(int node, int relative)
 
 void DataNode::createChild(unsigned int nodeIndex)
 {
-    tf::Vector3 childOrigin = toOriginXY(nodeIndex);
+    VehiclePose childOrigin = toOriginXY(nodeIndex);
     if(nodes.count(nodeIndex) == 0)
     {
         DataNode node(this, nodeLevel + 1, childOrigin, nodeSize / partitionFactor, nodeIndex);
@@ -263,7 +262,7 @@ void DataNode::createChild(unsigned int nodeIndex)
     }
 }
 
-unsigned int DataNode::toNodeIndex(const tf::Vector3& point)
+unsigned int DataNode::toNodeIndex(const VehiclePose& point)
 {
     if(!partitioned ||
        point.getX() < origin.getX() ||
@@ -298,7 +297,7 @@ unsigned int DataNode::toNodeIndex(const int xNode, const int yNode)
     return xNode * partitionFactor + yNode;
 }
 
-tf::Vector3 DataNode::toOriginXY(unsigned int nodeIndex)
+VehiclePose DataNode::toOriginXY(unsigned int nodeIndex)
 {
     unsigned int xNode = nodeIndex / partitionFactor;
     unsigned int yNode = nodeIndex - (xNode * partitionFactor);
@@ -313,7 +312,7 @@ tf::Vector3 DataNode::toOriginXY(unsigned int nodeIndex)
         throw std::out_of_range(whatStr);
     }
 
-    tf::Vector3 vec(origin.getX() + xNode * (nodeSize / partitionFactor), origin.getY() + yNode * (nodeSize / partitionFactor), origin.getZ());
+    VehiclePose vec(origin.getX() + xNode * (nodeSize / partitionFactor), origin.getY() + yNode * (nodeSize / partitionFactor), origin.getZ());
     return vec;
 }
 
@@ -393,7 +392,7 @@ bool DataNode::isMaximum()
             if(!(x == 0 && y == 0))
             {
                DataNode* neighbor = getRelative(x,y);
-                if(!neighbor || neighbor->maxVal.val > maxVal.val)
+                if(!neighbor || neighbor->maxVal.getData()[dataMember] > maxVal.getData()[dataMember])
                 {
                     return false;
                 } 
@@ -416,11 +415,11 @@ bool DataNode::isPotentialMaximum()
                 DataNode* neighbor = getRelative(x,y);
                 if(neighbor)
                 {
-                    if(neighbor->maxVal.val > maxVal.val)
+                    if(neighbor->maxVal.getData()[dataMember] > maxVal.getData()[dataMember])
                     {
                         return false;
                     }
-                    else if(neighbor->maxVal.val < maxVal.val)
+                    else if(neighbor->maxVal.getData()[dataMember] < maxVal.getData()[dataMember])
                     {
                         count++;
                     }
@@ -457,7 +456,7 @@ std::vector<DataNode*> DataNode::getInitalizedNeighbors()
     return neighbors;
 }
 
-void DataNode::getData(std::vector<PlumeDataEntry*>& allData)
+void DataNode::getData(std::vector<PlannerData*>& allData)
 {
     for(auto& d : data)
     {
@@ -475,7 +474,7 @@ void DataNode::getData(std::vector<PlumeDataEntry*>& allData)
 
 const double DataNode::getHeightOfPlume()
 {
-    std::vector<PlumeDataEntry*> allData;
+    std::vector<PlannerData*> allData;
     getData(allData);
     //bin data by depth return bin with largest average
     unsigned int binSize = 10;
@@ -492,14 +491,14 @@ const double DataNode::getHeightOfPlume()
     for(unsigned int i = 0; i < allData.size(); i++)
     {
         auto d = allData[i];
-        if(minHeight > d->h)
+        if(minHeight > d->getPose().getZ())
         {
-            minHeight = d->h;
+            minHeight = d->getPose().getZ();
         }
 
-        if(maxHeight < d->h)
+        if(maxHeight < d->getPose().getZ())
         {
-            maxHeight = d->h;
+            maxHeight = d->getPose().getZ();
         }
     }
 
@@ -517,15 +516,14 @@ const double DataNode::getHeightOfPlume()
         return false;
     }
 
-    ROS_DEBUG("Get plume height, numBins: %i, maxHeight: %f, minHeight: %f, binSize: %u", numBins, maxHeight, minHeight, binSize);
     std::vector<double> bins(numBins, 0);
     std::vector<int> binCount(numBins, 0);
 
     for(unsigned int i = 0; i < allData.size(); i++)
     {
         auto d = allData[i];
-        int bin = (d->h - minHeight) / binSize;
-        bins[bin] += d->val;
+        int bin = (d->getPose().getZ() - minHeight) / binSize;
+        bins[bin] += d->getData()[dataMember];
         binCount[bin]++;
     }
 
@@ -570,7 +568,7 @@ bool DataNode::operator<(const DataNode& rhs) const
     }
 
     //If the max val is the same we want to deterministically choose one bin over the other
-    if(getMaxVal().val == rhs.getMaxVal().val)
+    if(getMaxVal().getData()[dataMember] == rhs.getMaxVal().getData()[dataMember])
     {
         if(nodeLevel != rhs.nodeLevel)
         {
@@ -581,7 +579,7 @@ bool DataNode::operator<(const DataNode& rhs) const
     }
     
 
-    return getMaxVal().val < rhs.getMaxVal().val;
+    return getMaxVal().getData()[dataMember] < rhs.getMaxVal().getData()[dataMember];
 }
 
 bool DataNode::operator==(const DataNode& rhs) const
@@ -596,7 +594,7 @@ bool DataNode::PointerCompare::operator() (const DataNode* lhs,
     return *lhs < *rhs;
 }
 
-const PlumeDataEntry& DataNode::getMaxVal() const
+const PlannerData& DataNode::getMaxVal() const
 {
     return maxVal;
 }

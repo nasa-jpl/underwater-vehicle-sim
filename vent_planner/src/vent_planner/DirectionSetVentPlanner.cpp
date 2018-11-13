@@ -4,17 +4,12 @@
 #include <limits>
 #include <math.h>
 
-#include "ros/ros.h"
-#include "tf/LinearMath/Vector3.h"
-#include "std_msgs/String.h"
+#include "planner_framework/VehicleInterface.h"
+#include "planner_framework/PlannerData.h"
+#include "planner_framework/VehiclePose.h"
+#include "planner_framework/GoalStatus.h"
 
 #include "vent_planner/DataNode.h"
-
-#include "data_server/GetData.h"
-#include "data_server/GetLatestData.h"
-#include "data_server/DataServerEntry.h"
-#include "data_server/GetPlumeData.h"
-#include "data_server/PlumeData.h"
 
 #include "vent_planner/actions/VentActionFactory.h"
 #include "vent_planner/DirectionSetVentPlanner.h"
@@ -23,74 +18,54 @@
 #include "vent_planner/util/MathUtil.h"
 #include "vent_planner/util/Plane.h"
 
-DirectionSetVentPlanner::DirectionSetVentPlanner(ros::NodeHandle& nh, std::unique_ptr<VentActionFactory> actionFactory, VehicleInfo vehicleInfo) :
-    nh(nh),
+DirectionSetVentPlanner::DirectionSetVentPlanner(std::unique_ptr<VentActionFactory> actionFactory, std::unique_ptr<VehicleInterface> vehicleInterface, Parameters parameters) :
     actionFactory(std::move(actionFactory)),
-    vehicleInfo(vehicleInfo),
-    goalState(GoalState::RUNNING),
-    latestDataClient(nh.serviceClient<data_server::GetLatestData>("data_server/get_latest")),
-    goalPub(nh.advertise<std_msgs::String>("planner/goal", 1, true)),
+    vehicleInterface(std::move(vehicleInterface)),
+    parameters(std::move(parameters)),
     currentPlannerStage(SearchPhase::INITIAL_PLAN),
-    spiralData(nullptr, 0, tf::Vector3(0,0,0), 300000, 0)
+    spiralData(nullptr, 0, VehiclePose(0,0,0), 300000, 0),
+    receivingData(false)
 {
-    nh.getParam("planner/fail_time", failTime);
-    nh.getParam("planner/spiral_spacing", spiralSpacing);
-    nh.getParam("planner/detection_threshold", detectionThreshold);
-    nh.getParam("planner/min_leg_length", minLegLength);
-    nh.getParam("planner/max_leg_length", maxLegLength);
-    nh.getParam("planner/leg_section_length", legSectionLength);
-    nh.getParam("planner/new_max_threshold", newMaxThreshold);
-    nh.getParam("planner/num_sections_threshold", numSectionsThreshold);
-
-    dataSub = nh.subscribe("data_server/" + vehicleInfo.getName() + "/plume_data", 0, &DirectionSetVentPlanner::receivePlumeData, this);
+    this->vehicleInterface->registerDataCallback(std::bind(&DirectionSetVentPlanner::receivePlumeData, this, std::placeholders::_1));
 }
 
-void DirectionSetVentPlanner::receivePlumeData(const data_server::PlumeData::ConstPtr& msg)
+void DirectionSetVentPlanner::receivePlumeData(const PlannerData& data)
 {
     if(currentPlannerStage == SearchPhase::SPIRAL)
     {
-        PlumeDataEntry newPlumeData(msg->time,
-                                    msg->x,
-                                    msg->y,
-                                    msg->h,
-                                    msg->plume_strength);
-        spiralData.addData(newPlumeData);
+        spiralData.addData(data);
     }
     else
     {
-        if(!std::isnan(msg->x) &&
-           !std::isnan(msg->y) &&
-           !std::isnan(msg->plume_strength))
+        if(!std::isnan(data.getPose().getX()) &&
+           !std::isnan(data.getPose().getY()) &&
+           !std::isnan(data.getData()["plume"]))
         {
-            currentData.emplace_back(msg->x,
-                                     msg->y,
-                                     msg->plume_strength);
+            currentData.push_back(data);
 
-            if(msg->plume_strength > currentMax.getZ())
+            if(data.getData()["plume"] > currentMax.getData()["plume"])
             {
-                tf::Vector3 testVector(msg->x, msg->y, 0);
-                if(math_util::xyDistance(testVector, currentMax) > newMaxThreshold)
+                if(math_util::xyDistance(data.getPose(), currentMax.getPose()) > parameters.newMaxThreshold)
                 {
-                    currentMax.setX(msg->x);
-                    currentMax.setY(msg->y);
-                    currentMax.setZ(msg->plume_strength);
+                    currentMax = data;
                     numMaxCrossings = 1;
                 }
             } 
         }
     }
+
+    receivingData = true;
 }
 
 bool DirectionSetVentPlanner::endTransect()
 {
-    tf::Vector3& lastPoint = currentData[currentData.size() - 1];
-
+    PlannerData& lastPoint = currentData[currentData.size() - 1];
     //Check to insure no violation of min and max leg lengths
-    if(math_util::xyDistance(lastPoint, currentLineCenter) < minLegLength)
+    if(math_util::xyDistance(lastPoint.getPose(), currentLineCenter) < parameters.minLegLength)
     {
         return false;
     }
-    else if(math_util::xyDistance(lastPoint, currentLineCenter) >= maxLegLength)
+    else if(math_util::xyDistance(lastPoint.getPose(), currentLineCenter) >= parameters.maxLegLength)
     {
         return true;
     }
@@ -98,40 +73,36 @@ bool DirectionSetVentPlanner::endTransect()
 
     int start = currentData.size() - 1;
     while(start >= 0 &&
-          math_util::xyDistance(currentData[start], lastPoint) < legSectionLength * numSectionsThreshold)
+          math_util::xyDistance(currentData[start].getPose(), lastPoint.getPose()) < parameters.legSectionLength * parameters.numSectionsThreshold)
     {
         start--;
     }
     
-    ROS_INFO("End Transect: start: %f x: %f y: %f z: %f", math_util::xyDistance(currentData[start], lastPoint), currentData[start].getX(), currentData[start].getY(), currentData[start].getZ());
     //Don't end transect because we have not travelled far
     //enough to do all section calculations
     if(start == -1)
     {
-        ROS_INFO("End Transect: Not far enough");
         return false;
     }
 
-    std::vector<double> average(numSectionsThreshold);
-    std::vector<unsigned int> dataCount(numSectionsThreshold);
+    std::vector<double> average(parameters.numSectionsThreshold);
+    std::vector<unsigned int> dataCount(parameters.numSectionsThreshold);
 
-    tf::Vector3&  startPoint = currentData[start];
+    PlannerData&  startPoint = currentData[start];
     for(unsigned int i = start; i < currentData.size() - 1; i++)
     {
-        unsigned int section = math_util::xyDistance(currentData[i], startPoint) / legSectionLength;
-        if(section < numSectionsThreshold)
+        unsigned int section = math_util::xyDistance(currentData[i].getPose(), startPoint.getPose()) / parameters.legSectionLength;
+        if(section < parameters.numSectionsThreshold)
         {
-            average[section] += currentData[i].getZ();
+            average[section] += currentData[i].getPose().getZ();
             dataCount[section]++;
         }
     }
 
-    double lastAverage = detectionThreshold;
+    double lastAverage = parameters.detectionThreshold;
     for(unsigned int i = 0; i < average.size(); i++)
     {
-        ROS_INFO("End Transect Before Calc: Average: %f count: %u", average[i], dataCount[i]);
         average[i] /= dataCount[i];
-        ROS_INFO("End Transect: Average: %f lastAverage: %f", average[i], lastAverage);
         if(average[i] > lastAverage)
         {
             return false;
@@ -144,24 +115,22 @@ bool DirectionSetVentPlanner::endTransect()
 
 std::shared_ptr<Plan> DirectionSetVentPlanner::plan()
 {
-    ROS_INFO("Plan");
+    vehicleInterface->log(LogLevel::INFO, "Plan");
 
     std::shared_ptr<Plan> returnPlan(nullptr);
 
 
     if(currentPlannerStage == SearchPhase::INITIAL_PLAN)
     {
-        ROS_INFO("Phase INITIAL_PLAN");
-        DataServerEntry latestEntry;
-        if(getLatestData(latestEntry))
+        vehicleInterface->log(LogLevel::INFO, "Phase INITIAL_PLAN");
+        if(receivingData)
         {
             returnPlan = std::shared_ptr<Plan>(new Plan());
 
-            ROS_INFO("Generate inital plan");
-            tf::Vector3 vehicleLocation(latestEntry.x, latestEntry.y, latestEntry.h);
-            std::vector<tf::Vector3> spiralPoints = create_path_util::makeSpiral(vehicleLocation, 0, spiralSpacing, 100000);
-            std::shared_ptr<Action> newAction = actionFactory->createPointPathAction(vehicleInfo.getName(),
-                                                                                     1.0,
+            VehiclePose pose = vehicleInterface->getPosition();
+
+            std::vector<VehiclePose> spiralPoints = create_path_util::makeSpiral(pose, 0, parameters.spiralSpacing, 100000);
+            std::shared_ptr<Action> newAction = actionFactory->createPointPathAction(1.0,
                                                                                      0.349066,
                                                                                      0.523599, //30 deg
                                                                                      -100,
@@ -177,13 +146,12 @@ std::shared_ptr<Plan> DirectionSetVentPlanner::plan()
     }
     else if(currentPlannerStage == SearchPhase::SPIRAL)
     {
-        ROS_INFO("Phase SPIRAL");
-        PlumeDataEntry maxVal = spiralData.getMaxVal();
-        if(maxVal.val >= detectionThreshold)
+        vehicleInterface->log(LogLevel::INFO, "Phase SPIRAL");
+        PlannerData maxVal = spiralData.getMaxVal();
+        if(maxVal.getData()["plume"] >= parameters.detectionThreshold)
         {
-            currentMax.setX(maxVal.x);
-            currentMax.setY(maxVal.y);
-            currentMax.setZ(maxVal.val);
+            currentMax = maxVal;
+         
             numMaxCrossings = 0;
             currentHeading = 0;
 
@@ -198,11 +166,11 @@ std::shared_ptr<Plan> DirectionSetVentPlanner::plan()
     }
     else if(currentPlannerStage == SearchPhase::EXECUTE_LINE_0)
     {
-        //Update heading and go to center of new transect
+        vehicleInterface->log(LogLevel::INFO, "Phase EXECUTE_LINE_0");
 
+        //Update heading and go to center of new transect
         returnPlan = std::shared_ptr<Plan>(new Plan());
 
-        ROS_INFO("Phase EXECUTE_LINE");
         if(numMaxCrossings <= 1)
         {
             currentHeading += M_PI / 2;
@@ -231,46 +199,49 @@ std::shared_ptr<Plan> DirectionSetVentPlanner::plan()
         }
         else
         {
-            goalState = GoalState::SUCCESS;
+            vehicleInterface->sendGoalStatus(GoalStatus::SUCCESS);
         }
         numMaxCrossings++;
 
-        currentLineCenter = currentMax;
-        std::vector<tf::Vector3> points;
-        tf::Vector3 p1(currentLineCenter.getX(), currentLineCenter.getY(), plumeHeight);
+        currentLineCenter = currentMax.getPose();
+        std::vector<VehiclePose> points;
+        VehiclePose p1(currentLineCenter.getX(), currentLineCenter.getY(), plumeHeight);
         points.push_back(p1);
-        std::shared_ptr<PointPathAction> newAction = actionFactory->createPointPathAction(vehicleInfo.getName(),
-                                                                                  1.0,
-                                                                                  0.349066,
-                                                                                  0.523599, //30 deg
-                                                                                  points,
-                                                                                  PointPathAction::ReplanType::NONE,
-                                                                                  0);
+        std::shared_ptr<PointPathAction> newAction = actionFactory->createPointPathAction(1.0,
+                                                                                          0.349066,
+                                                                                          0.523599, //30 deg
+                                                                                          points,
+                                                                                          PointPathAction::ReplanType::NONE,
+                                                                                          0);
 
         returnPlan->addAction(newAction);
         currentPlannerStage = SearchPhase::EXECUTE_LINE_1;
     }
     else if(currentPlannerStage == SearchPhase::EXECUTE_LINE_1)
     {
+        vehicleInterface->log(LogLevel::INFO, "Phase EXECUTE_LINE_1");
+
         //Go to first end of transect
         returnPlan = std::shared_ptr<Plan>(new Plan());
 
-        std::vector<tf::Vector3> points;
-        tf::Vector3 vecHeading1(sin(currentHeading), cos(currentHeading), 0);
+        std::vector<VehiclePose> points;
+        VehiclePose pose1(currentLineCenter.getX(), 
+                          currentLineCenter.getY(), 
+                          plumeHeight);
 
-        tf::Vector3 p1(currentLineCenter.getX(), currentLineCenter.getY(), plumeHeight);
-        tf::Vector3 p2 = p1 + vecHeading1 * maxLegLength;
+        VehiclePose pose2(currentLineCenter.getX() + (sin(currentHeading) * parameters.maxLegLength), 
+                          currentLineCenter.getY() + (cos(currentHeading) * parameters.maxLegLength), 
+                          plumeHeight);
 
-        points.push_back(p1);
-        points.push_back(p2);
+        points.push_back(pose1);
+        points.push_back(pose2);
 
-        std::shared_ptr<PointPathAction> newAction = actionFactory->createPointPathAction(vehicleInfo.getName(),
-                                                                                  1.0,
-                                                                                  0.349066,
-                                                                                  0.523599, //30 deg
-                                                                                  points,
-                                                                                  PointPathAction::ReplanType::PERIODIC_DISTANCE,
-                                                                                  legSectionLength);
+        std::shared_ptr<PointPathAction> newAction = actionFactory->createPointPathAction(1.0,
+                                                                                          0.349066,
+                                                                                          0.523599, //30 deg
+                                                                                          points,
+                                                                                          PointPathAction::ReplanType::PERIODIC_DISTANCE,
+                                                                                          parameters.legSectionLength);
 
         returnPlan->addAction(newAction);
         transectPlan = returnPlan;
@@ -289,43 +260,48 @@ std::shared_ptr<Plan> DirectionSetVentPlanner::plan()
     }
     else if(currentPlannerStage == SearchPhase::EXECUTE_LINE_2)
     {
+        vehicleInterface->log(LogLevel::INFO, "Phase EXECUTE_LINE_2");
+
         //Go to center of transect
         returnPlan = std::shared_ptr<Plan>(new Plan());
-        std::vector<tf::Vector3> points;
-        tf::Vector3 p1(currentLineCenter.getX(), currentLineCenter.getY(), plumeHeight);
+        std::vector<VehiclePose> points;
+        VehiclePose p1(currentLineCenter.getX(), currentLineCenter.getY(), plumeHeight);
         points.push_back(p1);
-        std::shared_ptr<PointPathAction> newAction = actionFactory->createPointPathAction(vehicleInfo.getName(),
-                                                                                  1.0,
-                                                                                  0.349066,
-                                                                                  0.523599, //30 deg
-                                                                                  points,
-                                                                                  PointPathAction::ReplanType::NONE,
-                                                                                  0);
+        std::shared_ptr<PointPathAction> newAction = actionFactory->createPointPathAction(1.0,
+                                                                                          0.349066,
+                                                                                          0.523599, //30 deg
+                                                                                          points,
+                                                                                          PointPathAction::ReplanType::NONE,
+                                                                                          0);
 
         returnPlan->addAction(newAction);
         currentPlannerStage = SearchPhase::EXECUTE_LINE_3;
     }
     else if(currentPlannerStage == SearchPhase::EXECUTE_LINE_3)
     {
+        vehicleInterface->log(LogLevel::INFO, "Phase EXECUTE_LINE_3");
+
         //Go to second end of transect
         returnPlan = std::shared_ptr<Plan>(new Plan());
 
-        std::vector<tf::Vector3> points;
-        tf::Vector3 vecHeading2(sin(currentHeading + M_PI), cos(currentHeading + M_PI), 0);
+        std::vector<VehiclePose> points;
+        VehiclePose pose1(currentLineCenter.getX(), 
+                          currentLineCenter.getY(), 
+                          plumeHeight);
 
-        tf::Vector3 p1(currentLineCenter.getX(), currentLineCenter.getY(), plumeHeight);
-        tf::Vector3 p3 = p1 + vecHeading2 * maxLegLength;
+        VehiclePose pose3(currentLineCenter.getX() + (sin(currentHeading + M_PI) * parameters.maxLegLength), 
+                          currentLineCenter.getY() + (cos(currentHeading + M_PI) * parameters.maxLegLength), 
+                          plumeHeight);
 
-        points.push_back(p1);
-        points.push_back(p3);
+        points.push_back(pose1);
+        points.push_back(pose3);
 
-        std::shared_ptr<PointPathAction> newAction = actionFactory->createPointPathAction(vehicleInfo.getName(),
-                                                                                  1.0,
-                                                                                  0.349066,
-                                                                                  0.523599, //30 deg
-                                                                                  points,
-                                                                                  PointPathAction::ReplanType::PERIODIC_DISTANCE,
-                                                                                  legSectionLength);
+        std::shared_ptr<PointPathAction> newAction = actionFactory->createPointPathAction(1.0,
+                                                                                          0.349066,
+                                                                                          0.523599, //30 deg
+                                                                                          points,
+                                                                                          PointPathAction::ReplanType::PERIODIC_DISTANCE,
+                                                                                          parameters.legSectionLength);
 
         returnPlan->addAction(newAction);
         transectPlan = returnPlan;
@@ -335,6 +311,8 @@ std::shared_ptr<Plan> DirectionSetVentPlanner::plan()
     }
     else if(currentPlannerStage == SearchPhase::OBSERVE_EXECUTE_LINE_3)
     {
+        vehicleInterface->log(LogLevel::INFO, "Phase OBSERVE_EXECUTE_LINE_3");
+
         if(transectPlan->isCompleted() || endTransect())
         {
             //Send back empty plan to trigger replan again  (not an ideal way to do this)
@@ -343,66 +321,5 @@ std::shared_ptr<Plan> DirectionSetVentPlanner::plan()
         }
     }
 
-    //updates the goal state and publishes it
-    updateGoal();
-    publishGoal();
-
     return returnPlan;
-}
-
-void DirectionSetVentPlanner::publishGoal()
-{
-    std_msgs::String msg;
-    if(goalState == GoalState::RUNNING)
-    {
-       msg.data = "running"; 
-    }
-    else if(goalState == GoalState::FAILED)
-    {
-       msg.data = "failed"; 
-    }
-    else if(goalState == GoalState::SUCCESS)
-    {
-       msg.data = "success"; 
-    }
-    else
-    {
-       msg.data = "invalid"; 
-    }
-
-    goalPub.publish(msg);
-}
-
-void DirectionSetVentPlanner::updateGoal()
-{
-    if(goalState == GoalState::RUNNING)
-    {
-        if(ros::Time::now() >= ros::Time(failTime))
-        {
-            goalState = GoalState::FAILED;
-        }
-    }
-}
-
-bool DirectionSetVentPlanner::getLatestData(DataServerEntry& returnEntry)
-{
-    data_server::GetLatestData srv;
-    srv.request.name = vehicleInfo.getName();
-
-    bool valid = latestDataClient.call(srv);
-    if(valid)
-    {
-        returnEntry.x = srv.response.x;
-        returnEntry.y = srv.response.y;
-        returnEntry.h = srv.response.h;
-
-        returnEntry.time = srv.response.time;
-        returnEntry.temp = srv.response.temp;
-        returnEntry.salt = srv.response.salt;
-        returnEntry.dye = srv.response.dye;
-
-        return true;
-    }
-
-    return false;
 }

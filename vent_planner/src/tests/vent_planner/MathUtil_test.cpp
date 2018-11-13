@@ -3,8 +3,6 @@
 #include <math.h>
 #include <cmath>
 
-#include "tf/LinearMath/Vector3.h"
-
 #include "vent_planner/util/MathUtil.h"
 
 TEST(MathUtil, LinearLeastSquares)

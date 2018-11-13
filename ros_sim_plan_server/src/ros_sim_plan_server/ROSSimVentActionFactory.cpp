@@ -17,22 +17,22 @@
 
 
 
-ROSSimVentActionFactory::ROSSimVentActionFactory(ros::NodeHandle& nh) :
-    nh(nh)
+ROSSimVentActionFactory::ROSSimVentActionFactory(ros::NodeHandle& nh, VehicleInfo vehicleInfo) :
+    nh(nh),
+    vehicleInfo(vehicleInfo)
 {}
 
-std::shared_ptr<PointPathAction> ROSSimVentActionFactory::createPointPathAction(const std::string& vehicleName,
-                                                                             const double targetHorizontalVelocity, 
+std::shared_ptr<PointPathAction> ROSSimVentActionFactory::createPointPathAction(const double targetHorizontalVelocity, 
                                                                              const double targetRotationalVelocity,
                                                                              const double targetSlope,
                                                                              const double upperDepth,
                                                                              const double lowerDepth,
-                                                                             const std::vector<tf::Vector3>& points,
+                                                                             const std::vector<VehiclePose>& points,
                                                                              const PointPathAction::ReplanType replan,
                                                                              const double periodicReplanTime)
 {
 
-    std::unique_ptr<ActionExecutor<PointPathAction>> executor(new PointPathSimActionExecutor(nh, vehicleName));
+    std::unique_ptr<ActionExecutor<PointPathAction>> executor(new PointPathSimActionExecutor(nh, vehicleInfo.getName()));
     return std::unique_ptr<PointPathAction>(new PointPathAction(std::move(executor),
                                                                 targetHorizontalVelocity,
                                                                 targetRotationalVelocity,
@@ -45,17 +45,14 @@ std::shared_ptr<PointPathAction> ROSSimVentActionFactory::createPointPathAction(
                                                                 periodicReplanTime));
 }    
 
-
-
-std::shared_ptr<PointPathAction> ROSSimVentActionFactory::createPointPathAction(const std::string& vehicleName,
-                                                                             const double targetHorizontalVelocity, 
+std::shared_ptr<PointPathAction> ROSSimVentActionFactory::createPointPathAction(const double targetHorizontalVelocity, 
                                                                              const double targetRotationalVelocity,
                                                                              const double targetSlope,
-                                                                             const std::vector<tf::Vector3>& points,
+                                                                             const std::vector<VehiclePose>& points,
                                                                              const PointPathAction::ReplanType replan,
                                                                              const double periodicReplanTime)
 {
-    std::unique_ptr<ActionExecutor<PointPathAction>> executor(new PointPathSimActionExecutor(nh, vehicleName));
+    std::unique_ptr<ActionExecutor<PointPathAction>> executor(new PointPathSimActionExecutor(nh, vehicleInfo.getName()));
     return std::unique_ptr<PointPathAction>(new PointPathAction(std::move(executor),
                                                                 targetHorizontalVelocity,
                                                                 targetRotationalVelocity,
@@ -68,11 +65,10 @@ std::shared_ptr<PointPathAction> ROSSimVentActionFactory::createPointPathAction(
                                                                 periodicReplanTime));
 }
 
-std::shared_ptr<DynamicLawnmowerAction> ROSSimVentActionFactory::createDynamicLawnmowerAction(const std::string& vehicleName,
-                                                                                           const double targetHorizontalVelocity, 
+std::shared_ptr<DynamicLawnmowerAction> ROSSimVentActionFactory::createDynamicLawnmowerAction(const double targetHorizontalVelocity, 
                                                                                            const double targetRotationalVelocity,
                                                                                            const double targetSlope,
-                                                                                           const tf::Vector3& startLocation,
+                                                                                           const VehiclePose& startLocation,
                                                                                            const double alongTrackDirection,
                                                                                            const double acrossTrackDirection,
                                                                                            const double trackSpacing,
@@ -81,7 +77,7 @@ std::shared_ptr<DynamicLawnmowerAction> ROSSimVentActionFactory::createDynamicLa
                                                                                            const double continueThreshold,
                                                                                            const int trackSectionThreshold)
 {
-    std::unique_ptr<ActionExecutor<DynamicLawnmowerAction>> executor(new DynamicLawnmowerSimActionExecutor(nh, vehicleName));
+    std::unique_ptr<ActionExecutor<DynamicLawnmowerAction>> executor(new DynamicLawnmowerSimActionExecutor(nh, vehicleInfo.getName()));
     return std::unique_ptr<DynamicLawnmowerAction>(new DynamicLawnmowerAction(std::move(executor),
                                                                               targetHorizontalVelocity, 
                                                                               targetRotationalVelocity,
@@ -97,15 +93,15 @@ std::shared_ptr<DynamicLawnmowerAction> ROSSimVentActionFactory::createDynamicLa
 }
 
 
-std::shared_ptr<ChargeAction> ROSSimVentActionFactory::createChargeAction(const std::string& vehicleName)
+std::shared_ptr<ChargeAction> ROSSimVentActionFactory::createChargeAction()
 {
-    std::unique_ptr<ActionExecutor<ChargeAction>> executor(new ChargeSimActionExecutor(nh, vehicleName));
+    std::unique_ptr<ActionExecutor<ChargeAction>> executor(new ChargeSimActionExecutor(nh, vehicleInfo.getName()));
     return std::unique_ptr<ChargeAction>(new ChargeAction(std::move(executor)));
 }    
 
-std::shared_ptr<DataTransferAction> ROSSimVentActionFactory::createDataTransferAction(const std::string& vehicleName)
+std::shared_ptr<DataTransferAction> ROSSimVentActionFactory::createDataTransferAction()
 {
-    std::unique_ptr<ActionExecutor<DataTransferAction>> executor(new DataTransferSimActionExecutor(nh, vehicleName));
+    std::unique_ptr<ActionExecutor<DataTransferAction>> executor(new DataTransferSimActionExecutor(nh, vehicleInfo.getName()));
 
     return std::unique_ptr<DataTransferAction>(new DataTransferAction(std::move(executor)));
 }    

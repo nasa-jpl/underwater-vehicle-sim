@@ -7,74 +7,65 @@
 #include <stack>
 #include <functional>
 
-#include "tf/LinearMath/Vector3.h"
-
+#include "planner_framework/VehicleInterface.h"
 #include "planner_framework/Planner.h"
+#include "planner_framework/VehiclePose.h"
+#include "planner_framework/GoalStatus.h"
 
+#include "vent_planner/DataNode.h"
 #include "vent_planner/actions/VentActionFactory.h"
-
-#include "underwater_vehicle_msgs/VehicleInfo.h"
 
 class SurfaceGradientVentPlanner : public Planner
 {
 public:
-    SurfaceGradientVentPlanner(ros::NodeHandle& nh, std::unique_ptr<VentActionFactory> actionFactory, VehicleInfo vehicleInfo);
-    ~SurfaceGradientVentPlanner() {}
+    struct Parameters; //Forward declard Parameters so we can use it in the constructor
 
-    void receivePlumeData(const data_server::PlumeData::ConstPtr& msg);
+    SurfaceGradientVentPlanner(std::unique_ptr<VentActionFactory> actionFactory, std::unique_ptr<VehicleInterface> vehicleInterface, Parameters parameters);
+    ~SurfaceGradientVentPlanner() override = default;
 
-    std::shared_ptr<Plan> plan();
+    void receivePlumeData(const PlannerData& data);
+
+    std::shared_ptr<Plan> plan() override;
 
 private:
-
-    void publishGoal();
-    void updateGoal();
-
-    /**
-    *Sets the parameter returnEntry to the latest data from the vehicle
-    *@param returnEntry Output for the latest data
-    *@return True if getting the latest data was successful
-    **/
-    bool getLatestData(DataServerEntry& returnEntry);
-
     bool endGradientFollow();
+
+public:
+    struct Parameters
+    {
+        double spiralSpacing;
+        double failTime;
+        double detectionThreshold;
+        double gradientCalcRadius;
+        double gradientMinFollowDistance;
+        double gradientMaxFollowDistance;
+        double gradientThreshold;
+        double gradientWindow;
+    };
 
 private:
 
     enum SearchPhase { INITIAL_PLAN, SPIRAL, PLAN_GRADIENT, CALC_GRADIENT, FOLLOW_GRADIENT, OBSERVE_FOLLOW_GRADIENT};
 
-    std::unique_ptr<VentActionFactory> actionFactory;  
-    std::string goalState;
-    VehicleInfo vehicleInfo;
-    ros::NodeHandle& nh;
+    std::unique_ptr<VentActionFactory> actionFactory; 
+    std::unique_ptr<VehicleInterface> vehicleInterface; 
 
-    ros::ServiceClient latestDataClient;
-    ros::Subscriber dataSub;
-    std::vector<tf::Vector3> currentData;
+    std::vector<PlannerData> currentData;
     DataNode spiralData;
 
     double plumeHeight;
     double gradientDirection;
 
+    bool receivingData;
     SearchPhase currentPlannerStage;
 
     std::shared_ptr<const Plan> gradientCirclePlan;
     std::shared_ptr<const Plan> gradientFollowPlan;
     std::shared_ptr<const PointPathAction> gradientFollowAction;
 
-    tf::Vector3 gradientLocation;
+    VehiclePose gradientLocation;
 
-    double spiralSpacing;
-    double failTime;
-    ros::Publisher goalPub;
-
-    double detectionThreshold;
-    double gradientCalcRadius;
-
-    double gradientMinFollowDistance;
-    double gradientMaxFollowDistance;
-    double gradientThreshold;
-    double gradientWindow;
+    Parameters parameters;
 };
 
 #endif

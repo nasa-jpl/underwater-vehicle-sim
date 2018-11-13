@@ -3,11 +3,10 @@
 #include "planner_framework/Planner.h"
 #include "planner_framework/PlanDispatcher.h"
 #include "ros_sim_plan_server/ROSSimPlanServer.h"
+#include "ros_sim_plan_server/ROSSimVentActionFactory.h"
+#include "ros_sim_plan_server/ROSSimVehicleInterface.cpp"
 
 #include "vent_planner/actions/VentActionFactory.h"
-#include "ros_sim_plan_server/ROSSimVentActionFactory.h"
-
-#include "vent_planner/NestedSpiralVentPlanner.h"
 #include "vent_planner/NestedBinVentPlanner.h"
 #include "vent_planner/SurfaceGradientVentPlanner.h"
 #include "vent_planner/DirectionSetVentPlanner.h"
@@ -61,23 +60,45 @@ int main(int argc, char **argv)
         VehicleInfo info(getInfo);
 
         std::unique_ptr<PlanDispatcher> dispatcher(new PlanDispatcher());
-        std::unique_ptr<VentActionFactory> factory(new ROSSimVentActionFactory(nh));
+        std::unique_ptr<VentActionFactory> factory(new ROSSimVentActionFactory(nh, info));
+        std::unique_ptr<VehicleInterface> interface(new ROSSimVehicleInterface(nh, info));
         std::unique_ptr<Planner> planner;
         if(plannerType == "SurfaceGradient")
         {
-            planner.reset(new SurfaceGradientVentPlanner(nh, std::move(factory), info));
+            SurfaceGradientVentPlanner::Parameters parameters;
+            nh.getParam("planner/fail_time", parameters.failTime);
+            nh.getParam("planner/spiral_spacing", parameters.spiralSpacing);
+            nh.getParam("planner/detection_threshold", parameters.detectionThreshold);
+            nh.getParam("planner/gradient_radius", parameters.gradientCalcRadius);
+            nh.getParam("planner/gradient_threshold", parameters.gradientThreshold);
+            nh.getParam("planner/max_follow_distance", parameters.gradientMaxFollowDistance);
+            nh.getParam("planner/min_follow_distance", parameters.gradientMinFollowDistance);
+            nh.getParam("planner/gradient_window", parameters.gradientWindow);
+
+            planner.reset(new SurfaceGradientVentPlanner(std::move(factory), std::move(interface), std::move(parameters)));
         }
         else if(plannerType == "NestedBin")
         {
-            planner.reset(new NestedBinVentPlanner(nh, std::move(factory), info));
-        }
-        else if(plannerType == "NestedSpiral")
-        {
-            planner.reset(new NestedSpiralVentPlanner(nh, std::move(factory), info));
+            NestedBinVentPlanner::Parameters parameters;
+            nh.getParam("planner/spiral_spacing", parameters.spiralSpacing);
+            nh.getParam("planner/inital_spacing", parameters.initalSpacing);
+            nh.getParam("planner/final_spacing", parameters.finalSpacing);
+            nh.getParam("planner/fail_time", parameters.failTime);
+            planner.reset(new NestedBinVentPlanner(std::move(factory), std::move(interface), std::move(parameters)));
         }
         else if(plannerType == "DirectionSet")
         {
-            planner.reset(new DirectionSetVentPlanner(nh, std::move(factory), info));
+            DirectionSetVentPlanner::Parameters parameters;
+            nh.getParam("planner/fail_time", parameters.failTime);
+            nh.getParam("planner/spiral_spacing", parameters.spiralSpacing);
+            nh.getParam("planner/detection_threshold", parameters.detectionThreshold);
+            nh.getParam("planner/min_leg_length", parameters.minLegLength);
+            nh.getParam("planner/max_leg_length", parameters.maxLegLength);
+            nh.getParam("planner/leg_section_length", parameters.legSectionLength);
+            nh.getParam("planner/new_max_threshold", parameters.newMaxThreshold);
+            nh.getParam("planner/num_sections_threshold", parameters.numSectionsThreshold);
+
+            planner.reset(new DirectionSetVentPlanner(std::move(factory), std::move(interface), std::move(parameters)));
         }
         
         std::unique_ptr<DynamicLawnmowerController> dynamicLawnmowerController(new DynamicLawnmowerController(nh, info.getName()));

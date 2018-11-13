@@ -1,4 +1,5 @@
 #include <limits>
+#include <cmath>
 
 #include "vent_planner/util/MathUtil.h"
 
@@ -46,7 +47,7 @@ void math_util::linearLeastSquares(const std::vector<double>& x, std::vector<dou
     
 }
 
-double math_util::xyDistance(tf::Vector3 p1, tf::Vector3 p2)
+double math_util::xyDistance(VehiclePose p1, VehiclePose p2)
 {
     return sqrt(((p1.getX() - p2.getX()) * (p1.getX() - p2.getX())) + 
                 ((p1.getY() - p2.getY()) * (p1.getY() - p2.getY())));

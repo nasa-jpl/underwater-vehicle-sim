@@ -10,7 +10,7 @@ PointPathAction::PointPathAction(std::unique_ptr<ActionExecutor<PointPathAction>
                                  const bool yoyo,
                                  const double upperDepth,
                                  const double lowerDepth,
-                                 const std::vector<tf::Vector3>& points,
+                                 const std::vector<VehiclePose>& points,
                                  const ReplanType replanType,
                                  const double periodicReplanValue) :
     executor(std::move(executor)),
@@ -103,7 +103,7 @@ const bool PointPathAction::getGoingUp()
     return goingUp;
 }
 
-void PointPathAction::setInterruptPoint(tf::Vector3 point)
+void PointPathAction::setInterruptPoint(VehiclePose point)
 {
     doInterruptPoint = true;
     interruptPoint = point;
@@ -114,7 +114,7 @@ void PointPathAction::disableInterruptPoint()
     doInterruptPoint = false;
 }
 
-tf::Vector3& PointPathAction::getInterruptPoint()
+VehiclePose& PointPathAction::getInterruptPoint()
 {
     return interruptPoint;
 }
@@ -124,12 +124,12 @@ bool PointPathAction::getDoInterruptPoint()
     return doInterruptPoint;
 }
 
-void PointPathAction::addPointReachedTime(const ros::Time& time)
+void PointPathAction::addPointReachedTime(const double time)
 {
     pointReachedTimes.push_back(time);
 }
 
-const std::vector<ros::Time>& PointPathAction::getPointReachedTimes()
+const std::vector<double>& PointPathAction::getPointReachedTimes()
 {
     return pointReachedTimes;
 }
@@ -144,7 +144,7 @@ double PointPathAction::getTargetRotationalVelocity() const
     return targetRotationalVelocity;
 }
 
-std::vector<tf::Vector3> PointPathAction::getPoints() const
+std::vector<VehiclePose> PointPathAction::getPoints() const
 {
     return points;
 }

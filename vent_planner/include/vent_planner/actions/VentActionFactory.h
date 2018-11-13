@@ -3,6 +3,8 @@
 
 #include <memory>
 
+#include "planner_framework/VehiclePose.h"
+
 #include "vent_planner/actions/PointPathAction.h"
 #include "vent_planner/actions/DynamicLawnmowerAction.h"
 #include "vent_planner/actions/ChargeAction.h"
@@ -14,29 +16,26 @@ public:
     VentActionFactory() {}
     virtual ~VentActionFactory() {}
 
-    virtual std::shared_ptr<PointPathAction> createPointPathAction(const std::string& vehicleName,
-                                                                   const double targetHorizontalVelocity, 
+    virtual std::shared_ptr<PointPathAction> createPointPathAction(const double targetHorizontalVelocity, 
                                                                    const double targetRotationalVelocity,
                                                                    const double targetSlope,
                                                                    const double upperDepth,
                                                                    const double lowerDepth,
-                                                                   const std::vector<tf::Vector3>& points,
+                                                                   const std::vector<VehiclePose>& points,
                                                                    const PointPathAction::ReplanType replan,
                                                                    const double periodicReplanTime)=0;
 
-    virtual std::shared_ptr<PointPathAction> createPointPathAction(const std::string& vehicleName,
-                                                                   const double targetHorizontalVelocity, 
+    virtual std::shared_ptr<PointPathAction> createPointPathAction(const double targetHorizontalVelocity, 
                                                                    const double targetRotationalVelocity,
                                                                    const double targetSlope,
-                                                                   const std::vector<tf::Vector3>& points,
+                                                                   const std::vector<VehiclePose>& points,
                                                                    const PointPathAction::ReplanType replan,
                                                                    const double periodicReplanTime)=0;
 
-    virtual std::shared_ptr<DynamicLawnmowerAction> createDynamicLawnmowerAction(const std::string& vehicleName,
-                                                                                 const double targetHorizontalVelocity, 
+    virtual std::shared_ptr<DynamicLawnmowerAction> createDynamicLawnmowerAction(const double targetHorizontalVelocity, 
                                                                                  const double targetRotationalVelocity,
                                                                                  const double targetSlope,
-                                                                                 const tf::Vector3& startLocation,
+                                                                                 const VehiclePose& startLocation,
                                                                                  const double alongTrackDirection,
                                                                                  const double acrossTrackDirection,
                                                                                  const double trackSpacing,
@@ -45,8 +44,8 @@ public:
                                                                                  const double continueThreshold,
                                                                                  const int trackSectionThreshold)=0;
 
-    virtual std::shared_ptr<ChargeAction> createChargeAction(const std::string& vehicleName)=0;
-    virtual std::shared_ptr<DataTransferAction> createDataTransferAction(const std::string& vehicleName)=0;
+    virtual std::shared_ptr<ChargeAction> createChargeAction()=0;
+    virtual std::shared_ptr<DataTransferAction> createDataTransferAction()=0;
 };
 
 #endif

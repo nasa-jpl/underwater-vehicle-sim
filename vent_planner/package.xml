@@ -40,24 +40,11 @@
   <!-- Use test_depend for packages you need only for testing: -->
   <!--   <test_depend>gtest</test_depend> -->
   <buildtool_depend>catkin</buildtool_depend>
-  <build_depend>roscpp</build_depend>
   <build_depend>planner</build_depend>
-  <build_depend>plume_detector</build_depend>
-  <build_depend>planner_log</build_depend>
-  <build_depend>data_server</build_depend>
-  <build_depend>message_generation</build_depend>
-  <build_depend>actionlib_msgs</build_depend>
+  <build_depend>cmake_modules</build_depend>
 
-
-  <exec_depend>plume_detector</exec_depend>
   <exec_depend>planner</exec_depend>
-  <exec_depend>roscpp</exec_depend>
-  <exec_depend>planner_log</exec_depend>
-  <exec_depend>data_server</exec_depend>
-  <test_depend>rosunit</test_depend>
-
-  <exec_depend>message_runtime</exec_depend>
-  <exec_depend>actionlib_msgs</exec_depend>
+  <exec_depend>cmake_modules</exec_depend>
 
   <!-- The export tag contains other, unspecified, tags -->
   <export>

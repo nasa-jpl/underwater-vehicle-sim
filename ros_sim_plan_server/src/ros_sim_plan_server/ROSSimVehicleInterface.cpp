@@ -3,6 +3,7 @@
 #include <limits>
 
 #include "ros/ros.h"
+#include "std_msgs/String.h"
 
 ROSSimVehicleInterface::ROSSimVehicleInterface(ros::NodeHandle& nh, VehicleInfo info) :
     nh(nh),
@@ -17,29 +18,49 @@ ROSSimVehicleInterface::ROSSimVehicleInterface(ros::NodeHandle& nh, VehicleInfo 
     {
         ROS_FATAL("No DataBroadcaster module in vehicle");
     }
+
+    goalPub = nh.advertise<std_msgs::String>("planner/" + info.getName() + "/goal", 1, true);
+}
+
+void ROSSimVehicleInterface::sendGoalStatus(GoalStatus status)
+{
+    std_msgs::String msg;
+    if(status == GoalStatus::RUNNING)
+    {
+         msg.data = "running";
+    }
+    else if(status == GoalStatus::SUCCESS)
+    {
+        msg.data = "success";
+    }
+    else if(status == GoalStatus::FAILED)
+    {
+        msg.data = "failed";
+    }
+    goalPub.publish(msg);
 }
 
 void ROSSimVehicleInterface::log(LogLevel level, std::string string)
 {
     if(level == LogLevel::DEBUG)
     {
-        ROS_DEBUG("%s", string.c_str());
+        ROS_DEBUG("%s", (info.getName() + ": " + string).c_str());
     }
     else if(level == LogLevel::INFO)
     {
-        ROS_INFO("%s", string.c_str());
+        ROS_INFO("%s", (info.getName() + ": " + string).c_str());
     }
     else if(level == LogLevel::WARN)
     {
-        ROS_WARN("%s", string.c_str());
+        ROS_WARN("%s", (info.getName() + ": " + string).c_str());
     }
     else if(level == LogLevel::ERROR)
     {
-        ROS_ERROR("%s", string.c_str());
+        ROS_ERROR("%s", (info.getName() + ": " + string).c_str());
     }
     else if(level == LogLevel::FATAL)
     {
-        ROS_FATAL("%s", string.c_str());
+        ROS_FATAL("%s", (info.getName() + ": " + string).c_str());
     }
 }
 

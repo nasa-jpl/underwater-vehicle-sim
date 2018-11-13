@@ -1,11 +1,8 @@
 #ifndef DATA_ACTION_H
 #define DATA_ACTION_H
 
-#include "ros/ros.h"
-
 #include <vector>
 #include <memory>
-#include "tf/LinearMath/Vector3.h"
 
 #include "planner_framework/Action.h"
 #include "planner_framework/ActionExecutor.h"

@@ -12,17 +12,32 @@ VehiclePose::VehiclePose(double x, double y, double z) :
     z(z)
 {}
 
-double VehiclePose::getX()
+void VehiclePose::setX(double x)
+{
+    this->x = x;
+}
+
+void VehiclePose::setY(double y)
+{
+    this->y = y;
+}
+
+void VehiclePose::setZ(double z)
+{
+    this->z = z;
+}
+
+double VehiclePose::getX() const
 {
     return x;
 }
 
-double VehiclePose::getY()
+double VehiclePose::getY() const
 {
     return y;
 }
 
-double VehiclePose::getZ()
+double VehiclePose::getZ() const
 {
     return z;
 }

@@ -8,20 +8,11 @@ project(vent_planner)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED
-      	     actionlib_msgs
-      	     geometry_msgs
-      	     roscpp
-       	     tf
-       	     underwater_vehicle_sim
-             underwater_vehicle_msgs
-             data_server
        	     planner
-             planner_log
-      	     message_generation)
+             cmake_modules
+             Eigen3)
 
 ## System dependencies are found with CMake's conventions
-# find_package(Boost REQUIRED COMPONENTS system)
-
 
 ## Uncomment this if the package has a setup.py. This macro ensures
 ## modules and global scripts declared therein get installed
@@ -111,8 +102,8 @@ find_package(catkin REQUIRED
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
   INCLUDE_DIRS include
-#  LIBRARIES vent_planner
-  CATKIN_DEPENDS data_server
+  LIBRARIES vent_planner
+#  CATKIN_DEPENDS other_catkin_pkgs
 #  DEPENDS system_lib
 )
 
@@ -133,7 +124,6 @@ include_directories(
    src/vent_planner/actions/DynamicLawnmowerAction.cpp
    src/vent_planner/actions/ChargeAction.cpp
    src/vent_planner/actions/DataTransferAction.cpp
-   src/vent_planner/NestedSpiralVentPlanner.cpp
    src/vent_planner/NestedBinVentPlanner.cpp
    src/vent_planner/SurfaceGradientVentPlanner.cpp
    src/vent_planner/DirectionSetVentPlanner.cpp
@@ -151,7 +141,6 @@ include_directories(
  
  target_link_libraries(vent_planner
    planner_framework
-   underwater_vehicle_msgs
    ${catkin_LIBRARIES}
  )
 

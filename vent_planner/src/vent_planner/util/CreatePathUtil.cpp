@@ -1,11 +1,12 @@
 #include "vent_planner/util/CreatePathUtil.h"
+#include <math.h>
 
-std::vector<tf::Vector3> create_path_util::makeSpiral(tf::Vector3 startLocation, double startDirection, double spacing, double size)
+std::vector<VehiclePose> create_path_util::makeSpiral(VehiclePose startLocation, double startDirection, double spacing, double size)
 {
-    std::vector<tf::Vector3> spiral;
+    std::vector<VehiclePose> spiral;
     spiral.push_back(startLocation);
 
-    tf::Vector3 location = startLocation;
+    VehiclePose location = startLocation;
 
     const std::vector<double> directions = {startDirection, 
                                             startDirection + (M_PI / 2), 
@@ -43,17 +44,17 @@ std::vector<tf::Vector3> create_path_util::makeSpiral(tf::Vector3 startLocation,
     return spiral;
 }
 
-std::vector<tf::Vector3> create_path_util::makeLawnmower(const tf::Vector3& startLocation,
+std::vector<VehiclePose> create_path_util::makeLawnmower(const VehiclePose& startLocation,
                                                     double alongTrackDirection,
                                                     double acrossTrackDirection,
                                                     double alongTrackSize,
                                                     double acrossTrackSize,
                                                     double spacing)
 {
-    std::vector<tf::Vector3> lawnmower;
+    std::vector<VehiclePose> lawnmower;
     lawnmower.push_back(startLocation);
 
-    tf::Vector3 location = startLocation;
+    VehiclePose location = startLocation;
     const std::vector<double> directions = {alongTrackDirection, 
                                             acrossTrackDirection, 
                                             alongTrackDirection - M_PI, 
@@ -88,13 +89,13 @@ std::vector<tf::Vector3> create_path_util::makeLawnmower(const tf::Vector3& star
     return lawnmower;
 }
 
-std::vector<tf::Vector3> create_path_util::makePolygon(const tf::Vector3& center,
+std::vector<VehiclePose> create_path_util::makePolygon(const VehiclePose& center,
                                                        const unsigned int sides,
                                                        const double radius,
                                                        const double initialPointHeading,
                                                        const bool clockwise)
 {
-    std::vector<tf::Vector3> polygon;
+    std::vector<VehiclePose> polygon;
 
     double angleInterval = (2 * M_PI) / sides;
     double currentPointHeading = initialPointHeading;
@@ -106,7 +107,7 @@ std::vector<tf::Vector3> create_path_util::makePolygon(const tf::Vector3& center
         double xOffset = radius * sin(currentPointHeading);
         double yOffset = radius * cos(currentPointHeading);
 
-        tf::Vector3 point;
+        VehiclePose point;
         point.setX(center.getX() + xOffset);
         point.setY(center.getY() + yOffset);
         point.setZ(center.getZ());

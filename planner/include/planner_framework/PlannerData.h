@@ -11,6 +11,7 @@ class PlannerData
 
 public:
     PlannerData(double time, VehiclePose pose, std::map<std::string, double> data);
+    PlannerData();
     ~PlannerData() {}
 
     double getTime() const;

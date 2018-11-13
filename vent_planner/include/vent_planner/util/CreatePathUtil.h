@@ -1,21 +1,22 @@
 #ifndef CREATE_PATH_UTIL
 #define CREATE_PATH_UTIL
 
-#include "tf/LinearMath/Vector3.h"
 #include <vector>
+
+#include "planner_framework/VehiclePose.h"
 
 namespace create_path_util
 {
-    std::vector<tf::Vector3> makeSpiral(tf::Vector3 startLocation, double startDirection, double spacing, double size);
+    std::vector<VehiclePose> makeSpiral(VehiclePose startLocation, double startDirection, double spacing, double size);
 
-    std::vector<tf::Vector3> makeLawnmower(const tf::Vector3& startLocation,
+    std::vector<VehiclePose> makeLawnmower(const VehiclePose& startLocation,
                                            double alongTrackDirection,
                                            double acrossTrackDirection,
                                            double alongTrackSize,
                                            double acrossTrackSize,
                                            double spacing);
 
-    std::vector<tf::Vector3> makePolygon(const tf::Vector3& center,
+    std::vector<VehiclePose> makePolygon(const VehiclePose& center,
                                          const unsigned int sides,
                                          const double radius,
                                          const double initalPointHeading,

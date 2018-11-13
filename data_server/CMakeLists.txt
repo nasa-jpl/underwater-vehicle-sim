@@ -14,7 +14,6 @@ find_package(catkin REQUIRED
 )
 
 ## System dependencies are found with CMake's conventions
-# find_package(Boost REQUIRED COMPONENTS system)
 
 # Boost
 set(boost_min_ver 1.50.0)

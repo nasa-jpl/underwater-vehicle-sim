@@ -3,17 +3,19 @@
 
 #include "tf/transform_listener.h"
 
+#include "planner_framework/GoalStatus.h"
 #include "planner_framework/VehicleInterface.h"
 
 #include "underwater_vehicle_msgs/VehicleInfo.h"
 #include "underwater_vehicle_msgs/VehicleData.h"
 
-class ROSSimVehicleInterface : VehicleInterface
+class ROSSimVehicleInterface : public VehicleInterface
 {
 public:
     ROSSimVehicleInterface(ros::NodeHandle& nh, VehicleInfo info);
     ~ROSSimVehicleInterface() override = default;
 
+    void sendGoalStatus(GoalStatus status) override;
     void log(LogLevel level, std::string string) override;
     void getData() override;
     void registerDataCallback(std::function<void(const PlannerData&)> cb) override;
@@ -30,6 +32,7 @@ private:
 
     std::vector<std::function<void(const PlannerData&)>> dataCallbacks;
 
+    ros::Publisher goalPub;
     ros::Subscriber dataSub;
 
 };

@@ -2,8 +2,6 @@
 
 #include <math.h>
 
-#include "tf/LinearMath/Vector3.h"
-
 #include "plume_detector/PlumeDataEntry.h"
 
 #include "vent_planner/DataTree.h"
@@ -11,30 +9,35 @@
 
 TEST(DataNode, LocalMaxima)
 {
-    tf::Vector3 origin(10,-10,0);
+    VehiclePose origin(10,-10,0);
     DataTree tree(origin, 200);
 
     DataNode& root = tree.getRoot();
     root.partition(20);
 
-    PlumeDataEntry data0_a(ros::Time(0), -85, -105, 0, 1);
-    PlumeDataEntry data0_b(ros::Time(0), -84, -104, -18, 5);
+    std::map<std::string, double> oneMap = {{"plume", 1}};
+    std::map<std::string, double> fourMap = {{"plume", 4}};
+    std::map<std::string, double> fiveMap = {{"plume", 5}};
+    std::map<std::string, double> sixMap = {{"plume", 6}};
 
-    PlumeDataEntry data1(ros::Time(0), -74, -94, -15, 4);
-    PlumeDataEntry data2(ros::Time(0), -84, -94, -12, 4);
-    PlumeDataEntry data3(ros::Time(0), -74, -104, -24, 4);
+    PlannerData data0_a(0, VehiclePose(-85, -105, 0), oneMap);
+    PlannerData data0_b(0, VehiclePose(-84, -104, -18), fiveMap);
 
-    PlumeDataEntry data4(ros::Time(0), -84, -84, -15, 5);
-    PlumeDataEntry data5(ros::Time(0), -84, -74, -12, 4);
-    PlumeDataEntry data6(ros::Time(0), -74, -84, -24, 4);
-    PlumeDataEntry data7(ros::Time(0), -74, -74, -24, 4);
+    PlannerData data1(0, VehiclePose(-74, -94, -15), fourMap);
+    PlannerData data2(0, VehiclePose(-84, -94, -12), fourMap);
+    PlannerData data3(0, VehiclePose(-74, -104, -24), fourMap);
 
-    PlumeDataEntry data8(ros::Time(0), -64, -104, -15, 4);
-    PlumeDataEntry data9(ros::Time(0), -64, -94, -12, 5);
-    PlumeDataEntry data10(ros::Time(0), -64, -84, -24, 4);
-    PlumeDataEntry data11(ros::Time(0), -54, -104, -24, 4);
-    PlumeDataEntry data12(ros::Time(0), -54, -94, -24, 4);
-    PlumeDataEntry data13(ros::Time(0), -54, -84, -24, 4);
+    PlannerData data4(0, VehiclePose(-84, -84, -15), fiveMap);
+    PlannerData data5(0, VehiclePose(-84, -74, -12), fourMap);
+    PlannerData data6(0, VehiclePose(-74, -84, -24), fourMap);
+    PlannerData data7(0, VehiclePose(-74, -74, -24), fourMap);
+
+    PlannerData data8(0, VehiclePose(-64, -104, -15), fourMap);
+    PlannerData data9(0, VehiclePose(-64, -94, -12), fiveMap);
+    PlannerData data10(0, VehiclePose(-64, -84, -24), fourMap);
+    PlannerData data11(0, VehiclePose(-54, -104, -24), fourMap);
+    PlannerData data12(0, VehiclePose(-54, -94, -24), fourMap);
+    PlannerData data13(0, VehiclePose(-54, -84, -24), fourMap);
 
     tree.addData(data0_a);
     tree.addData(data0_b);
@@ -68,7 +71,7 @@ TEST(DataNode, LocalMaxima)
     for(unsigned int i = 0; i < maxima.size(); i++)
     {
         DataNode* singleMax = maxima[i];
-        tf::Vector3 location = singleMax->getCenterLocation();
+        VehiclePose location = singleMax->getCenterLocation();
         if(location.getX() == xVals[0] &&
            location.getY() == yVals[0])
         {
@@ -86,15 +89,15 @@ TEST(DataNode, LocalMaxima)
    
    
     //Add data in the partitioned bin
-    PlumeDataEntry partData0(ros::Time(0), -63.4, -97.4, -12, 6);
-    PlumeDataEntry partData1(ros::Time(0), -64.5, -98.5, -12, 5);
-    PlumeDataEntry partData2(ros::Time(0), -64.5, -97.5, -12, 5);
-    PlumeDataEntry partData3(ros::Time(0), -64.5, -96.5, -12, 5);
-    PlumeDataEntry partData4(ros::Time(0), -63.5, -98.5, -12, 5);
-    PlumeDataEntry partData5(ros::Time(0), -63.5, -96.5, -12, 5);
-    PlumeDataEntry partData6(ros::Time(0), -62.5, -98.5, -12, 5);
-    PlumeDataEntry partData7(ros::Time(0), -62.5, -97.5, -12, 5);
-    PlumeDataEntry partData8(ros::Time(0), -62.5, -96.5, -12, 5);
+    PlannerData partData0(0, VehiclePose(-63.4, -97.4, -12), sixMap);
+    PlannerData partData1(0, VehiclePose(-64.5, -98.5, -12), fiveMap);
+    PlannerData partData2(0, VehiclePose(-64.5, -97.5, -12), fiveMap);
+    PlannerData partData3(0, VehiclePose(-64.5, -96.5, -12), fiveMap);
+    PlannerData partData4(0, VehiclePose(-63.5, -98.5, -12), fiveMap);
+    PlannerData partData5(0, VehiclePose(-63.5, -96.5, -12), fiveMap);
+    PlannerData partData6(0, VehiclePose(-62.5, -98.5, -12), fiveMap);
+    PlannerData partData7(0, VehiclePose(-62.5, -97.5, -12), fiveMap);
+    PlannerData partData8(0, VehiclePose(-62.5, -96.5, -12), fiveMap);
 
     tree.addData(partData0);
     tree.addData(partData1);
@@ -107,15 +110,15 @@ TEST(DataNode, LocalMaxima)
     tree.addData(partData8);
 
     //Add data in the partitioned crossover bin
-    PlumeDataEntry crossoverPartData0(ros::Time(0), -60.4, -90.4, -12, 6);
-    PlumeDataEntry crossoverPartData1(ros::Time(0), -61.5, -91.5, -12, 5);
-    PlumeDataEntry crossoverPartData2(ros::Time(0), -61.5, -90.5, -12, 5);
-    PlumeDataEntry crossoverPartData3(ros::Time(0), -61.5, -89.5, -12, 5);
-    PlumeDataEntry crossoverPartData4(ros::Time(0), -60.5, -91.5, -12, 5);
-    PlumeDataEntry crossoverPartData5(ros::Time(0), -60.5, -89.5, -12, 5);
-    PlumeDataEntry crossoverPartData6(ros::Time(0), -59.5, -91.5, -12, 5);
-    PlumeDataEntry crossoverPartData7(ros::Time(0), -59.5, -90.5, -12, 5);
-    PlumeDataEntry crossoverPartData8(ros::Time(0), -59.5, -89.5, -12, 5);
+    PlannerData crossoverPartData0(0, VehiclePose(-60.4, -90.4, -12), sixMap);
+    PlannerData crossoverPartData1(0, VehiclePose(-61.5, -91.5, -12), fiveMap);
+    PlannerData crossoverPartData2(0, VehiclePose(-61.5, -90.5, -12), fiveMap);
+    PlannerData crossoverPartData3(0, VehiclePose(-61.5, -89.5, -12), fiveMap);
+    PlannerData crossoverPartData4(0, VehiclePose(-60.5, -91.5, -12), fiveMap);
+    PlannerData crossoverPartData5(0, VehiclePose(-60.5, -89.5, -12), fiveMap);
+    PlannerData crossoverPartData6(0, VehiclePose(-59.5, -91.5, -12), fiveMap);
+    PlannerData crossoverPartData7(0, VehiclePose(-59.5, -90.5, -12), fiveMap);
+    PlannerData crossoverPartData8(0, VehiclePose(-59.5, -89.5, -12), fiveMap);
 
     tree.addData(crossoverPartData0);
     tree.addData(crossoverPartData1);
@@ -138,7 +141,7 @@ TEST(DataNode, LocalMaxima)
 
     for(auto singleMax : maxima)
     {
-        tf::Vector3 location = singleMax->getCenterLocation();
+        VehiclePose location = singleMax->getCenterLocation();
         for(unsigned int i = 0; i < xVals.size(); i++)
         {
             if(location.getX() == xVals[i] &&
@@ -152,7 +155,7 @@ TEST(DataNode, LocalMaxima)
 
     for(auto singleMax : potentialMaxima)
     {
-        tf::Vector3 location = singleMax->getCenterLocation();
+        VehiclePose location = singleMax->getCenterLocation();
         for(unsigned int i = 0; i < potentialMaximaX.size(); i++)
         {
             if(location.getX() == potentialMaximaX[i] &&
@@ -170,30 +173,35 @@ TEST(DataNode, LocalMaxima)
 
 TEST(DataNode, ClosestOrigin)
 {
-    tf::Vector3 origin(10,-10,0);
+    std::map<std::string, double> oneMap = {{"plume", 1}};
+    std::map<std::string, double> fourMap = {{"plume", 4}};
+    std::map<std::string, double> fiveMap = {{"plume", 5}};
+    std::map<std::string, double> sixMap = {{"plume", 6}};
+
+    VehiclePose origin(10,-10,0);
     DataTree tree(origin, 200);
 
     DataNode& root = tree.getRoot();
     root.partition(20);
 
-    PlumeDataEntry data0_a(ros::Time(0),-85, -105, 0, 1);
-    PlumeDataEntry data0_b(ros::Time(0),-84, -104, -18, 5);
+    PlannerData data0_a(0,VehiclePose(-85, -105, 0), oneMap);
+    PlannerData data0_b(0,VehiclePose(-84, -104, -18), fiveMap);
 
-    PlumeDataEntry data1(ros::Time(0),-74, -94, -15, 4);
-    PlumeDataEntry data2(ros::Time(0),-84, -94, -12, 4);
-    PlumeDataEntry data3(ros::Time(0),-74, -104, -24, 4);
+    PlannerData data1(0,VehiclePose(-74, -94, -15), fourMap);
+    PlannerData data2(0,VehiclePose(-84, -94, -12), fourMap);
+    PlannerData data3(0,VehiclePose(-74, -104, -24), fourMap);
 
-    PlumeDataEntry data4(ros::Time(0),-84, -84, -15, 5);
-    PlumeDataEntry data5(ros::Time(0),-84, -74, -12, 4);
-    PlumeDataEntry data6(ros::Time(0),-74, -84, -24, 4);
-    PlumeDataEntry data7(ros::Time(0),-74, -74, -24, 4);
+    PlannerData data4(0,VehiclePose(-84, -84, -15), fiveMap);
+    PlannerData data5(0,VehiclePose(-84, -74, -12), fourMap);
+    PlannerData data6(0,VehiclePose(-74, -84, -24), fourMap);
+    PlannerData data7(0,VehiclePose(-74, -74, -24), fourMap);
 
-    PlumeDataEntry data8(ros::Time(0),-64, -104, -15, 4);
-    PlumeDataEntry data9(ros::Time(0),-64, -94, -12, 5);
-    PlumeDataEntry data10(ros::Time(0),-64, -84, -24, 4);
-    PlumeDataEntry data11(ros::Time(0),-54, -104, -24, 4);
-    PlumeDataEntry data12(ros::Time(0),-54, -94, -24, 4);
-    PlumeDataEntry data13(ros::Time(0),-54, -84, -24, 4);
+    PlannerData data8(0,VehiclePose(-64, -104, -15), fourMap);
+    PlannerData data9(0,VehiclePose(-64, -94, -12), fiveMap);
+    PlannerData data10(0,VehiclePose(-64, -84, -24), fourMap);
+    PlannerData data11(0,VehiclePose(-54, -104, -24), fourMap);
+    PlannerData data12(0,VehiclePose(-54, -94, -24), fourMap);
+    PlannerData data13(0,VehiclePose(-54, -84, -24), fourMap);
 
     tree.addData(data0_a);
     tree.addData(data0_b);
@@ -213,21 +221,21 @@ TEST(DataNode, ClosestOrigin)
     tree.addData(data12);
     tree.addData(data13); 
 
-    std::vector<tf::Vector3> actualOrigins;
-    actualOrigins.push_back(tree.getClosestNodeOrigin(tf::Vector3(10,-10,0), 2));
-    actualOrigins.push_back(tree.getClosestNodeOrigin(tf::Vector3(10,-10,0), 1));
-    actualOrigins.push_back(tree.getClosestNodeOrigin(tf::Vector3(16,-10,0), 1));
-    actualOrigins.push_back(tree.getClosestNodeOrigin(tf::Vector3(10,-16,0), 1));
-    actualOrigins.push_back(tree.getClosestNodeOrigin(tf::Vector3(16,-16,0), 1));
-    actualOrigins.push_back(tree.getClosestNodeOrigin(tf::Vector3(-20,-20,0), 0));
+    std::vector<VehiclePose> actualOrigins;
+    actualOrigins.push_back(tree.getClosestNodeOrigin(VehiclePose(10,-10,0), 2));
+    actualOrigins.push_back(tree.getClosestNodeOrigin(VehiclePose(10,-10,0), 1));
+    actualOrigins.push_back(tree.getClosestNodeOrigin(VehiclePose(16,-10,0), 1));
+    actualOrigins.push_back(tree.getClosestNodeOrigin(VehiclePose(10,-16,0), 1));
+    actualOrigins.push_back(tree.getClosestNodeOrigin(VehiclePose(16,-16,0), 1));
+    actualOrigins.push_back(tree.getClosestNodeOrigin(VehiclePose(-20,-20,0), 0));
 
-    std::vector<tf::Vector3> expectedOrigins;
-    expectedOrigins.push_back(tf::Vector3(10,-10,0));
-    expectedOrigins.push_back(tf::Vector3(10,-10,0));
-    expectedOrigins.push_back(tf::Vector3(20,-10,0));
-    expectedOrigins.push_back(tf::Vector3(10,-20,0));
-    expectedOrigins.push_back(tf::Vector3(20,-20,0));
-    expectedOrigins.push_back(tf::Vector3(-90,-110,0));
+    std::vector<VehiclePose> expectedOrigins;
+    expectedOrigins.push_back(VehiclePose(10,-10,0));
+    expectedOrigins.push_back(VehiclePose(10,-10,0));
+    expectedOrigins.push_back(VehiclePose(20,-10,0));
+    expectedOrigins.push_back(VehiclePose(10,-20,0));
+    expectedOrigins.push_back(VehiclePose(20,-20,0));
+    expectedOrigins.push_back(VehiclePose(-90,-110,0));
 
     for(unsigned long i = 0; i < actualOrigins.size(); i++)
     {

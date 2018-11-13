@@ -1,84 +1,92 @@
 #include <gtest/gtest.h>
 
 #include <cmath>
+#include <string>
+#include <map>
 
-#include "tf/LinearMath/Vector3.h"
+#include <eigen3/Eigen/Dense>
 #include "vent_planner/util/Plane.h"
 
 TEST(SurfaceFitting, PlaneFit)
 {
+    std::map<std::string, double> zeroMap = {{"plume",0}};
+    std::map<std::string, double> fortyMap = {{"plume",40}};
+    std::map<std::string, double> fortyFiveMap = {{"plume",45}};
+    std::map<std::string, double> fiftyMap = {{"plume",50}};
+    std::map<std::string, double> fiftyFiveMap = {{"plume",55}};
+    std::map<std::string, double> sixtyMap = {{"plume",60}};
     //TEST 1
-    std::vector<tf::Vector3> pointsTest1;
-    pointsTest1.emplace_back(0, 0, 0);
-    pointsTest1.emplace_back(10, 10, 0);
-    pointsTest1.emplace_back(10, -10, 0);
+    std::vector<PlannerData> pointsTest1;
+    pointsTest1.emplace_back(0, VehiclePose(0,0,0), zeroMap);
+    pointsTest1.emplace_back(0, VehiclePose(10,10,0), zeroMap);
+    pointsTest1.emplace_back(0, VehiclePose(10,-10,0), zeroMap);
 
     Plane fitPlane1 = Plane::fitPlaneToPoints(pointsTest1);
 
-    tf::Vector3 normalResultTest1(0,0,-1);
-    tf::Vector3 pointResultTest1(0,0,0);
+    Eigen::Vector3d normalResultTest1(0,0,-1);
+    Eigen::Vector3d pointResultTest1(0,0,0);
     Plane resultPlane1(normalResultTest1, pointResultTest1);
 
     ASSERT_TRUE(fitPlane1.equals(resultPlane1));
     ASSERT_TRUE(std::isnan(fitPlane1.getHeightGradientHeading()));
 
     //TEST 2
-    std::vector<tf::Vector3> pointsTest2;
-    pointsTest2.emplace_back(0, 0, 50);
-    pointsTest2.emplace_back(10, 10, 50);
-    pointsTest2.emplace_back(10, -10, 50);
+    std::vector<PlannerData> pointsTest2;
+    pointsTest2.emplace_back(0, VehiclePose(0,0,0), fiftyMap);
+    pointsTest2.emplace_back(0, VehiclePose(10,10,0), fiftyMap);
+    pointsTest2.emplace_back(0, VehiclePose(10,-10,0), fiftyMap);
 
     Plane fitPlane2 = Plane::fitPlaneToPoints(pointsTest2);
 
-    tf::Vector3 normalResultTest2(0,0,-1);
-    tf::Vector3 pointResultTest2(0,0,50);
+    Eigen::Vector3d normalResultTest2(0,0,-1);
+    Eigen::Vector3d pointResultTest2(0,0,50);
     Plane resultPlane2(normalResultTest2, pointResultTest2);
 
     ASSERT_TRUE(fitPlane2.equals(resultPlane2));
     ASSERT_TRUE(std::isnan(fitPlane2.getHeightGradientHeading()));
 
     //TEST 3
-    std::vector<tf::Vector3> pointsTest3;
-    pointsTest3.emplace_back(0, 0, 60);
-    pointsTest3.emplace_back(5, 0, 55);
-    pointsTest3.emplace_back(10, 10, 50);
-    pointsTest3.emplace_back(10, -10, 50);
+    std::vector<PlannerData> pointsTest3;
+    pointsTest3.emplace_back(0, VehiclePose(0,0,0), sixtyMap);
+    pointsTest3.emplace_back(0, VehiclePose(5,0,0), fiftyFiveMap);
+    pointsTest3.emplace_back(0, VehiclePose(10,10,0), fiftyMap);
+    pointsTest3.emplace_back(0, VehiclePose(10,-10,0), fiftyMap);
 
     Plane fitPlane3 = Plane::fitPlaneToPoints(pointsTest3);
 
-    tf::Vector3 normalResultTest3(1,0,1);
-    tf::Vector3 pointResultTest3(0,0,60);
+    Eigen::Vector3d normalResultTest3(1,0,1);
+    Eigen::Vector3d pointResultTest3(0,0,60);
     Plane resultPlane3(normalResultTest3, pointResultTest3);
 
     ASSERT_TRUE(fitPlane3.equals(resultPlane3));
     ASSERT_NEAR(M_PI / 2, fitPlane3.getHeightGradientHeading(), 0.00001);
 
     //TEST 4
-    std::vector<tf::Vector3> pointsTest4;
-    pointsTest4.emplace_back(0, 0, 0);
-    pointsTest4.emplace_back(10, 10, 0);
-    pointsTest4.emplace_back(10, -10, 0);
-    pointsTest4.emplace_back(0, 0, 0);
-    pointsTest4.emplace_back(10, 10, 0);
-    pointsTest4.emplace_back(10, -10, 0);
-    pointsTest4.emplace_back(0, 0, 50);
-    pointsTest4.emplace_back(10, 10, 50);
-    pointsTest4.emplace_back(10, -10, 50);
+    std::vector<PlannerData> pointsTest4;
+    pointsTest4.emplace_back(0, VehiclePose(0,0,0), zeroMap);
+    pointsTest4.emplace_back(0, VehiclePose(10,10,0), zeroMap);
+    pointsTest4.emplace_back(0, VehiclePose(10,-10,0), zeroMap);
+    pointsTest4.emplace_back(0, VehiclePose(0,0,0), zeroMap);
+    pointsTest4.emplace_back(0, VehiclePose(10,10,0), zeroMap);
+    pointsTest4.emplace_back(0, VehiclePose(10,-10,0), zeroMap);
+    pointsTest4.emplace_back(0, VehiclePose(0,0,0), fiftyMap);
+    pointsTest4.emplace_back(0, VehiclePose(10,10,0), fiftyMap);
+    pointsTest4.emplace_back(0, VehiclePose(10,-10,0), fiftyMap);
 
     Plane fitPlane4 = Plane::fitPlaneToPoints(pointsTest4);
 
-    tf::Vector3 normalResultTest4(0,0,-1);
-    tf::Vector3 pointResultTest4(0,0,16.6666666667);
+    Eigen::Vector3d normalResultTest4(0,0,-1);
+    Eigen::Vector3d pointResultTest4(0,0,16.6666666667);
     Plane resultPlane4(normalResultTest4, pointResultTest4);
 
     ASSERT_TRUE(fitPlane4.equals(resultPlane4));
     ASSERT_TRUE(std::isnan(fitPlane4.getHeightGradientHeading()));
 
     //TEST 5
-    std::vector<tf::Vector3> pointsTest5;
-    pointsTest5.emplace_back(0, 0, 0);
-    pointsTest5.emplace_back(10, 0, 0);
-    pointsTest5.emplace_back(-10, 0, 0);
+    std::vector<PlannerData> pointsTest5;
+    pointsTest5.emplace_back(0, VehiclePose(0,0,0), zeroMap);
+    pointsTest5.emplace_back(0, VehiclePose(10,0,0), zeroMap);
+    pointsTest5.emplace_back(0, VehiclePose(-10,0,0), zeroMap);
 
     double a0Test5 = 0;
     double a1Test5 = 0;
@@ -96,46 +104,46 @@ TEST(SurfaceFitting, PlaneFit)
     }
 
     //TEST 6
-    std::vector<tf::Vector3> pointsTest6;
-    pointsTest6.emplace_back(0, 0, 40);
-    pointsTest6.emplace_back(5, 0, 45);
-    pointsTest6.emplace_back(10, 10, 50);
-    pointsTest6.emplace_back(10, -10, 50);
+    std::vector<PlannerData> pointsTest6;
+    pointsTest6.emplace_back(0, VehiclePose(0,0,0), fortyMap);
+    pointsTest6.emplace_back(0, VehiclePose(5,0,0), fortyFiveMap);
+    pointsTest6.emplace_back(0, VehiclePose(10,10,0), fiftyMap);
+    pointsTest6.emplace_back(0, VehiclePose(10,-10,0), fiftyMap);
 
     Plane fitPlane6 = Plane::fitPlaneToPoints(pointsTest6);
 
-    tf::Vector3 normalResultTest6(-1,0,1);
-    tf::Vector3 pointResultTest6(0,0,40);
+    Eigen::Vector3d normalResultTest6(-1,0,1);
+    Eigen::Vector3d pointResultTest6(0,0,40);
     Plane resultPlane6(normalResultTest6, pointResultTest6);
 
     ASSERT_TRUE(fitPlane6.equals(resultPlane6));
     ASSERT_NEAR(-M_PI / 2, fitPlane6.getHeightGradientHeading(), 0.00001);
 
     //TEST 7
-    std::vector<tf::Vector3> pointsTest7;
-    pointsTest7.emplace_back(0, 0, 40);
-    pointsTest7.emplace_back(10, 10, 50);
-    pointsTest7.emplace_back(-10, 10, 50);
+    std::vector<PlannerData> pointsTest7;
+    pointsTest7.emplace_back(0, VehiclePose(0,0,0), fortyMap);
+    pointsTest7.emplace_back(0, VehiclePose(10,10,0), fiftyMap);
+    pointsTest7.emplace_back(0, VehiclePose(-10,10,0), fiftyMap);
 
     Plane fitPlane7 = Plane::fitPlaneToPoints(pointsTest7);
 
-    tf::Vector3 normalResultTest7(0,-1,1);
-    tf::Vector3 pointResultTest7(0,0,40);
+    Eigen::Vector3d normalResultTest7(0,-1,1);
+    Eigen::Vector3d pointResultTest7(0,0,40);
     Plane resultPlane7(normalResultTest7, pointResultTest7);
 
     ASSERT_TRUE(fitPlane7.equals(resultPlane7));
     ASSERT_NEAR(-M_PI, fitPlane7.getHeightGradientHeading(), 0.00001);
 
     //TEST 8
-    std::vector<tf::Vector3> pointsTest8;
-    pointsTest8.emplace_back(0, 0, 60);
-    pointsTest8.emplace_back(10, 10, 50);
-    pointsTest8.emplace_back(-10, 10, 50);
+    std::vector<PlannerData> pointsTest8;
+    pointsTest8.emplace_back(0, VehiclePose(0,0,0), sixtyMap);
+    pointsTest8.emplace_back(0, VehiclePose(10,10,0), fiftyMap);
+    pointsTest8.emplace_back(0, VehiclePose(-10,10,0), fiftyMap);
 
     Plane fitPlane8 = Plane::fitPlaneToPoints(pointsTest8);
 
-    tf::Vector3 normalResultTest8(0,1,1);
-    tf::Vector3 pointResultTest8(0,0,60);
+    Eigen::Vector3d normalResultTest8(0,1,1);
+    Eigen::Vector3d pointResultTest8(0,0,60);
     Plane resultPlane8(normalResultTest8, pointResultTest8);
 
     ASSERT_TRUE(fitPlane8.equals(resultPlane8));

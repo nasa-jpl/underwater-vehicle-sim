@@ -6,6 +6,12 @@ PlannerData::PlannerData(double time, VehiclePose pose, std::map<std::string, do
     data(data)
 {}
 
+PlannerData::PlannerData() :
+    time(0),
+    pose(VehiclePose(0,0,0)),
+    data(std::map<std::string, double>())
+{}
+
 double PlannerData::getTime() const
 {
     return time;

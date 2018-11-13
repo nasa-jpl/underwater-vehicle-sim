@@ -2,8 +2,6 @@
 #include <iostream>
 #include <string>
 
-#include "ros/ros.h"
-
 #include "vent_planner/util/Plane.h"
 
 Plane::Plane(double a, double b, double c, double d) :
@@ -13,14 +11,14 @@ Plane::Plane(double a, double b, double c, double d) :
     d(d)
 {}
 
-Plane::Plane(tf::Vector3 normal, tf::Vector3 point) :
-    a(normal.getX()),
-    b(normal.getY()),
-    c(normal.getZ())
+Plane::Plane(Eigen::Vector3d normal, Eigen::Vector3d point) :
+    a(normal[0]),
+    b(normal[1]),
+    c(normal[2])
 {
-    d = -(normal.getX() * point.getX() + 
-          normal.getY() * point.getY() +
-          normal.getZ() * point.getZ());
+    d = -(normal[0] * point[0] + 
+          normal[1] * point[1] +
+          normal[2] * point[2]);
 }
 
 void Plane::reverse()
@@ -44,34 +42,36 @@ double Plane::getHeightGradientHeading()
         reverse();
     }
 
-    tf::Vector3 normal(a, b, 0);
-    tf::Vector3 north(0,1,0);
-    tf::Vector3 cross = north.cross(normal);
+    Eigen::Vector3d normal(a, b, 0);
+    Eigen::Vector3d north(0,1,0);
+    Eigen::Vector3d cross = normal.cross(north);
 
-    if(cross.getZ() >= 0)
+    if(cross[2] <= 0)
     {
-        return -north.angle(normal);
+        //angle between north and normal
+        return -acos(north.dot(normal) / (north.norm() * normal.norm()));
     }
     else
     {
-        return north.angle(normal);
+        //angle between north and normal
+        return acos(north.dot(normal) / (north.norm() * normal.norm()));
     }
     return std::numeric_limits<double>::quiet_NaN();
 }
 
 bool Plane::equals(Plane& other)
 {
-    tf::Vector3 point(0, 0, getZ(0, 0));
-    tf::Vector3 pointNormal(0, 0, other.getZ(0, 0));
+    Eigen::Vector3d point(0, 0, getZ(0, 0));
+    Eigen::Vector3d pointNormal(0, 0, other.getZ(0, 0));
 
-    tf::Vector3 normal = getNormal();
-    tf::Vector3 otherNormal = other.getNormal();
+    Eigen::Vector3d normal = getNormal();
+    Eigen::Vector3d otherNormal = other.getNormal();
 
     normal.normalize();
     otherNormal.normalize();
 
     double parallelDot = normal.dot(otherNormal) / 
-                         (normal.length() * otherNormal.length());
+                         (normal.norm() * otherNormal.norm()); //.norm() is vector magnitude
 
     double thisD = point.dot(normal);
     double otherD = pointNormal.dot(otherNormal);
@@ -80,9 +80,11 @@ bool Plane::equals(Plane& other)
            fabs(fabs(thisD) - fabs(otherD)) < 0.000001;
 }
 
-tf::Vector3 Plane::getNormal()
+
+
+Eigen::Vector3d Plane::getNormal()
 {
-    return tf::Vector3(a, b, c);
+    return Eigen::Vector3d(a, b, c);
 }
 
 double Plane::getZ(double x, double y)
@@ -90,14 +92,17 @@ double Plane::getZ(double x, double y)
     return (a * x + b * y + d) / -c;
 }
 
-Plane Plane::fitPlaneToPoints(std::vector<tf::Vector3>& points)
+Plane Plane::fitPlaneToPoints(std::vector<PlannerData>& points)
 {
     //compute mean
-    tf::Vector3 mean(0,0,0);
+    Eigen::Vector3d mean(0,0,0);
 
-    for(tf::Vector3& point : points)
+    for(PlannerData& data : points)
     {
-        mean += point;
+        Eigen::Vector3d p(data.getPose().getX(),
+                      data.getPose().getY(),
+                      data.getData()["plume"]);
+        mean += p;
     }
     mean /= points.size();
 
@@ -107,14 +112,18 @@ Plane Plane::fitPlaneToPoints(std::vector<tf::Vector3>& points)
     double yySum = 0;
     double yhSum = 0;
 
-    for(tf::Vector3& point : points)
+    for(PlannerData& data : points)
     {
-        tf::Vector3 diff = point - mean;
-        xxSum += diff.getX() * diff.getX();
-        xySum += diff.getX() * diff.getY();
-        xhSum += diff.getX() * diff.getZ();
-        yySum += diff.getY() * diff.getY();
-        yhSum += diff.getY() * diff.getZ();
+        Eigen::Vector3d p(data.getPose().getX(),
+                      data.getPose().getY(),
+                      data.getData()["plume"]);
+
+        Eigen::Vector3d diff = p - mean;
+        xxSum += diff[0] * diff[0];
+        xySum += diff[0] * diff[1];
+        xhSum += diff[0] * diff[2];
+        yySum += diff[1] * diff[1];
+        yhSum += diff[1] * diff[2];
     }
 
     double det = xxSum * yySum - xySum * xySum;
@@ -124,7 +133,7 @@ Plane Plane::fitPlaneToPoints(std::vector<tf::Vector3>& points)
         double barA1 = (xxSum * yhSum - xySum * xhSum) / det;
 
         return Plane(barA0, barA1, -1, 
-                    mean.getZ() - barA0 * mean.getX() - barA1 * mean.getY());
+                    mean[2] - barA0 * mean[0] - barA1 * mean[1]);
     }
 
     throw std::runtime_error("Invalid inputs to plane fitting.");

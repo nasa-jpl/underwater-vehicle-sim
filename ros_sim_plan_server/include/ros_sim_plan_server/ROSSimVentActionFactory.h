@@ -6,6 +6,8 @@
 
 #include "ros/ros.h"
 
+#include "planner_framework/VehiclePose.h"
+
 #include "vent_planner/actions/VentActionFactory.h"
 #include "vent_planner/actions/PointPathAction.h"
 #include "vent_planner/actions/DynamicLawnmowerAction.h"
@@ -16,38 +18,37 @@
 #include "ros_sim_plan_server/action_executors/ChargeSimActionExecutor.h"
 #include "ros_sim_plan_server/action_executors/DataTransferSimActionExecutor.h"
 
+#include "underwater_vehicle_msgs/VehicleInfo.h"
+
 class ROSSimVentActionFactory : public VentActionFactory
 {
 public:
-    ROSSimVentActionFactory(ros::NodeHandle& nh);
+    ROSSimVentActionFactory(ros::NodeHandle& nh, VehicleInfo vehicleInfo);
     ~ROSSimVentActionFactory() {}
 
-    std::shared_ptr<PointPathAction> createPointPathAction(const std::string& vehicleName,
-                                                           const double targetHorizontalVelocity, 
+    std::shared_ptr<PointPathAction> createPointPathAction(const double targetHorizontalVelocity, 
                                                            const double targetRotationalVelocity,
                                                            const double targetSlope,
                                                            const double upperDepth,
                                                            const double lowerDepth,
-                                                           const std::vector<tf::Vector3>& points,
+                                                           const std::vector<VehiclePose>& points,
                                                            const PointPathAction::ReplanType replan,
                                                            const double periodicReplanTime) override;
 
-    std::shared_ptr<PointPathAction> createPointPathAction(const std::string& vehicleName,
-                                                           const double targetHorizontalVelocity, 
+    std::shared_ptr<PointPathAction> createPointPathAction(const double targetHorizontalVelocity, 
                                                            const double targetRotationalVelocity,
                                                            const double targetSlope,
-                                                           const std::vector<tf::Vector3>& points,
+                                                           const std::vector<VehiclePose>& points,
                                                            const PointPathAction::ReplanType replan,
                                                            const double periodicReplanTime) override;
 
-    std::shared_ptr<ChargeAction> createChargeAction(const std::string& vehicleName) override;
-    std::shared_ptr<DataTransferAction> createDataTransferAction(const std::string& vehicleName) override;
+    std::shared_ptr<ChargeAction> createChargeAction() override;
+    std::shared_ptr<DataTransferAction> createDataTransferAction() override;
 
-    std::shared_ptr<DynamicLawnmowerAction> createDynamicLawnmowerAction(const std::string& vehicleName,
-                                                                         const double targetHorizontalVelocity, 
+    std::shared_ptr<DynamicLawnmowerAction> createDynamicLawnmowerAction(const double targetHorizontalVelocity, 
                                                                          const double targetRotationalVelocity,
                                                                          const double targetSlope,
-                                                                         const tf::Vector3& startLocation,
+                                                                         const VehiclePose& startLocation,
                                                                          const double alongTrackDirection,
                                                                          const double acrossTrackDirection,
                                                                          const double trackSpacing,
@@ -57,6 +58,7 @@ public:
                                                                          const int trackSectionThreshold) override;
 private:
     ros::NodeHandle& nh;
+    VehicleInfo vehicleInfo;
 };
 
 #endif

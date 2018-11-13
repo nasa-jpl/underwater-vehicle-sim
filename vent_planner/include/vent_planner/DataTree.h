@@ -2,16 +2,15 @@
 #define DATA_TREE_H
 
 #include "vent_planner/DataNode.h"
-#include "tf/LinearMath/Vector3.h"
 
 class DataTree
 {
 public:
-    DataTree(tf::Vector3 origin, unsigned int size);
+    DataTree(VehiclePose origin, unsigned int size);
     ~DataTree();
 
 public:
-    void addData(const PlumeDataEntry& data);
+    void addData(const PlannerData& data);
 
     /**
      * Get all maxima nodes
@@ -36,7 +35,7 @@ public:
      * @param location
      * @return
      */
-    DataNode& getSmallestNode(const tf::Vector3& location);
+    DataNode& getSmallestNode(const VehiclePose& location);
 
     /**
      * Gets closest node origin to the given location at the targetNodeLevel
@@ -44,7 +43,7 @@ public:
      * @param targetNodeLevel
      * @return
      */
-    const tf::Vector3 getClosestNodeOrigin(const tf::Vector3& location, unsigned int targetNodeLevel);
+    const VehiclePose getClosestNodeOrigin(const VehiclePose& location, unsigned int targetNodeLevel);
 
 
 private:

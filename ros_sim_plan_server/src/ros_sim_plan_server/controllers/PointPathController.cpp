@@ -32,7 +32,8 @@ void PointPathController::sendAllGoals(void)
 {
     xyDone = false;
     sendXYGoal(pathPoints[currentPoint].getX(), pathPoints[currentPoint].getY());
-    
+
+    ROS_INFO("send goals: %d %f %f", currentPoint, pathPoints[currentPoint].getX(), pathPoints[currentPoint].getY());   
     if(!yoyo)
     {
         zDone = false;
@@ -44,11 +45,11 @@ void PointPathController::pointPathUpdate(void)
 {
     if(xyDone && zDone)
     {
-        ROS_DEBUG("Point path go to next point");
+        ROS_INFO("Point path go to next point");
         currentPoint++;
         if(currentPoint >= pathPoints.size())
         {
-            ROS_DEBUG("Point path server set to succeeded");
+            ROS_INFO("Point path server set to succeeded");
             ros_sim_plan_server::PointPathRosResult result;
             result.totalPoints = currentPoint;
             pointPathServer.setSucceeded(result);

@@ -3,8 +3,8 @@
 
 #include <vector>
 #include <memory>
-#include "tf/LinearMath/Vector3.h"
 
+#include "planner_framework/VehiclePose.h"
 #include "planner_framework/Action.h"
 #include "planner_framework/ActionExecutor.h"
 
@@ -18,7 +18,7 @@ DynamicLawnmowerAction(std::unique_ptr<ActionExecutor<DynamicLawnmowerAction>> e
                        const double targetHorizontalVelocity, 
                        const double targetRotationalVelocity,
                        const double targetSlope,
-                       const tf::Vector3& startLocation,
+                       const VehiclePose& startLocation,
                        const double alongTrackDirection,
                        const double acrossTrackDirection,
                        const double trackSpacing,
@@ -64,7 +64,7 @@ void setCurrentSection(int currentSection);
 double getTargetHorizontalVelocity() const;
 double getTargetRotationalVelocity() const;
 double getTargetSlope() const;
-tf::Vector3 getStartLocation() const;
+VehiclePose getStartLocation() const;
 double getAlongTrackDirection() const;
 double getAcrossTrackDirection() const;
 double getTrackSpacing() const;
@@ -81,7 +81,7 @@ std::unique_ptr<ActionExecutor<DynamicLawnmowerAction>> executor;
 const double targetHorizontalVelocity;
 const double targetRotationalVelocity;
 const double targetSlope;
-const tf::Vector3 startLocation;
+const VehiclePose startLocation;
 const double alongTrackDirection;
 const double acrossTrackDirection;
 const double trackSpacing;

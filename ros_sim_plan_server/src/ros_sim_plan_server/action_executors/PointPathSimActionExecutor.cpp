@@ -110,7 +110,7 @@ bool PointPathSimActionExecutor::execute(std::shared_ptr<PointPathAction> action
 
 	if(action->getDoInterruptPoint())
 	{
-		tf::Vector3& interruptPoint = action->getInterruptPoint();
+		VehiclePose& interruptPoint = action->getInterruptPoint();
 		geometry_msgs::Point p;
 		p.x = interruptPoint.getX();
 		p.y = interruptPoint.getY();
@@ -121,6 +121,7 @@ bool PointPathSimActionExecutor::execute(std::shared_ptr<PointPathAction> action
 	currentPointOffset = action->getCurrentPoint();
 	for(unsigned int i = action->getCurrentPoint(); i < action->getPoints().size(); i++)
 	{
+		
 		auto point = action->getPoints()[i];
 		geometry_msgs::Point p;
 		p.x = point.getX();
@@ -152,7 +153,7 @@ void PointPathSimActionExecutor::cancel(std::shared_ptr<PointPathAction> action)
 		tf::StampedTransform transform;
 		listener.waitForTransform("/world", "/" + vehicleName, ros::Time(0), ros::Duration(5.0));
 		listener.lookupTransform("/world", "/" + vehicleName, ros::Time(0), transform);
-		action->setInterruptPoint(transform.getOrigin());
+		action->setInterruptPoint(VehiclePose(transform.getOrigin().getX(), transform.getOrigin().getY(), transform.getOrigin().getZ()));
 	}
 	catch (tf::TransformException ex)
 	{
@@ -277,7 +278,7 @@ void PointPathSimActionExecutor::actionFeedback(std::shared_ptr<PointPathAction>
 		//Wait until we have reached point 1 before any replanning
 		ROS_DEBUG("Point Reached - Adjusted point: %i, Action Point: %i", adjustedCurrentPoint, action->getCurrentPoint());
 		action->setCurrentPoint(adjustedCurrentPoint);
-		action->addPointReachedTime(ros::Time::now());
+		action->addPointReachedTime(ros::Time::now().toSec());
 	}
 
 	action->setGoingUp(feedback->goingUp);

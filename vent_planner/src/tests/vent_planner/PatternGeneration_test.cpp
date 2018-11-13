@@ -2,13 +2,11 @@
 
 #include <math.h>
 
-#include "tf/LinearMath/Vector3.h"
-
 #include "vent_planner/util/CreatePathUtil.h"
 
 TEST(PatternGeneration, Spiral)
 {
-    std::vector<tf::Vector3> expectedResult;
+    std::vector<VehiclePose> expectedResult;
 
     expectedResult.emplace_back(100.0,200.0,-100.0);
     expectedResult.emplace_back(100.0,300.0,-100.0);
@@ -17,13 +15,13 @@ TEST(PatternGeneration, Spiral)
     expectedResult.emplace_back(200.0,100.0,-100.0);
     expectedResult.emplace_back(200.0,300.0,-100.0);
 
-    tf::Vector3 startLocation(100, 200, -100); 
+    VehiclePose startLocation(100, 200, -100); 
 
     double startDirection = M_PI / 2;
     double spacing = 100;
     double size = 210;
 
-    std::vector<tf::Vector3> spiral = create_path_util::makeSpiral(startLocation, 
+    std::vector<VehiclePose> spiral = create_path_util::makeSpiral(startLocation, 
                                                               startDirection, 
                                                               spacing, 
                                                               size);
@@ -39,7 +37,7 @@ TEST(PatternGeneration, Spiral)
 
 TEST(PatternGeneration, Lawnmower)
 {
-    std::vector<tf::Vector3> expectedResult;
+    std::vector<VehiclePose> expectedResult;
 
     expectedResult.emplace_back(100.0,200.0,-100.0);
     expectedResult.emplace_back(100.0,300.0,-100.0);
@@ -50,7 +48,7 @@ TEST(PatternGeneration, Lawnmower)
     expectedResult.emplace_back(400.0,300.0,-100.0);
     expectedResult.emplace_back(400.0,200.0,-100.0);
 
-    tf::Vector3 startLocation(100, 200, -100);
+    VehiclePose startLocation(100, 200, -100);
 
     double alongTrackDirection = M_PI / 2;
     double acrossTrackDirection = 0;
@@ -58,7 +56,7 @@ TEST(PatternGeneration, Lawnmower)
     double acrossTrackSize = 300;
     double spacing = 100;
 
-    std::vector<tf::Vector3> lawnmower = create_path_util::makeLawnmower(startLocation,
+    std::vector<VehiclePose> lawnmower = create_path_util::makeLawnmower(startLocation,
                                alongTrackDirection,
                                acrossTrackDirection,
                                alongTrackSize,
@@ -77,14 +75,14 @@ TEST(PatternGeneration, Lawnmower)
 
 TEST(PatternGeneration, Polygon)
 {
-    std::vector<tf::Vector3> expectedResult1;
+    std::vector<VehiclePose> expectedResult1;
 
     expectedResult1.emplace_back(100.0, 250.0,-100.0);
     expectedResult1.emplace_back(143.3012701892, 175.0,-100.0);
     expectedResult1.emplace_back(56.6987298108, 175.0, -100.0);
     expectedResult1.emplace_back(100.0, 250.0, -100.0);
 
-    std::vector<tf::Vector3> expectedResult2;
+    std::vector<VehiclePose> expectedResult2;
 
     expectedResult2.emplace_back(-29.2893218813, 170.710678119, -100.0);
     expectedResult2.emplace_back(-125.88190451, 196.592582629,-100.0);
@@ -95,25 +93,25 @@ TEST(PatternGeneration, Polygon)
     expectedResult2.emplace_back(-29.2893218813, 170.710678119, -100.0);
 
 
-    tf::Vector3 center1(100, 200, -100);
+    VehiclePose center1(100, 200, -100);
     unsigned int sides = 3;
     double radius = 50;
     double initalPointHeading = 0;
     bool clockwise = true;
 
-    std::vector<tf::Vector3> result1 = create_path_util::makePolygon(center1,
+    std::vector<VehiclePose> result1 = create_path_util::makePolygon(center1,
                                                                      sides,
                                                                      radius,
                                                                      initalPointHeading,
                                                                      clockwise);
 
-    tf::Vector3 center2(-100, 100, -100);
+    VehiclePose center2(-100, 100, -100);
     sides = 6;
     radius = 100;
     initalPointHeading = M_PI / 4;
     clockwise = false;
 
-    std::vector<tf::Vector3> result2 = create_path_util::makePolygon(center2,
+    std::vector<VehiclePose> result2 = create_path_util::makePolygon(center2,
                                                                      sides,
                                                                      radius,
                                                                      initalPointHeading,

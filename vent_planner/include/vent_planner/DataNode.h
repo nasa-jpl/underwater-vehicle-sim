@@ -2,22 +2,25 @@
 #define DATA_NODE_H
 
 #include <map>
+#include <vector>
+#include <cmath>
+#include <sstream>
 
 class DataTree;
 
-#include "tf/LinearMath/Vector3.h"
-#include "plume_detector/PlumeDataEntry.h"
+#include "planner_framework/VehiclePose.h"
+#include "planner_framework/PlannerData.h"
 
 class DataNode
 {
     friend class DataTree;
 
 public:
-    DataNode(DataNode* parentNode, const unsigned int nodeLevel, tf::Vector3 origin, double nodeSize, const unsigned nodeIndex);
+    DataNode(DataNode* parentNode, const unsigned int nodeLevel, VehiclePose origin, double nodeSize, const unsigned nodeIndex);
     DataNode(const DataNode& other);
     ~DataNode();
 
-    tf::Vector3 getCenterLocation();
+    VehiclePose getCenterLocation();
     /**
      * Partition the node by the given partition factor
      * @param partitionFactor
@@ -27,7 +30,7 @@ public:
     std::vector<DataNode*> getInitalizedNeighbors();
     const double getHeightOfPlume();
     const double getSize();
-    const PlumeDataEntry& getMaxVal() const;
+    const PlannerData& getMaxVal() const;
     const unsigned int getNodeLevel();
 
     /**
@@ -42,14 +45,14 @@ public:
     bool operator<(const DataNode& rhs) const;
     bool operator==(const DataNode& rhs) const;
 
-    void addData(const PlumeDataEntry& plumeData);
+    void addData(const PlannerData& plumeData);
 private:
 
     /**
      * Gets the data from this node
      * @param data Vector to add data to
      */
-    void getData(std::vector<PlumeDataEntry*>& data);
+    void getData(std::vector<PlannerData*>& data);
     
 
     /**
@@ -84,7 +87,7 @@ private:
      * @param location
      * @return
      */
-    DataNode& getSmallestNode(const tf::Vector3& location);
+    DataNode& getSmallestNode(const VehiclePose& location);
 
     /**
      * Gets the closest node origin to location that is on targetNodeLevel
@@ -92,7 +95,7 @@ private:
      * @param targetNodeLevel
      * @return
      */
-    tf::Vector3 getClosestNodeOrigin(const tf::Vector3& location, unsigned int targetNodeLevel);
+    VehiclePose getClosestNodeOrigin(const VehiclePose& location, unsigned int targetNodeLevel);
 
     /**
      * Checks if this node is a maximum
@@ -117,7 +120,7 @@ private:
      * @param point
      * @return
      */
-    unsigned int toNodeIndex(const tf::Vector3& point);
+    unsigned int toNodeIndex(const VehiclePose& point);
 
     /**
      * Gets the node index for the given xNode and yNode values
@@ -132,7 +135,7 @@ private:
      * @param nodeIndex
      * @return
      */
-    tf::Vector3 toOriginXY(unsigned int nodeIndex);
+    VehiclePose toOriginXY(unsigned int nodeIndex);
 
     /**
      * Gets the x,y indicies of the given nodeIndex
@@ -182,13 +185,15 @@ private:
     std::map<unsigned int, DataNode> nodes;
     DataNode* parentNode;
 
-    std::vector<PlumeDataEntry> data;
-    PlumeDataEntry maxVal;
+    std::vector<PlannerData> data;
+    PlannerData maxVal;
 
     const unsigned int nodeIndex;
-    const tf::Vector3 origin;
+    const VehiclePose origin;
     const double nodeSize;
     const unsigned int nodeLevel;
+
+    const std::string dataMember;
 };
 
 #endif

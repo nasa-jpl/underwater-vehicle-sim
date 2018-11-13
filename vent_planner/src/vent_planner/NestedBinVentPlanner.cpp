@@ -4,93 +4,47 @@
 #include <limits>
 #include <math.h>
 
-#include "ros/ros.h"
-#include "tf/LinearMath/Vector3.h"
-#include "std_msgs/String.h"
-
-#include "data_server/GetData.h"
-#include "data_server/GetLatestData.h"
+#include "planner_framework/VehicleInterface.h"
+#include "planner_framework/PlannerData.h"
+#include "planner_framework/VehiclePose.h"
 
 #include "vent_planner/actions/VentActionFactory.h"
 #include "vent_planner/NestedBinVentPlanner.h"
-
-#include "data_server/DataServerEntry.h"
-
-#include "data_server/GetPlumeData.h"
 
 #include "vent_planner/DataNode.h"
 #include "vent_planner/DataTree.h"
 
 #include "vent_planner/util/CreatePathUtil.h"
 
-NestedBinVentPlanner::NestedBinVentPlanner(ros::NodeHandle& nh, std::unique_ptr<VentActionFactory> actionFactory, VehicleInfo vehicleInfo) :
-    nh(nh),
+NestedBinVentPlanner::NestedBinVentPlanner(std::unique_ptr<VentActionFactory> actionFactory, std::unique_ptr<VehicleInterface> vehicleInterface, Parameters parameters) :
     actionFactory(std::move(actionFactory)),
-    lastPlan(ros::Time::now()),
-    vehicleInfo(vehicleInfo),
-    dataClient(nh.serviceClient<data_server::GetData>("data_server/get")),
-    latestDataClient(nh.serviceClient<data_server::GetLatestData>("data_server/get_latest")),
-    plumeClient(nh.serviceClient<data_server::GetPlumeData>("data_server/get_plume")),
-    goalPub(nh.advertise<std_msgs::String>("planner/goal", 1, true)),
-    logPub(nh.advertise<std_msgs::String>("planner_log/log", 1000)),
-    goalState("running"),
+    vehicleInterface(std::move(vehicleInterface)),
+    parameters(std::move(parameters)),
     finalSurvey(nullptr),
     phase(SearchPhase::none),
-    spiralData(nullptr, 0, tf::Vector3(0,0,0), 300000, 0)
+    spiralData(nullptr, 0, VehiclePose(0,0,0), 300000, 0),
+    receivingData(false)
 {
-    ROS_INFO("Waiting for data server...");
-    dataClient.waitForExistence();
-    latestDataClient.waitForExistence();
-    plumeClient.waitForExistence();
-
-    if(!nh.hasParam("planner/inital_spacing"))
-    {
-        ROS_FATAL("Parameter \"planner/inital_spacing\" not present in the parameter server.");
-        exit(1);
-    }
-
-    if(!nh.hasParam("planner/final_spacing"))
-    {
-        ROS_FATAL("Parameter \"planner/final_spacing\" not present in the parameter server.");
-        exit(1);
-    }
-
-    nh.getParam("planner/spiral_spacing", spiralSpacing);
-    nh.getParam("planner/inital_spacing", initalSpacing);
-    nh.getParam("planner/final_spacing", finalSpacing);
-    nh.getParam("planner/fail_time", failTime);
-
-    dataSub = nh.subscribe("data_server/" + vehicleInfo.getName() + "/plume_data", 0, &NestedBinVentPlanner::receivePlumeData, this);
+    this->vehicleInterface->registerDataCallback(std::bind(&NestedBinVentPlanner::receivePlumeData, this, std::placeholders::_1));
 }
 
-void NestedBinVentPlanner::receivePlumeData(const data_server::PlumeData::ConstPtr& msg)
+void NestedBinVentPlanner::receivePlumeData(const PlannerData& data)
 {
     if((phase == SearchPhase::dynamic || phase == SearchPhase::nested) &&
        dataTree)
     {
-        PlumeDataEntry newPlumeData(msg->time,
-                                    msg->x,
-                                    msg->y,
-                                    msg->h,
-                                    msg->plume_strength);
-        dataTree->addData(newPlumeData);
+        dataTree->addData(data);
     }
     else if(phase == SearchPhase::spiral)
     {
-        PlumeDataEntry newPlumeData(msg->time,
-                                    msg->x,
-                                    msg->y,
-                                    msg->h,
-                                    msg->plume_strength);
-        spiralData.addData(newPlumeData);
+        spiralData.addData(data);
     }
-
-
+    receivingData = true;
 }
 
 std::shared_ptr<Plan> NestedBinVentPlanner::plan()
 {
-    ROS_INFO("Plan");
+    vehicleInterface->log(LogLevel::INFO, "Plan");
     //Amount to reduce the bin size each nested pattern
     double nestedSizeFactor = 3;
     double detectionThreshold = 0.5;
@@ -99,17 +53,14 @@ std::shared_ptr<Plan> NestedBinVentPlanner::plan()
 
     if(phase == SearchPhase::none)
     {
-        DataServerEntry latestEntry;
-        if(getLatestData(latestEntry))
+        if(receivingData)
         {
             returnPlan = std::shared_ptr<Plan>(new Plan());
             spiralPlan = returnPlan;
-
-            ROS_INFO("Generate inital plan");
-            tf::Vector3 vehicleLocation(latestEntry.x, latestEntry.y, latestEntry.h);
-            std::vector<tf::Vector3> spiralPoints = create_path_util::makeSpiral(vehicleLocation, 0, spiralSpacing, 100000);
-            std::shared_ptr<Action> newAction = actionFactory->createPointPathAction(vehicleInfo.getName(),
-                                                                                     1.0,
+            VehiclePose pose = vehicleInterface->getPosition();
+            VehiclePose vehicleLocation(pose.getX(), pose.getY(), pose.getZ());
+            std::vector<VehiclePose> spiralPoints = create_path_util::makeSpiral(vehicleLocation, 0, parameters.spiralSpacing, 100000);
+            std::shared_ptr<Action> newAction = actionFactory->createPointPathAction(1.0,
                                                                                      0.349066,
                                                                                      0.523599, //30 deg
                                                                                      -100,
@@ -118,36 +69,34 @@ std::shared_ptr<Plan> NestedBinVentPlanner::plan()
                                                                                      PointPathAction::ReplanType::ON_YOYO_TURN,
                                                                                      0);
             returnPlan->addAction(newAction);
-            publishLog(vehicleInfo.getName() + ",Spiral");
+            vehicleInterface->log(LogLevel::INFO, "Spiral");
 
             phase = SearchPhase::spiral;
         }
     }
     else if(phase == SearchPhase::spiral)
     {
-        ROS_INFO("Update spiral plan");
         bool valid = newSpiralPlumeIntersect(spiralData, detectionThreshold);
 
         if(valid)
         {
-            PlumeDataEntry maxVal = spiralData.getMaxVal();
-            tf::Vector3 maxLoc(maxVal.x, maxVal.y, maxVal.h);
+            PlannerData maxVal = spiralData.getMaxVal();
             double plumeHeight = spiralData.getHeightOfPlume();
 
-            initalizeDataTree(maxLoc);
+            initalizeDataTree(maxVal.getPose());
 
             returnPlan = std::shared_ptr<Plan>(new Plan());
             dynamicPlan = returnPlan;
             phase = SearchPhase::dynamic;
 
-            const tf::Vector3 closestOrigin = dataTree->getClosestNodeOrigin(maxLoc, 1);
+            const VehiclePose closestOrigin = dataTree->getClosestNodeOrigin(maxVal.getPose(), 1);
             addInitalLawnmowers(returnPlan, closestOrigin, plumeHeight);
 
             //Log data to file
             std::stringstream ss;
             ss.precision(5);
-            ss << std::fixed << vehicleInfo.getName() << ",DynamicLawnmower," << plumeHeight << "," << closestOrigin.getX() << "," << closestOrigin.getY() << "," << initalSpacing;
-            publishLog(ss.str());
+            ss << std::fixed << "DynamicLawnmower," << plumeHeight << "," << closestOrigin.getX() << "," << closestOrigin.getY() << "," << parameters.initalSpacing;
+            vehicleInterface->log(LogLevel::INFO, ss.str());
         }
         else
         {
@@ -164,19 +113,16 @@ std::shared_ptr<Plan> NestedBinVentPlanner::plan()
 
         if(queuedMaxima.size() > 0)
         {
-            ROS_INFO("Do next maxima");
             auto lastElement = queuedMaxima.end();
             --lastElement;
             DataNode* maximum = *lastElement;
 
             double nestedBinSize = maximum->getSize() / nestedSizeFactor;
 
-            ROS_INFO("Starting new maxima search; Nested Bins Size: %f, Max: %f", nestedBinSize, maximum->getMaxVal().val);
             std::vector<DataNode*> neighbors = maximum->getInitalizedNeighbors();
 
             //Check for goal completion.
             //This should be moved to a seperate function at some point
-            ROS_INFO("Check for goal state nestedBinSize: %f, finalSpacing: %f", nestedBinSize, finalSpacing);
 
             bool isFinalSurvey = isGoalSurvey(nestedBinSize, maximum, neighbors);
 
@@ -193,26 +139,24 @@ std::shared_ptr<Plan> NestedBinVentPlanner::plan()
                 }
             }
 
-            tf::Vector3 startLocation(maximum->getCenterLocation().getX() - (maximum->getSize() * 1.5) + (nestedBinSize / 2),
+            VehiclePose startLocation(maximum->getCenterLocation().getX() - (maximum->getSize() * 1.5) + (nestedBinSize / 2),
                                       maximum->getCenterLocation().getY() - (maximum->getSize() * 1.5) + (nestedBinSize / 2),
                                       maximum->getHeightOfPlume());
 
-            std::vector<tf::Vector3> nestedPattern = create_path_util::makeLawnmower(startLocation,
+            std::vector<VehiclePose> nestedPattern = create_path_util::makeLawnmower(startLocation,
                                                                    0,
                                                                    M_PI / 2,
                                                                    (nestedSizeFactor * 3 - 1) * nestedBinSize,
                                                                    (nestedSizeFactor * 3 - 1) * nestedBinSize,
                                                                    nestedBinSize);
 
-            std::shared_ptr<PointPathAction> lawnmowerAction = actionFactory->createPointPathAction(vehicleInfo.getName(),
-                                                                                                    1.0,
+            std::shared_ptr<PointPathAction> lawnmowerAction = actionFactory->createPointPathAction(1.0,
                                                                                                     0.349066,
                                                                                                     0.523599, //30 deg
                                                                                                     nestedPattern,
                                                                                                     PointPathAction::ReplanType::NONE,
                                                                                                     0);
 
-            ROS_INFO("New nested lawnmower, Current Point: %i, Total Points: %lu", lawnmowerAction->getCurrentPoint(), nestedPattern.size());
             returnPlan = std::shared_ptr<Plan>(new Plan());
             returnPlan->addAction(lawnmowerAction);
             plannedMaxima.insert(std::make_pair(returnPlan, maximum));
@@ -225,8 +169,8 @@ std::shared_ptr<Plan> NestedBinVentPlanner::plan()
 
             std::stringstream ss;
             ss.precision(5);
-            ss << std::fixed << vehicleInfo.getName() << ",NestedLawnmower," << startLocation.getZ() << "," << startLocation.getX() << "," << startLocation.getY() << "," << nestedBinSize;
-            publishLog(ss.str());
+            ss << std::fixed << "NestedLawnmower," << startLocation.getZ() << "," << startLocation.getX() << "," << startLocation.getY() << "," << nestedBinSize;
+            vehicleInterface->log(LogLevel::INFO, ss.str());
         }
         else
         {
@@ -239,24 +183,13 @@ std::shared_ptr<Plan> NestedBinVentPlanner::plan()
             {
                 returnPlan = spiralPlan;
                 phase = SearchPhase::spiral;
-                ROS_INFO("Resume Spiral");
             }
         }
     }
 
     if(finalSurvey && finalSurvey->isCompleted())
     {
-        goalState = "success";
-        ROS_INFO("Set goal state: success");
-    }
-
-    //updates the goal state and publishes it
-    updateGoal();
-    publishGoal();
-
-    if(returnPlan)
-    {
-        lastPlan = ros::Time::now();
+        vehicleInterface->sendGoalStatus(GoalStatus::SUCCESS);
     }
 
     return returnPlan;
@@ -264,9 +197,9 @@ std::shared_ptr<Plan> NestedBinVentPlanner::plan()
 
 bool NestedBinVentPlanner::newSpiralPlumeIntersect(DataNode& spiralData, double detectionThreshold)
 {
-    PlumeDataEntry maxVal = spiralData.getMaxVal();
+    PlannerData maxVal = spiralData.getMaxVal();
     bool intersect = false;
-    if(maxVal.val >= detectionThreshold)
+    if(maxVal.getData()["plume"] >= detectionThreshold)
     {
         if(!dataTree)
         {
@@ -275,7 +208,7 @@ bool NestedBinVentPlanner::newSpiralPlumeIntersect(DataNode& spiralData, double 
         else
         {
             //Set valid to false if this area has already been investigated
-            DataNode& smallestAtMaxVal = dataTree->getSmallestNode(tf::Vector3(maxVal.x, maxVal.y, maxVal.h));
+            DataNode& smallestAtMaxVal = dataTree->getSmallestNode(maxVal.getPose());
             if(smallestAtMaxVal.getNodeLevel() < 1)
             {
                 intersect = true;
@@ -286,48 +219,23 @@ bool NestedBinVentPlanner::newSpiralPlumeIntersect(DataNode& spiralData, double 
     return intersect;
 }
 
-void NestedBinVentPlanner::initalizeDataTree(tf::Vector3 centerLocation)
+void NestedBinVentPlanner::initalizeDataTree(VehiclePose centerLocation)
 {
     if(!dataTree)
     {
         float targetSize = 300000;
-        int numPartitions = ceil(targetSize / initalSpacing);
+        int numPartitions = ceil(targetSize / parameters.initalSpacing);
 
         dataTree = std::unique_ptr<DataTree>(new DataTree(centerLocation,
-                                                          numPartitions * initalSpacing));
+                                                          numPartitions * parameters.initalSpacing));
         dataTree->getRoot().partition(numPartitions);
-        ROS_INFO("Initalize data bins, numPartitions: %i, size: %f", numPartitions, numPartitions * initalSpacing);
     }
-}
-
-bool NestedBinVentPlanner::getLatestData(DataServerEntry& returnEntry)
-{
-    data_server::GetLatestData srv;
-    srv.request.name = vehicleInfo.getName();
-
-    bool valid = latestDataClient.call(srv);
-    if(valid)
-    {
-        returnEntry.x = srv.response.x;
-        returnEntry.y = srv.response.y;
-        returnEntry.h = srv.response.h;
-
-        returnEntry.time = srv.response.time;
-        returnEntry.temp = srv.response.temp;
-        returnEntry.salt = srv.response.salt;
-        returnEntry.dye = srv.response.dye;
-
-        return true;
-    }
-
-    return false;
 }
 
 std::set<DataNode*, DataNode::PointerCompare> NestedBinVentPlanner::getUnexploredMaxima()
 {
     std::set<DataNode*, DataNode::PointerCompare> queuedMaxima;
     const std::vector<DataNode*> binMaxima = dataTree->getMaxima();
-    ROS_INFO("Maxima Found: %lu", binMaxima.size());
     for(unsigned int i = 0; i < binMaxima.size(); i++)
     {
         bool found = false;
@@ -335,83 +243,71 @@ std::set<DataNode*, DataNode::PointerCompare> NestedBinVentPlanner::getUnexplore
         {
             if(*(it->second) == *binMaxima[i])
             {
-                ROS_INFO("Check plannedMaxima Found: %p, Val: %f, X: %f, Y: %f, Level: %i",(void*)binMaxima[i], binMaxima[i]->getMaxVal().val, binMaxima[i]->getCenterLocation().getX(),
-                         binMaxima[i]->getCenterLocation().getY(),
-                         binMaxima[i]->getNodeLevel());
                 found = true;
                 break;
             }
         }
 
-        if(!found && binMaxima[i]->getSize() > finalSpacing)
+        if(!found && binMaxima[i]->getSize() > parameters.finalSpacing)
         {
             unsigned long queueSize = queuedMaxima.size();
             queuedMaxima.insert(binMaxima[i]);
-
-            ROS_INFO("Added maximum to queue: %p, Val: %f, X: %f, Y: %f, Level: %i", (void*)binMaxima[i], binMaxima[i]->getMaxVal().val,
-                     binMaxima[i]->getCenterLocation().getX(),
-                     binMaxima[i]->getCenterLocation().getY(),
-                     binMaxima[i]->getNodeLevel());
         }
     }
 
     return queuedMaxima;
 }
 
-void NestedBinVentPlanner::addInitalLawnmowers(std::shared_ptr<Plan> plan, const tf::Vector3& centerLocation, double plumeHeight)
+void NestedBinVentPlanner::addInitalLawnmowers(std::shared_ptr<Plan> plan, const VehiclePose& centerLocation, double plumeHeight)
 {
-    tf::Vector3 lawnmower0Start(centerLocation.getX() + initalSpacing / 2.0, centerLocation.getY() + initalSpacing / 2.0, plumeHeight);
-    tf::Vector3 lawnmower1Start(centerLocation.getX() - initalSpacing / 2.0, centerLocation.getY() + initalSpacing / 2.0, plumeHeight);
-    tf::Vector3 lawnmower2Start(centerLocation.getX() - initalSpacing / 2.0, centerLocation.getY() - initalSpacing / 2.0, plumeHeight);
-    tf::Vector3 lawnmower3Start(centerLocation.getX() + initalSpacing / 2.0, centerLocation.getY() - initalSpacing / 2.0, plumeHeight);
+    VehiclePose lawnmower0Start(centerLocation.getX() + parameters.initalSpacing / 2.0, centerLocation.getY() + parameters.initalSpacing / 2.0, plumeHeight);
+    VehiclePose lawnmower1Start(centerLocation.getX() - parameters.initalSpacing / 2.0, centerLocation.getY() + parameters.initalSpacing / 2.0, plumeHeight);
+    VehiclePose lawnmower2Start(centerLocation.getX() - parameters.initalSpacing / 2.0, centerLocation.getY() - parameters.initalSpacing / 2.0, plumeHeight);
+    VehiclePose lawnmower3Start(centerLocation.getX() + parameters.initalSpacing / 2.0, centerLocation.getY() - parameters.initalSpacing / 2.0, plumeHeight);
 
-    std::shared_ptr<Action> lawnmower0 = actionFactory->createDynamicLawnmowerAction(vehicleInfo.getName(),
-                                                                                     1.0,
+    std::shared_ptr<Action> lawnmower0 = actionFactory->createDynamicLawnmowerAction(1.0,
                                                                                      0.349066,
                                                                                      0.523599, //30 deg
                                                                                      lawnmower0Start,
                                                                                      0,
                                                                                      M_PI / 2,
-                                                                                     initalSpacing,
+                                                                                     parameters.initalSpacing,
                                                                                      plumeHeight,
                                                                                      4,
                                                                                      0.5,
                                                                                      2);
 
-    std::shared_ptr<Action> lawnmower1 = actionFactory->createDynamicLawnmowerAction(vehicleInfo.getName(),
-                                                                                     1.0,
+    std::shared_ptr<Action> lawnmower1 = actionFactory->createDynamicLawnmowerAction(1.0,
                                                                                      0.349066,
                                                                                      0.523599, //30 deg
                                                                                      lawnmower1Start,
                                                                                      M_PI,
                                                                                      M_PI / 2,
-                                                                                     initalSpacing,
+                                                                                     parameters.initalSpacing,
                                                                                      plumeHeight,
                                                                                      4,
                                                                                      0.5,
                                                                                      2);
 
-    std::shared_ptr<Action> lawnmower2 = actionFactory->createDynamicLawnmowerAction(vehicleInfo.getName(),
-                                                                                     1.0,
+    std::shared_ptr<Action> lawnmower2 = actionFactory->createDynamicLawnmowerAction(1.0,
                                                                                      0.349066,
                                                                                      0.523599, //30 deg
                                                                                      lawnmower2Start,
                                                                                      M_PI,
                                                                                      M_PI * 3 / 2,
-                                                                                     initalSpacing,
+                                                                                     parameters.initalSpacing,
                                                                                      plumeHeight,
                                                                                      4,
                                                                                      0.5,
                                                                                      2);
 
-    std::shared_ptr<Action> lawnmower3 = actionFactory->createDynamicLawnmowerAction(vehicleInfo.getName(),
-                                                                                     1.0,
+    std::shared_ptr<Action> lawnmower3 = actionFactory->createDynamicLawnmowerAction(1.0,
                                                                                      0.349066,
                                                                                      0.523599, //30 deg
                                                                                      lawnmower3Start,
                                                                                      0,
                                                                                      M_PI * 3 / 2,
-                                                                                     initalSpacing,
+                                                                                     parameters.initalSpacing,
                                                                                      plumeHeight,
                                                                                      4,
                                                                                      0.5,
@@ -427,9 +323,9 @@ void NestedBinVentPlanner::addInitalLawnmowers(std::shared_ptr<Plan> plan, const
 bool NestedBinVentPlanner::isGoalSurvey(double nestedBinSize, DataNode* maximum, std::vector<DataNode*>& neighbors)
 {
     bool goalSurvey = false;
-    if(nestedBinSize <= finalSpacing + 0.1)
+    if(nestedBinSize <= parameters.finalSpacing + 0.1)
     {
-        DataNode& smallestCenter = dataTree->getSmallestNode(tf::Vector3(0,0,0));
+        DataNode& smallestCenter = dataTree->getSmallestNode(VehiclePose(0,0,0));
 
         if(maximum == &smallestCenter)
         {
@@ -440,40 +336,10 @@ bool NestedBinVentPlanner::isGoalSurvey(double nestedBinSize, DataNode* maximum,
         {
             if(&smallestCenter == neighbor)
             {
-                ROS_INFO("Set final survey");
                 goalSurvey = true;
             }
         }
     }
 
     return goalSurvey;
-}
-
-void NestedBinVentPlanner::publishGoal()
-{
-    std_msgs::String msg;
-    msg.data = goalState;
-    goalPub.publish(msg);
-}
-
-void NestedBinVentPlanner::updateGoal()
-{
-    if(goalState == "running")
-    {
-        if(ros::Time::now() >= ros::Time(failTime))
-        {
-            goalState = "failed";
-        }
-    }
-}
-
-void NestedBinVentPlanner::publishLog(std::string log)
-{
-    std_msgs::String msg;
-
-    std::stringstream ss;
-    ss.precision(5);
-    ss << std::fixed << ros::Time::now().toSec() << ": " << log;
-    msg.data =  ss.str();
-    logPub.publish(msg);
 }

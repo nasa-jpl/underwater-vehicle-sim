@@ -1,10 +1,9 @@
 #include "vent_planner/DataTree.h"
+
 #include "vent_planner/DataNode.h"
-#include "tf/LinearMath/Vector3.h"
 
-
-DataTree::DataTree(tf::Vector3 center, unsigned int size) :
-    root(nullptr, 0, tf::Vector3(center.getX() - size / 2, center.getY() - size / 2, center.getZ()), size, 0)
+DataTree::DataTree(VehiclePose center, unsigned int size) :
+    root(nullptr, 0, VehiclePose(center.getX() - size / 2, center.getY() - size / 2, center.getZ()), size, 0)
 {}
 
 DataTree::~DataTree() {}
@@ -14,12 +13,12 @@ DataNode& DataTree::getRoot()
     return root;
 }
 
-void DataTree::addData(const PlumeDataEntry& data)
+void DataTree::addData(const PlannerData& data)
 {
     root.addData(data);
 }
 
-DataNode& DataTree::getSmallestNode(const tf::Vector3& location)
+DataNode& DataTree::getSmallestNode(const VehiclePose& location)
 {
     return root.getSmallestNode(location);
 }
@@ -34,7 +33,7 @@ std::vector<DataNode*> DataTree::getPotentialMaxima()
     return root.getPotentialMaxima();
 }
 
-const tf::Vector3 DataTree::getClosestNodeOrigin(const tf::Vector3& location, unsigned int targetNodeLevel)
+const VehiclePose DataTree::getClosestNodeOrigin(const VehiclePose& location, unsigned int targetNodeLevel)
 {
     return root.getClosestNodeOrigin(location, targetNodeLevel);
 }

@@ -1,12 +1,10 @@
 #ifndef YOYO_POINT_PATH_ACTION_H
 #define YOYO_POINT_PATH_ACTION_H
 
-#include "ros/ros.h"
-
 #include <vector>
 #include <memory>
-#include "tf/LinearMath/Vector3.h"
 
+#include "planner_framework/VehiclePose.h"
 #include "planner_framework/Action.h"
 #include "planner_framework/ActionExecutor.h"
 
@@ -24,7 +22,7 @@ public:
                     const bool yoyo,
                     const double upperDepth,
                     const double lowerDepth,
-                    const std::vector<tf::Vector3>& points,
+                    const std::vector<VehiclePose>& points,
                     const ReplanType replanType,
                     const double periodicReplanValue);
 
@@ -62,18 +60,18 @@ public:
     void setGoingUp(const bool goingUp);
     const bool getGoingUp();
 
-    void setInterruptPoint(tf::Vector3 point);
+    void setInterruptPoint(VehiclePose point);
     void disableInterruptPoint();
-    tf::Vector3& getInterruptPoint();
+    VehiclePose& getInterruptPoint();
     bool getDoInterruptPoint();
 
-    void addPointReachedTime(const ros::Time& time);
-    const std::vector<ros::Time>& getPointReachedTimes();
+    void addPointReachedTime(const double time);
+    const std::vector<double>& getPointReachedTimes();
     
 
     double getTargetHorizontalVelocity() const;
     double getTargetRotationalVelocity() const;
-    std::vector<tf::Vector3> getPoints() const;
+    std::vector<VehiclePose> getPoints() const;
 
     bool getYoyo() const;
     double getTargetSlope() const;
@@ -88,7 +86,7 @@ private:
     //Parameters
     const double targetHorizontalVelocity;
     const double targetRotationalVelocity;
-    const std::vector<tf::Vector3> points;
+    const std::vector<VehiclePose> points;
 
     const bool yoyo;
     const double targetSlope;
@@ -105,12 +103,12 @@ private:
     /**
     * Indicates the point at which the vehicle was interrupted in order to command it back to that point when resumed
     */
-    tf::Vector3 interruptPoint;
+    VehiclePose interruptPoint;
 
     int currentPoint;
     bool goingUp;
     
-    std::vector<ros::Time> pointReachedTimes;
+    std::vector<double> pointReachedTimes;
 };
 
 #endif
