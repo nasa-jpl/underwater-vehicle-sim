@@ -1,6 +1,5 @@
 #include "fvcom/FVCOM.h"
-#include "model_server/ModelData.h"
-#include "ros/ros.h"
+#include "model_interface/ModelData.h"
 
 #include <stdexcept>
 #include <math.h>

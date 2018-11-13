@@ -1,5 +1,5 @@
 #include "constant_model/ConstantModel.h"
-#include "model_server/ModelData.h"
+#include "model_interface/ModelData.h"
 #include "ros/ros.h"
 
 #include <stdexcept>

@@ -3,8 +3,8 @@
 
 #include <string>
 
-#include "model_server/ModelInterface.h"
-#include "model_server/ModelData.h"
+#include "model_interface/ModelInterface.h"
+#include "model_interface/ModelData.h"
 /**
  * Class used to load and query FVCOM data
  */

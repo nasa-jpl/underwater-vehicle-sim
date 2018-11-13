@@ -1,7 +1,7 @@
 #ifndef MODEL_INTERFACE_H
 #define MODEL_INTERFACE_H
 
-#include "model_server/ModelData.h"
+#include "model_interface/ModelData.h"
 
 class ModelInterface
 {

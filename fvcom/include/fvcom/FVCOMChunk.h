@@ -4,7 +4,6 @@
 #include <unordered_map>
 #include <vector>
 
-
 #include <netcdf>
 
 #include "fvcom/FVCOMStructure.h"

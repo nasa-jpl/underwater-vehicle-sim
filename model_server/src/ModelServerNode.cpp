@@ -2,9 +2,11 @@
 
 #include "ros/ros.h"
 
-#include "model_server/ModelInterface.h"
+#include "model_interface/ModelInterface.h"
+#include "model_interface/ModelData.h"
+
 #include "model_server/GetModelData.h"
-#include "model_server/ModelData.h"
+
 
 #include "linear_model/LinearModel.h"
 #include "constant_model/ConstantModel.h"

@@ -8,8 +8,6 @@
 #include <algorithm>
 #include <iterator>
 
-#include "ros/ros.h"
-
 #include <boost/filesystem.hpp>
 namespace fs = boost::filesystem;
 
