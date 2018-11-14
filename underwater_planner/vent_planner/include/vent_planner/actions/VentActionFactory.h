@@ -6,7 +6,6 @@
 #include "planner_framework/VehiclePose.h"
 
 #include "vent_planner/actions/PointPathAction.h"
-#include "vent_planner/actions/DynamicLawnmowerAction.h"
 #include "vent_planner/actions/ChargeAction.h"
 #include "vent_planner/actions/DataTransferAction.h"
 
@@ -31,18 +30,6 @@ public:
                                                                    const std::vector<VehiclePose>& points,
                                                                    const PointPathAction::ReplanType replan,
                                                                    const double periodicReplanTime)=0;
-
-    virtual std::shared_ptr<DynamicLawnmowerAction> createDynamicLawnmowerAction(const double targetHorizontalVelocity, 
-                                                                                 const double targetRotationalVelocity,
-                                                                                 const double targetSlope,
-                                                                                 const VehiclePose& startLocation,
-                                                                                 const double alongTrackDirection,
-                                                                                 const double acrossTrackDirection,
-                                                                                 const double trackSpacing,
-                                                                                 const double targetHeight,
-                                                                                 const int minSectionsPerTrack,
-                                                                                 const double continueThreshold,
-                                                                                 const int trackSectionThreshold)=0;
 
     virtual std::shared_ptr<ChargeAction> createChargeAction()=0;
     virtual std::shared_ptr<DataTransferAction> createDataTransferAction()=0;

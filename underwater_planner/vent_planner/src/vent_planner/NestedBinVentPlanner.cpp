@@ -21,21 +21,31 @@ NestedBinVentPlanner::NestedBinVentPlanner(std::unique_ptr<VentActionFactory> ac
     vehicleInterface(std::move(vehicleInterface)),
     parameters(std::move(parameters)),
     finalSurvey(nullptr),
-    phase(SearchPhase::none),
+    phase(SearchPhase::SPIRAL),
     spiralData(nullptr, 0, VehiclePose(0,0,0), 300000, 0),
-    receivingData(false)
+    receivingData(false),
+    currentDynamicLawnmower(0),
+    dynamicLawnmower(nullptr),
+    plumeHeight(0),
+    dynamicLawnmowerCenter(VehiclePose(0,0,0))
 {
     this->vehicleInterface->registerDataCallback(std::bind(&NestedBinVentPlanner::receivePlumeData, this, std::placeholders::_1));
 }
 
 void NestedBinVentPlanner::receivePlumeData(const PlannerData& data)
 {
-    if((phase == SearchPhase::dynamic || phase == SearchPhase::nested) &&
+    if((phase == SearchPhase::START_NEXT_LAWNMOWER) &&
        dataTree)
     {
         dataTree->addData(data);
     }
-    else if(phase == SearchPhase::spiral)
+    else if((phase == SearchPhase::START_DYNAMIC_LAWNMOWER || phase == SearchPhase::RUN_DYNAMIC_LAWNMOWER) &&
+             dataTree)
+    {
+        dataTree->addData(data);
+        dynamicLawnmowerSectionData.push_back(data);
+    }
+    else if(phase == SearchPhase::OBSERVE_SPIRAL)
     {
         spiralData.addData(data);
     }
@@ -51,8 +61,9 @@ std::shared_ptr<Plan> NestedBinVentPlanner::plan()
 
     std::shared_ptr<Plan> returnPlan;
 
-    if(phase == SearchPhase::none)
+    if(phase == SearchPhase::SPIRAL)
     {
+        vehicleInterface->log(LogLevel::INFO, "SPIRAL Phase");
         if(receivingData)
         {
             returnPlan = std::shared_ptr<Plan>(new Plan());
@@ -71,44 +82,36 @@ std::shared_ptr<Plan> NestedBinVentPlanner::plan()
             returnPlan->addAction(newAction);
             vehicleInterface->log(LogLevel::INFO, "Spiral");
 
-            phase = SearchPhase::spiral;
+            phase = SearchPhase::OBSERVE_SPIRAL;
         }
     }
-    else if(phase == SearchPhase::spiral)
+    else if(phase == SearchPhase::OBSERVE_SPIRAL)
     {
+        vehicleInterface->log(LogLevel::INFO, "OBSERVE_SPIRAL Phase");
         bool valid = newSpiralPlumeIntersect(spiralData, detectionThreshold);
 
         if(valid)
         {
             PlannerData maxVal = spiralData.getMaxVal();
-            double plumeHeight = spiralData.getHeightOfPlume();
+            plumeHeight = spiralData.getHeightOfPlume();
 
             initalizeDataTree(maxVal.getPose());
-
+            dynamicLawnmowerCenter = dataTree->getClosestNodeOrigin(maxVal.getPose(), 1);
             returnPlan = std::shared_ptr<Plan>(new Plan());
-            dynamicPlan = returnPlan;
-            phase = SearchPhase::dynamic;
-
-            const VehiclePose closestOrigin = dataTree->getClosestNodeOrigin(maxVal.getPose(), 1);
-            addInitalLawnmowers(returnPlan, closestOrigin, plumeHeight);
-
-            //Log data to file
-            std::stringstream ss;
-            ss.precision(5);
-            ss << std::fixed << "DynamicLawnmower," << plumeHeight << "," << closestOrigin.getX() << "," << closestOrigin.getY() << "," << parameters.initalSpacing;
-            vehicleInterface->log(LogLevel::INFO, ss.str());
+            phase = SearchPhase::START_DYNAMIC_LAWNMOWER; 
         }
         else
         {
             returnPlan = spiralPlan;
             returnPlan->resetInterrupted();
-            phase = SearchPhase::spiral;
+            phase = SearchPhase::OBSERVE_SPIRAL;
         }
 
         spiralData.clear();
     }
-    else if(phase == SearchPhase::dynamic || phase == SearchPhase::nested)
+    else if(phase == START_NEXT_LAWNMOWER)
     {
+        vehicleInterface->log(LogLevel::INFO, "START_NEXT_LAWNMOWER Phase");
         std::set<DataNode*, DataNode::PointerCompare> queuedMaxima = getUnexploredMaxima();
 
         if(queuedMaxima.size() > 0)
@@ -122,8 +125,6 @@ std::shared_ptr<Plan> NestedBinVentPlanner::plan()
             std::vector<DataNode*> neighbors = maximum->getInitalizedNeighbors();
 
             //Check for goal completion.
-            //This should be moved to a seperate function at some point
-
             bool isFinalSurvey = isGoalSurvey(nestedBinSize, maximum, neighbors);
 
             if(!maximum->isPartitioned())
@@ -160,7 +161,7 @@ std::shared_ptr<Plan> NestedBinVentPlanner::plan()
             returnPlan = std::shared_ptr<Plan>(new Plan());
             returnPlan->addAction(lawnmowerAction);
             plannedMaxima.insert(std::make_pair(returnPlan, maximum));
-            phase = SearchPhase::nested;
+            phase = SearchPhase::START_NEXT_LAWNMOWER;
 
             if(isFinalSurvey)
             {
@@ -174,16 +175,69 @@ std::shared_ptr<Plan> NestedBinVentPlanner::plan()
         }
         else
         {
-            if(!dynamicPlan->isCompleted())
+            if(currentDynamicLawnmower < 4)
             {
-                returnPlan = dynamicPlan;
-                phase = SearchPhase::dynamic;
+                returnPlan = std::shared_ptr<Plan>(new Plan());
+                phase = SearchPhase::START_DYNAMIC_LAWNMOWER;
             }
             else
             {
                 returnPlan = spiralPlan;
-                phase = SearchPhase::spiral;
+                phase = SearchPhase::OBSERVE_SPIRAL;
             }
+        }
+    }
+    else if(phase == START_DYNAMIC_LAWNMOWER)
+    {
+        vehicleInterface->log(LogLevel::INFO, "START_DYNAMIC_LAWNMOWER Phase");
+        initializeDynamicLawnmower();
+
+        //Create first command for dynamic lawnmower
+        returnPlan = std::shared_ptr<Plan>(new Plan());
+        VehiclePose nextPoint = dynamicLawnmower->getNextPoint();
+        std::vector<VehiclePose> points;
+        points.push_back(nextPoint);
+        std::shared_ptr<Action> newAction = actionFactory->createPointPathAction(1.0,
+                                                                           0.349066,
+                                                                           0.523599, //30 deg
+                                                                           points,
+                                                                           PointPathAction::ReplanType::NONE,
+                                                                           0);
+        returnPlan->addAction(newAction);
+
+        phase = SearchPhase::RUN_DYNAMIC_LAWNMOWER;
+
+        //Log data to file
+        std::stringstream ss;
+        ss.precision(5);
+        ss << std::fixed << "DynamicLawnmower," << plumeHeight << "," << dynamicLawnmowerCenter.getX() << "," << dynamicLawnmowerCenter.getY() << "," << parameters.initalSpacing;
+        vehicleInterface->log(LogLevel::INFO, ss.str());
+    }
+    else if(phase == RUN_DYNAMIC_LAWNMOWER)
+    {
+        vehicleInterface->log(LogLevel::INFO, "RUN_DYNAMIC_LAWNMOWER Phase");
+        returnPlan = std::shared_ptr<Plan>(new Plan());
+
+        dynamicLawnmower->completeSection(dynamicLawnmowerSectionData);
+        dynamicLawnmowerSectionData.clear();
+
+        if(dynamicLawnmower->isDone())
+        {
+            phase = SearchPhase::START_NEXT_LAWNMOWER;
+            currentDynamicLawnmower++;
+        }
+        else
+        {
+            VehiclePose nextPoint = dynamicLawnmower->getNextPoint();
+            std::vector<VehiclePose> points;
+            points.push_back(nextPoint);
+            std::shared_ptr<Action> newAction = actionFactory->createPointPathAction(1.0,
+                                                                               0.349066,
+                                                                               0.523599, //30 deg
+                                                                               points,
+                                                                               PointPathAction::ReplanType::NONE,
+                                                                               0);
+            returnPlan->addAction(newAction);
         }
     }
 
@@ -258,66 +312,56 @@ std::set<DataNode*, DataNode::PointerCompare> NestedBinVentPlanner::getUnexplore
     return queuedMaxima;
 }
 
-void NestedBinVentPlanner::addInitalLawnmowers(std::shared_ptr<Plan> plan, const VehiclePose& centerLocation, double plumeHeight)
+void NestedBinVentPlanner::initializeDynamicLawnmower()
 {
-    VehiclePose lawnmower0Start(centerLocation.getX() + parameters.initalSpacing / 2.0, centerLocation.getY() + parameters.initalSpacing / 2.0, plumeHeight);
-    VehiclePose lawnmower1Start(centerLocation.getX() - parameters.initalSpacing / 2.0, centerLocation.getY() + parameters.initalSpacing / 2.0, plumeHeight);
-    VehiclePose lawnmower2Start(centerLocation.getX() - parameters.initalSpacing / 2.0, centerLocation.getY() - parameters.initalSpacing / 2.0, plumeHeight);
-    VehiclePose lawnmower3Start(centerLocation.getX() + parameters.initalSpacing / 2.0, centerLocation.getY() - parameters.initalSpacing / 2.0, plumeHeight);
-
-    std::shared_ptr<Action> lawnmower0 = actionFactory->createDynamicLawnmowerAction(1.0,
-                                                                                     0.349066,
-                                                                                     0.523599, //30 deg
-                                                                                     lawnmower0Start,
-                                                                                     0,
-                                                                                     M_PI / 2,
-                                                                                     parameters.initalSpacing,
-                                                                                     plumeHeight,
-                                                                                     4,
-                                                                                     0.5,
-                                                                                     2);
-
-    std::shared_ptr<Action> lawnmower1 = actionFactory->createDynamicLawnmowerAction(1.0,
-                                                                                     0.349066,
-                                                                                     0.523599, //30 deg
-                                                                                     lawnmower1Start,
-                                                                                     M_PI,
-                                                                                     M_PI / 2,
-                                                                                     parameters.initalSpacing,
-                                                                                     plumeHeight,
-                                                                                     4,
-                                                                                     0.5,
-                                                                                     2);
-
-    std::shared_ptr<Action> lawnmower2 = actionFactory->createDynamicLawnmowerAction(1.0,
-                                                                                     0.349066,
-                                                                                     0.523599, //30 deg
-                                                                                     lawnmower2Start,
-                                                                                     M_PI,
-                                                                                     M_PI * 3 / 2,
-                                                                                     parameters.initalSpacing,
-                                                                                     plumeHeight,
-                                                                                     4,
-                                                                                     0.5,
-                                                                                     2);
-
-    std::shared_ptr<Action> lawnmower3 = actionFactory->createDynamicLawnmowerAction(1.0,
-                                                                                     0.349066,
-                                                                                     0.523599, //30 deg
-                                                                                     lawnmower3Start,
-                                                                                     0,
-                                                                                     M_PI * 3 / 2,
-                                                                                     parameters.initalSpacing,
-                                                                                     plumeHeight,
-                                                                                     4,
-                                                                                     0.5,
-                                                                                     2);
-                                                                                     
-
-    plan->addAction(lawnmower0);
-    plan->addAction(lawnmower1);
-    plan->addAction(lawnmower2);
-    plan->addAction(lawnmower3);
+    if(currentDynamicLawnmower == 0)
+    {
+        VehiclePose lawnmower0Start(dynamicLawnmowerCenter.getX() + parameters.initalSpacing / 2.0, dynamicLawnmowerCenter.getY() + parameters.initalSpacing / 2.0, plumeHeight);
+        dynamicLawnmower.reset(new DynamicLawnmower(lawnmower0Start,
+                                                    0,
+                                                    M_PI / 2,
+                                                    parameters.initalSpacing,
+                                                    plumeHeight,
+                                                    4,
+                                                    0.5,
+                                                    2));
+    }
+    else if(currentDynamicLawnmower == 1)
+    {
+        VehiclePose lawnmower1Start(dynamicLawnmowerCenter.getX() - parameters.initalSpacing / 2.0, dynamicLawnmowerCenter.getY() + parameters.initalSpacing / 2.0, plumeHeight);
+        dynamicLawnmower.reset(new DynamicLawnmower(lawnmower1Start,
+                                                    M_PI,
+                                                    M_PI / 2,
+                                                    parameters.initalSpacing,
+                                                    plumeHeight,
+                                                    4,
+                                                    0.5,
+                                                    2));
+    }
+    else if(currentDynamicLawnmower == 2)
+    {
+        VehiclePose lawnmower2Start(dynamicLawnmowerCenter.getX() - parameters.initalSpacing / 2.0, dynamicLawnmowerCenter.getY() - parameters.initalSpacing / 2.0, plumeHeight);
+        dynamicLawnmower.reset(new DynamicLawnmower(lawnmower2Start,
+                                                    M_PI,
+                                                    M_PI * 3 / 2,
+                                                    parameters.initalSpacing,
+                                                    plumeHeight,
+                                                    4,
+                                                    0.5,
+                                                    2));
+    }
+    else if(currentDynamicLawnmower == 3)
+    {
+        VehiclePose lawnmower3Start(dynamicLawnmowerCenter.getX() + parameters.initalSpacing / 2.0, dynamicLawnmowerCenter.getY() - parameters.initalSpacing / 2.0, plumeHeight);
+        dynamicLawnmower.reset(new DynamicLawnmower(lawnmower3Start,
+                                                    0,
+                                                    M_PI * 3 / 2,
+                                                    parameters.initalSpacing,
+                                                    plumeHeight,
+                                                    4,
+                                                    0.5,
+                                                    2));
+    }
 }
 
 bool NestedBinVentPlanner::isGoalSurvey(double nestedBinSize, DataNode* maximum, std::vector<DataNode*>& neighbors)

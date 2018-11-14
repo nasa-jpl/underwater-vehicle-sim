@@ -11,7 +11,6 @@
 #include "vent_planner/SurfaceGradientVentPlanner.h"
 #include "vent_planner/DirectionSetVentPlanner.h"
 
-#include "ros_sim_plan_server/controllers/DynamicLawnmowerController.h"
 #include "ros_sim_plan_server/controllers/PointPathController.h"
 
 #include "data_server/GetLatestData.h"
@@ -44,7 +43,6 @@ int main(int argc, char **argv)
 
     std::vector<ROSSimPlanServer> servers;
 
-    std::vector<std::unique_ptr<DynamicLawnmowerController>> dynamicLawnmowerControllers;
     std::vector<std::unique_ptr<PointPathController>> pointPathControllers;
 
     //Wait until the simulation starts to proceed
@@ -101,10 +99,7 @@ int main(int argc, char **argv)
             planner.reset(new DirectionSetVentPlanner(std::move(factory), std::move(interface), std::move(parameters)));
         }
         
-        std::unique_ptr<DynamicLawnmowerController> dynamicLawnmowerController(new DynamicLawnmowerController(nh, info.getName()));
         std::unique_ptr<PointPathController> pointPathController(new PointPathController(nh, info));
-
-        dynamicLawnmowerControllers.push_back(std::move(dynamicLawnmowerController));
         pointPathControllers.push_back(std::move(pointPathController));
       
         servers.emplace_back(nh, std::move(dispatcher), std::move(planner));

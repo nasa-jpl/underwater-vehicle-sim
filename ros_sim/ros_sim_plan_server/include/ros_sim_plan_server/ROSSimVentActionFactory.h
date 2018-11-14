@@ -10,7 +10,6 @@
 
 #include "vent_planner/actions/VentActionFactory.h"
 #include "vent_planner/actions/PointPathAction.h"
-#include "vent_planner/actions/DynamicLawnmowerAction.h"
 #include "vent_planner/actions/ChargeAction.h"
 #include "vent_planner/actions/DataTransferAction.h"
 
@@ -44,18 +43,6 @@ public:
 
     std::shared_ptr<ChargeAction> createChargeAction() override;
     std::shared_ptr<DataTransferAction> createDataTransferAction() override;
-
-    std::shared_ptr<DynamicLawnmowerAction> createDynamicLawnmowerAction(const double targetHorizontalVelocity, 
-                                                                         const double targetRotationalVelocity,
-                                                                         const double targetSlope,
-                                                                         const VehiclePose& startLocation,
-                                                                         const double alongTrackDirection,
-                                                                         const double acrossTrackDirection,
-                                                                         const double trackSpacing,
-                                                                         const double targetHeight,
-                                                                         const int minSectionsPerTrack,
-                                                                         const double continueThreshold,
-                                                                         const int trackSectionThreshold) override;
 private:
     ros::NodeHandle& nh;
     VehicleInfo vehicleInfo;

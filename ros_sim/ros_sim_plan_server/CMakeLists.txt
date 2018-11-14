@@ -131,11 +131,9 @@ include_directories(
     src/${PROJECT_NAME}/RosSimPlanServer.cpp  
     src/${PROJECT_NAME}/ROSSimVentActionFactory.cpp
     src/${PROJECT_NAME}/ROSSimVehicleInterface.cpp
-    src/${PROJECT_NAME}/action_executors/DynamicLawnmowerSimActionExecutor.cpp
     src/${PROJECT_NAME}/action_executors/PointPathSimActionExecutor.cpp
     src/${PROJECT_NAME}/action_executors/ChargeSimActionExecutor.cpp
     src/${PROJECT_NAME}/action_executors/DataTransferSimActionExecutor.cpp
-    src/${PROJECT_NAME}/controllers/DynamicLawnmowerController.cpp
     src/${PROJECT_NAME}/controllers/PointPathController.cpp
   )
 

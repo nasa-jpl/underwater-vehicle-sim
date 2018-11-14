@@ -5,16 +5,12 @@
 
 #include "ros_sim_plan_server/ROSSimVentActionFactory.h"
 #include "vent_planner/actions/VentActionFactory.h"
-#include "vent_planner/actions/DynamicLawnmowerAction.h"
 #include "vent_planner/actions/ChargeAction.h"
 #include "vent_planner/actions/DataTransferAction.h"
 
 #include "ros_sim_plan_server/action_executors/PointPathSimActionExecutor.h"
 #include "ros_sim_plan_server/action_executors/ChargeSimActionExecutor.h"
 #include "ros_sim_plan_server/action_executors/DataTransferSimActionExecutor.h"
-#include "ros_sim_plan_server/action_executors/DynamicLawnmowerSimActionExecutor.h"
-
-
 
 
 ROSSimVentActionFactory::ROSSimVentActionFactory(ros::NodeHandle& nh, VehicleInfo vehicleInfo) :
@@ -64,34 +60,6 @@ std::shared_ptr<PointPathAction> ROSSimVentActionFactory::createPointPathAction(
                                                                 replan,
                                                                 periodicReplanTime));
 }
-
-std::shared_ptr<DynamicLawnmowerAction> ROSSimVentActionFactory::createDynamicLawnmowerAction(const double targetHorizontalVelocity, 
-                                                                                           const double targetRotationalVelocity,
-                                                                                           const double targetSlope,
-                                                                                           const VehiclePose& startLocation,
-                                                                                           const double alongTrackDirection,
-                                                                                           const double acrossTrackDirection,
-                                                                                           const double trackSpacing,
-                                                                                           const double targetHeight,
-                                                                                           const int minSectionsPerTrack,
-                                                                                           const double continueThreshold,
-                                                                                           const int trackSectionThreshold)
-{
-    std::unique_ptr<ActionExecutor<DynamicLawnmowerAction>> executor(new DynamicLawnmowerSimActionExecutor(nh, vehicleInfo.getName()));
-    return std::unique_ptr<DynamicLawnmowerAction>(new DynamicLawnmowerAction(std::move(executor),
-                                                                              targetHorizontalVelocity, 
-                                                                              targetRotationalVelocity,
-                                                                              targetSlope,
-                                                                              startLocation,
-                                                                              alongTrackDirection,
-                                                                              acrossTrackDirection,
-                                                                              trackSpacing,
-                                                                              targetHeight,
-                                                                              minSectionsPerTrack,
-                                                                              continueThreshold,
-                                                                              trackSectionThreshold));
-}
-
 
 std::shared_ptr<ChargeAction> ROSSimVentActionFactory::createChargeAction()
 {

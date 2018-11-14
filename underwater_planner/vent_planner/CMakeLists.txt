@@ -121,10 +121,10 @@ include_directories(
 ## Declare a C++ library
  add_library(vent_planner
    src/vent_planner/actions/PointPathAction.cpp
-   src/vent_planner/actions/DynamicLawnmowerAction.cpp
    src/vent_planner/actions/ChargeAction.cpp
    src/vent_planner/actions/DataTransferAction.cpp
    src/vent_planner/NestedBinVentPlanner.cpp
+   src/vent_planner/DynamicLawnmower.cpp
    src/vent_planner/SurfaceGradientVentPlanner.cpp
    src/vent_planner/DirectionSetVentPlanner.cpp
    src/vent_planner/DataTree.cpp

@@ -10,7 +10,7 @@
 #include "planner_framework/Planner.h"
 
 #include "vent_planner/actions/VentActionFactory.h"
-
+#include "vent_planner/DynamicLawnmower.h"
 #include "vent_planner/DataNode.h"
 #include "vent_planner/DataTree.h"
 
@@ -26,8 +26,6 @@ public:
 
 private:
 
-    enum SearchPhase {none, spiral, dynamic, nested };
-
     void receivePlumeData(const PlannerData& data);
 
     void publishLog(std::string log);
@@ -38,10 +36,16 @@ private:
     void initalizeDataTree(VehiclePose centerLocation);
 
     std::set<DataNode*, DataNode::PointerCompare> getUnexploredMaxima();
-    void addInitalLawnmowers(std::shared_ptr<Plan> plan, const VehiclePose& centerLocation, double plumeHeight);
+    void initializeDynamicLawnmower();
 
 
     bool isGoalSurvey(double nestedBinSize, DataNode* maximum, std::vector<DataNode*>& neighbors);
+
+    enum SearchPhase { SPIRAL,
+                       OBSERVE_SPIRAL,
+                       START_NEXT_LAWNMOWER,
+                       START_DYNAMIC_LAWNMOWER,
+                       RUN_DYNAMIC_LAWNMOWER};
 
 public:
     struct Parameters 
@@ -60,6 +64,12 @@ private:
 
     std::shared_ptr<Plan> spiralPlan;
     std::shared_ptr<Plan> dynamicPlan;
+
+    std::unique_ptr<DynamicLawnmower> dynamicLawnmower;
+    VehiclePose dynamicLawnmowerCenter;
+    unsigned int currentDynamicLawnmower;
+    double plumeHeight;
+    std::vector<PlannerData> dynamicLawnmowerSectionData;
 
     std::unique_ptr<DataTree> dataTree;
     DataNode spiralData;
