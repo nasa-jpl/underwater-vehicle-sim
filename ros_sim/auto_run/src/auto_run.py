@@ -6,8 +6,6 @@ import sys
 
 from std_msgs.msg import String
 import data_server.srv
-import planner_log.srv
-
 
 currentGoal = "running"
 dataFilePub = None

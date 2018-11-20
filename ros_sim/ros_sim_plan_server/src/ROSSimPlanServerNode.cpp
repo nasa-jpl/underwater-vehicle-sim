@@ -1,7 +1,7 @@
 #include "ros/ros.h"
 
-#include "planner_framework/Planner.h"
-#include "planner_framework/PlanDispatcher.h"
+#include "underwater_planner/Planner.h"
+#include "underwater_planner/PlanDispatcher.h"
 #include "ros_sim_plan_server/ROSSimPlanServer.h"
 #include "ros_sim_plan_server/ROSSimVentActionFactory.h"
 #include "ros_sim_plan_server/ROSSimVehicleInterface.cpp"

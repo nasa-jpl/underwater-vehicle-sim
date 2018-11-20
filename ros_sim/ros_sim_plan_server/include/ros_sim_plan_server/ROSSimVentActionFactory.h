@@ -6,7 +6,7 @@
 
 #include "ros/ros.h"
 
-#include "planner_framework/VehiclePose.h"
+#include "underwater_planner/VehiclePose.h"
 
 #include "vent_planner/actions/VentActionFactory.h"
 #include "vent_planner/actions/PointPathAction.h"

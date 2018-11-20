@@ -4,7 +4,7 @@
 
 #include "ros/ros.h"
 
-#include "planner_framework/Action.h"
+#include "underwater_planner/Action.h"
 
 #include "ros_sim_plan_server/action_executors/ChargeSimActionExecutor.h"
 #include "vent_planner/actions/ChargeAction.h"

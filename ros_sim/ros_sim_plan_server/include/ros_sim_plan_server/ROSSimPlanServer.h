@@ -1,8 +1,8 @@
 #ifndef ROS_SIM_PLAN_SERVER_H
 #define ROS_SIM_PLAN_SERVER_H
 
-#include "planner_framework/Planner.h"
-#include "planner_framework/PlanDispatcher.h"
+#include "underwater_planner/Planner.h"
+#include "underwater_planner/PlanDispatcher.h"
 
 #include "ros/ros.h"
 

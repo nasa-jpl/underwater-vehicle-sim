@@ -3,8 +3,8 @@
 
 #include "tf/transform_listener.h"
 
-#include "planner_framework/GoalStatus.h"
-#include "planner_framework/VehicleInterface.h"
+#include "underwater_planner/GoalStatus.h"
+#include "underwater_planner/VehicleInterface.h"
 
 #include "underwater_vehicle_msgs/VehicleInfo.h"
 #include "underwater_vehicle_msgs/VehicleData.h"
