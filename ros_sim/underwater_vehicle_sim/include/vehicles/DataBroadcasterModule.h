@@ -14,16 +14,10 @@ public:
 	DataBroadcasterModule(std::string name, ros::NodeHandle& parentNH, std::string vehicleName);
 	~DataBroadcasterModule() {}
 
-	void update(std::string name, const ros::Time& lastTime, const tf::Vector3& position, double& powerCapacity, double& dataCapacity);
-
+	void update(std::string name, const ros::Time& lastTime, VehicleState& vehicleState);
 
 	
 private:
-	/**
-	*Callback for the velocity message which is used to control this module
-	*@param vel Twist message used to control this module
-	*/
-	void commandVelocityCallback(const geometry_msgs::Twist::ConstPtr& vel);
 
 private:
 	ros::Publisher dataRecorder;

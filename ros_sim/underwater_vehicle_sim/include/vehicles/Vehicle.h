@@ -60,14 +60,9 @@ private:
 	tf::TransformListener transformListener;
 
 	/**
-	* Current vehicle rotation expressed as a tf quaternion
-	*/
-	tf::Quaternion rotation;
-
-	/**
-	* Current vehicle position espressed as a tf vector
-	*/
-	tf::Vector3 position;
+	 * Holds entire current vehicle state
+	 */
+	VehicleState vehicleState;
 
 	/**
 	* Time the last transform was sent

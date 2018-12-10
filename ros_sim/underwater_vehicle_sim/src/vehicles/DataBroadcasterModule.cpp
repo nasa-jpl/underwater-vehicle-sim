@@ -18,10 +18,12 @@ DataBroadcasterModule::DataBroadcasterModule(std::string name, ros::NodeHandle& 
 	client = nh.serviceClient<model_server::GetModelData>("/get_model_data");
 }
 
-void DataBroadcasterModule::update(std::string name, const ros::Time& lastTime, const tf::Vector3& position, double& powerCapacity, double& dataCapacity) 
+void DataBroadcasterModule::update(std::string name, const ros::Time& lastTime, VehicleState& vehicleState) 
 {
 	model_server::GetModelData srv;
 
+	tf::Vector3 position = vehicleState.getPosition();
+	
 	srv.request.x = position.getX();
 	srv.request.y = position.getY();
 	srv.request.h = position.getZ();
@@ -49,9 +51,6 @@ void DataBroadcasterModule::update(std::string name, const ros::Time& lastTime, 
 			data.sonarDepth = srv.response.depth + position.getZ(); //depth + z, becuase z is negative while depth is positive
 
 			dataRecorder.publish(data);
-
-			//sizeof gives the size of data to be 64 Bytes
-			dataCapacity -= 64;
 		}
 	}
 }

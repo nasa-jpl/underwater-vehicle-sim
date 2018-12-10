@@ -24,8 +24,10 @@ double BaseStationModule::distanceToBase(const tf::Vector3& position)
 	return sqrt(dist);
 }
 
-void BaseStationModule::update(std::string name, const ros::Time& lastTime, const tf::Vector3& position, double& powerCapacity, double& dataCapacity) 
+void BaseStationModule::update(std::string name, const ros::Time& lastTime, VehicleState& vehicleState) 
 {
+	tf::Vector3 position = vehicleState.getPosition();
+
 	std_msgs::Bool base_msg;
 	double dist = distanceToBase(position);
 	base_msg.data = false;

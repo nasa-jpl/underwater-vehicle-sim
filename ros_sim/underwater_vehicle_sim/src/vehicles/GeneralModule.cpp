@@ -8,6 +8,7 @@
 #include "vehicles/PowerCapacityModule.h"
 #include "vehicles/DataCapacityModule.h"
 #include "vehicles/BaseStationModule.h"
+#include "vehicles/IMUModule.h"
 
 GeneralModule::GeneralModule(std::string name, std::string type, 
                 ros::NodeHandle parentNH, std::string vehicleName) :
@@ -55,19 +56,23 @@ std::unique_ptr<GeneralModule> GeneralModule::makeGeneralModule(std::string modu
 		std::unique_ptr<GeneralModule> returnPtr(new BaseStationModule(moduleName, parentNH, vehicleName));
 		return returnPtr;
 	}
+	if(moduleType == "IMU")
+	{
+		std::unique_ptr<GeneralModule> returnPtr(new IMUModule(moduleName, parentNH, vehicleName));
+		return returnPtr;
+	}
 
 	return NULL;
 }
 
-void GeneralModule::updateAtRate(std::string name, const ros::Time& lastTime, const tf::Vector3& position, 
-							double& powerCapacity, double &dataCapacity)
+void GeneralModule::updateAtRate(std::string name, const ros::Time& lastTime, VehicleState& vehicleState)
 {
 	ros::Duration rate(1 / hertz);
 
 	if(!useHertz || ros::Time::now() - lastUpdate >= rate)
 	{
 		lastUpdate = ros::Time::now();
-		update(name, lastTime, position, powerCapacity, dataCapacity);
+		update(name, lastTime, vehicleState);
 	}
 }
 

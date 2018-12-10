@@ -6,6 +6,7 @@
 #include "tf/transform_broadcaster.h"
 #include "tf/transform_listener.h"
 
+#include "vehicles/VehicleState.h"
 class GeneralModule
 {
 public:
@@ -13,11 +14,9 @@ public:
 
 	virtual ~GeneralModule(){}
 
-	virtual void update(std::string name, const ros::Time& lastTime, const tf::Vector3& position, 
-						double& powerCapacity, double& dataCapacity)=0;
+	virtual void update(std::string name, const ros::Time& lastTime, VehicleState& vehicleState)=0;
 
-	void updateAtRate(std::string name, const ros::Time& lastTime, const tf::Vector3& position,
-						double& powerCapacity, double& dataCapacity);
+	void updateAtRate(std::string name, const ros::Time& lastTime, VehicleState& vehicleState);
 
 	static std::unique_ptr<GeneralModule> makeGeneralModule(std::string moduleName, 
                         ros::NodeHandle& parentNH, std::string vehicleName);

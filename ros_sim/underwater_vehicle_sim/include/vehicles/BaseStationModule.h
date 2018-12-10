@@ -14,7 +14,7 @@ public:
 	BaseStationModule(std::string name, ros::NodeHandle& parentNH, std::string vehicleName);
 	~BaseStationModule() {}
 
-	void update(std::string name, const ros::Time& lastTime, const tf::Vector3& position, double& powerCapactiy, double& dataCapacity);
+	void update(std::string name, const ros::Time& lastTime, VehicleState& vehicleState);
 	double distanceToBase(const tf::Vector3& position);
 
 	

@@ -3,50 +3,29 @@
 #include "ros/ros.h"
 
 #include "vehicles/Vehicle.h"
-
+#include "vehicles/VehicleState.h"
 #include "vehicles/PropulsionModule.h"
 #include "vehicles/FourDOFPropulsion.h"
 
-PropulsionModule::PropulsionModule(std::string name, std::string type, ros::NodeHandle& parentNH) :
+PropulsionModule::PropulsionModule(std::string name, std::string type, VehicleState& vehicleState, ros::NodeHandle& parentNH) :
 	name(name),
 	type(type),
-	nh(ros::NodeHandle(parentNH, name))
-{
-	if(nh.hasParam("hertz"))
-	{
-		useHertz = true;
-		nh.getParam("hertz", hertz);
-	}
-	else
-	{
-		useHertz = false;
-		hertz = 1;
-	}
-}
+	nh(ros::NodeHandle(parentNH, name)),
+	vehicleState(vehicleState)
+{}
 
-std::unique_ptr<PropulsionModule> PropulsionModule::makePropulsionModule(std::string moduleName, ros::NodeHandle& parentNH)
+std::unique_ptr<PropulsionModule> PropulsionModule::makePropulsionModule(std::string moduleName, VehicleState& vehicleState, ros::NodeHandle& parentNH)
 {
 	std::string moduleType;
 	parentNH.getParam(moduleName + "/type", moduleType);
 
 	if(moduleType == "FourDOFPropulsion")
 	{
-		std::unique_ptr<PropulsionModule> returnPtr(new FourDOFPropulsion(moduleName, parentNH));
+		std::unique_ptr<PropulsionModule> returnPtr(new FourDOFPropulsion(moduleName, vehicleState, parentNH));
 		return returnPtr;
 	}
 
 	return NULL;
-}
-
-void PropulsionModule::moveAtRate(ros::Time& lastTime, tf::Quaternion& rotation, tf::Vector3& position, double& powerCapacity, double& dataCapacity)
-{
-	ros::Duration rate(1 / hertz);
-
-	if(!useHertz || ros::Time::now() - lastUpdate >= rate)
-	{
-		lastUpdate = ros::Time::now();
-		move(lastTime, rotation, position, powerCapacity, dataCapacity);
-	}
 }
 
 std::string& PropulsionModule::getName()

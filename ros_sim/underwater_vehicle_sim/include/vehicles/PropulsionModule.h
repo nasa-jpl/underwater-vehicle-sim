@@ -3,23 +3,14 @@
 
 #include "ros/ros.h"
 
+#include "vehicles/VehicleState.h"
+
 class PropulsionModule
 {
 
 public:
-	PropulsionModule(std::string name, std::string type, ros::NodeHandle& parentNH);
+	PropulsionModule(std::string name, std::string type, VehicleState& vehicleState, ros::NodeHandle& parentNH);
 	virtual ~PropulsionModule() {}
-
-	/**
-	* Calculates the new frame of the vehicle from the old one
-	* @param currentLocaion The old vehicle frame relative to the world frame
-	* @return The new vehicle frame relative to the world frame
-	*/
-	virtual void move(ros::Time& lastTime, tf::Quaternion& rotation, tf::Vector3& position, 
-						double& powerCapacity, double& dataCapacity)=0;
-
-	void moveAtRate(ros::Time& lastTime, tf::Quaternion& rotation, tf::Vector3& position, 
-						double& powerCapacity, double& dataCapacity);
 
 	/**
 	* Creates a propulsion module using the parameters from the parameter server
@@ -27,7 +18,7 @@ public:
 	* @param parentNH The parent node handle for this ros node
 	* @return A pointer to the newly created module
 	*/
-	static std::unique_ptr<PropulsionModule> makePropulsionModule(std::string moduleName, ros::NodeHandle& parentNH);
+	static std::unique_ptr<PropulsionModule> makePropulsionModule(std::string moduleName, VehicleState& vehicleState, ros::NodeHandle& parentNH);
 
 	std::string& getName();
 	std::string& getType();
@@ -35,10 +26,9 @@ protected:
 	std::string name;
 	std::string type;
 	ros::NodeHandle nh;
+	VehicleState& vehicleState;
 
 	ros::Time lastUpdate;
-	bool useHertz;
-	float hertz;
 };
 
 #endif

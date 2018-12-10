@@ -11,6 +11,7 @@ find_package(catkin REQUIRED COMPONENTS
   tf
   roscpp
   std_msgs
+  sensor_msgs
   model_server
   underwater_vehicle_msgs
 )
@@ -132,6 +133,8 @@ catkin_package(
    src/vehicles/PowerCapacityModule.cpp
    src/vehicles/DataCapacityModule.cpp
    src/vehicles/BaseStationModule.cpp
+   src/vehicles/IMUModule.cpp
+   src/vehicles/VehicleState.cpp
  )
 
  target_link_libraries(underwater_vehicles ${catkin_LIBRARIES})
@@ -215,14 +218,20 @@ if (CATKIN_ENABLE_TESTING)
  find_package(rostest REQUIRED)
 
  add_rostest_gtest(clock_server_test tests/clock_server/ClockServer.test src/tests/clock_server/ClockServer_test.cpp)
- add_rostest_gtest(init_underwater_vehicle_sim_test tests/vehicles/InitVehicles.test src/tests/vehicles/InitVehicles_test.cpp)
- add_rostest_gtest(four_dof_propulsion_test tests/vehicles/FourDOFPropulsion.test src/tests/vehicles/FourDOFPropulsion_test.cpp)
- add_rostest_gtest(data_broadcaster_module_test tests/vehicles/DataBroadcasterModule.test src/tests/vehicles/DataBroadcasterModule_test.cpp)
- 
  target_link_libraries(clock_server_test ${catkin_LIBRARIES} ${NETCDF_LIBRARIES})
+
+ add_rostest_gtest(vehicle_state_test tests/vehicles/VehicleState.test src/tests/vehicles/VehicleState_test.cpp)
+ target_link_libraries(vehicle_state_test underwater_vehicles ${catkin_LIBRARIES} ${NETCDF_LIBRARIES})
+
+ add_rostest_gtest(init_underwater_vehicle_sim_test tests/vehicles/InitVehicles.test src/tests/vehicles/InitVehicles_test.cpp)
  target_link_libraries(init_underwater_vehicle_sim_test underwater_vehicles ${catkin_LIBRARIES} ${NETCDF_LIBRARIES})
+
+ add_rostest_gtest(four_dof_propulsion_test tests/vehicles/FourDOFPropulsion.test src/tests/vehicles/FourDOFPropulsion_test.cpp)
  target_link_libraries(four_dof_propulsion_test underwater_vehicles ${catkin_LIBRARIES} ${NETCDF_LIBRARIES})
+
+ add_rostest_gtest(data_broadcaster_module_test tests/vehicles/DataBroadcasterModule.test src/tests/vehicles/DataBroadcasterModule_test.cpp)
  target_link_libraries(data_broadcaster_module_test underwater_vehicles ${catkin_LIBRARIES} ${NETCDF_LIBRARIES})
+ 
 endif()
 
 

@@ -19,7 +19,8 @@
 
 Vehicle::Vehicle(std::string name, ros::NodeHandle& parentNH) :
 	name(name),
-	nh(ros::NodeHandle(parentNH, "vehicles/" + name))
+	nh(ros::NodeHandle(parentNH, "vehicles/" + name)),
+	vehicleState(parentNH)
 {
 	initalizeVehicleFrame();
   	
@@ -32,9 +33,8 @@ Vehicle::Vehicle(Vehicle&& other)
       modules(std::move(other.modules)),
       name(std::move(other.name)),
       nh(std::move(other.nh)),
-      position(std::move(other.position)),
-      rotation(std::move(other.rotation)),
-      lastTransformTime(std::move(other.lastTransformTime))
+      lastTransformTime(std::move(other.lastTransformTime)),
+	  vehicleState(std::move(other.vehicleState))
 {}
 
 void Vehicle::initalizeVehicleFrame()
@@ -43,7 +43,7 @@ void Vehicle::initalizeVehicleFrame()
 	float startX = 0;
 	float startY = 0;
 	float startZ = 0;
-
+	
 	nh.getParam("start_x", startX);
 	nh.getParam("start_y", startY);
 	nh.getParam("start_z", startZ);
@@ -52,11 +52,12 @@ void Vehicle::initalizeVehicleFrame()
 
 	//broadcast the inital frame for this vehicle
 
-  	rotation.setRPY(0, 0, 0);
+	tf::Quaternion initialRotation;
+	initialRotation.setRPY(0, 0, 0);
+	vehicleState.setRotation(initialRotation);
 
-  	position.setX(startX);
-  	position.setY(startY);
-  	position.setZ(startZ);
+	tf::Vector3 initialPosition(startX, startY, startZ);
+	vehicleState.setPosition(initialPosition);
   	broadcastTransform();
   	
 }
@@ -70,7 +71,7 @@ void Vehicle::initalizePropulsionModule()
 	{
 
 		nh.getParam("propModuleName", propModuleName);
-		propulsionModule = PropulsionModule::makePropulsionModule(propModuleName, nh);
+		propulsionModule = PropulsionModule::makePropulsionModule(propModuleName, vehicleState, nh);
 	}
 }
 
@@ -87,18 +88,16 @@ void Vehicle::initalizeGeneralModules()
 
 void Vehicle::update()
 {
-	//move the frame using the propulsion module and broadcast it
-	if(propulsionModule)
-	{
-		propulsionModule->moveAtRate(lastTransformTime, rotation, position, powerCapacity, dataCapacity);
-	}
+	ros::Time currentTime = ros::Time::now();
+	vehicleState.updatePose(currentTime, currentTime - lastTransformTime);
+	lastTransformTime = currentTime;
 
 	broadcastTransform();
 
 	//update all modules
 	for(std::unique_ptr<GeneralModule>& module : modules)
 	{
-		module->updateAtRate(name, lastTransformTime, position, powerCapacity, dataCapacity);
+		module->updateAtRate(name, lastTransformTime, vehicleState);
 	}
 }
 
@@ -125,7 +124,11 @@ void Vehicle::getInfo(underwater_vehicle_msgs::GetVehicleInfo::Response &res)
 void Vehicle::broadcastTransform()
 {
 	static tf::TransformBroadcaster br;
-  	br.sendTransform(tf::StampedTransform(tf::Transform(rotation, position), lastTransformTime, "world", name));
+  	br.sendTransform(tf::StampedTransform(tf::Transform(vehicleState.getRotation(), 
+	  													vehicleState.getPosition()), 
+														lastTransformTime, 
+														"world", 
+														name));
 }
 
 std::string Vehicle::getName()

@@ -32,15 +32,9 @@ void PowerCapacityModule::chargingCallback(const std_msgs::Float64::ConstPtr& ms
     }
 }
 
-void PowerCapacityModule::update(std::string name, const ros::Time& lastTime, const tf::Vector3& position, double& powerCapacity, double& dataCapacity) 
+void PowerCapacityModule::update(std::string name, const ros::Time& lastTime, VehicleState& vehicleState) 
 {
-    powerCapacity += savedCharge;
-    if(powerCapacity > maxCharge) {
-        powerCapacity = maxCharge;
-    }
-    savedCharge = 0.0;
-
 	std_msgs::Float64 power_msg;
-	power_msg.data = powerCapacity;
+	power_msg.data = vehicleState.getPowerCapacity();
 	pub.publish(power_msg);
 }

@@ -36,15 +36,9 @@ void DataCapacityModule::transferCallback(const std_msgs::Float64::ConstPtr& msg
 }
 
 
-void DataCapacityModule::update(std::string name, const ros::Time& lastTime, const tf::Vector3& position, double& powerCapacity, double& dataCapacity) 
+void DataCapacityModule::update(std::string name, const ros::Time& lastTime, VehicleState& vehicleState) 
 {
-	dataCapacity += sentData;
-	if(dataCapacity > maxData) {
-		dataCapacity = maxData;
-	}
-	sentData = 0.0;
-
 	std_msgs::Float64 capacity;
-	capacity.data = dataCapacity;
+	capacity.data = vehicleState.getDataCapacity();
 	pub.publish(capacity);
 }
