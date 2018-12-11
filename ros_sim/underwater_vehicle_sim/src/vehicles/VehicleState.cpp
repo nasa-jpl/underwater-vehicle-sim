@@ -2,10 +2,10 @@
 
 #include "ros/ros.h"
 
-#include "tf/transform_broadcaster.h"
-#include "tf/transform_listener.h"
-
 #include "model_server/GetModelData.h"
+
+#include "tf2/LinearMath/Quaternion.h"
+#include "tf2/LinearMath/Vector3.h"
 
 #define SECONDS_IN_DAY 86400
 
@@ -31,7 +31,7 @@ VehicleState::VehicleState(VehicleState&& other)
 void VehicleState::updatePose(const ros::Time currentTime, const ros::Duration deltaTime)
 {
     //Get the total linear movement in the vehicle frame
-	tf::Vector3 totalLinMovement = linearVelocity * deltaTime.toSec();
+	tf2::Vector3 totalLinMovement = linearVelocity * deltaTime.toSec();
 
 	//rotate the total linear movement to be in the world frame
 	totalLinMovement = totalLinMovement.rotate(rotation.getAxis(), rotation.getAngle());
@@ -40,7 +40,7 @@ void VehicleState::updatePose(const ros::Time currentTime, const ros::Duration d
 	position += totalLinMovement;
 
     //create a Quaternion to represent rotation using the axis of rotation and angle of rotation
-	tf::Quaternion totalRotMovement;
+	tf2::Quaternion totalRotMovement;
 
     //Z rotation is negative because heading increases clockwise
 	totalRotMovement.setRPY(angularVelocity.getX() * deltaTime.toSec(),
@@ -48,10 +48,10 @@ void VehicleState::updatePose(const ros::Time currentTime, const ros::Duration d
 							angularVelocity.getZ() * deltaTime.toSec());
 	
 	//Apply the rotation to the current rotation of the vehicle
-	rotation *= totalRotMovement;
+	rotation = rotation * totalRotMovement;
 
 	//prevent position from leaving the top of the model
-	if(position.getZ() > 0)
+	if(position.getZ() < 0)
 	{
 		position.setZ(0);
 	}
@@ -67,50 +67,50 @@ void VehicleState::updatePose(const ros::Time currentTime, const ros::Duration d
 
 		bool success = modelClient.call(srv);
 
-		if(success && -srv.response.depth + 0.1 > position.getZ())
+		if(success && srv.response.depth - 0.1 < position.getZ())
 		{
 			//if vehicle is trying to go below the bottom of the ocean model then set its z position to above the ocean floor.
-			position.setZ(-srv.response.depth + 0.1);
+			position.setZ(srv.response.depth - 0.1);
 		}
 	}
 }
 
-tf::Vector3 VehicleState::getPosition() const
+tf2::Vector3 VehicleState::getPosition() const
 {
     return position;
 }
 
-tf::Vector3 VehicleState::getLinearVelocity() const
+tf2::Vector3 VehicleState::getLinearVelocity() const
 {
     return linearVelocity;
 }
 
-tf::Quaternion VehicleState::getRotation() const
+tf2::Quaternion VehicleState::getRotation() const
 {
     return rotation;
 }
 
-tf::Vector3 VehicleState::getAngularVelocity() const
+tf2::Vector3 VehicleState::getAngularVelocity() const
 {
     return angularVelocity;
 }
 
-void VehicleState::setPosition(const tf::Vector3 position)
+void VehicleState::setPosition(const tf2::Vector3 position)
 {
 	this->position = position;
 }
 
-void VehicleState::setRotation(const tf::Quaternion rotation)
+void VehicleState::setRotation(const tf2::Quaternion rotation)
 {
 	this->rotation = rotation;
 }
 
-void VehicleState::setLinearVelocity(const tf::Vector3 velocity)
+void VehicleState::setLinearVelocity(const tf2::Vector3 velocity)
 {
     linearVelocity = velocity;
 }
 
-void VehicleState::setAngularVelocity(const tf::Vector3 velocity)
+void VehicleState::setAngularVelocity(const tf2::Vector3 velocity)
 {
     angularVelocity = velocity;
 }

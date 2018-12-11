@@ -2,9 +2,8 @@
 
 #include "ros/ros.h"
 
-#include "tf/transform_broadcaster.h"
-#include "tf/transform_listener.h"
-#include <tf/transform_datatypes.h>
+#include "tf2/LinearMath/Vector3.h"
+#include "tf2/LinearMath/Quaternion.h"
 
 #include "sensor_msgs/Imu.h"
 
@@ -21,8 +20,8 @@ IMUModule::IMUModule(std::string name, ros::NodeHandle& parentNH, std::string ve
 
 void IMUModule::update(std::string name, const ros::Time& lastTime, VehicleState& vehicleState) 
 {
-	tf::Stamped<tf::Quaternion> rotation(vehicleState.getRotation(), lastTime, "/world");
-	tf::Vector3 angularVelocity = vehicleState.getAngularVelocity();
+	tf2::Quaternion rotation(vehicleState.getRotation());
+	tf2::Vector3 angularVelocity = vehicleState.getAngularVelocity();
 
 	//Add gaussian noise to the angular velocity
 	for(unsigned int i = 0; i < 3; i++)
@@ -35,13 +34,23 @@ void IMUModule::update(std::string name, const ros::Time& lastTime, VehicleState
 	std::normal_distribution<double> tiltDist(0, sqrt(tiltVariance));
 
 	
-	tf::Stamped<tf::Quaternion> rotationError;
+	tf2::Quaternion rotationError;
 	rotationError.setRPY(tiltDist(generator), tiltDist(generator), headingDist(generator));
-	rotation *= rotationError;
+	rotation = rotation * rotationError;
 
 	sensor_msgs::Imu data;
-	quaternionTFToMsg(rotation, data.orientation);
-	vector3TFToMsg(angularVelocity, data.angular_velocity);
+
+	data.header.stamp = lastTime;
+  	data.header.frame_id = "world_ned";
+
+	data.orientation.x = rotation.x();
+	data.orientation.y = rotation.y();
+	data.orientation.z = rotation.z();
+	data.orientation.w = rotation.w();
+
+	data.angular_velocity.x = angularVelocity.x();
+	data.angular_velocity.y = angularVelocity.y();
+	data.angular_velocity.z = angularVelocity.z();
 
 	data.orientation_covariance[0] = tiltVariance * tiltVariance;
 	data.orientation_covariance[1] = 0;

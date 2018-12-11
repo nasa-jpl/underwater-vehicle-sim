@@ -1,6 +1,4 @@
 #include "ros/ros.h"
-#include "tf/transform_broadcaster.h"
-#include "tf/transform_listener.h"
 
 #include "vehicles/Vehicle.h"
 
@@ -52,11 +50,11 @@ void Vehicle::initalizeVehicleFrame()
 
 	//broadcast the inital frame for this vehicle
 
-	tf::Quaternion initialRotation;
+	tf2::Quaternion initialRotation;
 	initialRotation.setRPY(0, 0, 0);
 	vehicleState.setRotation(initialRotation);
 
-	tf::Vector3 initialPosition(startX, startY, startZ);
+	tf2::Vector3 initialPosition(startX, startY, startZ);
 	vehicleState.setPosition(initialPosition);
   	broadcastTransform();
   	
@@ -123,12 +121,25 @@ void Vehicle::getInfo(underwater_vehicle_msgs::GetVehicleInfo::Response &res)
 
 void Vehicle::broadcastTransform()
 {
-	static tf::TransformBroadcaster br;
-  	br.sendTransform(tf::StampedTransform(tf::Transform(vehicleState.getRotation(), 
-	  													vehicleState.getPosition()), 
-														lastTransformTime, 
-														"world", 
-														name));
+	static tf2_ros::TransformBroadcaster br;
+
+	geometry_msgs::TransformStamped transformStamped;
+	transformStamped.header.stamp = lastTransformTime;
+  	transformStamped.header.frame_id = "world_ned";
+  	transformStamped.child_frame_id = name;
+
+	tf2::Vector3 position = vehicleState.getPosition();
+	transformStamped.transform.translation.x = position.x();
+	transformStamped.transform.translation.y = position.y();
+	transformStamped.transform.translation.z = position.z();
+
+	tf2::Quaternion rotation = vehicleState.getRotation();
+	transformStamped.transform.rotation.x = rotation.x();
+	transformStamped.transform.rotation.y = rotation.y();
+	transformStamped.transform.rotation.z = rotation.z();
+	transformStamped.transform.rotation.w = rotation.w();
+	
+  	br.sendTransform(transformStamped);
 }
 
 std::string Vehicle::getName()

@@ -1,7 +1,5 @@
 #include "ros/ros.h"
-
-#include "tf/transform_broadcaster.h"
-#include "tf/transform_listener.h"
+#include "tf2/LinearMath/Vector3.h"
 
 #include "std_msgs/Bool.h"
 #include "vehicles/BaseStationModule.h"
@@ -16,7 +14,7 @@ BaseStationModule::BaseStationModule(std::string name, ros::NodeHandle& parentNH
     nh.getParam("base_range", base_range);
 }
 
-double BaseStationModule::distanceToBase(const tf::Vector3& position)
+double BaseStationModule::distanceToBase(const tf2::Vector3& position)
 {
 	double dist = (base_x - position.getX()) * (base_x - position.getX());
 	dist = dist + (base_y - position.getY()) * (base_y - position.getY());
@@ -26,7 +24,7 @@ double BaseStationModule::distanceToBase(const tf::Vector3& position)
 
 void BaseStationModule::update(std::string name, const ros::Time& lastTime, VehicleState& vehicleState) 
 {
-	tf::Vector3 position = vehicleState.getPosition();
+	tf2::Vector3 position = vehicleState.getPosition();
 
 	std_msgs::Bool base_msg;
 	double dist = distanceToBase(position);

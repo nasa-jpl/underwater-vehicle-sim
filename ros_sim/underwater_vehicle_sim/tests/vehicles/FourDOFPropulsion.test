@@ -1,61 +1,7 @@
 <launch>
- <rosparam param="underwater_vehicle_sim/hertz">100</rosparam>
- <rosparam param="vehicles/names">[v0,v1,v2,v3,v4]</rosparam>
+ <rosparam param="/vehicles/v1/prop/max_linear_velocity">5</rosparam>
+ <rosparam param="/vehicles/v1/prop/max_vertical_velocity">4</rosparam>
+ <rosparam param="/vehicles/v1/prop/max_angular_velocity">0.4</rosparam>
 
-
- <rosparam param="vehicles/v0/start_x">100</rosparam>
- <rosparam param="vehicles/v0/start_y">100</rosparam>
- <rosparam param="vehicles/v0/start_z">0</rosparam>
- <rosparam param="vehicles/v0/start_power">100</rosparam>
- <rosparam param="vehicles/v0/start_dataCapacity">100</rosparam>
-
- <rosparam param="vehicles/v0/propModuleName">prop_v1</rosparam>
- <rosparam param="vehicles/v0/prop_v1/type">FourDOFPropulsion</rosparam>
- <rosparam param="vehicles/v0/prop_v1/hertz">4</rosparam>
-
-
- <rosparam param="vehicles/v1/start_x">100</rosparam>
- <rosparam param="vehicles/v1/start_y">100</rosparam>
- <rosparam param="vehicles/v1/start_z">0</rosparam>
- <rosparam param="vehicles/v1/start_power">100</rosparam>
- <rosparam param="vehicles/v1/start_dataCapacity">100</rosparam>
-
-
- <rosparam param="vehicles/v1/propModuleName">prop_v1</rosparam>
- <rosparam param="vehicles/v1/prop_v1/type">FourDOFPropulsion</rosparam>
- <rosparam param="/vehicles/v1/prop_v1/max_linear_velocity">1.5</rosparam>
- <rosparam param="/vehicles/v1/prop_v1/max_vertical_velocity">0.25</rosparam>
- <rosparam param="/vehicles/v1/prop_v1/max_rotate_velocity">0</rosparam>
-
- <rosparam param="vehicles/v2/start_x">0</rosparam>
- <rosparam param="vehicles/v2/start_y">0</rosparam>
- <rosparam param="vehicles/v2/start_z">0</rosparam>
- <rosparam param="vehicles/v2/start_power">100</rosparam>
- <rosparam param="vehicles/v2/start_dataCapacity">100</rosparam>
-
- <rosparam param="vehicles/v2/propModuleName">prop_v2</rosparam>
- <rosparam param="vehicles/v2/prop_v2/type">FourDOFPropulsion</rosparam>
-
- <rosparam param="vehicles/v3/start_x">100</rosparam>
- <rosparam param="vehicles/v3/start_y">100</rosparam>
- <rosparam param="vehicles/v3/start_z">0</rosparam>
- <rosparam param="vehicles/v3/start_power">100</rosparam>
- <rosparam param="vehicles/v3/start_dataCapacity">100</rosparam>
-
- <rosparam param="vehicles/v3/propModuleName">prop_v3</rosparam>
- <rosparam param="vehicles/v3/prop_v3/type">FourDOFPropulsion</rosparam>
-
- <rosparam param="vehicles/v4/start_x">100</rosparam>
- <rosparam param="vehicles/v4/start_y">100</rosparam>
- <rosparam param="vehicles/v4/start_z">-195</rosparam>
-
- <rosparam param="vehicles/v4/propModuleName">prop_v4</rosparam>
- <rosparam param="vehicles/v4/prop_v4/type">FourDOFPropulsion</rosparam>
-
- <rosparam param="model_type">constant</rosparam>
- <rosparam param="model/depth">200</rosparam>
-
- <node pkg="model_server" type="model_server_node" name="model_server" output="screen"/>
- <node pkg="underwater_vehicle_sim" type="underwater_vehicle_sim_node" name="underwater_vehicle_sim" output="screen" />
  <test test-name="four_dof_propulsion_test" pkg="underwater_vehicle_sim" type="four_dof_propulsion_test" />
 </launch>

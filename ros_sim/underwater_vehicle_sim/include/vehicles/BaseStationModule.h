@@ -1,9 +1,8 @@
 #ifndef BASE_STATION_MODULE_H
 #define BASE_STATION_MODULE_H
 
-#include "tf/transform_broadcaster.h"
-#include "tf/transform_listener.h"
 #include "ros/ros.h"
+#include "tf2/LinearMath/Vector3.h"
 
 #include "vehicles/GeneralModule.h"
 
@@ -15,7 +14,7 @@ public:
 	~BaseStationModule() {}
 
 	void update(std::string name, const ros::Time& lastTime, VehicleState& vehicleState);
-	double distanceToBase(const tf::Vector3& position);
+	double distanceToBase(const tf2::Vector3& position);
 
 	
 private:

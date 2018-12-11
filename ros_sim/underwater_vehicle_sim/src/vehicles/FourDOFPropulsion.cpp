@@ -2,6 +2,8 @@
 #include <limits>
 
 #include "ros/ros.h"
+#include "tf2/LinearMath/Vector3.h"
+
 #include "vehicles/FourDOFPropulsion.h"
 #include "model_server/GetModelData.h"
 
@@ -36,9 +38,9 @@ FourDOFPropulsion::FourDOFPropulsion(std::string name, VehicleState& vehicleStat
         maxVertVelocity = std::numeric_limits<double>::max();
     }
 
-    if(nh.hasParam("max_rotate_velocity"))
+    if(nh.hasParam("max_angular_velocity"))
     {
-        nh.getParam("max_rotate_velocity", maxRotVelocity);
+        nh.getParam("max_angular_velocity", maxRotVelocity);
         if(maxRotVelocity < 0)
         {
             maxRotVelocity = 0;
@@ -49,23 +51,16 @@ FourDOFPropulsion::FourDOFPropulsion(std::string name, VehicleState& vehicleStat
         maxRotVelocity = std::numeric_limits<double>::max();
     }
 
-	modelClient = nh.serviceClient<model_server::GetModelData>("/get_model_data");
 	commandVelocitySub = nh.subscribe("command_velocity", 1, &FourDOFPropulsion::commandVelocityCallback, this);
-
-	rotVelocity.setX(0);
-	rotVelocity.setY(0);
-	rotVelocity.setZ(0);
-
-	linVelocity.setX(0);
-	linVelocity.setY(0);
-	linVelocity.setZ(0);
+    vehicleState.setLinearVelocity(tf2::Vector3(0,0,0));
+    vehicleState.setAngularVelocity(tf2::Vector3(0,0,0));
 }
 
 
 void FourDOFPropulsion::commandVelocityCallback(const geometry_msgs::Twist::ConstPtr& vel)
 {
-    tf::Vector3 updatedLinearVelocity;
-    tf::Vector3 updatedAngularVelocity;
+    tf2::Vector3 updatedLinearVelocity;
+    tf2::Vector3 updatedAngularVelocity;
 
     if(std::isfinite(vel->linear.x))
     {

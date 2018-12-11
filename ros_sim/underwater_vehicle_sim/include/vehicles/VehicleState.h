@@ -5,8 +5,9 @@
 #include <memory>
 
 #include "ros/ros.h"
-#include "tf/transform_broadcaster.h"
-#include "tf/transform_listener.h"
+
+#include "tf2/LinearMath/Quaternion.h"
+#include "tf2/LinearMath/Vector3.h"
 
 #include "model_server/GetModelData.h"
 
@@ -23,16 +24,16 @@ public:
 
     void updatePose(const ros::Time currentTime, const ros::Duration deltaTime);
 
-    tf::Vector3 getPosition() const;
-    tf::Vector3 getLinearVelocity() const;
+    tf2::Vector3 getPosition() const;
+    tf2::Vector3 getLinearVelocity() const;
 
-    tf::Quaternion getRotation() const;
-    tf::Vector3 getAngularVelocity() const;
+    tf2::Quaternion getRotation() const;
+    tf2::Vector3 getAngularVelocity() const;
 
-    void setPosition(const tf::Vector3 position);
-    void setRotation(const tf::Quaternion rotation);
-    void setLinearVelocity(const tf::Vector3 velocity);
-    void setAngularVelocity(const tf::Vector3 velocity);
+    void setPosition(const tf2::Vector3 position);
+    void setRotation(const tf2::Quaternion rotation);
+    void setLinearVelocity(const tf2::Vector3 velocity);
+    void setAngularVelocity(const tf2::Vector3 velocity);
     	
     double getPowerCapacity();
     double getDataCapacity();
@@ -40,22 +41,22 @@ private:
 	/**
 	* Current vehicle position espressed as a tf vector
 	*/
-	tf::Vector3 position;
+	tf2::Vector3 position;
 
     /**
      * Current linear velocity of the vehicle in body frame in m/s
     **/
-    tf::Vector3 linearVelocity;
+    tf2::Vector3 linearVelocity;
 
     /**
 	* Current vehicle rotation expressed as a tf quaternion
 	*/
-	tf::Quaternion rotation;
+	tf2::Quaternion rotation;
 
     /**
      * Current rotational velocity of the vehicle in rad/s
     **/
-    tf::Vector3 angularVelocity;
+    tf2::Vector3 angularVelocity;
 
 	/**
 	* Tracks power remaining for this vehicle

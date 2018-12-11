@@ -1,9 +1,8 @@
 #include "ros/ros.h"
 
-#include "tf/transform_broadcaster.h"
-#include "tf/transform_listener.h"
-
 #include "model_server/GetModelData.h"
+
+#include "tf2/LinearMath/Vector3.h"
 
 #include "underwater_vehicle_msgs/VehicleData.h"
 #include "vehicles/DataBroadcasterModule.h"
@@ -22,7 +21,7 @@ void DataBroadcasterModule::update(std::string name, const ros::Time& lastTime, 
 {
 	model_server::GetModelData srv;
 
-	tf::Vector3 position = vehicleState.getPosition();
+	tf2::Vector3 position = vehicleState.getPosition();
 	
 	srv.request.x = position.getX();
 	srv.request.y = position.getY();

@@ -2,9 +2,7 @@
 #define SIX_DOF_PROPULSION_H
 
 #include "ros/ros.h"
-#include "tf/transform_broadcaster.h"
-#include "tf/transform_listener.h"
-
+#include "geometry_msgs/Twist.h"
 #include "vehicles/PropulsionModule.h"
 
 /**
@@ -17,14 +15,6 @@ class FourDOFPropulsion : public PropulsionModule
 public:
 	FourDOFPropulsion(std::string name, VehicleState& vehicleState, ros::NodeHandle& parentNH);
 	~FourDOFPropulsion() {}
-
-	/**
-	* Calculates the new frame of the vehicle from the old one
-	*/
-	void move(ros::Time& lastTime, tf::Quaternion& rotation, tf::Vector3& position, 
-					double& powerCapacity, double& dataCapacity);
-
-
 	
 private:
 	/**
@@ -49,19 +39,7 @@ private:
 	*/
 	double maxRotVelocity;
 
-	/**
-	*Current linear velocity for this module
-	*/
-	tf::Vector3 linVelocity;
-
-	/**
-	*Current rotation velocity for this module
-	*/
-	tf::Vector3 rotVelocity;
-
 	ros::Subscriber commandVelocitySub;
-
-	ros::ServiceClient modelClient;
 };
 
 

@@ -4,8 +4,10 @@
 #include <thread>
 
 #include "ros/ros.h"
+#include "tf2/LinearMath/Quaternion.h"
+#include "tf2/LinearMath/Vector3.h"
+
 #include "vehicles/VehicleState.h"
-#include "tf/transform_listener.h"
 
 ros::ServiceClient client;
 
@@ -14,14 +16,14 @@ bool doubleEqual(double d1, double d2)
     return fabs(d1 - d2) <= 0.00000001;
 }
 
-bool quaterionsEqual(tf::Quaternion q1, tf::Quaternion q2)
+bool quaterionsEqual(tf2::Quaternion q1, tf2::Quaternion q2)
 {    
     bool equal1 = doubleEqual(q1.getAxis().getX(), q2.getAxis().getX()) &&
                   doubleEqual(q1.getAxis().getY(), q2.getAxis().getY()) &&
                   doubleEqual(q1.getAxis().getZ(), q2.getAxis().getZ()) &&
                   doubleEqual(q1.getW(), q2.getW());
 
-    tf::Quaternion q2Inverse = q2.inverse();
+    tf2::Quaternion q2Inverse = q2.inverse();
     bool equal2 = doubleEqual(q1.getAxis().getX(), q2Inverse.getAxis().getX()) &&
                   doubleEqual(q1.getAxis().getY(), q2Inverse.getAxis().getY()) &&
                   doubleEqual(q1.getAxis().getZ(), q2Inverse.getAxis().getZ()) &&
@@ -37,19 +39,19 @@ TEST(VehicleState, UpdateTest){
 
     VehicleState state(n);
 
-    tf::Vector3 linearVelocity(1, 2, -1);
-    tf::Vector3 angularVelocity(-0.2, -0.4, 0.6);
+    tf2::Vector3 linearVelocity(1, 2, 1);
+    tf2::Vector3 angularVelocity(-0.2, -0.4, 0.6);
 
-    tf::Vector3 startPosition(1.2, 3.4, -5.6);
-    tf::Vector3 endPosition(0.2, 3.9, -6.1);
+    tf2::Vector3 startPosition(1.2, 3.4, 5.6);
+    tf2::Vector3 endPosition(0.2, 3.9, 6.1);
 
-    tf::Quaternion startRotation;
+    tf2::Quaternion startRotation;
     startRotation.setRPY(0, 0, M_PI / 2);
-    tf::Quaternion rotation;
+    tf2::Quaternion rotation;
     rotation.setRPY(-0.2 * deltaTime.toSec(), 
                     -0.4 * deltaTime.toSec(), 
                     0.6 * deltaTime.toSec());
-    tf::Quaternion endRotation(startRotation * rotation);
+    tf2::Quaternion endRotation(startRotation * rotation);
 
     state.setPosition(startPosition);
     state.setRotation(startRotation);
@@ -80,13 +82,13 @@ TEST(VehicleState, UpperBoundTest){
 
     VehicleState state(n);
 
-    tf::Vector3 linearVelocity(0, 0, 1);
-    tf::Vector3 angularVelocity(0, 0, 0);
+    tf2::Vector3 linearVelocity(0, 0, -1);
+    tf2::Vector3 angularVelocity(0, 0, 0);
 
-    tf::Vector3 startPosition(0, 0, -0.1);
-    tf::Vector3 endPosition(0, 0, 0);
+    tf2::Vector3 startPosition(0, 0, 0.1);
+    tf2::Vector3 endPosition(0, 0, 0);
 
-    tf::Quaternion startRotation;
+    tf2::Quaternion startRotation;
     startRotation.setRPY(0, 0, 0);
     state.setPosition(startPosition);
     state.setRotation(startRotation);
@@ -115,13 +117,13 @@ TEST(VehicleState, LowerBoundTest){
 
     VehicleState state(n);
 
-    tf::Vector3 linearVelocity(0, 0, -1);
-    tf::Vector3 angularVelocity(0, 0, 0);
+    tf2::Vector3 linearVelocity(0, 0, 1);
+    tf2::Vector3 angularVelocity(0, 0, 0);
 
-    tf::Vector3 startPosition(0, 0, -199.7);
-    tf::Vector3 endPosition(0, 0, -199.9); //placed 0.1 meters above the seafloor 
+    tf2::Vector3 startPosition(0, 0, 199.7);
+    tf2::Vector3 endPosition(0, 0, 199.9); //placed 0.1 meters above the seafloor 
 
-    tf::Quaternion startRotation;
+    tf2::Quaternion startRotation;
     startRotation.setRPY(0, 0, 0);
     
     state.setPosition(startPosition);
