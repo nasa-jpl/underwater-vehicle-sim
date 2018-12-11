@@ -13,7 +13,7 @@ ConstantModel::ConstantModel() :
  	dye(0)
 {}
 
-ConstantModel::ConstantModel(float u, float v, float temp, float salt, float dye, float depth) :
+ConstantModel::ConstantModel(double u, double v, double temp, double salt, double dye, double depth) :
  	u(u),
  	v(v),
  	temp(temp),
@@ -22,7 +22,7 @@ ConstantModel::ConstantModel(float u, float v, float temp, float salt, float dye
     depth(depth)
 {}
 
-const ModelData ConstantModel::getData(float x, float y, float height, float time)
+const ModelData ConstantModel::getData(double x, double y, double height, double time)
 {
 	ModelData data;
 	
@@ -36,7 +36,7 @@ const ModelData ConstantModel::getData(float x, float y, float height, float tim
 	return data;
 }
 
-const ModelData ConstantModel::getDataOutOfRange(float x, float y, float height, float time)
+const ModelData ConstantModel::getDataOutOfRange(double x, double y, double height, double time)
 {
 	ModelData data;
 	

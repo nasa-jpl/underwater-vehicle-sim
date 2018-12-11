@@ -15,11 +15,12 @@ LinearModel::LinearModel() :
     zeroDistance(100),
     centerX(0),
     centerY(0),
+    centerZ(0),
     type("circle")
 {}
 
 LinearModel::LinearModel(float u, float v, float temp, float salt, float dye, float depth,
-                            float zeroDistance, float centerX, float centerY, std::string type) :
+                            float zeroDistance, float centerX, float centerY, float centerZ, std::string type) :
     u(u),
     v(v),
     temp(temp),
@@ -29,10 +30,11 @@ LinearModel::LinearModel(float u, float v, float temp, float salt, float dye, fl
     zeroDistance(zeroDistance),
     centerX(centerX),
     centerY(centerY),
+    centerZ(centerZ),
     type(type)
 {}
 
-const ModelData LinearModel::getData(float x, float y, float height, float time)
+const ModelData LinearModel::getData(double x, double y, double height, double time)
 {
     ModelData data;
     
@@ -40,13 +42,12 @@ const ModelData LinearModel::getData(float x, float y, float height, float time)
 
     if(type == "circle")
     {
-        distance = sqrt((x - centerX) * (x - centerX) + (y - centerY) * (y - centerY));
+        distance = sqrt((x - centerX) * (x - centerX) + (y - centerY) * (y - centerY) + (height - centerZ) * (height - centerZ));
     }
     else if(type == "square")
     {
         distance = std::max(fabs(x - centerX), fabs(y - centerY));
     }
-
     data.u = std::max(0.0,u * (zeroDistance - distance) / zeroDistance);
     data.v = std::max(0.0,v * (zeroDistance - distance) / zeroDistance);
     data.temp = std::max(0.0,temp * (zeroDistance - distance) / zeroDistance);
@@ -57,7 +58,7 @@ const ModelData LinearModel::getData(float x, float y, float height, float time)
     return data;
 }
 
-const ModelData LinearModel::getDataOutOfRange(float x, float y, float height, float time)
+const ModelData LinearModel::getDataOutOfRange(double x, double y, double height, double time)
 {
     ModelData data;
     
@@ -65,7 +66,7 @@ const ModelData LinearModel::getDataOutOfRange(float x, float y, float height, f
 
     if(type == "circle")
     {
-        distance = sqrt((x - centerX) * (x - centerX) + (y - centerY) * (y - centerY));
+        distance = sqrt((x - centerX) * (x - centerX) + (y - centerY) * (y - centerY) + (height - centerZ) * (height - centerZ));
     }
     else if(type == "square")
     {

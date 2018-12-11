@@ -74,8 +74,8 @@ public:
 		  unsigned int timeChunkSize,
 		  unsigned int cacheSize);
 
-	const ModelData getData(float x, float y, float height, float time);
-	const ModelData getDataOutOfRange(float x, float y, float height, float time);
+	const ModelData getData(double x, double y, double height, double time);
+	const ModelData getDataOutOfRange(double x, double y, double height, double time);
 
 private:
 

@@ -1,33 +1,18 @@
 <launch>
- <rosparam param="underwater_vehicle_sim/hertz">100</rosparam>
- <rosparam param="model_type">constant</rosparam>
- <rosparam param="model/v">2.345</rosparam>
- <rosparam param="model/salt">4.567</rosparam>
- <rosparam param="model/dye">5.678</rosparam>
+ <rosparam param="model_type">linear</rosparam>
+ <rosparam param="model/centerX">0</rosparam>
+ <rosparam param="model/centerY">0</rosparam>
+ <rosparam param="model/centerZ">0</rosparam>
+ <rosparam param="model/zeroDistance">200</rosparam>
+ <rosparam param="model/type">circle</rosparam>
+
+ <rosparam param="model/u">10</rosparam>
+ <rosparam param="model/v">15</rosparam>
+ <rosparam param="model/temp">20</rosparam>
+ <rosparam param="model/salt">25</rosparam>
+ <rosparam param="model/dye">30</rosparam>
  <rosparam param="model/depth">200</rosparam>
- 
- <rosparam param="vehicles/names">[v1]</rosparam>
 
- <rosparam param="vehicles/v1/start_x">0</rosparam>
- <rosparam param="vehicles/v1/start_y">0</rosparam>
- <rosparam param="vehicles/v1/start_z">0</rosparam>
- <rosparam param="vehicles/v1/start_power">100</rosparam>
- <rosparam param="vehicles/v1/start_dataCapacity">100</rosparam>
-
- <rosparam param="vehicles/v1/propModuleName">prop_v1</rosparam>
- <rosparam param="vehicles/v1/prop_v1/type">FourDOFPropulsion</rosparam>
-
- <rosparam param="vehicles/v1/moduleNames">[dataBroadcaster]</rosparam>
- <rosparam param="vehicles/v1/dataBroadcaster/type">DataBroadcaster</rosparam>
- <rosparam param="vehicles/v1/dataBroadcaster/hertz">1</rosparam>
-
- <param name="use_sim_time" value="true" />
- <rosparam param="speed_up_factor">1</rosparam>
- <rosparam param="sim_start_time">1728000</rosparam>
-
- <node pkg="underwater_vehicle_sim" type="clock_server_node" name="clock_server" />
  <node pkg="model_server" type="model_server_node" name="model_server" output="screen"/>
- <node pkg="data_server" type="data_server_node" name="data_server" />
- <node pkg="underwater_vehicle_sim" type="underwater_vehicle_sim_node" name="underwater_vehicle_sim" output="screen" />
  <test test-name="data_broadcaster_module_test" pkg="underwater_vehicle_sim" type="data_broadcaster_module_test"/>
 </launch>

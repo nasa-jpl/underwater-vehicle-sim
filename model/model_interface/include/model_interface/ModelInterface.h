@@ -10,8 +10,8 @@ public:
 	ModelInterface() {}
 	virtual ~ModelInterface() {}
 
-	virtual const ModelData getData(float x, float y, float height, float time)=0;
-    virtual const ModelData getDataOutOfRange(float x, float y, float height, float time)=0;
+	virtual const ModelData getData(double x, double y, double height, double time)=0;
+    virtual const ModelData getDataOutOfRange(double x, double y, double height, double time)=0;
 };
 
 #endif

@@ -132,7 +132,6 @@ catkin_package(
    src/vehicles/DataBroadcasterModule.cpp
    src/vehicles/PowerCapacityModule.cpp
    src/vehicles/DataCapacityModule.cpp
-   src/vehicles/BaseStationModule.cpp
    src/vehicles/IMUModule.cpp
    src/vehicles/VehicleState.cpp
  )

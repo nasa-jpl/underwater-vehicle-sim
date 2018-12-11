@@ -10,47 +10,61 @@
 #include "data_server/GetData.h"
 #include "model_server/GetModelData.h"
 
-ros::ServiceClient client;
-ros::ServiceClient modelClient;
+#include "underwater_vehicle_msgs/VehicleData.h"
+#include "vehicles/DataBroadcasterModule.h"
+
+std::vector<underwater_vehicle_msgs::VehicleData> receivedMessages;
+
+void dataCallback(const underwater_vehicle_msgs::VehicleDataPtr& vel)
+{
+    receivedMessages.push_back(*vel);
+}
 
 TEST(DataBroadcasterModule, TestDataRecording){
-        //Initalize ROS node handle
-        ros::NodeHandle nh;
-        client = nh.serviceClient<data_server::GetData>("data_server/get");
-        modelClient = nh.serviceClient<model_server::GetModelData>("get_model_data");
+    //Initalize ROS node handle
+    ros::NodeHandle nh("/vehicles/v1");
+    VehicleState state(nh);
+    DataBroadcasterModule module("data_broadcaster", nh, "v1");
 
-        bool exists = modelClient.waitForExistence(ros::Duration(5));
-        ASSERT_TRUE(exists); //check for the model server service existance
+    ros::Subscriber dataSub = nh.subscribe("data_broadcaster/data", 1, &dataCallback);
 
-        ros::Duration(5).sleep();
+    ros::Time time(0);
 
-        data_server::GetData retrievedData;
-        retrievedData.request.name = "v1";
-        retrievedData.request.start_time = ros::Time(1728000);
-        retrievedData.request.end_time = ros::Time(1728010);
+    std::vector<tf2::Vector3> positions;
+    positions.push_back(tf2::Vector3(0,0,0));
+    positions.push_back(tf2::Vector3(10,10,10));
+    positions.push_back(tf2::Vector3(-20,10,10));
+    positions.push_back(tf2::Vector3(-20,30,10));
+    positions.push_back(tf2::Vector3(-20,30,5));
+    positions.push_back(tf2::Vector3(-20,30,95));
 
-        client.call(retrievedData);
+    for(tf2::Vector3 pos : positions)
+    {
+        state.setPosition(pos);
+        module.update("v1", time, state);
+        ros::spinOnce();
+    }
+   
+    double maxTemp = 20;
+    double maxSalt = 25;
+    double maxDye = 30;
+    double zeroDistance = 200;
 
+    ASSERT_EQ(positions.size(), receivedMessages.size());
 
-        ASSERT_TRUE(retrievedData.response.time.size() > 0);
-        float prevTime = retrievedData.response.time[1].toSec();
-
-        for(unsigned int i = 2; i < retrievedData.response.time.size(); i++)
-        {
-            ASSERT_NEAR(1.0, retrievedData.response.time[i].toSec() - prevTime, 0.1);
-
-            ASSERT_FLOAT_EQ(0, retrievedData.response.temp[i]);
-            ASSERT_FLOAT_EQ(4.567, retrievedData.response.salt[i]);
-            ASSERT_FLOAT_EQ(5.678, retrievedData.response.dye[i]);
-            ASSERT_FLOAT_EQ(200, retrievedData.response.sonarDepth[i]);
-            prevTime = retrievedData.response.time[i].toSec();
-        }
+    for(unsigned int i = 0; i < receivedMessages.size(); i++)
+    {
+        double distance = positions[i].distance(tf2::Vector3(0,0,0));
+        EXPECT_NEAR(maxTemp * (zeroDistance - distance) / zeroDistance, receivedMessages[i].temp, 0.0001);
+        EXPECT_NEAR(maxSalt * (zeroDistance - distance) / zeroDistance, receivedMessages[i].salt, 0.0001);
+        EXPECT_NEAR(maxDye * (zeroDistance - distance) / zeroDistance, receivedMessages[i].dye, 0.0001);
+    }
 }
 
 
 int main(int argc, char** argv){
-  testing::InitGoogleTest(&argc, argv);
-  ros::init(argc, argv, "data_broadcasting_module_test");
+    testing::InitGoogleTest(&argc, argv);
+    ros::init(argc, argv, "data_broadcasting_module_test");
 
-  return RUN_ALL_TESTS();
+    return RUN_ALL_TESTS();
 }

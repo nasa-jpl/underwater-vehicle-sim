@@ -21,24 +21,25 @@ public:
      * Initalize ConstantModel class with provided values
      */
     LinearModel(float u, float v, float temp, float salt, float dye, float depth,
-                  float zeroDistance, float centerX, float centerY, std::string type);
+                  float zeroDistance, float centerX, float centerY, float centerZ, std::string type);
 
 
 
-    const ModelData getData(float x, float y, float height, float time);
-    const ModelData getDataOutOfRange(float x, float y, float height, float time);
+    const ModelData getData(double x, double y, double height, double time);
+    const ModelData getDataOutOfRange(double x, double y, double height, double time);
 
 private:
     
-    float u;
-    float v;
-    float temp;
-    float salt;
-    float dye;
-    float depth;
-    float zeroDistance;
-    float centerX;
-    float centerY;
+    double u;
+    double v;
+    double temp;
+    double salt;
+    double dye;
+    double depth;
+    double zeroDistance;
+    double centerX;
+    double centerY;
+    double centerZ;
     std::string type;
 
 };

@@ -145,7 +145,7 @@ const double FVCOM::areaOfTriangle(const FVCOMStructure::Point& p1, const FVCOMS
 	return sqrt(s * (s - a) * (s - b) * (s - c));
 }
 
-const ModelData FVCOM::getData(float x, float y, float height, float time)
+const ModelData FVCOM::getData(double x, double y, double height, double time)
 {
 	FVCOMStructure::Point interpolatePoint;
 	interpolatePoint.x = x;
@@ -161,7 +161,7 @@ const ModelData FVCOM::getData(float x, float y, float height, float time)
 	return interpolate(interpolatePoint, time);
 }
 
-const ModelData FVCOM::getDataOutOfRange(float x, float y, float height, float time)
+const ModelData FVCOM::getDataOutOfRange(double x, double y, double height, double time)
 {
 	//if out of range XY then get closest node
 	//if out of range time then get closest time

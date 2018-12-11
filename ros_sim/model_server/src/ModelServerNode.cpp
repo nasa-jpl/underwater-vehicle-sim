@@ -126,11 +126,13 @@ int main(int argc, char **argv)
 
         float centerX = 0;
         float centerY = 0;
+        float centerZ = 0;
         float zeroDistance = 100;
         std::string type = "circle";
 
         n.getParam("model/centerX", centerX);
         n.getParam("model/centerY", centerY);
+        n.getParam("model/centerZ", centerZ);
         n.getParam("model/zeroDistance", zeroDistance);
         n.getParam("model/type", type);
 
@@ -141,7 +143,7 @@ int main(int argc, char **argv)
         n.getParam("model/dye", dye);
         n.getParam("model/depth", depth);
 
-        model.reset(new LinearModel(u, v, temp, salt, dye, depth, zeroDistance, centerX, centerY, type));
+        model.reset(new LinearModel(u, v, temp, salt, dye, depth, zeroDistance, centerX, centerY, centerZ, type));
         ROS_INFO("Linear Model Loaded");
     }   
     else

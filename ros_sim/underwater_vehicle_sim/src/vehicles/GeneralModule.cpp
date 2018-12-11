@@ -7,7 +7,6 @@
 #include "vehicles/DataBroadcasterModule.h"
 #include "vehicles/PowerCapacityModule.h"
 #include "vehicles/DataCapacityModule.h"
-#include "vehicles/BaseStationModule.h"
 #include "vehicles/IMUModule.h"
 
 GeneralModule::GeneralModule(std::string name, std::string type, 
@@ -49,11 +48,6 @@ std::unique_ptr<GeneralModule> GeneralModule::makeGeneralModule(std::string modu
 	if(moduleType == "DataCapacity")
 	{
 		std::unique_ptr<GeneralModule> returnPtr(new DataCapacityModule(moduleName, parentNH, vehicleName));
-		return returnPtr;
-	}
-	if(moduleType == "BaseStation")
-	{
-		std::unique_ptr<GeneralModule> returnPtr(new BaseStationModule(moduleName, parentNH, vehicleName));
 		return returnPtr;
 	}
 	if(moduleType == "IMU")

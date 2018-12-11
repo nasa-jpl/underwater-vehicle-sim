@@ -3,12 +3,12 @@
 
 struct ModelData
 {
-	float u;
-	float v;
-	float temp;
-	float salt;
-	float dye;
-    float depth;
+	double u;
+	double v;
+	double temp;
+	double salt;
+	double dye;
+    double depth;
 };
 
 #endif
