@@ -1,8 +1,8 @@
 <launch>
  <rosparam param="model_type">linear</rosparam>
- <rosparam param="model/centerX">0</rosparam>
- <rosparam param="model/centerY">0</rosparam>
- <rosparam param="model/centerZ">0</rosparam>
+ <rosparam param="model/centerX">5</rosparam>
+ <rosparam param="model/centerY">20</rosparam>
+ <rosparam param="model/centerZ">-10</rosparam>
  <rosparam param="model/zeroDistance">200</rosparam>
  <rosparam param="model/type">circle</rosparam>
 
