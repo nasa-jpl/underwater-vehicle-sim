@@ -8,6 +8,7 @@
 
 #include "tf2/LinearMath/Quaternion.h"
 #include "tf2/LinearMath/Vector3.h"
+#include "tf2/LinearMath/Transform.h"
 
 #include "model_server/GetModelData.h"
 
@@ -24,14 +25,56 @@ public:
 
     void updatePose(const ros::Time currentTime, const ros::Duration deltaTime);
 
-    tf2::Vector3 getPosition() const;
+    /**
+     * Get the position of the vehicle in the NED frame.
+     * This frame is used to define the vehicle state
+     */
+    tf2::Vector3 getPositionNED() const;
+
+     /**
+     * Get the position of the vehicle in the ENU frame.
+     * This frame is used when interfacing with models
+     */
+    tf2::Vector3 getPositionENU() const;
+
+    /**
+     * Get the rotation of the vehicle in the NED frame.
+     * This frame is used to define the vehicle state
+     */
+    tf2::Quaternion getRotationNED() const;
+
+    /**
+     * Get the rotation of the vehicle in the ENU frame.
+     * This frame is used when interfacing with models
+     */
+    tf2::Quaternion getRotationENU() const;
+
+    /**
+     * Set the position of the vehicle in the NED frame
+     * This frame is used to define the vehicle state
+     */
+    void setPositionNED(const tf2::Vector3 position);
+
+    /**
+     * Set the position of the vehicle in the ENU frame
+     * This frame is used when interfacing with models
+     */
+    void setPositionENU(const tf2::Vector3 position);
+
+    /**
+     * Set the rotation of the vehicle in the NED frame
+     * This frame is used to define the vehicle state
+     */
+    void setRotationNED(const tf2::Quaternion rotation);
+
+    /**
+     * Set the rotation of the vehicle in the ENU frame
+     * This frame is used when interfacing with models
+     */
+    void setRotationENU(const tf2::Quaternion rotation);
+
     tf2::Vector3 getLinearVelocity() const;
-
-    tf2::Quaternion getRotation() const;
     tf2::Vector3 getAngularVelocity() const;
-
-    void setPosition(const tf2::Vector3 position);
-    void setRotation(const tf2::Quaternion rotation);
     void setLinearVelocity(const tf2::Vector3 velocity);
     void setAngularVelocity(const tf2::Vector3 velocity);
     	
@@ -72,6 +115,9 @@ private:
     * Model client used to prevent the vehicle from clipping through the seafloor or water surface
     */
     ros::ServiceClient modelClient;
+
+    tf2::Transform ENUtoNED;
+    tf2::Transform NEDtoENU;
 };
 
 #endif

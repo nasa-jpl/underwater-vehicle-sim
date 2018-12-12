@@ -20,7 +20,7 @@ IMUModule::IMUModule(std::string name, ros::NodeHandle& parentNH, std::string ve
 
 void IMUModule::update(std::string name, const ros::Time& lastTime, VehicleState& vehicleState) 
 {
-	tf2::Quaternion rotation(vehicleState.getRotation());
+	tf2::Quaternion rotation(vehicleState.getRotationNED());
 	tf2::Vector3 angularVelocity = vehicleState.getAngularVelocity();
 
 	//Add gaussian noise to the angular velocity

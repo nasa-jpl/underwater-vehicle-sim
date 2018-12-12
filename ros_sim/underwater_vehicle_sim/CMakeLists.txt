@@ -8,12 +8,14 @@ project(underwater_vehicle_sim)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
-  tf
+  tf2
+  tf2_ros
   roscpp
   std_msgs
   sensor_msgs
   model_server
   underwater_vehicle_msgs
+  tf2_geometry_msgs
 )
 
 ## System dependencies are found with CMake's conventions
@@ -108,7 +110,7 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package(
   INCLUDE_DIRS include
 #  LIBRARIES fvcom_server
-  CATKIN_DEPENDS roscpp std_msgs message_runtime
+  CATKIN_DEPENDS roscpp std_msgs message_runtime tf2_geometry_msgs tf2 tf2_ros
 #  DEPENDS system_lib
 )
 
@@ -137,11 +139,6 @@ catkin_package(
  )
 
  target_link_libraries(underwater_vehicles ${catkin_LIBRARIES})
-
-## Declare a C++ library
-# add_library(${PROJECT_NAME}
-#   src/${PROJECT_NAME}/vehicle_simulation.cpp
-# )
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries

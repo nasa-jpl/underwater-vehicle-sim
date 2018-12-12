@@ -52,10 +52,10 @@ void Vehicle::initalizeVehicleFrame()
 
 	tf2::Quaternion initialRotation;
 	initialRotation.setRPY(0, 0, 0);
-	vehicleState.setRotation(initialRotation);
+	vehicleState.setRotationENU(initialRotation);
 
 	tf2::Vector3 initialPosition(startX, startY, startZ);
-	vehicleState.setPosition(initialPosition);
+	vehicleState.setPositionENU(initialPosition);
   	broadcastTransform();
   	
 }
@@ -128,12 +128,12 @@ void Vehicle::broadcastTransform()
   	transformStamped.header.frame_id = "world_ned";
   	transformStamped.child_frame_id = name;
 
-	tf2::Vector3 position = vehicleState.getPosition();
+	tf2::Vector3 position = vehicleState.getPositionNED();
 	transformStamped.transform.translation.x = position.x();
 	transformStamped.transform.translation.y = position.y();
 	transformStamped.transform.translation.z = position.z();
 
-	tf2::Quaternion rotation = vehicleState.getRotation();
+	tf2::Quaternion rotation = vehicleState.getRotationNED();
 	transformStamped.transform.rotation.x = rotation.x();
 	transformStamped.transform.rotation.y = rotation.y();
 	transformStamped.transform.rotation.z = rotation.z();

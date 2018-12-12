@@ -4,8 +4,8 @@
 
 #include "model_server/GetModelData.h"
 
-#include "tf2/LinearMath/Quaternion.h"
-#include "tf2/LinearMath/Vector3.h"
+#include <tf2_ros/transform_listener.h>
+#include "tf2_geometry_msgs/tf2_geometry_msgs.h"
 
 #define SECONDS_IN_DAY 86400
 
@@ -16,6 +16,31 @@ VehicleState::VehicleState(ros::NodeHandle& nh) :
 	dataCapacity(0)
 {
 	modelClient = nh.serviceClient<model_server::GetModelData>("/get_model_data");
+
+
+	tf2_ros::Buffer tfBuffer;
+    tf2_ros::TransformListener tfListener(tfBuffer);
+	
+	geometry_msgs::TransformStamped transformToNED;
+	geometry_msgs::TransformStamped transformToENU;
+
+	while(!tfBuffer.canTransform("world", "world_ned", ros::Time(0), ros::Duration(100)));
+
+	try
+	{
+    	transformToENU = tfBuffer.lookupTransform("world", "world_ned",
+                               		ros::Time(0));
+
+		transformToNED = tfBuffer.lookupTransform("world_ned", "world",
+                               		ros::Time(0));
+
+		tf2::fromMsg(transformToENU.transform, NEDtoENU);
+		tf2::fromMsg(transformToNED.transform, ENUtoNED);
+    }
+    catch (tf2::TransformException &ex)
+	{
+    	ROS_ERROR("%s",ex.what());
+    }
 }
 
 VehicleState::VehicleState(VehicleState&& other)
@@ -75,9 +100,14 @@ void VehicleState::updatePose(const ros::Time currentTime, const ros::Duration d
 	}
 }
 
-tf2::Vector3 VehicleState::getPosition() const
+tf2::Vector3 VehicleState::getPositionNED() const
 {
     return position;
+}
+
+tf2::Vector3 VehicleState::getPositionENU() const
+{
+	return NEDtoENU(position);
 }
 
 tf2::Vector3 VehicleState::getLinearVelocity() const
@@ -85,9 +115,14 @@ tf2::Vector3 VehicleState::getLinearVelocity() const
     return linearVelocity;
 }
 
-tf2::Quaternion VehicleState::getRotation() const
+tf2::Quaternion VehicleState::getRotationNED() const
 {
     return rotation;
+}
+
+tf2::Quaternion VehicleState::getRotationENU() const
+{
+	return NEDtoENU * rotation;
 }
 
 tf2::Vector3 VehicleState::getAngularVelocity() const
@@ -95,14 +130,24 @@ tf2::Vector3 VehicleState::getAngularVelocity() const
     return angularVelocity;
 }
 
-void VehicleState::setPosition(const tf2::Vector3 position)
+void VehicleState::setPositionNED(const tf2::Vector3 position)
 {
 	this->position = position;
 }
 
-void VehicleState::setRotation(const tf2::Quaternion rotation)
+void VehicleState::setPositionENU(const tf2::Vector3 position)
+{
+	this->position = ENUtoNED(position);
+}
+
+void VehicleState::setRotationNED(const tf2::Quaternion rotation)
 {
 	this->rotation = rotation;
+}
+
+void VehicleState::setRotationENU(const tf2::Quaternion rotation)
+{
+	this->rotation = ENUtoNED * rotation;
 }
 
 void VehicleState::setLinearVelocity(const tf2::Vector3 velocity)

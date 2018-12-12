@@ -57,8 +57,6 @@ private:
 	
 
 private:
-	tf::TransformListener transformListener;
-
 	/**
 	 * Holds entire current vehicle state
 	 */
