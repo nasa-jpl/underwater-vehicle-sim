@@ -9,7 +9,9 @@ project(vehicle_auto_control)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
  actionlib_msgs
- tf
+ tf2
+ tf2_ros
+ tf2_geometry_msgs
  roscpp
  geometry_msgs
  underwater_vehicle_msgs
@@ -126,7 +128,8 @@ include_directories(
  add_library(${PROJECT_NAME}
    src/${PROJECT_NAME}/VehicleController.cpp
    src/${PROJECT_NAME}/PropulsionController.cpp
-   src/${PROJECT_NAME}/FourDOFPropulsionController.cpp
+   src/${PROJECT_NAME}/PropulsionLogicInterface.cpp
+   src/${PROJECT_NAME}/FourDOFPropulsionLogic.cpp
  )
 
  target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES})
@@ -197,9 +200,12 @@ include_directories(
 
 ## Add gtest based cpp test target and link libraries
 # catkin_add_gtest(${PROJECT_NAME}-test test/test_vehicle_auto_control.cpp)
-#if (CATKIN_ENABLE_TESTING)
-# find_package(rostest REQUIRED)
-#endif()
+if (CATKIN_ENABLE_TESTING)
+ find_package(rostest REQUIRED)
+
+ catkin_add_gtest(four_dof_propulsion_logic_test src/tests/vehicle_auto_control/FourDOFPropulsionLogic_test.cpp)
+ target_link_libraries(four_dof_propulsion_logic_test ${PROJECT_NAME} ${catkin_LIBRARIES})
+endif()
 
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)

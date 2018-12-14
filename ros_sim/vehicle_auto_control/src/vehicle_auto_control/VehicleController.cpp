@@ -21,7 +21,8 @@ nh(parentNH)
 
 		if(info.response.propModuleName != "")
 		{
-			propControllers.push_back(PropulsionController::makePropulsionController(name, info, nh));
+			VehicleInfo vehicleInfo(info);
+			PropulsionController controller(nh, vehicleInfo);
 		}
 	}
 }
@@ -30,6 +31,6 @@ void VehicleController::update(void)
 {
 	for(unsigned int i = 0; i < propControllers.size(); i++)
 	{
-		propControllers[i]->update();
+		propControllers[i].update();
 	}
 }

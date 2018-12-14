@@ -1,42 +1,193 @@
 
 #include "vehicle_auto_control/PropulsionController.h"
+
+#include "tf2_geometry_msgs/tf2_geometry_msgs.h"
+
 #include "vehicle_auto_control/VehicleController.h"
-
-#include "vehicle_auto_control/FourDOFPropulsionController.h"
-
-#include "tf/transform_broadcaster.h"
+#include "vehicle_auto_control/FourDOFPropulsionLogic.h"
 
 #include "underwater_vehicle_msgs/GetVehicleInfo.h"
 
-PropulsionController::PropulsionController(ros::NodeHandle controlNode, ros::NodeHandle vehicleNode, std::string vehicleName) :
-	controlNode(controlNode), 
-	vehicleNode(vehicleNode),
-	vehicleName(vehicleName)
-{}
-
-std::unique_ptr<PropulsionController> PropulsionController::makePropulsionController(std::string vehicleName, 
-																					 underwater_vehicle_msgs::GetVehicleInfo info,
-																					 ros::NodeHandle& parentNH)
+PropulsionController::PropulsionController(ros::NodeHandle& nh, VehicleInfo info) :
+	controlNode(nh, "vehicle_controller/" + info.getName()), 
+	vehicleNode(nh, "vehicles/" + info.getName()),
+	info(info),
+	listener(buffer),
+	logicController(PropulsionLogicInterface::makePropulsionLogic(info)),
+	goToXYServer(controlNode, "go_to_xy", false),
+	goToZServer(controlNode, "go_to_z", false)
 {
-	if(info.response.propModuleType == "FourDOFPropulsion")
+	std::vector<std::string> dataModuleNames = info.getModuleNamesOfType("DataBroadcaster");
+	
+	if(dataModuleNames.size() > 0)
+    {
+		//default to using first module of type DataBroadcaster if more than 1 exists
+        dataSub = vehicleNode.subscribe(dataModuleNames[0] + "/data", 1, &PropulsionController::getVehicleData, this);
+    }
+
+	velocityPub = vehicleNode.advertise<geometry_msgs::Twist>(info.getPropModuleName() + "/command_velocity", 1000);
+    velocitySub = controlNode.subscribe("command_target_velocity", 1, &PropulsionController::getTargetVelocityCommand, this);
+
+	goToXYServer.registerGoalCallback(boost::bind(&PropulsionController::goalGoToXYCB, this));
+    goToXYServer.registerPreemptCallback(boost::bind(&PropulsionController::preemptGoToXYCB, this));
+    goToXYServer.start();
+
+    goToZServer.registerGoalCallback(boost::bind(&PropulsionController::goalGoToZCB, this));
+    goToZServer.registerPreemptCallback(boost::bind(&PropulsionController::preemptGoToZCB, this));
+    goToZServer.start();
+}
+
+void PropulsionController::getTargetVelocityCommand(const geometry_msgs::Twist vel)
+{
+	logicController->setTargetVelocity(vel);
+}
+
+void PropulsionController::getVehicleData(const underwater_vehicle_msgs::VehicleData data)
+{
+	logicController->processNewData(data);
+}
+
+void PropulsionController::update(void)
+{
+	if(goToXYServer.isActive())
+    {
+        goToXYUpdate();
+    }
+
+    if(goToZServer.isActive())
+    {
+        goToZUpdate();
+    }
+}
+
+/**
+* Accepts new goals for the GoToXY SimpleActionServer
+*/ 
+void PropulsionController::goalGoToXYCB(void)
+{
+	velocityPub.publish(logicController->stopXYTwist());
+    vehicle_auto_control::GoToXYRosGoalConstPtr goToXYGoal = goToXYServer.acceptNewGoal();
+    
+	logicController->setTargetXY(goToXYGoal->x, goToXYGoal->y);
+    ROS_INFO("GoToXY server accepted a new goal - x:%f y:%f", goToXYGoal->x, goToXYGoal->y);
+}
+
+void PropulsionController::preemptGoToXYCB(void)
+{
+	velocityPub.publish(logicController->stopXYTwist());
+	
+    if(goToXYServer.isActive())
+    {
+        goToXYServer.setPreempted();
+    }
+}
+
+void PropulsionController::goToXYUpdate(void)
+{
+	tf2::Stamped<tf2::Transform> transform;
+	try
 	{
-		std::string dataModuleName;
+		transform = getCurrentTransform();
+	}
+	catch(tf2::TransformException ex)
+	{
+		ROS_ERROR("%s",ex.what());
+		return;
+	}
+	
+	vehicle_auto_control::GoToXYRosFeedback feedback;
+	feedback.x = transform.getOrigin().getX();
+	feedback.y = transform.getOrigin().getY();
+	goToXYServer.publishFeedback(feedback);
 
-		for(unsigned int i = 0; i < info.response.moduleNames.size(); i++)
+	if(logicController->isAtXY(transform))
+	{
+		velocityPub.publish(logicController->stopXYTwist());
+		vehicle_auto_control::GoToXYRosResult result;
+		result.x = transform.getOrigin().getX();
+		result.y = transform.getOrigin().getY();
+		goToXYServer.setSucceeded(result);
+	}
+	else
+	{
+		velocityPub.publish(logicController->goToXYTwist(transform));
+
+		//Call this if Z is not active to prevent the vehicle from hitting the seafloor
+		if(!goToZServer.isActive())
 		{
-			if(info.response.moduleTypes[i] == "DataBroadcaster")
-			{
-				dataModuleName = info.response.moduleNames[i];
-			}
+			velocityPub.publish(logicController->goToZTwist(transform));
 		}
+	}
+}
 
-		std::unique_ptr<PropulsionController> returnPtr(new FourDOFPropulsionController(ros::NodeHandle(parentNH, "vehicle_controller/" + vehicleName),
-																						ros::NodeHandle(parentNH, "vehicles/" + vehicleName),
-																						info.response.propModuleName,
-																						dataModuleName,
-																						vehicleName));
-		return returnPtr;
+/**
+* Accepts new goals for the GoToZ SimpleActionServer
+*/ 
+void PropulsionController::goalGoToZCB(void)
+{
+	velocityPub.publish(logicController->stopZTwist());
+    vehicle_auto_control::GoToZRosGoalConstPtr goToZGoal = goToZServer.acceptNewGoal();
+
+	logicController->setTargetZ(goToZGoal->z);
+    ROS_INFO("GoToZ server accepted a new goal - z: %f", goToZGoal->z);
+}
+
+void PropulsionController::preemptGoToZCB(void)
+{
+	velocityPub.publish(logicController->stopZTwist());
+	
+    if(goToXYServer.isActive())
+    {
+        goToXYServer.setPreempted();
+    }
+}
+
+void PropulsionController::goToZUpdate(void)
+{
+	tf2::Stamped<tf2::Transform> transform;
+	try
+	{
+		transform = getCurrentTransform();
+	}
+	catch(tf2::TransformException ex)
+	{
+		ROS_ERROR("%s",ex.what());
+		return;
+	}
+	
+	vehicle_auto_control::GoToZRosFeedback feedback;
+    feedback.z = transform.getOrigin().getZ();
+    goToZServer.publishFeedback(feedback);
+
+	if(logicController->isAtZ(transform))
+	{
+		velocityPub.publish(logicController->stopZTwist());
+		vehicle_auto_control::GoToZRosResult result;
+        result.z = transform.getOrigin().getZ();
+        goToZServer.setSucceeded(result); 
+	}
+	else
+	{
+		velocityPub.publish(logicController->goToZTwist(transform));
+	}
+}
+
+tf2::Stamped<tf2::Transform> PropulsionController::getCurrentTransform()
+{
+	geometry_msgs::TransformStamped transformMsg;
+    tf2::Stamped<tf2::Transform> transform;
+	try
+    {
+        if(buffer.canTransform(info.getName(), "world_ned", ros::Time(0), ros::Duration(10.0)))
+        {
+            transformMsg = buffer.lookupTransform(info.getName(), "world_ned", ros::Time(0));
+        }
+		tf2::fromMsg(transformMsg, transform);
+	}
+	catch(tf2::TransformException ex)
+	{
+		throw ex;
 	}
 
-	return NULL;
+	return transform;
 }

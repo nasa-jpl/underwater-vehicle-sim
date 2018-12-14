@@ -1,7 +1,13 @@
 #ifndef FOUR_DOF_PROPULSION_CONTROLLER_H
 #define FOUR_DOF_PROPULSION_CONTROLLER_H
 
-#include "tf/transform_listener.h"
+#include "geometry_msgs/TransformStamped.h"
+#include "geometry_msgs/PointStamped.h"
+#include "geometry_msgs/Twist.h"
+
+#include "tf2/LinearMath/Transform.h"
+#include "tf2/LinearMath/Vector3.h"
+#include "tf2_ros/transform_listener.h"
 
 #include "actionlib/server/simple_action_server.h"
 
@@ -44,29 +50,29 @@ private:
 	void sendVelocityCommand(double cmdForwardVelocity, double cmdLateralVelocity, double cmdRotVelocity, double cmdVertVelocity);
 
 
-	bool isAtXY(tf::Transform& location);
-	bool isAtZ(tf::Transform& location);
+	bool isAtXY(tf2::Stamped<tf2::Transform>& location);
+	bool isAtZ(tf2::Stamped<tf2::Transform>& location);
 
-	double scaleHorizontalVelocity(tf::Transform& location, tf::Vector3& point);
-	double scaleVerticalVelocity(tf::Transform& location, double targetHeight);
+	double scaleHorizontalVelocity(tf2::Stamped<tf2::Transform>& location, tf2::Vector3& point);
+	double scaleVerticalVelocity(tf2::Stamped<tf2::Transform>& location, double targetHeight);
 	double scaleRotationalVelocity(double angleError, double crossZ);
 
 	/**
 	*Sends the needed commands to go toward the specified xy location
 	*/
-	void goToXY(tf::StampedTransform& location);
+	void goToXY(tf2::Stamped<tf2::Transform>& location);
 
 	/**
 	*Sends the needed commands to go toward the specified z location
 	*/
-	void goToZ(tf::StampedTransform& location);
+	void goToZ(tf2::Stamped<tf2::Transform>& location);
  	
  	/**
 	*Transforms the current point into the vehicle frame
 	*@param pointOut Output point
 	*@param transform Latest vehicle transform
 	*/
-	void transformPointToVehicleFrame(geometry_msgs::PointStamped& pointOut, tf::StampedTransform& transform, tf::Vector3& point);
+	void transformPointToVehicleFrame(geometry_msgs::PointStamped& pointOut, tf2::Stamped<tf2::Transform>& transform, tf2::Vector3& point);
 
 	/**
 	*Cancels all actionlib goals related to vehicle movements in xy direction
@@ -96,7 +102,8 @@ private:
 	double lastRotVelocity;
 	double lastVertVelocity;
 
-	tf::TransformListener listener;
+	tf2_ros::Buffer buffer;
+ 	tf2_ros::TransformListener listener;
 
 	ros::Subscriber dataSub;
 	double latestSonarDepth;

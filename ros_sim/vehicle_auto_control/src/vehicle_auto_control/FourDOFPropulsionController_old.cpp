@@ -2,8 +2,10 @@
 #include <algorithm>
 
 #include "ros/ros.h"
-#include "tf/transform_listener.h"
+
 #include "actionlib/server/simple_action_server.h"
+
+#include "tf2_geometry_msgs/tf2_geometry_msgs.h"
 
 #include "vehicle_auto_control/Velocity.h"
 #include "vehicle_auto_control/FourDOFPropulsionController.h"
@@ -25,7 +27,8 @@ FourDOFPropulsionController::FourDOFPropulsionController(ros::NodeHandle control
     lastRotVelocity(0),
     lastVertVelocity(0),
     goToXYServer(controlNode, "go_to_xy", false),
-    goToZServer(controlNode, "go_to_z", false)
+    goToZServer(controlNode, "go_to_z", false),
+    listener(buffer)
 {
     velocityPub = vehicleNode.advertise<geometry_msgs::Twist>(propModuleName + "/command_velocity", 1000);
 
@@ -100,7 +103,6 @@ void FourDOFPropulsionController::cancelZMovement(void)
 
 void FourDOFPropulsionController::goalGoToXYCB(void)
 {
-    
     sendVelocityCommand(0, 0, 0, lastVertVelocity);
     vehicle_auto_control::GoToXYRosGoalConstPtr goToXYGoal = goToXYServer.acceptNewGoal();
     
@@ -117,15 +119,17 @@ void FourDOFPropulsionController::preemptGoToXYCB(void)
 
 void FourDOFPropulsionController::goToXYUpdate(void)
 {
-    tf::StampedTransform transform;
+    geometry_msgs::TransformStamped transformMsg;
+    tf2::Stamped<tf2::Transform> transform;
     try
     {
-        listener.waitForTransform("/world", "/" + vehicleName,
-                                  ros::Time(0), ros::Duration(5.0));
-        listener.lookupTransform("/world", "/" + vehicleName,  
-                                 ros::Time(0), transform);
-
+        if(buffer.canTransform("world_ned", vehicleName, ros::Time(0), ros::Duration(10.0)))
+        {
+            transformMsg = buffer.lookupTransform("world_ned", vehicleName, ros::Time(0));
+        }        
         
+        tf2::fromMsg(transformMsg, transform);
+
         vehicle_auto_control::GoToXYRosFeedback feedback;
         feedback.x = transform.getOrigin().getX();
         feedback.y = transform.getOrigin().getY();
@@ -163,7 +167,7 @@ void FourDOFPropulsionController::goToXYUpdate(void)
             }
         }
     }
-    catch (tf::TransformException ex){
+    catch (tf2::TransformException ex){
         ROS_ERROR("%s",ex.what());
     }
 }
@@ -190,13 +194,15 @@ void FourDOFPropulsionController::preemptGoToZCB(void)
 
 void FourDOFPropulsionController::goToZUpdate(void)
 {
-    tf::StampedTransform transform;
+    geometry_msgs::TransformStamped transformMsg;
+    tf2::Stamped<tf2::Transform> transform;
     try
     {
-        listener.waitForTransform("/world", "/" + vehicleName,
-                                  ros::Time(0), ros::Duration(5.0));
-        listener.lookupTransform("/world", "/" + vehicleName,  
-                                 ros::Time(0), transform);
+        if(buffer.canTransform("world_ned", vehicleName, ros::Time(0), ros::Duration(10.0)))
+        {
+            transformMsg = buffer.lookupTransform("world_ned", vehicleName, ros::Time(0));
+        }        
+        tf2::fromMsg(transformMsg, transform);
 
         vehicle_auto_control::GoToZRosFeedback feedback;
         feedback.z = transform.getOrigin().getZ();
@@ -228,25 +234,36 @@ void FourDOFPropulsionController::goToZUpdate(void)
             goToZ(transform);
         }
     }
-    catch (tf::TransformException ex){
+    catch (tf2::TransformException ex){
         ROS_ERROR("%s",ex.what());
     }
 }
 
-void FourDOFPropulsionController::transformPointToVehicleFrame(geometry_msgs::PointStamped& pointOut, tf::StampedTransform& transform, tf::Vector3& point)
+void FourDOFPropulsionController::transformPointToVehicleFrame(geometry_msgs::PointStamped& pointOut, tf2::Stamped<tf2::Transform>& transform, tf2::Vector3& point)
 {
     geometry_msgs::PointStamped pointIn;
-    
     pointIn.header.stamp = transform.stamp_;
-    pointIn.header.frame_id = "/world";
+    pointIn.header.frame_id = "world_ned";
     pointIn.point.x = point.getX();
     pointIn.point.y = point.getY();
     pointIn.point.z = point.getZ();
 
-    listener.transformPoint("/" + vehicleName, pointIn, pointOut);
+    try
+    {
+        if(buffer.canTransform("world_ned", vehicleName, ros::Time(0), ros::Duration(10.0)))
+        {
+            geometry_msgs::TransformStamped transformMsg = buffer.lookupTransform("world_ned", vehicleName, ros::Time(0));
+            tf2::doTransform(pointIn, pointOut, transformMsg);
+
+        }   
+    }
+    catch(tf2::TransformException ex)
+    {
+        ROS_ERROR("%s",ex.what());
+    }
 }
 
-bool FourDOFPropulsionController::isAtXY(tf::Transform& location)
+bool FourDOFPropulsionController::isAtXY(tf2::Stamped<tf2::Transform>& location)
 {
     double xDifference = fabs(location.getOrigin().getX() - targetX);
     double yDifference = fabs(location.getOrigin().getY() - targetY);
@@ -254,7 +271,7 @@ bool FourDOFPropulsionController::isAtXY(tf::Transform& location)
     return sqrt(yDifference * yDifference + xDifference * xDifference) <= lateralError;
 }
 
-bool FourDOFPropulsionController::isAtZ(tf::Transform& location)
+bool FourDOFPropulsionController::isAtZ(tf2::Stamped<tf2::Transform>& location)
 {
     double targetVertPosition = std::max(targetZ, latestVehicleDepth - latestSonarDepth + minSeafloorDistance);
 
@@ -263,16 +280,15 @@ bool FourDOFPropulsionController::isAtZ(tf::Transform& location)
     return zDifference <= verticalError;
 }
 
-
-void FourDOFPropulsionController::goToXY(tf::StampedTransform& location)
+void FourDOFPropulsionController::goToXY(tf2::Stamped<tf2::Transform>& location)
 {
     geometry_msgs::PointStamped pointOut;
-    tf::Vector3 point(targetX, targetY, 0);
+    tf2::Vector3 point(targetX, targetY, 0);
 
     transformPointToVehicleFrame(pointOut, location, point);
-    tf::Vector3 vehicleForward(1, 0, 0);
-    tf::Vector3 targetPoint(pointOut.point.x, pointOut.point.y, 0);
-    tf::Vector3 cross = vehicleForward.cross(targetPoint);
+    tf2::Vector3 vehicleForward(1, 0, 0);
+    tf2::Vector3 targetPoint(pointOut.point.x, pointOut.point.y, 0);
+    tf2::Vector3 cross = vehicleForward.cross(targetPoint);
 
     double angle = vehicleForward.angle(targetPoint);       
     double newRotVel = lastRotVelocity;
@@ -290,7 +306,7 @@ void FourDOFPropulsionController::goToXY(tf::StampedTransform& location)
                         lastRotVelocity);
 }
 
-void FourDOFPropulsionController::goToZ(tf::StampedTransform& location)
+void FourDOFPropulsionController::goToZ(tf2::Stamped<tf2::Transform>& location)
 {
     double newVertVel = scaleVerticalVelocity(location, targetZ);
 
@@ -301,7 +317,7 @@ void FourDOFPropulsionController::goToZ(tf::StampedTransform& location)
                         newVertVel);
 }
 
-double FourDOFPropulsionController::scaleHorizontalVelocity(tf::Transform& location, tf::Vector3& point)
+double FourDOFPropulsionController::scaleHorizontalVelocity(tf2::Stamped<tf2::Transform>& location, tf2::Vector3& point)
 {
     double xDifference = fabs(location.getOrigin().getX() - point.getX());
     double yDifference = fabs(location.getOrigin().getY() - point.getY());
@@ -317,7 +333,7 @@ double FourDOFPropulsionController::scaleHorizontalVelocity(tf::Transform& locat
     return targetHorzVelocity * (xyError / horizontalScaleError);
 }
 
-double FourDOFPropulsionController::scaleVerticalVelocity(tf::Transform& location, double targetHeight)
+double FourDOFPropulsionController::scaleVerticalVelocity(tf2::Stamped<tf2::Transform>& location, double targetHeight)
 {
     double targetVertPosition = std::max(targetHeight, latestVehicleDepth - latestSonarDepth + minSeafloorDistance);
     double zDifference = fabs(location.getOrigin().getZ() - targetVertPosition);
