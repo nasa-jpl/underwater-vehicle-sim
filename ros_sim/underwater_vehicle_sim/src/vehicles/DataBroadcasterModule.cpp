@@ -21,11 +21,12 @@ DataBroadcasterModule::DataBroadcasterModule(std::string name, ros::NodeHandle& 
 void DataBroadcasterModule::update(std::string name, const ros::Time& lastTime, VehicleState& vehicleState) 
 {
 	model_server::GetModelData srv;
-
-	tf2::Vector3 position = vehicleState.getPositionENU();
-	srv.request.x = position.getX();
-	srv.request.y = position.getY();
-	srv.request.h = position.getZ();
+	
+	tf2::Vector3 enuPosition = vehicleState.getPositionENU();
+	tf2::Vector3 nedPosition = vehicleState.getPositionNED();
+	srv.request.x = enuPosition.getX();
+	srv.request.y = enuPosition.getY();
+	srv.request.h = enuPosition.getZ();
 	srv.request.time = lastTime.toSec() / SECONDS_IN_DAY; //convert from seconds to days
 
 	if(client.exists())
@@ -37,9 +38,9 @@ void DataBroadcasterModule::update(std::string name, const ros::Time& lastTime, 
 			underwater_vehicle_msgs::VehicleDataPtr data(new underwater_vehicle_msgs::VehicleData);
 
 			data->name = name;
-			data->x = position.getX();
-			data->y = position.getY();
-			data->h = position.getZ();
+			data->x = nedPosition.getX();
+			data->y = nedPosition.getY();
+			data->h = nedPosition.getZ();
 			data->time = lastTime;
 
 			float precisionPow = std::pow(10, 4); //Set presision of temperature reading to 4 decimal places
@@ -47,7 +48,7 @@ void DataBroadcasterModule::update(std::string name, const ros::Time& lastTime, 
 			
 			data->salt = srv.response.salt;
 			data->dye = srv.response.dye;
-			data->sonarDepth = srv.response.depth + position.getZ(); //depth + z, becuase z is negative while depth is positive
+			data->sonarDepth = srv.response.depth - nedPosition.getZ(); //depth + z, becuase z is negative while depth is positive
 
 			dataRecorder.publish(data);
 		}

@@ -10,7 +10,9 @@ add_compile_options(-std=c++11)
 find_package(catkin REQUIRED
              actionlib_msgs
              roscpp
-             tf
+             tf2
+             tf2_ros
+             tf2_geometry_msgs
              underwater_vehicle_sim
              underwater_vehicle_msgs
              vehicle_auto_control)

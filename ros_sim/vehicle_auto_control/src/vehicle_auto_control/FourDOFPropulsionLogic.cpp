@@ -16,9 +16,11 @@ FourDOFPropulsionLogic::FourDOFPropulsionLogic() :
     latestSonarDepth(1000),
     latestVehicleDepth(0),
     minSeafloorDistance(10.0),
-    angleErrorScale(M_PI / 2),
+    angleErrorScale(M_PI),
     horizontalScaleError(100),
-    verticalErrorScale(15)
+    verticalErrorScale(15),
+    targetLinearVelocity(0,0,0),
+    targetAngularVelocity(0,0,0)
 {}
 
 const geometry_msgs::Twist FourDOFPropulsionLogic::goToXYTwist(tf2::Stamped<tf2::Transform>& NEDToVehicle)
@@ -39,6 +41,7 @@ const geometry_msgs::Twist FourDOFPropulsionLogic::goToXYTwist(tf2::Stamped<tf2:
     geometry_msgs::Twist newTwist;
     newTwist.linear = lastLinearVelocity;
     newTwist.angular = lastAngularVelocity;
+
     return newTwist;
 }
 
@@ -53,6 +56,7 @@ const geometry_msgs::Twist FourDOFPropulsionLogic::goToZTwist(tf2::Stamped<tf2::
     geometry_msgs::Twist newTwist;
     newTwist.linear = lastLinearVelocity;
     newTwist.angular = lastAngularVelocity;
+
     return newTwist;
 }
 
@@ -165,5 +169,6 @@ double FourDOFPropulsionLogic::scaleRotationalVelocity(double angle)
             return -targetAngularVelocity.z();
         }
     }
+    
     return targetAngularVelocity.z() * (angle / angleErrorScale);
 }

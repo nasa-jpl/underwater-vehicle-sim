@@ -1,7 +1,6 @@
 #include "vehicle_auto_control/VehicleController.h"
-#include "vehicle_auto_control/PropulsionController.h"
 
-#include "underwater_vehicle_msgs/GetVehicleInfo.h"
+#include "vehicle_auto_control/PropulsionController.h"
 
 VehicleController::VehicleController(ros::NodeHandle& parentNH) :
 nh(parentNH)
@@ -22,7 +21,8 @@ nh(parentNH)
 		if(info.response.propModuleName != "")
 		{
 			VehicleInfo vehicleInfo(info);
-			PropulsionController controller(nh, vehicleInfo);
+			std::unique_ptr<PropulsionController> controller(new PropulsionController(nh, vehicleInfo));
+		 	propControllers.push_back(std::move(controller));
 		}
 	}
 }
@@ -31,6 +31,6 @@ void VehicleController::update(void)
 {
 	for(unsigned int i = 0; i < propControllers.size(); i++)
 	{
-		propControllers[i].update();
+		propControllers[i]->update();
 	}
 }

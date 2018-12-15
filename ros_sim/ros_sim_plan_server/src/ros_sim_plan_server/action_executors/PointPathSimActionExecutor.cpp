@@ -2,15 +2,16 @@
 #include <unordered_map>
 
 #include "ros/ros.h"
-#include "tf/transform_listener.h"
 
 #include "geometry_msgs/Point.h"
+#include "geometry_msgs/Twist.h"
+
+#include "tf2_geometry_msgs/tf2_geometry_msgs.h"
 
 #include "underwater_planner/Action.h"
 
 #include "ros_sim_plan_server/action_executors/PointPathSimActionExecutor.h"
 #include "vent_planner/actions/PointPathAction.h"
-#include "vehicle_auto_control/Velocity.h"
 
 #include "actionlib/client/simple_action_client.h"
 #include "ros_sim_plan_server/PointPathRosAction.h"
@@ -23,7 +24,8 @@ PointPathSimActionExecutor::PointPathSimActionExecutor(ros::NodeHandle& nh, std:
 	currentPointOffset(0),
 	replanNextUpdate(false),
 	lastReplan(ros::Time::now()),
-	distanceSinceReplan(0)
+	distanceSinceReplan(0),
+	listener(buffer)
 {
 	infoClient = nh.serviceClient<underwater_vehicle_msgs::GetVehicleInfo>("vehicles/get_info");
 	infoClient.waitForExistence();
@@ -41,7 +43,8 @@ PointPathSimActionExecutor::PointPathSimActionExecutor(const PointPathSimActionE
 	pointPathClient("planner/"  + vehicleName + "/point_path", true),
 	replanNextUpdate(false),
 	lastReplan(other.lastReplan),
-	distanceSinceReplan(other.distanceSinceReplan)
+	distanceSinceReplan(other.distanceSinceReplan),
+	listener(buffer)
 {
 	infoClient = nh.serviceClient<underwater_vehicle_msgs::GetVehicleInfo>("vehicles/get_info");
 	infoClient.waitForExistence();
@@ -72,17 +75,20 @@ bool PointPathSimActionExecutor::execute(std::shared_ptr<PointPathAction> action
 		std::string velSub = "vehicle_controller/" + vehicleName + "/command_target_velocity";
 		if(!hasPublisher(velSub))
 		{
-			publishers.insert(std::make_pair(velSub, nh.advertise<vehicle_auto_control::Velocity>(velSub, 1000, true)));
+			publishers.insert(std::make_pair(velSub, nh.advertise<geometry_msgs::Twist>(velSub, 1000, true)));
 		}
 
 		//Send target velocities command
-		vehicle_auto_control::Velocity velMsg;
-		velMsg.horizontalVelocity = action->getTargetHorizontalVelocity();
+		geometry_msgs::Twist velMsg;
 
+		velMsg.linear.x = action->getTargetHorizontalVelocity();
+		velMsg.linear.y = 0;
 		//Calculate the target vertical velocity based on target horizontal velocity and target slope
-		velMsg.verticalVelocity = action->getTargetHorizontalVelocity() * (sin(action->getTargetSlope()) / cos(action->getTargetSlope()));
+		velMsg.linear.z = action->getTargetHorizontalVelocity() * (sin(action->getTargetSlope()) / cos(action->getTargetSlope()));
 
-		velMsg.rotationalVelocity = action->getTargetRotationalVelocity();
+		velMsg.angular.x = 0;
+		velMsg.angular.y = 0;
+		velMsg.angular.z = action->getTargetRotationalVelocity();
 	
 		auto publisher = publishers.find(velSub); 
 		publisher->second.publish(velMsg);
@@ -95,12 +101,20 @@ bool PointPathSimActionExecutor::execute(std::shared_ptr<PointPathAction> action
 
 	try
 	{
-		tf::StampedTransform transform;
-		listener.waitForTransform("/world", "/" + vehicleName, ros::Time(0), ros::Duration(5.0));
-		listener.lookupTransform("/world", "/" + vehicleName, ros::Time(0), transform);
-		lastLocation = transform.getOrigin();
+		geometry_msgs::TransformStamped transformMsg;
+		tf2::Stamped<tf2::Transform> transform;
+		if(buffer.canTransform("world_ned", vehicleName, ros::Time(0), ros::Duration(10.0)))
+		{
+			transformMsg = buffer.lookupTransform("world_ned", vehicleName, ros::Time(0));
+			tf2::fromMsg(transformMsg, transform);
+			lastLocation = transform.getOrigin();
+		}
+		else
+		{
+			ROS_ERROR("No valid transform available");
+		}		
 	}
-	catch (tf::TransformException ex)
+	catch(tf2::TransformException ex)
 	{
 		ROS_ERROR("%s",ex.what());
 	}
@@ -150,12 +164,20 @@ void PointPathSimActionExecutor::cancel(std::shared_ptr<PointPathAction> action)
 {
 	try
 	{
-		tf::StampedTransform transform;
-		listener.waitForTransform("/world", "/" + vehicleName, ros::Time(0), ros::Duration(5.0));
-		listener.lookupTransform("/world", "/" + vehicleName, ros::Time(0), transform);
-		action->setInterruptPoint(VehiclePose(transform.getOrigin().getX(), transform.getOrigin().getY(), transform.getOrigin().getZ()));
+		geometry_msgs::TransformStamped transformMsg;
+		tf2::Stamped<tf2::Transform> transform;
+		if(buffer.canTransform("world_ned", vehicleName, ros::Time(0), ros::Duration(10.0)))
+		{
+			transformMsg = buffer.lookupTransform("world_ned", vehicleName, ros::Time(0));
+			tf2::fromMsg(transformMsg, transform);
+			action->setInterruptPoint(VehiclePose(transform.getOrigin().getX(), transform.getOrigin().getY(), transform.getOrigin().getZ()));
+		}
+		else
+		{
+			ROS_ERROR("No valid transform available");
+		}		
 	}
-	catch (tf::TransformException ex)
+	catch(tf2::TransformException ex)
 	{
 		ROS_ERROR("%s",ex.what());
 	}
@@ -256,13 +278,21 @@ void PointPathSimActionExecutor::actionFeedback(std::shared_ptr<PointPathAction>
 	{
 		try
 		{
-			tf::StampedTransform transform;
-			listener.waitForTransform("/world", "/" + vehicleName, ros::Time(0), ros::Duration(5.0));
-			listener.lookupTransform("/world", "/" + vehicleName, ros::Time(0), transform);
-			distanceSinceReplan += transform.getOrigin().distance(lastLocation);
-			lastLocation = transform.getOrigin();
+			geometry_msgs::TransformStamped transformMsg;
+			tf2::Stamped<tf2::Transform> transform;
+			if(buffer.canTransform("world_ned", vehicleName, ros::Time(0), ros::Duration(10.0)))
+			{
+				transformMsg = buffer.lookupTransform("world_ned", vehicleName, ros::Time(0));
+				tf2::fromMsg(transformMsg, transform);
+				distanceSinceReplan += transform.getOrigin().distance(lastLocation);
+				lastLocation = transform.getOrigin();
+			}
+			else
+			{
+				ROS_ERROR("No valid transform available");
+			}		
 		}
-		catch (tf::TransformException ex)
+		catch(tf2::TransformException ex)
 		{
 			ROS_ERROR("%s",ex.what());
 		}

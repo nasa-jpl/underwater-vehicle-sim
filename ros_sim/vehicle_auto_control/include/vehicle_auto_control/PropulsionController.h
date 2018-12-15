@@ -24,7 +24,7 @@ class PropulsionController
 {
 
 public:
-	PropulsionController(ros::NodeHandle& nh, VehicleInfo info);
+	PropulsionController(ros::NodeHandle& nh, VehicleInfo& info);
 	~PropulsionController() {}
 
 	void update(void);

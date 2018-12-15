@@ -1,4 +1,3 @@
-
 #include "vehicle_auto_control/PropulsionController.h"
 
 #include "tf2_geometry_msgs/tf2_geometry_msgs.h"
@@ -8,7 +7,7 @@
 
 #include "underwater_vehicle_msgs/GetVehicleInfo.h"
 
-PropulsionController::PropulsionController(ros::NodeHandle& nh, VehicleInfo info) :
+PropulsionController::PropulsionController(ros::NodeHandle& nh, VehicleInfo& info) :
 	controlNode(nh, "vehicle_controller/" + info.getName()), 
 	vehicleNode(nh, "vehicles/" + info.getName()),
 	info(info),
@@ -30,11 +29,11 @@ PropulsionController::PropulsionController(ros::NodeHandle& nh, VehicleInfo info
 
 	goToXYServer.registerGoalCallback(boost::bind(&PropulsionController::goalGoToXYCB, this));
     goToXYServer.registerPreemptCallback(boost::bind(&PropulsionController::preemptGoToXYCB, this));
-    goToXYServer.start();
+ 	goToXYServer.start();
 
     goToZServer.registerGoalCallback(boost::bind(&PropulsionController::goalGoToZCB, this));
     goToZServer.registerPreemptCallback(boost::bind(&PropulsionController::preemptGoToZCB, this));
-    goToZServer.start();
+	goToZServer.start();
 }
 
 void PropulsionController::getTargetVelocityCommand(const geometry_msgs::Twist vel)
@@ -107,6 +106,7 @@ void PropulsionController::goToXYUpdate(void)
 		result.x = transform.getOrigin().getX();
 		result.y = transform.getOrigin().getY();
 		goToXYServer.setSucceeded(result);
+		ROS_INFO("GoToXY Server goal completed: %f %f", targetX, targetY);
 	}
 	else
 	{
@@ -165,6 +165,7 @@ void PropulsionController::goToZUpdate(void)
 		vehicle_auto_control::GoToZRosResult result;
         result.z = transform.getOrigin().getZ();
         goToZServer.setSucceeded(result); 
+		ROS_INFO("GoToZ Server goal completeted: %f", targetZ);
 	}
 	else
 	{

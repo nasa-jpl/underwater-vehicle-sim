@@ -85,17 +85,21 @@ void VehicleState::updatePose(const ros::Time currentTime, const ros::Duration d
 	{
 		model_server::GetModelData srv;
 
-		srv.request.x = position.getX();
-		srv.request.y = position.getY();
-		srv.request.h = position.getZ();
+		tf2::Vector3 enuPosition = getPositionENU();
+		tf2::Vector3 nedPosition = getPositionNED();
+		srv.request.x = enuPosition.getX();
+		srv.request.y = enuPosition.getY();
+		srv.request.h = enuPosition.getZ();
 		srv.request.time = currentTime.toSec() / SECONDS_IN_DAY; //convert from seconds to days
 
 		bool success = modelClient.call(srv);
 
-		if(success && srv.response.depth - 0.1 < position.getZ())
+		//depth is position so invert depth
+		if(success && -srv.response.depth + 0.1 > enuPosition.getZ())
 		{
 			//if vehicle is trying to go below the bottom of the ocean model then set its z position to above the ocean floor.
-			position.setZ(srv.response.depth - 0.1);
+			enuPosition.setZ(-srv.response.depth + 0.1);
+			setPositionENU(enuPosition);
 		}
 	}
 }

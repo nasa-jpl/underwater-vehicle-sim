@@ -63,7 +63,6 @@ void PointPathController::pointPathUpdate(void)
 
 void PointPathController::yoyoUpdate(void)
 {
-
     goingUp = !goingUp;
     double targetZ = goingUp ? upperDepth : lowerDepth;
     ROS_INFO("YoYo Update - goingUp: %d; targetZ: %f", goingUp, targetZ);

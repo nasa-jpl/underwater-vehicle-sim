@@ -2,12 +2,16 @@
 
 #include <limits>
 
-#include "ros/ros.h"
+#include "tf2/LinearMath/Transform.h"
+#include "tf2_geometry_msgs/tf2_geometry_msgs.h"
+
+
 #include "std_msgs/String.h"
 
 ROSSimVehicleInterface::ROSSimVehicleInterface(ros::NodeHandle& nh, VehicleInfo info) :
     nh(nh),
-    info(info)
+    info(info),
+    listener(buffer)
 {
     std::vector<std::string> data = info.getModuleNamesOfType("DataBroadcaster");
     if(data.size() > 0)
@@ -96,31 +100,32 @@ void ROSSimVehicleInterface::receiveData(const underwater_vehicle_msgs::VehicleD
 
 VehiclePose ROSSimVehicleInterface::getPosition()
 {
-    tf::StampedTransform transform;
-
     VehiclePose pose(std::numeric_limits<double>::quiet_NaN(),
                      std::numeric_limits<double>::quiet_NaN(),
                      std::numeric_limits<double>::quiet_NaN());
-    try
-    {
-        if(listener.waitForTransform("/world", "/" + info.getName(),
-                                  ros::Time(0), ros::Duration(5.0)))
-        {
-           listener.lookupTransform("/world", "/" + info.getName(),  
-                                 ros::Time(0), transform);
 
+    geometry_msgs::TransformStamped transformMsg;
+    tf2::Stamped<tf2::Transform> transform;
+	try
+    {
+        if(buffer.canTransform(info.getName(), "world_ned", ros::Time(0), ros::Duration(10.0)))
+        {
+            transformMsg = buffer.lookupTransform("world_ned", info.getName(), ros::Time(0));
+            tf2::fromMsg(transformMsg, transform);
             pose = VehiclePose((double)(transform.getOrigin().getX()),
-                               (double)(transform.getOrigin().getY()),
-                               (double)(transform.getOrigin().getZ())); 
+                           (double)(transform.getOrigin().getY()),
+                           (double)(transform.getOrigin().getZ())); 
         }
         else
         {
             ROS_ERROR("No valid transform available");
         }
-    }
-    catch (tf::TransformException ex){
-        ROS_ERROR("%s",ex.what());
-    }
+		
+	}
+	catch(tf2::TransformException ex)
+	{
+	    ROS_ERROR("%s",ex.what());
+	}
 
     return pose;
 }

@@ -144,9 +144,9 @@ TEST(VehicleState, UpdateTest){
     state.updatePose(currentTime, deltaTime);
 
     //After movement
-    EXPECT_DOUBLE_EQ(endPosition.getX(), state.getPositionNED().getX());
-    EXPECT_DOUBLE_EQ(endPosition.getY(), state.getPositionNED().getY());
-    EXPECT_DOUBLE_EQ(endPosition.getZ(), state.getPositionNED().getZ());
+    EXPECT_NEAR(endPosition.getX(), state.getPositionNED().getX(), 0.0000000001);
+    EXPECT_NEAR(endPosition.getY(), state.getPositionNED().getY(), 0.0000000001);
+    EXPECT_NEAR(endPosition.getZ(), state.getPositionNED().getZ(), 0.0000000001);
 
     EXPECT_TRUE(quaterionsEqual(endRotation, state.getRotationNED()));
 }
@@ -181,9 +181,9 @@ TEST(VehicleState, UpperBoundTest){
     state.updatePose(currentTime, deltaTime);
 
     //After movement
-    EXPECT_DOUBLE_EQ(endPosition.getX(), state.getPositionNED().getX());
-    EXPECT_DOUBLE_EQ(endPosition.getY(), state.getPositionNED().getY());
-    EXPECT_DOUBLE_EQ(endPosition.getZ(), state.getPositionNED().getZ());
+    EXPECT_NEAR(endPosition.getX(), state.getPositionNED().getX(), 0.0000000001);
+    EXPECT_NEAR(endPosition.getY(), state.getPositionNED().getY(), 0.0000000001);
+    EXPECT_NEAR(endPosition.getZ(), state.getPositionNED().getZ(), 0.0000000001);
 }
 
 TEST(VehicleState, LowerBoundTest){
@@ -217,9 +217,9 @@ TEST(VehicleState, LowerBoundTest){
     state.updatePose(currentTime, deltaTime);
 
     //After movement
-    EXPECT_DOUBLE_EQ(endPosition.getX(), state.getPositionNED().getX());
-    EXPECT_DOUBLE_EQ(endPosition.getY(), state.getPositionNED().getY());
-    EXPECT_DOUBLE_EQ(endPosition.getZ(), state.getPositionNED().getZ());
+    EXPECT_NEAR(endPosition.getX(), state.getPositionNED().getX(), 0.00000000001);
+    EXPECT_NEAR(endPosition.getY(), state.getPositionNED().getY(), 0.00000000001);
+    EXPECT_NEAR(endPosition.getZ(), state.getPositionNED().getZ(), 0.00000000001);
 }
 
 //Had issues doing this in the roslaunch file for this test. Not sure why.

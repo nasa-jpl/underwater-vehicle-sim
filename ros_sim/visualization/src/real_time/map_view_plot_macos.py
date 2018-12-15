@@ -3,7 +3,7 @@
 import rospy
 from std_msgs.msg import String
 from underwater_vehicle_msgs.msg import VehicleData
-
+import math
 import numpy as np
 
 import matplotlib
@@ -21,9 +21,10 @@ ax.grid()
 sc = plt.scatter([], [], c=[], linewidth=0, animated=True)
 
 def callback(data):
-    xdata.append(data.x)
-    ydata.append(data.y)
-    cdata.append(data.dye)
+    if not math.isnan(data.dye):
+        xdata.append(data.x)
+        ydata.append(data.y)
+        cdata.append(data.dye)
 
 def init():
     ax.set_xlim(-50000,50000)
@@ -32,7 +33,7 @@ def init():
 
 def update(frame):
     if len(xdata) > 0:
-        sc.set_offsets(zip(xdata, ydata))
+        sc.set_offsets(zip(ydata, xdata))
         sc.set_clim(min(0, min(cdata)), max(1, max(cdata)))
         sc.set_array(np.array(cdata).transpose())
 

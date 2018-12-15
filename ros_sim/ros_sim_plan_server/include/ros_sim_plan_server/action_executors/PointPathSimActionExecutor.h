@@ -5,7 +5,9 @@
 #include <unordered_map>
 
 #include "ros/ros.h"
-#include "tf/transform_listener.h"
+#include "tf2_ros/transform_listener.h"
+#include "tf2/LinearMath/Vector3.h"
+#include "tf2/LinearMath/Transform.h"
 
 #include "underwater_planner/ActionExecutor.h"
 #include "vent_planner/actions/PointPathAction.h"
@@ -78,13 +80,14 @@ private:
     bool replanNextUpdate;
     ros::Time lastReplan;
     double distanceSinceReplan;
-    tf::Vector3 lastLocation;
+    tf2::Vector3 lastLocation;
     std::string vehicleName;
 
     actionlib::SimpleActionClient<ros_sim_plan_server::PointPathRosAction> pointPathClient;
     ros_sim_plan_server::PointPathRosGoal pointPathGoal;
 
-    tf::TransformListener listener;
+    tf2_ros::Buffer buffer;
+    tf2_ros::TransformListener listener;
 
     /**
     * Offset to apply to the currentPoint variable in the ActionLib feedback

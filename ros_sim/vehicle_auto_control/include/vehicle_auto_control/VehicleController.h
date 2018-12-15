@@ -13,10 +13,11 @@ class VehicleController
 public:
 	VehicleController(ros::NodeHandle& parentNH);
     void update(void);
+
 private:
 	ros::NodeHandle& nh;
 	ros::ServiceClient infoClient;
-	std::vector<PropulsionController> propControllers;
+	std::vector<std::unique_ptr<PropulsionController>> propControllers;
 };
 
 #endif

@@ -227,10 +227,10 @@ TEST(FourDOFPropulsionLogic, GetRotationalTwist)
     geometry_msgs::Twist twistOutRangeNeg = logic.goToXYTwist(stampedLocationOutRangeNeg);
     geometry_msgs::Twist twistInRangeNeg = logic.goToXYTwist(stampedTransformInRangeNeg);
 
-    EXPECT_NEAR(targetVelocity.angular.z, twistOutRangePos.angular.z, 0.000000001);
-    EXPECT_NEAR(targetVelocity.angular.z / 2, twistInRangePos.angular.z, 0.000000001);
-    EXPECT_NEAR(-targetVelocity.angular.z, twistOutRangeNeg.angular.z, 0.000000001);
-    EXPECT_NEAR(-targetVelocity.angular.z / 2, twistInRangeNeg.angular.z, 0.000000001);
+    EXPECT_NEAR(targetVelocity.angular.z / 2, twistOutRangePos.angular.z, 0.000000001);
+    EXPECT_NEAR(targetVelocity.angular.z / 4, twistInRangePos.angular.z, 0.000000001);
+    EXPECT_NEAR(-targetVelocity.angular.z / 2, twistOutRangeNeg.angular.z, 0.000000001);
+    EXPECT_NEAR(-targetVelocity.angular.z / 4, twistInRangeNeg.angular.z, 0.000000001);
 }
 
 TEST(FourDOFPropulsionLogic, AtLocationTest)
@@ -319,7 +319,7 @@ TEST(FourDOFPropulsionLogic, StopTwist)
     EXPECT_NEAR(0, stopTwistZ.linear.z, 0.000000001);
     EXPECT_NEAR(targetVelocity.angular.x, stopTwistZ.angular.x, 0.000000001);
     EXPECT_NEAR(targetVelocity.angular.y, stopTwistZ.angular.y, 0.000000001);
-    EXPECT_NEAR(targetVelocity.angular.z, stopTwistZ.angular.z, 0.000000001);
+    EXPECT_NEAR(targetVelocity.angular.z / 2, stopTwistZ.angular.z, 0.000000001);
 }
 
 int main(int argc, char** argv){
