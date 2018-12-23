@@ -73,6 +73,8 @@ private:
     ros::Subscriber dataSub;
     double latestSonarDepth;
     double latestVehicleDepth;
+
+    bool newGoalAccepted;
 };
 
 #endif

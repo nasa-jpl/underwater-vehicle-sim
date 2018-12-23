@@ -8,7 +8,8 @@ PointPathController::PointPathController(ros::NodeHandle nh,
     goToXYClient(nh, "vehicle_controller/" + vehicleInfo.getName() + "/go_to_xy", false),
     goToZClient(nh, "vehicle_controller/" + vehicleInfo.getName() + "/go_to_z", false),
     pointPathServer(nh, "planner/" + vehicleInfo.getName() + "/point_path", false),
-    vehicleInfo(vehicleInfo)
+    vehicleInfo(vehicleInfo),
+    newGoalAccepted(false)
 {
     std::vector<std::string> data = vehicleInfo.getModuleNamesOfType("DataBroadcaster");
     if(data.size() > 0)
@@ -82,6 +83,9 @@ void PointPathController::sendFeedback(void)
 void PointPathController::goalCB(void)
 {  
     ROS_INFO("Point path server accept new goal");
+
+    //Set this to true so we know that a new goal has just been accepted
+    newGoalAccepted = true;
     ros_sim_plan_server::PointPathRosGoalConstPtr pointPathGoal = pointPathServer.acceptNewGoal();
     currentPoint = 0;
     goingUp = true;
@@ -101,10 +105,12 @@ void PointPathController::goalCB(void)
     {
         yoyoUpdate();
     }
+    newGoalAccepted = false;
 }
 
 void PointPathController::preemptCB(void)
 {
+    ROS_INFO("Point Path Preempted");
     goToXYClient.cancelAllGoals();
     goToZClient.cancelAllGoals();
     pointPathServer.setPreempted();
@@ -120,11 +126,35 @@ void PointPathController::goToXYFeedback(const vehicle_auto_control::GoToXYRosFe
 void PointPathController::goToXYDone(const actionlib::SimpleClientGoalState& state,
                        const vehicle_auto_control::GoToXYRosResultConstPtr& result)
 {
-    ROS_INFO("GoToXY goal sent by point path controller is done");
-    xyDone = true;
-    if(pointPathServer.isActive())
+    ROS_INFO("GoToXY goal sent by point path controller is done: %s", state.toString().c_str());
+
+    if(state == actionlib::SimpleClientGoalState::StateEnum::SUCCEEDED)
     {
-        pointPathUpdate(); 
+        xyDone = true;
+        if(pointPathServer.isActive())
+        {
+            pointPathUpdate(); 
+        }
+    }
+    else if(state == actionlib::SimpleClientGoalState::StateEnum::PREEMPTED &&
+            !newGoalAccepted) //Make sure a new goal was not just accepted to avoid race condition
+    {
+        ros_sim_plan_server::PointPathRosResult result;
+        result.totalPoints = currentPoint;
+        pointPathServer.setPreempted(result);
+    }
+    else if(state == actionlib::SimpleClientGoalState::StateEnum::ABORTED &&
+            !newGoalAccepted)
+    {
+        ros_sim_plan_server::PointPathRosResult result;
+        result.totalPoints = currentPoint;
+        pointPathServer.setAborted(result);
+    }
+    else if(!newGoalAccepted)
+    {
+        ros_sim_plan_server::PointPathRosResult result;
+        result.totalPoints = currentPoint;
+        pointPathServer.setAborted(result);
     }
 }
 
@@ -151,7 +181,7 @@ void PointPathController::sendXYGoal(const double x, const double y)
 void PointPathController::goToZActive(void) {}
 void PointPathController::goToZFeedback(const vehicle_auto_control::GoToZRosFeedbackConstPtr& feedback) 
 {
-    if(!goingUp && fabs(latestSonarDepth - 10.0) <= 5.0)
+    if(!goingUp && fabs(latestSonarDepth - 15.0) <= 0.0)
     {
         if(yoyo)
         {
@@ -171,18 +201,42 @@ void PointPathController::goToZDone(const actionlib::SimpleClientGoalState& stat
                        const vehicle_auto_control::GoToZRosResultConstPtr& result)
 {
     ROS_INFO("GoToZ goal sent by point path controller is done");
-    if(pointPathServer.isActive())
+    
+    if(state == actionlib::SimpleClientGoalState::StateEnum::SUCCEEDED)
     {
-        if(yoyo)
+        if(pointPathServer.isActive())
         {
-            yoyoUpdate();
+            if(yoyo)
+            {
+                yoyoUpdate();
+            }
+            else
+            {
+                
+                zDone = true;
+                pointPathUpdate();
+            } 
         }
-        else
-        {
-            
-            zDone = true;
-            pointPathUpdate();
-        } 
+    }
+    else if(state == actionlib::SimpleClientGoalState::StateEnum::PREEMPTED &&
+            !newGoalAccepted) //Make sure a new goal was not just accepted to avoid race condition
+    {
+        ros_sim_plan_server::PointPathRosResult result;
+        result.totalPoints = currentPoint;
+        pointPathServer.setPreempted(result);
+    }
+    else if(state == actionlib::SimpleClientGoalState::StateEnum::ABORTED &&
+            !newGoalAccepted)
+    {
+        ros_sim_plan_server::PointPathRosResult result;
+        result.totalPoints = currentPoint;
+        pointPathServer.setAborted(result);
+    }
+    else if(!newGoalAccepted)
+    {
+        ros_sim_plan_server::PointPathRosResult result;
+        result.totalPoints = currentPoint;
+        pointPathServer.setAborted(result);
     }
 }
 

@@ -75,10 +75,7 @@ void PropulsionController::preemptGoToXYCB(void)
 {
 	velocityPub.publish(logicController->stopXYTwist());
 	
-    if(goToXYServer.isActive())
-    {
-        goToXYServer.setPreempted();
-    }
+    goToXYServer.setPreempted();
 }
 
 void PropulsionController::goToXYUpdate(void)
@@ -95,18 +92,18 @@ void PropulsionController::goToXYUpdate(void)
 	}
 	
 	vehicle_auto_control::GoToXYRosFeedback feedback;
-	feedback.x = transform.getOrigin().getX();
-	feedback.y = transform.getOrigin().getY();
+	feedback.x = transform.inverse().getOrigin().getX();
+	feedback.y = transform.inverse().getOrigin().getY();
 	goToXYServer.publishFeedback(feedback);
 
 	if(logicController->isAtXY(transform))
 	{
 		velocityPub.publish(logicController->stopXYTwist());
 		vehicle_auto_control::GoToXYRosResult result;
-		result.x = transform.getOrigin().getX();
-		result.y = transform.getOrigin().getY();
+		result.x = transform.inverse().getOrigin().getX();
+		result.y = transform.inverse().getOrigin().getY();
 		goToXYServer.setSucceeded(result);
-		ROS_INFO("GoToXY Server goal completed: %f %f", targetX, targetY);
+		ROS_INFO("GoToXY Server goal completed: %f %f", result.x, result.y);
 	}
 	else
 	{
@@ -136,10 +133,7 @@ void PropulsionController::preemptGoToZCB(void)
 {
 	velocityPub.publish(logicController->stopZTwist());
 	
-    if(goToXYServer.isActive())
-    {
-        goToXYServer.setPreempted();
-    }
+    goToZServer.setPreempted();
 }
 
 void PropulsionController::goToZUpdate(void)
@@ -165,7 +159,7 @@ void PropulsionController::goToZUpdate(void)
 		vehicle_auto_control::GoToZRosResult result;
         result.z = transform.getOrigin().getZ();
         goToZServer.setSucceeded(result); 
-		ROS_INFO("GoToZ Server goal completeted: %f", targetZ);
+		ROS_INFO("GoToZ Server goal completeted: %f", result.z);
 	}
 	else
 	{
