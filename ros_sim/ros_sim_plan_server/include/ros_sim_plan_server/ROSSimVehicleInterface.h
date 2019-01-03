@@ -19,7 +19,6 @@ public:
 
     void sendGoalStatus(GoalStatus status) override;
     void log(LogLevel level, std::string string) override;
-    void getData() override;
     void registerDataCallback(std::function<void(const PlannerData&)> cb) override;
     VehiclePose getPosition() override;
 
