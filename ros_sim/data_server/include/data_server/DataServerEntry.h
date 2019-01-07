@@ -3,16 +3,16 @@
 
 struct DataServerEntry
 {
-	float x;
-	float y;
-	float h;
-	float sonarDepth;
+	double x;
+	double y;
+	double h;
+	double sonarDepth;
 	ros::Time time;
 
-	float temp;
-	float salt;
-	float dye;
-	float plumeStrength;
+	double temp;
+	double salt;
+	double dye;
+	double plumeStrength;
 
 	bool operator<(const DataServerEntry& rhs) const { return time < rhs.time; }
 	bool operator==(const DataServerEntry& rhs) const { return time == rhs.time; }

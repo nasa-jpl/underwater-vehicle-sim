@@ -121,42 +121,42 @@ TEST(DataServerNodeInterface, PutAndGetData)
 	EXPECT_EQ(4, v1RetrievedData1.response.x.size());
 	for(unsigned int i = 0; i < v1RetrievedData1.response.x.size(); i++)
 	{
-		EXPECT_EQ(allData[i].x, v1RetrievedData1.response.x[i]);
-		EXPECT_EQ(allData[i].y, v1RetrievedData1.response.y[i]);
-		EXPECT_EQ(allData[i].h, v1RetrievedData1.response.h[i]);
-		EXPECT_NEAR(allData[i].time.toSec(), v1RetrievedData1.response.time[i].toSec(), 0.0000000001);
-		EXPECT_EQ(allData[i].temp, v1RetrievedData1.response.temp[i]);
-		EXPECT_EQ(allData[i].salt, v1RetrievedData1.response.salt[i]);
-		EXPECT_EQ(allData[i].dye, v1RetrievedData1.response.dye[i]);
-		EXPECT_EQ(allData[i].sonarDepth, v1RetrievedData1.response.sonarDepth[i]);
+		EXPECT_DOUBLE_EQ(allData[i].x, v1RetrievedData1.response.x[i]);
+		EXPECT_DOUBLE_EQ(allData[i].y, v1RetrievedData1.response.y[i]);
+		EXPECT_DOUBLE_EQ(allData[i].h, v1RetrievedData1.response.h[i]);
+		EXPECT_DOUBLE_EQ(allData[i].time.toSec(), v1RetrievedData1.response.time[i].toSec());
+		EXPECT_DOUBLE_EQ(allData[i].temp, v1RetrievedData1.response.temp[i]);
+		EXPECT_DOUBLE_EQ(allData[i].salt, v1RetrievedData1.response.salt[i]);
+		EXPECT_DOUBLE_EQ(allData[i].dye, v1RetrievedData1.response.dye[i]);
+		EXPECT_DOUBLE_EQ(allData[i].sonarDepth, v1RetrievedData1.response.sonarDepth[i]);
 	}
 
 	unsigned int allDataStart = 1;
 	EXPECT_EQ(2, v1RetrievedData2.response.x.size());
 	for(unsigned int i = 0; i < v1RetrievedData2.response.x.size(); i++)
 	{
-		EXPECT_EQ(allData[allDataStart + i].x, v1RetrievedData2.response.x[i]);
-		EXPECT_EQ(allData[allDataStart + i].y, v1RetrievedData2.response.y[i]);
-		EXPECT_EQ(allData[allDataStart + i].h, v1RetrievedData2.response.h[i]);
-		EXPECT_NEAR(allData[allDataStart + i].time.toSec(), v1RetrievedData2.response.time[i].toSec(), 0.0000000001);
-		EXPECT_EQ(allData[allDataStart + i].temp, v1RetrievedData2.response.temp[i]);
-		EXPECT_EQ(allData[allDataStart + i].salt, v1RetrievedData2.response.salt[i]);
-		EXPECT_EQ(allData[allDataStart + i].dye, v1RetrievedData2.response.dye[i]);
-		EXPECT_EQ(allData[allDataStart + i].sonarDepth, v1RetrievedData2.response.sonarDepth[i]);
+		EXPECT_DOUBLE_EQ(allData[allDataStart + i].x, v1RetrievedData2.response.x[i]);
+		EXPECT_DOUBLE_EQ(allData[allDataStart + i].y, v1RetrievedData2.response.y[i]);
+		EXPECT_DOUBLE_EQ(allData[allDataStart + i].h, v1RetrievedData2.response.h[i]);
+		EXPECT_DOUBLE_EQ(allData[allDataStart + i].time.toSec(), v1RetrievedData2.response.time[i].toSec());
+		EXPECT_DOUBLE_EQ(allData[allDataStart + i].temp, v1RetrievedData2.response.temp[i]);
+		EXPECT_DOUBLE_EQ(allData[allDataStart + i].salt, v1RetrievedData2.response.salt[i]);
+		EXPECT_DOUBLE_EQ(allData[allDataStart + i].dye, v1RetrievedData2.response.dye[i]);
+		EXPECT_DOUBLE_EQ(allData[allDataStart + i].sonarDepth, v1RetrievedData2.response.sonarDepth[i]);
 	}
 
 	allDataStart = 4;
 	EXPECT_EQ(2, v2RetrievedData1.response.x.size());
 	for(unsigned int i = 0; i < v2RetrievedData1.response.x.size(); i++)
 	{
-		EXPECT_EQ(allData[allDataStart + i].x, v2RetrievedData1.response.x[i]);
-		EXPECT_EQ(allData[allDataStart + i].y, v2RetrievedData1.response.y[i]);
-		EXPECT_EQ(allData[allDataStart + i].h, v2RetrievedData1.response.h[i]);
-		EXPECT_NEAR(allData[allDataStart + i].time.toSec(), v2RetrievedData1.response.time[i].toSec(), 0.0000000001);
-		EXPECT_EQ(allData[allDataStart + i].temp, v2RetrievedData1.response.temp[i]);
-		EXPECT_EQ(allData[allDataStart + i].salt, v2RetrievedData1.response.salt[i]);
-		EXPECT_EQ(allData[allDataStart + i].dye, v2RetrievedData1.response.dye[i]);
-		EXPECT_EQ(allData[allDataStart + i].sonarDepth, v2RetrievedData1.response.sonarDepth[i]);
+		EXPECT_DOUBLE_EQ(allData[allDataStart + i].x, v2RetrievedData1.response.x[i]);
+		EXPECT_DOUBLE_EQ(allData[allDataStart + i].y, v2RetrievedData1.response.y[i]);
+		EXPECT_DOUBLE_EQ(allData[allDataStart + i].h, v2RetrievedData1.response.h[i]);
+		EXPECT_DOUBLE_EQ(allData[allDataStart + i].time.toSec(), v2RetrievedData1.response.time[i].toSec());
+		EXPECT_DOUBLE_EQ(allData[allDataStart + i].temp, v2RetrievedData1.response.temp[i]);
+		EXPECT_DOUBLE_EQ(allData[allDataStart + i].salt, v2RetrievedData1.response.salt[i]);
+		EXPECT_DOUBLE_EQ(allData[allDataStart + i].dye, v2RetrievedData1.response.dye[i]);
+		EXPECT_DOUBLE_EQ(allData[allDataStart + i].sonarDepth, v2RetrievedData1.response.sonarDepth[i]);
 	}
 
 	EXPECT_EQ(v2RetrievedData2.response.x.size(), 0);
@@ -211,14 +211,14 @@ TEST(DataServerNodeInterface, GetLatestData)
 	EXPECT_FALSE(getLatestDataClient.call(v2Latest));
 	ros::spinOnce();
 	
-	EXPECT_EQ(allData[2].x, v1Latest.response.x);
-	EXPECT_EQ(allData[2].y, v1Latest.response.y);
-	EXPECT_EQ(allData[2].h, v1Latest.response.h);
-	EXPECT_NEAR(allData[2].time.toSec(), v1Latest.response.time.toSec(), 0.0000000001);
-	EXPECT_EQ(allData[2].temp, v1Latest.response.temp);
-	EXPECT_EQ(allData[2].salt, v1Latest.response.salt);
-	EXPECT_EQ(allData[2].dye, v1Latest.response.dye);
-	EXPECT_EQ(allData[2].sonarDepth, v1Latest.response.sonarDepth);
+	EXPECT_DOUBLE_EQ(allData[2].x, v1Latest.response.x);
+	EXPECT_DOUBLE_EQ(allData[2].y, v1Latest.response.y);
+	EXPECT_DOUBLE_EQ(allData[2].h, v1Latest.response.h);
+	EXPECT_DOUBLE_EQ(allData[2].time.toSec(), v1Latest.response.time.toSec());
+	EXPECT_DOUBLE_EQ(allData[2].temp, v1Latest.response.temp);
+	EXPECT_DOUBLE_EQ(allData[2].salt, v1Latest.response.salt);
+	EXPECT_DOUBLE_EQ(allData[2].dye, v1Latest.response.dye);
+	EXPECT_DOUBLE_EQ(allData[2].sonarDepth, v1Latest.response.sonarDepth);
 }
 
 TEST(DataServerNodeInterface, GetPlumeData)
@@ -309,33 +309,33 @@ TEST(DataServerNodeInterface, GetPlumeData)
 	EXPECT_EQ(4, v1RetrievedData1.response.x.size());
 	for(unsigned int i = 0; i < v1RetrievedData1.response.x.size(); i++)
 	{
-		EXPECT_EQ(allData[i].x, v1RetrievedData1.response.x[i]);
-		EXPECT_EQ(allData[i].y, v1RetrievedData1.response.y[i]);
-		EXPECT_EQ(allData[i].h, v1RetrievedData1.response.h[i]);
-		EXPECT_NEAR(allData[i].time.toSec(), v1RetrievedData1.response.time[i].toSec(), 0.0000000001);
-		EXPECT_EQ(allData[i].dye, v1RetrievedData1.response.plume_val[i]);
+		EXPECT_DOUBLE_EQ(allData[i].x, v1RetrievedData1.response.x[i]);
+		EXPECT_DOUBLE_EQ(allData[i].y, v1RetrievedData1.response.y[i]);
+		EXPECT_DOUBLE_EQ(allData[i].h, v1RetrievedData1.response.h[i]);
+		EXPECT_DOUBLE_EQ(allData[i].time.toSec(), v1RetrievedData1.response.time[i].toSec());
+		EXPECT_DOUBLE_EQ(allData[i].dye, v1RetrievedData1.response.plume_val[i]);
 	}
 
 	unsigned int allDataStart = 1;
 	EXPECT_EQ(2, v1RetrievedData2.response.x.size());
 	for(unsigned int i = 0; i < v1RetrievedData2.response.x.size(); i++)
 	{
-		EXPECT_EQ(allData[allDataStart + i].x, v1RetrievedData2.response.x[i]);
-		EXPECT_EQ(allData[allDataStart + i].y, v1RetrievedData2.response.y[i]);
-		EXPECT_EQ(allData[allDataStart + i].h, v1RetrievedData2.response.h[i]);
-		EXPECT_NEAR(allData[allDataStart + i].time.toSec(), v1RetrievedData2.response.time[i].toSec(), 0.0000000001);
-		EXPECT_EQ(allData[allDataStart + i].dye, v1RetrievedData2.response.plume_val[i]);
+		EXPECT_DOUBLE_EQ(allData[allDataStart + i].x, v1RetrievedData2.response.x[i]);
+		EXPECT_DOUBLE_EQ(allData[allDataStart + i].y, v1RetrievedData2.response.y[i]);
+		EXPECT_DOUBLE_EQ(allData[allDataStart + i].h, v1RetrievedData2.response.h[i]);
+		EXPECT_DOUBLE_EQ(allData[allDataStart + i].time.toSec(), v1RetrievedData2.response.time[i].toSec());
+		EXPECT_DOUBLE_EQ(allData[allDataStart + i].dye, v1RetrievedData2.response.plume_val[i]);
 	}
 
 	allDataStart = 4;
 	EXPECT_EQ(2, v2RetrievedData1.response.x.size());
 	for(unsigned int i = 0; i < v2RetrievedData1.response.x.size(); i++)
 	{
-		EXPECT_EQ(allData[allDataStart + i].x, v2RetrievedData1.response.x[i]);
-		EXPECT_EQ(allData[allDataStart + i].y, v2RetrievedData1.response.y[i]);
-		EXPECT_EQ(allData[allDataStart + i].h, v2RetrievedData1.response.h[i]);
-		EXPECT_NEAR(allData[allDataStart + i].time.toSec(), v2RetrievedData1.response.time[i].toSec(), 0.0000000001);
-		EXPECT_EQ(allData[allDataStart + i].dye, v2RetrievedData1.response.plume_val[i]);
+		EXPECT_DOUBLE_EQ(allData[allDataStart + i].x, v2RetrievedData1.response.x[i]);
+		EXPECT_DOUBLE_EQ(allData[allDataStart + i].y, v2RetrievedData1.response.y[i]);
+		EXPECT_DOUBLE_EQ(allData[allDataStart + i].h, v2RetrievedData1.response.h[i]);
+		EXPECT_DOUBLE_EQ(allData[allDataStart + i].time.toSec(), v2RetrievedData1.response.time[i].toSec());
+		EXPECT_DOUBLE_EQ(allData[allDataStart + i].dye, v2RetrievedData1.response.plume_val[i]);
 	}
 
 	EXPECT_EQ(v2RetrievedData2.response.x.size(), 0);
