@@ -2,7 +2,7 @@
 #include "fvcom/FVCOMChunk.h"
 #include "fvcom/FVCOM.h"
 
-#include "model_server/ModelData.h"
+#include "model_interface/ModelData.h"
 
 #include <gtest/gtest.h>
 

@@ -749,7 +749,6 @@ void FVCOMStructure::siglayInterpolation(FVCOMStructure::Point& interpolatePoint
 
 		siglay1Percent = (lowerH - interpolatePoint.h) / (lowerH - upperH);
 	}
-	
 }
 
 float FVCOMStructure::getDepthAtPoint(FVCOMStructure::Point& interpolatePoint, int containingTriangle)

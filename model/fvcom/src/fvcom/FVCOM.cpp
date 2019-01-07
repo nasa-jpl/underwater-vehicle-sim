@@ -60,39 +60,57 @@ ModelData FVCOM::interpolate(FVCOMStructure::Point interpolatePoint, float time)
 
 
 	//Interpolate X, Y
-	FVCOMChunk::NodeData siglay1Time1Data; 
-	FVCOMChunk::NodeData siglay1Time2Data;
-	FVCOMChunk::NodeData siglay2Time1Data;
-	FVCOMChunk::NodeData siglay2Time2Data;
+	FVCOMChunk::NodeData siglay1Time1NodeData; 
+	FVCOMChunk::NodeData siglay1Time2NodeData;
+	FVCOMChunk::NodeData siglay2Time1NodeData;
+	FVCOMChunk::NodeData siglay2Time2NodeData;
 
-	
+	FVCOMChunk::TriangleData siglay1Time1TriangleData; 
+	FVCOMChunk::TriangleData siglay1Time2TriangleData;
+	FVCOMChunk::TriangleData siglay2Time1TriangleData;
+	FVCOMChunk::TriangleData siglay2Time2TriangleData;
 
-	siglay1Time1Data = barycentricInterpolation(interpolatePoint, containingTriangle, siglay1Index, time1Index);
-	siglay1Time2Data = barycentricInterpolation(interpolatePoint, containingTriangle, siglay1Index, time2Index);
-	siglay2Time1Data = barycentricInterpolation(interpolatePoint, containingTriangle, siglay2Index, time1Index);
-	siglay2Time2Data = barycentricInterpolation(interpolatePoint, containingTriangle, siglay2Index, time2Index);
+	siglay1Time1NodeData = nodeInterpolation(interpolatePoint, containingTriangle, siglay1Index, time1Index);
+	siglay1Time2NodeData = nodeInterpolation(interpolatePoint, containingTriangle, siglay1Index, time2Index);
+	siglay2Time1NodeData = nodeInterpolation(interpolatePoint, containingTriangle, siglay2Index, time1Index);
+	siglay2Time2NodeData = nodeInterpolation(interpolatePoint, containingTriangle, siglay2Index, time2Index);
 
-
+	siglay1Time1TriangleData = triangleInterpolation(interpolatePoint, containingTriangle, siglay1Index, time1Index);
+	siglay1Time2TriangleData = triangleInterpolation(interpolatePoint, containingTriangle, siglay1Index, time2Index);
+	siglay2Time1TriangleData = triangleInterpolation(interpolatePoint, containingTriangle, siglay2Index, time1Index);
+	siglay2Time2TriangleData = triangleInterpolation(interpolatePoint, containingTriangle, siglay2Index, time2Index);
 
 	//Interpolate time
-	FVCOMChunk::NodeData siglay1Data;
-	FVCOMChunk::NodeData siglay2Data;
-	
-	siglay1Data.dye = siglay1Time1Data.dye * time1Percent + siglay1Time2Data.dye * (1 - time1Percent);
-	siglay1Data.temp = siglay1Time1Data.temp * time1Percent + siglay1Time2Data.temp * (1 - time1Percent);
-	siglay1Data.salt = siglay1Time1Data.salt * time1Percent + siglay1Time2Data.salt * (1 - time1Percent);
+	FVCOMChunk::NodeData siglay1NodeData;
+	FVCOMChunk::NodeData siglay2NodeData;
 
-	siglay2Data.dye = siglay2Time1Data.dye * time1Percent + siglay2Time2Data.dye * (1 - time1Percent);
-	siglay2Data.temp = siglay2Time1Data.temp * time1Percent + siglay2Time2Data.temp * (1 - time1Percent);
-	siglay2Data.salt = siglay2Time1Data.salt * time1Percent + siglay2Time2Data.salt * (1 - time1Percent);
+	FVCOMChunk::TriangleData siglay1TriangleData;
+	FVCOMChunk::TriangleData siglay2TriangleData;
+	
+	siglay1NodeData.dye = siglay1Time1NodeData.dye * time1Percent + siglay1Time2NodeData.dye * (1 - time1Percent);
+	siglay1NodeData.temp = siglay1Time1NodeData.temp * time1Percent + siglay1Time2NodeData.temp * (1 - time1Percent);
+	siglay1NodeData.salt = siglay1Time1NodeData.salt * time1Percent + siglay1Time2NodeData.salt * (1 - time1Percent);
+
+	siglay2NodeData.dye = siglay2Time1NodeData.dye * time1Percent + siglay2Time2NodeData.dye * (1 - time1Percent);
+	siglay2NodeData.temp = siglay2Time1NodeData.temp * time1Percent + siglay2Time2NodeData.temp * (1 - time1Percent);
+	siglay2NodeData.salt = siglay2Time1NodeData.salt * time1Percent + siglay2Time2NodeData.salt * (1 - time1Percent);
+
+
+	siglay1TriangleData.u = siglay1Time1TriangleData.u * time1Percent + siglay1Time2TriangleData.u * (1 - time1Percent);
+	siglay1TriangleData.v = siglay1Time1TriangleData.v * time1Percent + siglay1Time2TriangleData.v * (1 - time1Percent);
+
+	siglay2TriangleData.u = siglay2Time1TriangleData.u * time1Percent + siglay2Time2TriangleData.u * (1 - time1Percent);
+	siglay2TriangleData.v = siglay2Time1TriangleData.v * time1Percent + siglay2Time2TriangleData.v * (1 - time1Percent);
 
 
 	//Interpolate siglay
 	ModelData returnData;
 
-	returnData.dye = siglay1Data.dye * siglay1Percent + siglay2Data.dye * (1 - siglay1Percent);
-	returnData.temp = siglay1Data.temp * siglay1Percent + siglay2Data.temp * (1 - siglay1Percent);
-	returnData.salt = siglay1Data.salt * siglay1Percent + siglay2Data.salt * (1 - siglay1Percent);
+	returnData.dye = siglay1NodeData.dye * siglay1Percent + siglay2NodeData.dye * (1 - siglay1Percent);
+	returnData.temp = siglay1NodeData.temp * siglay1Percent + siglay2NodeData.temp * (1 - siglay1Percent);
+	returnData.salt = siglay1NodeData.salt * siglay1Percent + siglay2NodeData.salt * (1 - siglay1Percent);
+	returnData.u = siglay1TriangleData.u * siglay1Percent + siglay2TriangleData.u * (1 - siglay1Percent);
+	returnData.v = siglay1TriangleData.v * siglay1Percent + siglay2TriangleData.v * (1 - siglay1Percent);
 
 
 	//Get u,v. Not currently interpolated
@@ -107,7 +125,7 @@ ModelData FVCOM::interpolate(FVCOMStructure::Point interpolatePoint, float time)
 	return returnData;
 }
 
-FVCOMChunk::NodeData FVCOM::barycentricInterpolation(const FVCOMStructure::Point& interpolatePoint, int containingTriangle, int siglayIndex, int timeIndex)
+FVCOMChunk::NodeData FVCOM::nodeInterpolation(const FVCOMStructure::Point& interpolatePoint, int containingTriangle, int siglayIndex, int timeIndex)
 {
 	FVCOMChunk::NodeData interpolatedData;
 	const std::vector<int>& surroundingNodes = structure.getNodesInTriangle(containingTriangle);
@@ -133,6 +151,11 @@ FVCOMChunk::NodeData FVCOM::barycentricInterpolation(const FVCOMStructure::Point
 	interpolatedData.dye = p1Data.dye * point1Percent + p2Data.dye * point2Percent + p3Data.dye * point3Percent;
 
 	return interpolatedData;
+}
+
+FVCOMChunk::TriangleData FVCOM::triangleInterpolation(const FVCOMStructure::Point& interpolatedPoint, int containingTriangle, int siglayIndex, int timeIndex)
+{
+	return getTriangleData(containingTriangle, siglayIndex, timeIndex);
 }
 
 const double FVCOM::areaOfTriangle(const FVCOMStructure::Point& p1, const FVCOMStructure::Point& p2, const FVCOMStructure::Point& p3) const
