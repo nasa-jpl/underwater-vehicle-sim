@@ -19,6 +19,7 @@ FVCOMChunk::FVCOMChunk(const std::vector<FVCOMStructure::ModelFile> modelFiles, 
 
 	std::vector<float> uLoad;
 	std::vector<float> vLoad;
+	std::vector<float> wLoad;
 	std::vector<float> tempLoad;
 	std::vector<float> saltLoad;	
 	std::vector<float> dyeLoad;
@@ -38,6 +39,7 @@ FVCOMChunk::FVCOMChunk(const std::vector<FVCOMStructure::ModelFile> modelFiles, 
 	{
 		uLoad.resize(chunkInfo.timeSize * chunkInfo.siglaySize);
 		vLoad.resize(chunkInfo.timeSize * chunkInfo.siglaySize);
+		wLoad.resize(chunkInfo.timeSize * chunkInfo.siglaySize);
 
 		triangles.insert(std::make_pair(trianglesToLoad[i], std::vector<FVCOMChunk::TriangleData>(uLoad.size())));
 	}
@@ -114,6 +116,7 @@ FVCOMChunk::FVCOMChunk(const std::vector<FVCOMStructure::ModelFile> modelFiles, 
 			netCDF::NcFile dataFile(modelFiles[f].filename, netCDF::NcFile::read);
 			netCDF::NcVar uVar = dataFile.getVar("u");
 			netCDF::NcVar vVar = dataFile.getVar("v");
+			netCDF::NcVar wVar = dataFile.getVar("ww");
 
 			//Adjust time index for this file 
 			unsigned int adjustedTimeIndex = timeIndex - modelFiles[f].startTimeIndex;
@@ -127,6 +130,8 @@ FVCOMChunk::FVCOMChunk(const std::vector<FVCOMStructure::ModelFile> modelFiles, 
 
 			uVar.getVar(start, count, uLoad.data() + dataIndex);
 			vVar.getVar(start, count, vLoad.data() + dataIndex);
+			wVar.getVar(start, count, wLoad.data() + dataIndex);
+
 			//Update time and data indicies
 			timeIndex += timeCount;
 			dataIndex += timeCount * chunkInfo.siglaySize;
@@ -140,6 +145,7 @@ FVCOMChunk::FVCOMChunk(const std::vector<FVCOMStructure::ModelFile> modelFiles, 
 			FVCOMChunk::TriangleData data;
 			data.u = uLoad[j];
 			data.v = vLoad[j];
+			data.w = wLoad[j];
 			dataList[j] = data;
 		}
 	}

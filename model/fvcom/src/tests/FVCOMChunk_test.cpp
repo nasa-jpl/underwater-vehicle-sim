@@ -57,22 +57,27 @@ TEST(FCVOMChunkTest, GetTriangleData) {
 
 	ASSERT_FLOAT_EQ(0.0, data1.u);
 	ASSERT_FLOAT_EQ(0.0, data1.v);
+	ASSERT_FLOAT_EQ(0.0, data1.w);
 
 	ASSERT_FLOAT_EQ(0.0, data2.u);
 	ASSERT_FLOAT_EQ(0.0, data2.v);
+	ASSERT_FLOAT_EQ(0.0, data2.w);
 
 	ASSERT_FLOAT_EQ(0.000010166797, data3.u);
 	ASSERT_FLOAT_EQ(-0.000012173005, data3.v);
-
+	ASSERT_FLOAT_EQ(0.00013492772, data3.w);
 
 	ASSERT_FLOAT_EQ(0.0, data4.u);
 	ASSERT_FLOAT_EQ(0.0, data4.v);
+	ASSERT_FLOAT_EQ(0.0, data4.w);
 
 	ASSERT_FLOAT_EQ(0.0, data5.u);
 	ASSERT_FLOAT_EQ(0.0, data5.v);
+	ASSERT_FLOAT_EQ(0.0, data5.w);
 
 	ASSERT_FLOAT_EQ(0.000052855106, data6.u);
 	ASSERT_FLOAT_EQ(0.00016515434, data6.v);
+	ASSERT_FLOAT_EQ(-0.000160249, data6.w);
 }
 
 int main(int argc, char **argv)

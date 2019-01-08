@@ -1,11 +1,12 @@
-float32 x
-float32 y
-float32 h
-float32 time
+float64 x
+float64 y
+float64 h
+float64 time
 ---
-float32 u
-float32 v
-float32 depth
-float32 temp
-float32 salt
-float32 dye
+float64 u
+float64 v
+float64 w
+float64 depth
+float64 temp
+float64 salt
+float64 dye

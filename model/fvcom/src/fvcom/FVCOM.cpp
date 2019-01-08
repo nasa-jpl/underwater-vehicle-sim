@@ -98,10 +98,11 @@ ModelData FVCOM::interpolate(FVCOMStructure::Point interpolatePoint, float time)
 
 	siglay1TriangleData.u = siglay1Time1TriangleData.u * time1Percent + siglay1Time2TriangleData.u * (1 - time1Percent);
 	siglay1TriangleData.v = siglay1Time1TriangleData.v * time1Percent + siglay1Time2TriangleData.v * (1 - time1Percent);
+	siglay1TriangleData.w = siglay1Time1TriangleData.w * time1Percent + siglay1Time2TriangleData.w * (1 - time1Percent);
 
 	siglay2TriangleData.u = siglay2Time1TriangleData.u * time1Percent + siglay2Time2TriangleData.u * (1 - time1Percent);
 	siglay2TriangleData.v = siglay2Time1TriangleData.v * time1Percent + siglay2Time2TriangleData.v * (1 - time1Percent);
-
+	siglay2TriangleData.w = siglay2Time1TriangleData.w * time1Percent + siglay2Time2TriangleData.w * (1 - time1Percent);
 
 	//Interpolate siglay
 	ModelData returnData;
@@ -111,6 +112,7 @@ ModelData FVCOM::interpolate(FVCOMStructure::Point interpolatePoint, float time)
 	returnData.salt = siglay1NodeData.salt * siglay1Percent + siglay2NodeData.salt * (1 - siglay1Percent);
 	returnData.u = siglay1TriangleData.u * siglay1Percent + siglay2TriangleData.u * (1 - siglay1Percent);
 	returnData.v = siglay1TriangleData.v * siglay1Percent + siglay2TriangleData.v * (1 - siglay1Percent);
+	returnData.w = siglay1TriangleData.w * siglay1Percent + siglay2TriangleData.w * (1 - siglay1Percent);
 
 
 	//Get u,v. Not currently interpolated
@@ -203,6 +205,7 @@ const ModelData FVCOM::getDataOutOfRange(double x, double y, double height, doub
 		data.depth = nodePoint.h;
 		data.u = std::numeric_limits<double>::quiet_NaN();
 		data.v = std::numeric_limits<double>::quiet_NaN();
+		data.w = std::numeric_limits<double>::quiet_NaN();
 
 		data.salt = std::numeric_limits<double>::quiet_NaN();
 		data.temp = std::numeric_limits<double>::quiet_NaN();
@@ -213,6 +216,7 @@ const ModelData FVCOM::getDataOutOfRange(double x, double y, double height, doub
 		data.depth = structure.getDepthAtPoint(interpolatePoint);
 		data.u = std::numeric_limits<double>::quiet_NaN();
 		data.v = std::numeric_limits<double>::quiet_NaN();
+		data.w = std::numeric_limits<double>::quiet_NaN();
 
 		data.salt = std::numeric_limits<double>::quiet_NaN();
 		data.temp = std::numeric_limits<double>::quiet_NaN();
@@ -223,6 +227,7 @@ const ModelData FVCOM::getDataOutOfRange(double x, double y, double height, doub
 		data.depth = structure.getDepthAtPoint(interpolatePoint);
 		data.u = std::numeric_limits<double>::quiet_NaN();
 		data.v = std::numeric_limits<double>::quiet_NaN();
+		data.w = std::numeric_limits<double>::quiet_NaN();
 
 		data.salt = std::numeric_limits<double>::quiet_NaN();
 		data.temp = std::numeric_limits<double>::quiet_NaN();

@@ -23,6 +23,7 @@ public:
 	{
 		float u;
 		float v;
+		float w;
 	};
 
 	typedef std::vector<FVCOMChunk::NodeData> NodeVector;

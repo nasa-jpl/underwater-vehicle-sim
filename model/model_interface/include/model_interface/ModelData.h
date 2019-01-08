@@ -3,8 +3,15 @@
 
 struct ModelData
 {
+	//eastward current velocity
 	double u;
+
+	//northward current velocity
 	double v;
+
+	//upward current velocity
+	double w;
+	
 	double temp;
 	double salt;
 	double dye;
