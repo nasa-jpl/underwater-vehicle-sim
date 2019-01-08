@@ -79,7 +79,7 @@ int main(int argc, char **argv)
         {
             NestedBinVentPlanner::Parameters parameters;
             nh.getParam("planner/spiral_spacing", parameters.spiralSpacing);
-            nh.getParam("planner/inital_spacing", parameters.initalSpacing);
+            nh.getParam("planner/inital_spacing", parameters.initialSpacing);
             nh.getParam("planner/final_spacing", parameters.finalSpacing);
             nh.getParam("planner/fail_time", parameters.failTime);
             planner.reset(new NestedBinVentPlanner(std::move(factory), std::move(interface), std::move(parameters)));
