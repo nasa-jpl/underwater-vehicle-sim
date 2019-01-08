@@ -1,0 +1,12 @@
+<launch>
+ <rosparam param="underwater_vehicle_sim/hertz">100</rosparam>
+ <rosparam param="vehicles/names">[v1]</rosparam>
+
+ <rosparam param="vehicles/v1/start_x">521.25</rosparam>
+ <rosparam param="vehicles/v1/start_y">-434.5</rosparam>
+ <rosparam param="vehicles/v1/start_z">10.5</rosparam>
+ <rosparam param="vehicles/v1/start_power">100</rosparam>
+ <rosparam param="vehicles/v1/start_dataCapacity">100</rosparam>
+
+ <test test-name="init_vehicle_test" pkg="underwater_vehicle_sim" type="init_vehicle_test" />
+</launch>

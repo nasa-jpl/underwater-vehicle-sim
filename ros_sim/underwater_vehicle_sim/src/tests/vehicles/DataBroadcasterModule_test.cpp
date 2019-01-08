@@ -30,22 +30,6 @@ TEST(DataBroadcasterModule, TestDataRecording){
     ros::Subscriber dataSub = nh.subscribe("data_broadcaster/data", 1, &dataCallback);
 
     ros::Time time(0);
-
-    std::vector<tf2::Vector3> enuPositions;
-    enuPositions.push_back(tf2::Vector3(0,0,0));
-    enuPositions.push_back(tf2::Vector3(5, 20,-10));
-    enuPositions.push_back(tf2::Vector3(-20, 10, -10));
-    enuPositions.push_back(tf2::Vector3(-20, 30, -10));
-    enuPositions.push_back(tf2::Vector3(-20, 30, -5));
-    enuPositions.push_back(tf2::Vector3(-20, 30, -95));
-
-    for(tf2::Vector3 pos : enuPositions)
-    {
-        state.setPositionENU(pos);
-        module.update("v1", time, state);
-        ros::spinOnce();
-    }
-   
     double centerX = 5;
     double centerY = 20;
     double centerZ = -10;
@@ -55,10 +39,34 @@ TEST(DataBroadcasterModule, TestDataRecording){
     double maxDye = 30;
     double zeroDistance = 200;
 
+    std::vector<tf2::Vector3> enuPositions;
+    enuPositions.push_back(tf2::Vector3(0,0,0));
+    enuPositions.push_back(tf2::Vector3(5, 20,-10));
+    enuPositions.push_back(tf2::Vector3(-20, 10, -10));
+    enuPositions.push_back(tf2::Vector3(-20, 30, -10));
+    enuPositions.push_back(tf2::Vector3(-20, 30, -5));
+    enuPositions.push_back(tf2::Vector3(-20, 30, -95));
+
+    //Send data to the module to be broadcast
+    for(tf2::Vector3 pos : enuPositions)
+    {
+        double distance = pos.distance(tf2::Vector3(centerX, centerY, centerZ));
+        
+        ModelData data;
+        data.temp = maxTemp * (zeroDistance - distance) / zeroDistance;
+        data.salt = maxSalt * (zeroDistance - distance) / zeroDistance;
+        data.dye = maxDye * (zeroDistance - distance) / zeroDistance;
+
+        state.setPositionENU(pos);
+        module.update("v1", time, state, data);
+        ros::spinOnce();
+    }
+
     ASSERT_EQ(enuPositions.size(), receivedMessages.size());
 
     for(unsigned int i = 0; i < receivedMessages.size(); i++)
     {
+        //Data sent from the module should match the data sent to the module
         double distance = enuPositions[i].distance(tf2::Vector3(centerX, centerY, centerZ));
         EXPECT_NEAR(maxTemp * (zeroDistance - distance) / zeroDistance, receivedMessages[i].temp, 0.0001);
         EXPECT_NEAR(maxSalt * (zeroDistance - distance) / zeroDistance, receivedMessages[i].salt, 0.0001);

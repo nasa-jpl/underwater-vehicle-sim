@@ -13,12 +13,13 @@
 
 #include "underwater_vehicle_msgs/VehicleData.h"
 
-
+#define SECONDS_IN_DAY 86400
 
 Vehicle::Vehicle(std::string name, ros::NodeHandle& parentNH) :
 	name(name),
 	nh(ros::NodeHandle(parentNH, "vehicles/" + name)),
-	vehicleState(parentNH)
+	vehicleState(parentNH),
+	modelClient(parentNH.serviceClient<model_server::GetModelData>("/get_model_data"))
 {
 	initalizeVehicleFrame();
   	
@@ -49,15 +50,18 @@ void Vehicle::initalizeVehicleFrame()
 	nh.getParam("start_dataCapacity", dataCapacity);
 
 	//broadcast the inital frame for this vehicle
-
 	tf2::Quaternion initialRotation;
 	initialRotation.setRPY(0, 0, 0);
 	vehicleState.setRotationENU(initialRotation);
 
 	tf2::Vector3 initialPosition(startX, startY, startZ);
 	vehicleState.setPositionENU(initialPosition);
-  	broadcastTransform();
-  	
+
+	//Set transform time and data
+	lastTransformTime = ros::Time::now();
+	dataAtLastTransform = getModelData();
+
+	broadcastTransform();
 }
 
 void Vehicle::initalizePropulsionModule()
@@ -67,7 +71,6 @@ void Vehicle::initalizePropulsionModule()
 	//get the name of the propulsion module and create the needed 
 	if(nh.hasParam("propModuleName"))
 	{
-
 		nh.getParam("propModuleName", propModuleName);
 		propulsionModule = PropulsionModule::makePropulsionModule(propModuleName, vehicleState, nh);
 	}
@@ -87,16 +90,70 @@ void Vehicle::initalizeGeneralModules()
 void Vehicle::update()
 {
 	ros::Time currentTime = ros::Time::now();
-	vehicleState.updatePose(currentTime, currentTime - lastTransformTime);
-	lastTransformTime = currentTime;
+	ros::Duration deltaTime = currentTime - lastTransformTime;
 
+	//Update the transform
+	vehicleState.updatePose(currentTime, deltaTime);
+	vehicleState.evectByCurrents(dataAtLastTransform, deltaTime);
+
+	//Update time and data
+	lastTransformTime = currentTime;
+	dataAtLastTransform = getModelData();
+
+	//Prevent the vehicle from clipping through the seafloor
+	if(vehicleState.seafloorCollision(dataAtLastTransform))
+	{
+		dataAtLastTransform = getModelData();
+	}
+
+	//Broadcast the latest transform
 	broadcastTransform();
 
 	//update all modules
 	for(std::unique_ptr<GeneralModule>& module : modules)
 	{
-		module->updateAtRate(name, lastTransformTime, vehicleState);
+		module->updateAtRate(name, currentTime, vehicleState, dataAtLastTransform);
 	}
+}
+
+ModelData Vehicle::getModelData()
+{
+	ModelData data;
+
+	if(modelClient.exists())
+	{
+		model_server::GetModelData srv;
+
+		tf2::Vector3 enuPosition = vehicleState.getPositionENU();
+		srv.request.x = enuPosition.getX();
+		srv.request.y = enuPosition.getY();
+		srv.request.h = enuPosition.getZ();
+		srv.request.time = lastTransformTime.toSec() / SECONDS_IN_DAY; //convert from seconds to days
+
+		bool success = modelClient.call(srv);
+
+		//depth is positive so invert depth
+		if(success)
+		{
+			data.u = srv.response.u;
+			data.v = srv.response.v;
+			data.temp = srv.response.temp;
+			data.salt = srv.response.salt;
+			data.dye = srv.response.dye;
+			data.depth = srv.response.depth;
+		}
+	}
+	else
+	{
+		data.u = std::numeric_limits<double>::quiet_NaN();
+		data.v = std::numeric_limits<double>::quiet_NaN();
+		data.temp = std::numeric_limits<double>::quiet_NaN();
+		data.salt = std::numeric_limits<double>::quiet_NaN();
+		data.dye = std::numeric_limits<double>::quiet_NaN();
+		data.depth = std::numeric_limits<double>::quiet_NaN();
+	}
+
+	return data;
 }
 
 void Vehicle::getInfo(underwater_vehicle_msgs::GetVehicleInfo::Response &res)

@@ -11,6 +11,7 @@
 #include "tf2/LinearMath/Transform.h"
 
 #include "model_server/GetModelData.h"
+#include "model_interface/ModelData.h"
 
 /**
  * Class used to represent a vehicle in the simulation
@@ -23,7 +24,25 @@ public:
 	VehicleState(ros::NodeHandle& nh);
 	VehicleState(VehicleState&& other);
 
+    /**
+     * Update the vehicle state based on velocities
+     * @currentTime The time of the update
+     * @deltaTime The time since the last update
+     */
     void updatePose(const ros::Time currentTime, const ros::Duration deltaTime);
+
+    /**
+     * Update the vehicle state if it is below the seafloor
+     * @data Model data containing depth at the current location
+     */
+    bool seafloorCollision(ModelData& data);
+
+    /**
+     * Update the vehicle state based on the currents
+     * @data Model data containing currents are the current location and time
+     * @deltaTime The time since the last update
+     */
+    void evectByCurrents(ModelData& data, const ros::Duration deltaTime);
 
     /**
      * Get the position of the vehicle in the NED frame.
@@ -110,11 +129,6 @@ private:
 	* Tracks data storage remaining for this vehicle
 	*/
 	double dataCapacity;
-
-    /**
-    * Model client used to prevent the vehicle from clipping through the seafloor or water surface
-    */
-    ros::ServiceClient modelClient;
 
     tf2::Transform ENUtoNED;
     tf2::Transform NEDtoENU;

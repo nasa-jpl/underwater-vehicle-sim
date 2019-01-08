@@ -13,6 +13,7 @@
 
 #include "underwater_vehicle_msgs/GetVehicleInfo.h"
 
+#include "model_interface/ModelData.h"
 #include "model_server/GetModelData.h"
 
 /**
@@ -38,7 +39,7 @@ private:
 	* @param transform Transform to broadcast
 	*/
 	void broadcastTransform();
-	
+
 	/**
 	* Initalizes the propulsion module the propulsion module
 	*/
@@ -54,7 +55,15 @@ private:
 	*/
 	void initalizeVehicleFrame();
 
-	
+	/**
+	* Get data from the model at the current vehicle state and last transform time
+	*/
+	ModelData getModelData();
+
+	/**
+	* Apply the currents to the vehicle given by modelData over the given time
+	*/
+	void applyCurrents(ModelData& modelData, ros::Duration deltaTime);
 
 private:
 	/**
@@ -66,6 +75,11 @@ private:
 	* Time the last transform was sent
 	*/
 	ros::Time lastTransformTime;
+
+	/**
+	* Model data from the last transform location and time
+	*/
+	ModelData dataAtLastTransform;
 
 	/**
 	 * Module that handles the vehicles propulsion system
@@ -96,6 +110,11 @@ private:
 	* Tracks data storage remaining for this vehicle
 	*/
 	double dataCapacity;
+
+	/**
+    * Model client used to get the model data at the vehicle location
+    */
+    ros::ServiceClient modelClient;
 };
 
 #endif

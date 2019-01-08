@@ -14,6 +14,7 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
   sensor_msgs
   model_server
+  model_interface
   underwater_vehicle_msgs
   tf2_geometry_msgs
 )
@@ -219,8 +220,8 @@ if (CATKIN_ENABLE_TESTING)
  add_rostest_gtest(vehicle_state_test tests/vehicles/VehicleState.test src/tests/vehicles/VehicleState_test.cpp)
  target_link_libraries(vehicle_state_test underwater_vehicles ${catkin_LIBRARIES} ${NETCDF_LIBRARIES})
 
- add_rostest_gtest(init_underwater_vehicle_sim_test tests/vehicles/InitVehicles.test src/tests/vehicles/InitVehicles_test.cpp)
- target_link_libraries(init_underwater_vehicle_sim_test underwater_vehicles ${catkin_LIBRARIES} ${NETCDF_LIBRARIES})
+ add_rostest_gtest(init_vehicle_test tests/vehicles/InitVehicle.test src/tests/vehicles/InitVehicle_test.cpp)
+ target_link_libraries(init_vehicle_test underwater_vehicles ${catkin_LIBRARIES} ${NETCDF_LIBRARIES})
 
  add_rostest_gtest(four_dof_propulsion_test tests/vehicles/FourDOFPropulsion.test src/tests/vehicles/FourDOFPropulsion_test.cpp)
  target_link_libraries(four_dof_propulsion_test underwater_vehicles ${catkin_LIBRARIES} ${NETCDF_LIBRARIES})

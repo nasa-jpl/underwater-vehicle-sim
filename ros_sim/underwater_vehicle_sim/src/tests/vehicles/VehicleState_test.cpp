@@ -187,7 +187,7 @@ TEST(VehicleState, UpperBoundTest){
 }
 
 TEST(VehicleState, LowerBoundTest){
-        //Initalize ROS node handle
+    //Initalize ROS node handle
     ros::NodeHandle n;
     ros::Time currentTime(100);
     ros::Duration deltaTime(0.5);
@@ -215,6 +215,51 @@ TEST(VehicleState, LowerBoundTest){
     EXPECT_EQ(angularVelocity, state.getAngularVelocity());
 
     state.updatePose(currentTime, deltaTime);
+    ModelData data;
+    data.depth = 200;
+    state.seafloorCollision(data);
+
+    //After movement
+    EXPECT_NEAR(endPosition.getX(), state.getPositionNED().getX(), 0.00000000001);
+    EXPECT_NEAR(endPosition.getY(), state.getPositionNED().getY(), 0.00000000001);
+    EXPECT_NEAR(endPosition.getZ(), state.getPositionNED().getZ(), 0.00000000001);
+}
+
+TEST(VehicleState, EvectByCurrentsTest)
+{
+    //Initalize ROS node handle
+    ros::NodeHandle n;
+    ros::Time currentTime(100);
+    ros::Duration deltaTime(0.5);
+
+    VehicleState state(n);
+
+    tf2::Vector3 linearVelocity(0.26, -0.16, 1);
+    tf2::Vector3 angularVelocity(0, 0, 0);
+
+    ModelData data;
+    data.u = -0.04; //eastward
+    data.v = 0.12; //northward
+    data.w = 0.5; //upward
+
+    tf2::Vector3 startPosition(0, 0, 20);
+    tf2::Vector3 endPosition(0.06, -0.02, 19.75);//NED (northward, eastward, downward)
+
+    tf2::Quaternion startRotation;
+    startRotation.setRPY(0, 0, 0);
+    
+    state.setPositionNED(startPosition);
+    state.setRotationNED(startRotation);
+    state.setLinearVelocity(linearVelocity);
+    state.setAngularVelocity(angularVelocity);
+
+    //Before movement
+    EXPECT_EQ(startPosition, state.getPositionNED());
+    EXPECT_EQ(startRotation, state.getRotationNED());
+    EXPECT_EQ(linearVelocity, state.getLinearVelocity());
+    EXPECT_EQ(angularVelocity, state.getAngularVelocity());
+
+    state.evectByCurrents(data, deltaTime);
 
     //After movement
     EXPECT_NEAR(endPosition.getX(), state.getPositionNED().getX(), 0.00000000001);

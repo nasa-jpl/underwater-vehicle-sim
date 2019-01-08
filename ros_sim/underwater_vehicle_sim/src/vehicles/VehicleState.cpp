@@ -7,16 +7,12 @@
 #include <tf2_ros/transform_listener.h>
 #include "tf2_geometry_msgs/tf2_geometry_msgs.h"
 
-#define SECONDS_IN_DAY 86400
-
 VehicleState::VehicleState(ros::NodeHandle& nh) :
 	angularVelocity(0,0,0),
 	linearVelocity(0,0,0),
 	powerCapacity(0),
 	dataCapacity(0)
 {
-	modelClient = nh.serviceClient<model_server::GetModelData>("/get_model_data");
-
 
 	tf2_ros::Buffer tfBuffer;
     tf2_ros::TransformListener tfListener(tfBuffer);
@@ -49,8 +45,7 @@ VehicleState::VehicleState(VehicleState&& other)
       rotation(std::move(other.rotation)),
       angularVelocity(std::move(other.angularVelocity)),
       powerCapacity(std::move(other.powerCapacity)),
-      dataCapacity(std::move(other.dataCapacity)),
-      modelClient(std::move(other.modelClient))
+      dataCapacity(std::move(other.dataCapacity))
 {}
 
 void VehicleState::updatePose(const ros::Time currentTime, const ros::Duration deltaTime)
@@ -80,28 +75,33 @@ void VehicleState::updatePose(const ros::Time currentTime, const ros::Duration d
 	{
 		position.setZ(0);
 	}
+}
 
-	if(modelClient.exists())
+bool VehicleState::seafloorCollision(ModelData& data)
+{
+	tf2::Vector3 enuPosition = getPositionENU();
+
+	if(!std::isnan(data.depth) && 
+	   -data.depth + 0.1 > enuPosition.getZ())
 	{
-		model_server::GetModelData srv;
-
-		tf2::Vector3 enuPosition = getPositionENU();
-		tf2::Vector3 nedPosition = getPositionNED();
-		srv.request.x = enuPosition.getX();
-		srv.request.y = enuPosition.getY();
-		srv.request.h = enuPosition.getZ();
-		srv.request.time = currentTime.toSec() / SECONDS_IN_DAY; //convert from seconds to days
-
-		bool success = modelClient.call(srv);
-
-		//depth is position so invert depth
-		if(success && -srv.response.depth + 0.1 > enuPosition.getZ())
-		{
-			//if vehicle is trying to go below the bottom of the ocean model then set its z position to above the ocean floor.
-			enuPosition.setZ(-srv.response.depth + 0.1);
-			setPositionENU(enuPosition);
-		}
+		//if vehicle is trying to go below the bottom of the ocean model then set its z position to above the ocean floor.
+		enuPosition.setZ(-data.depth + 0.1);
+		setPositionENU(enuPosition);
+		return true;
 	}
+	return false;
+}
+
+void VehicleState::evectByCurrents(ModelData& data, const ros::Duration deltaTime)
+{
+	//Get the total linear movement due to currents
+	//v is north (x in NED coordinate frame)
+	//u is east (y in NED coordinate frame)
+	//w is upward (-z in NED coordinate frame)
+	tf2::Vector3 currentMovement(data.v, data.u, -data.w);
+
+	//apply the movement due to currents
+	position += currentMovement * deltaTime.toSec();
 }
 
 tf2::Vector3 VehicleState::getPositionNED() const
