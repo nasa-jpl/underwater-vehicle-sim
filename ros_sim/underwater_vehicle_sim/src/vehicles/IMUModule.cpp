@@ -18,7 +18,7 @@ IMUModule::IMUModule(std::string name, ros::NodeHandle& parentNH, std::string ve
 	imu = nh.advertise<sensor_msgs::Imu>("data", 1000);
 }
 
-void IMUModule::update(std::string name, const ros::Time& lastTime, VehicleState& vehicleState) 
+void IMUModule::update(std::string name, const ros::Time& lastTime, VehicleState& vehicleState, ModelData& modelData) 
 {
 	tf2::Quaternion rotation(vehicleState.getRotationNED());
 	tf2::Vector3 angularVelocity = vehicleState.getAngularVelocity();

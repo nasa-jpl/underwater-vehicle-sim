@@ -36,7 +36,7 @@ void DataCapacityModule::transferCallback(const std_msgs::Float64::ConstPtr& msg
 }
 
 
-void DataCapacityModule::update(std::string name, const ros::Time& lastTime, VehicleState& vehicleState) 
+void DataCapacityModule::update(std::string name, const ros::Time& lastTime, VehicleState& vehicleState, ModelData& modelData) 
 {
 	std_msgs::Float64 capacity;
 	capacity.data = vehicleState.getDataCapacity();

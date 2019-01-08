@@ -16,7 +16,7 @@ public:
 	PowerCapacityModule(std::string name, ros::NodeHandle& parentNH, std::string vehicleName);
 	~PowerCapacityModule() {}
 
-	void update(std::string name, const ros::Time& lastTime, VehicleState& vehicleState);
+	void update(std::string name, const ros::Time& lastTime, VehicleState& vehicleState, ModelData& modelData);
 
 
 	

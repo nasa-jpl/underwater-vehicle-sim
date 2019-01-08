@@ -59,14 +59,14 @@ std::unique_ptr<GeneralModule> GeneralModule::makeGeneralModule(std::string modu
 	return NULL;
 }
 
-void GeneralModule::updateAtRate(std::string name, const ros::Time& lastTime, VehicleState& vehicleState)
+void GeneralModule::updateAtRate(std::string name, const ros::Time& lastTime, VehicleState& vehicleState, ModelData& data)
 {
 	ros::Duration rate(1 / hertz);
 
 	if(!useHertz || ros::Time::now() - lastUpdate >= rate)
 	{
 		lastUpdate = ros::Time::now();
-		update(name, lastTime, vehicleState);
+		update(name, lastTime, vehicleState, data);
 	}
 }
 

@@ -18,39 +18,32 @@ DataBroadcasterModule::DataBroadcasterModule(std::string name, ros::NodeHandle& 
 	client = nh.serviceClient<model_server::GetModelData>("/get_model_data");
 }
 
-void DataBroadcasterModule::update(std::string name, const ros::Time& lastTime, VehicleState& vehicleState) 
+void DataBroadcasterModule::update(std::string name, const ros::Time& lastTime, VehicleState& vehicleState, ModelData& modelData) 
 {
-	model_server::GetModelData srv;
-	
-	tf2::Vector3 enuPosition = vehicleState.getPositionENU();
-	tf2::Vector3 nedPosition = vehicleState.getPositionNED();
-	srv.request.x = enuPosition.getX();
-	srv.request.y = enuPosition.getY();
-	srv.request.h = enuPosition.getZ();
-	srv.request.time = lastTime.toSec() / SECONDS_IN_DAY; //convert from seconds to days
-
-	if(client.exists())
+	if(!(std::isnan(modelData.u) &&
+	     std::isnan(modelData.v) &&
+	     std::isnan(modelData.temp) &&
+	     std::isnan(modelData.salt) &&
+	     std::isnan(modelData.dye) &&
+	     std::isnan(modelData.depth)))
 	{
-		bool success = client.call(srv);
+		tf2::Vector3 nedPosition = vehicleState.getPositionNED();
 
-		if(success)
-		{
-			underwater_vehicle_msgs::VehicleDataPtr data(new underwater_vehicle_msgs::VehicleData);
+		underwater_vehicle_msgs::VehicleDataPtr data(new underwater_vehicle_msgs::VehicleData);
 
-			data->name = name;
-			data->x = nedPosition.getX();
-			data->y = nedPosition.getY();
-			data->h = nedPosition.getZ();
-			data->time = lastTime;
+		data->name = name;
+		data->x = nedPosition.getX();
+		data->y = nedPosition.getY();
+		data->h = nedPosition.getZ();
+		data->time = lastTime;
 
-			float precisionPow = std::pow(10, 4); //Set presision of temperature reading to 4 decimal places
-			data->temp = std::round(srv.response.temp * precisionPow) / precisionPow;
-			
-			data->salt = srv.response.salt;
-			data->dye = srv.response.dye;
-			data->sonarDepth = srv.response.depth - nedPosition.getZ(); //depth + z, becuase z is negative while depth is positive
+		float precisionPow = std::pow(10, 4); //Set presision of temperature reading to 4 decimal places
+		data->temp = std::round(modelData.temp * precisionPow) / precisionPow;
+		
+		data->salt = modelData.salt;
+		data->dye = modelData.dye;
+		data->sonarDepth = modelData.depth - nedPosition.getZ(); //depth + z, becuase z is negative while depth is positive
 
-			dataRecorder.publish(data);
-		}
+		dataRecorder.publish(data);
 	}
 }

@@ -32,7 +32,7 @@ void PowerCapacityModule::chargingCallback(const std_msgs::Float64::ConstPtr& ms
     }
 }
 
-void PowerCapacityModule::update(std::string name, const ros::Time& lastTime, VehicleState& vehicleState) 
+void PowerCapacityModule::update(std::string name, const ros::Time& lastTime, VehicleState& vehicleState, ModelData& modelData) 
 {
 	std_msgs::Float64 power_msg;
 	power_msg.data = vehicleState.getPowerCapacity();

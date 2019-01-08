@@ -7,6 +7,9 @@
 #include "tf/transform_listener.h"
 
 #include "vehicles/VehicleState.h"
+
+#include "model_interface/ModelData.h"
+
 class GeneralModule
 {
 public:
@@ -14,9 +17,9 @@ public:
 
 	virtual ~GeneralModule(){}
 
-	virtual void update(std::string name, const ros::Time& lastTime, VehicleState& vehicleState)=0;
+	virtual void update(std::string name, const ros::Time& lastTime, VehicleState& vehicleState, ModelData& modelData)=0;
 
-	void updateAtRate(std::string name, const ros::Time& lastTime, VehicleState& vehicleState);
+	void updateAtRate(std::string name, const ros::Time& lastTime, VehicleState& vehicleState, ModelData& modelData);
 
 	static std::unique_ptr<GeneralModule> makeGeneralModule(std::string moduleName, 
                         ros::NodeHandle& parentNH, std::string vehicleName);
