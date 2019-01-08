@@ -68,11 +68,6 @@ void ROSSimVehicleInterface::log(LogLevel level, std::string string)
     }
 }
 
-void ROSSimVehicleInterface::getData()
-{
-
-}
-
 void ROSSimVehicleInterface::registerDataCallback(std::function<void(const PlannerData&)> cb)
 {
     dataCallbacks.push_back(cb);
