@@ -22,6 +22,7 @@ find_package(catkin REQUIRED
 
 find_package(UnderwaterAutonomy REQUIRED)
 find_package(VentPlanner REQUIRED)
+find_package (Eigen3 3.3 REQUIRED NO_MODULE)
 
 ## Uncomment this if the package has a setup.py. This macro ensures
 ## modules and global scripts declared therein get installed
@@ -145,7 +146,6 @@ include_directories(
 
  target_link_libraries(ros_sim_plan_server
    vent_planner
-   ${UnderwaterPlanner_LIBRARIES}
    ${catkin_LIBRARIES}
  )
 
@@ -168,7 +168,6 @@ include_directories(
  target_link_libraries(${PROJECT_NAME}_node
    ros_sim_plan_server
    vent_planner
-   ${UnderwaterPlanner_LIBRARIES}
    ${catkin_LIBRARIES}
  )
 

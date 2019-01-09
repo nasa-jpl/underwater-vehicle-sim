@@ -4,6 +4,8 @@
 #include <unordered_map>
 #include <memory>
 
+#include <eigen3/Eigen/Dense>
+
 #include "ros/ros.h"
 
 #include "underwater_util/VehiclePose.h"
@@ -30,14 +32,14 @@ public:
                                                            const double targetSlope,
                                                            const double upperDepth,
                                                            const double lowerDepth,
-                                                           const std::vector<VehiclePose>& points,
+                                                           const std::vector<Eigen::Vector3d>& points,
                                                            const PointPathAction::ReplanType replan,
                                                            const double periodicReplanTime) override;
 
     std::shared_ptr<PointPathAction> createPointPathAction(const double targetHorizontalVelocity, 
                                                            const double targetRotationalVelocity,
                                                            const double targetSlope,
-                                                           const std::vector<VehiclePose>& points,
+                                                           const std::vector<Eigen::Vector3d>& points,
                                                            const PointPathAction::ReplanType replan,
                                                            const double periodicReplanTime) override;
 

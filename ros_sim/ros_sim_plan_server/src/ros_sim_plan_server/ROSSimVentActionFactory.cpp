@@ -23,7 +23,7 @@ std::shared_ptr<PointPathAction> ROSSimVentActionFactory::createPointPathAction(
                                                                              const double targetSlope,
                                                                              const double upperDepth,
                                                                              const double lowerDepth,
-                                                                             const std::vector<VehiclePose>& points,
+                                                                             const std::vector<Eigen::Vector3d>& points,
                                                                              const PointPathAction::ReplanType replan,
                                                                              const double periodicReplanTime)
 {
@@ -44,7 +44,7 @@ std::shared_ptr<PointPathAction> ROSSimVentActionFactory::createPointPathAction(
 std::shared_ptr<PointPathAction> ROSSimVentActionFactory::createPointPathAction(const double targetHorizontalVelocity, 
                                                                              const double targetRotationalVelocity,
                                                                              const double targetSlope,
-                                                                             const std::vector<VehiclePose>& points,
+                                                                             const std::vector<Eigen::Vector3d>& points,
                                                                              const PointPathAction::ReplanType replan,
                                                                              const double periodicReplanTime)
 {

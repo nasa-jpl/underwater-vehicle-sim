@@ -124,11 +124,11 @@ bool PointPathSimActionExecutor::execute(std::shared_ptr<PointPathAction> action
 
 	if(action->getDoInterruptPoint())
 	{
-		VehiclePose& interruptPoint = action->getInterruptPoint();
+		Eigen::Vector3d& interruptPoint = action->getInterruptPoint();
 		geometry_msgs::Point p;
-		p.x = interruptPoint.getX();
-		p.y = interruptPoint.getY();
-		p.z = interruptPoint.getZ();
+		p.x = interruptPoint[0];
+		p.y = interruptPoint[1];
+		p.z = interruptPoint[2];
 		pointPathGoal.points.push_back(p);
 	}
 
@@ -136,11 +136,11 @@ bool PointPathSimActionExecutor::execute(std::shared_ptr<PointPathAction> action
 	for(unsigned int i = action->getCurrentPoint(); i < action->getPoints().size(); i++)
 	{
 		
-		auto point = action->getPoints()[i];
+		Eigen::Vector3d point = action->getPoints()[i];
 		geometry_msgs::Point p;
-		p.x = point.getX();
-		p.y = point.getY();
-		p.z = point.getZ();
+		p.x = point[0];
+		p.y = point[1];
+		p.z = point[2];
 		pointPathGoal.points.push_back(p);
 	}
 
@@ -170,7 +170,9 @@ void PointPathSimActionExecutor::cancel(std::shared_ptr<PointPathAction> action)
 		{
 			transformMsg = buffer.lookupTransform("world_ned", vehicleName, ros::Time(0));
 			tf2::fromMsg(transformMsg, transform);
-			action->setInterruptPoint(VehiclePose(transform.getOrigin().getX(), transform.getOrigin().getY(), transform.getOrigin().getZ()));
+			action->setInterruptPoint(Eigen::Vector3d(transform.getOrigin().getX(), 
+													  transform.getOrigin().getY(), 
+													  transform.getOrigin().getZ()));
 		}
 		else
 		{

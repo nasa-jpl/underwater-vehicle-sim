@@ -76,7 +76,7 @@ void ROSSimVehicleInterface::registerDataCallback(std::function<void(const Plann
 void ROSSimVehicleInterface::receiveData(const underwater_vehicle_msgs::VehicleData::ConstPtr& msg)
 {
     double time = msg->time.toSec();
-    VehiclePose pose(msg->x, msg->y, msg->h);
+    VehiclePose pose(Eigen::Vector3d(msg->x, msg->y, msg->h));
     std::map<std::string, double> data;
 
     data["sonar_depth"] = msg->sonarDepth;
@@ -95,9 +95,9 @@ void ROSSimVehicleInterface::receiveData(const underwater_vehicle_msgs::VehicleD
 
 VehiclePose ROSSimVehicleInterface::getPosition()
 {
-    VehiclePose pose(std::numeric_limits<double>::quiet_NaN(),
-                     std::numeric_limits<double>::quiet_NaN(),
-                     std::numeric_limits<double>::quiet_NaN());
+    VehiclePose pose(Eigen::Vector3d(std::numeric_limits<double>::quiet_NaN(),
+                                     std::numeric_limits<double>::quiet_NaN(),
+                                     std::numeric_limits<double>::quiet_NaN()));
 
     geometry_msgs::TransformStamped transformMsg;
     tf2::Stamped<tf2::Transform> transform;
@@ -107,9 +107,9 @@ VehiclePose ROSSimVehicleInterface::getPosition()
         {
             transformMsg = buffer.lookupTransform("world_ned", info.getName(), ros::Time(0));
             tf2::fromMsg(transformMsg, transform);
-            pose = VehiclePose((double)(transform.getOrigin().getX()),
-                           (double)(transform.getOrigin().getY()),
-                           (double)(transform.getOrigin().getZ())); 
+            pose = VehiclePose(Eigen::Vector3d((double)(transform.getOrigin().getX()),
+                                               (double)(transform.getOrigin().getY()),
+                                               (double)(transform.getOrigin().getZ()))); 
         }
         else
         {
