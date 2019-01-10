@@ -16,15 +16,15 @@ DataTransferSimActionExecutor::DataTransferSimActionExecutor(ros::NodeHandle& nh
 	vehicleName(vehicleName),
 	nh(nh)
 {
-	infoClient = nh.serviceClient<underwater_vehicle_msgs::GetVehicleInfo>("vehicles/get_info");
+	infoClient = nh.serviceClient<underwater_vehicle_msgs::GetVehicleInfo>("underwater_vehicle_sim/vehicles/get_info");
 	infoClient.waitForExistence();
 
 	underwater_vehicle_msgs::GetVehicleInfo info;
 	info.request.name = vehicleName;
 	infoClient.call(info);
 	vehicleInfo = info.response;
-    pub = nh.advertise<std_msgs::Float64>("vehicles/" + vehicleName + "/transferring", 1000);
-    sub = nh.subscribe("vehicles/" + vehicleName + "/dataCapacity", 1, &DataTransferSimActionExecutor::transfer_Remaining_Callback, this);
+    pub = nh.advertise<std_msgs::Float64>("underwater_vehicle_sim/vehicles/" + vehicleName + "/transferring", 1000);
+    sub = nh.subscribe("underwater_vehicle_sim/vehicles/" + vehicleName + "/dataCapacity", 1, &DataTransferSimActionExecutor::transfer_Remaining_Callback, this);
     transfer_msg.data = 1;
 }
 
@@ -32,15 +32,15 @@ DataTransferSimActionExecutor::DataTransferSimActionExecutor(const DataTransferS
 	vehicleName(other.vehicleName),
 	nh(other.nh)
 {
-	infoClient = nh.serviceClient<underwater_vehicle_msgs::GetVehicleInfo>("vehicles/get_info");
+	infoClient = nh.serviceClient<underwater_vehicle_msgs::GetVehicleInfo>("underwater_vehicle_sim/vehicles/get_info");
 	infoClient.waitForExistence();
 
 	underwater_vehicle_msgs::GetVehicleInfo info;
 	info.request.name = vehicleName;
 	infoClient.call(info);
 	vehicleInfo = info.response;
-    pub = nh.advertise<std_msgs::Float64>("vehicles/" + vehicleName + "/transferring", 1000);
-    sub = nh.subscribe("vehicles/" + vehicleName + "/dataCapacity", 1, &DataTransferSimActionExecutor::transfer_Remaining_Callback, this);
+    pub = nh.advertise<std_msgs::Float64>("underwater_vehicle_sim/vehicles/" + vehicleName + "/transferring", 1000);
+    sub = nh.subscribe("underwater_vehicle_sim/vehicles/" + vehicleName + "/dataCapacity", 1, &DataTransferSimActionExecutor::transfer_Remaining_Callback, this);
     transfer_msg.data = 1;
 }
 

@@ -9,7 +9,7 @@
 
 PropulsionController::PropulsionController(ros::NodeHandle& nh, VehicleInfo& info) :
 	controlNode(nh, "vehicle_controller/" + info.getName()), 
-	vehicleNode(nh, "vehicles/" + info.getName()),
+	vehicleNode(nh, "underwater_vehicle_sim/vehicles/" + info.getName()),
 	info(info),
 	listener(buffer),
 	logicController(PropulsionLogicInterface::makePropulsionLogic(info)),

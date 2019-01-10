@@ -6,14 +6,15 @@
 UnderwaterVehicleSim::UnderwaterVehicleSim(ros::NodeHandle& parentNH) :
 	nh(parentNH)
 {
-	service = nh.advertiseService("vehicles/get_info", &UnderwaterVehicleSim::getVehicleInfo, this);
+	service = nh.advertiseService("underwater_vehicle_sim/vehicles/get_info", &UnderwaterVehicleSim::getVehicleInfo, this);
 	//Create the vehicle objects
 	std::vector<std::string> vehicleNames;
-	nh.getParam("vehicles/names", vehicleNames);
+	nh.getParam("underwater_vehicle_sim/vehicles/names", vehicleNames);
 
+	bool evectByCurrents = nh.param("underwater_vehicle_sim/evect_by_currents", true);
 	for(std::string& name : vehicleNames)
 	{
-		vehicles.emplace_back(name, nh);
+		vehicles.emplace_back(name, nh, evectByCurrents);
 	}
 }
 

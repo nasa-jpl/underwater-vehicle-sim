@@ -14,7 +14,7 @@ PointPathController::PointPathController(ros::NodeHandle nh,
     std::vector<std::string> data = vehicleInfo.getModuleNamesOfType("DataBroadcaster");
     if(data.size() > 0)
     {
-        dataSub = nh.subscribe("vehicles/" + vehicleInfo.getName() + "/" + data[0] + "/data", 1, &PointPathController::getVehicleData, this);
+        dataSub = nh.subscribe("underwater_vehicle_sim/vehicles/" + vehicleInfo.getName() + "/" + data[0] + "/data", 1, &PointPathController::getVehicleData, this);
     }
 
     //Init action server

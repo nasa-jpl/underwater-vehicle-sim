@@ -15,11 +15,12 @@
 
 #define SECONDS_IN_DAY 86400
 
-Vehicle::Vehicle(std::string name, ros::NodeHandle& parentNH) :
+Vehicle::Vehicle(std::string name, ros::NodeHandle& parentNH, bool evectByCurrents) :
 	name(name),
-	nh(ros::NodeHandle(parentNH, "vehicles/" + name)),
+	nh(ros::NodeHandle(parentNH, "underwater_vehicle_sim/vehicles/" + name)),
 	vehicleState(parentNH),
-	modelClient(parentNH.serviceClient<model_server::GetModelData>("/get_model_data"))
+	modelClient(parentNH.serviceClient<model_server::GetModelData>("/get_model_data")),
+	evectByCurrents(evectByCurrents)
 {
 	initalizeVehicleFrame();
   	
@@ -33,7 +34,8 @@ Vehicle::Vehicle(Vehicle&& other)
       name(std::move(other.name)),
       nh(std::move(other.nh)),
       lastTransformTime(std::move(other.lastTransformTime)),
-	  vehicleState(std::move(other.vehicleState))
+	  vehicleState(std::move(other.vehicleState)),
+	  evectByCurrents(other.evectByCurrents)
 {}
 
 void Vehicle::initalizeVehicleFrame()
@@ -94,7 +96,10 @@ void Vehicle::update()
 
 	//Update the transform
 	vehicleState.updatePose(currentTime, deltaTime);
-	vehicleState.evectByCurrents(dataAtLastTransform, deltaTime);
+	if(evectByCurrents)
+	{
+		vehicleState.evectByCurrents(dataAtLastTransform, deltaTime);
+	}
 
 	//Update time and data
 	lastTransformTime = currentTime;

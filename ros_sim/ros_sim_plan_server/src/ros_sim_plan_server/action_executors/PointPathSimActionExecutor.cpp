@@ -27,7 +27,7 @@ PointPathSimActionExecutor::PointPathSimActionExecutor(ros::NodeHandle& nh, std:
 	distanceSinceReplan(0),
 	listener(buffer)
 {
-	infoClient = nh.serviceClient<underwater_vehicle_msgs::GetVehicleInfo>("vehicles/get_info");
+	infoClient = nh.serviceClient<underwater_vehicle_msgs::GetVehicleInfo>("underwater_vehicle_sim/vehicles/get_info");
 	infoClient.waitForExistence();
 
 	underwater_vehicle_msgs::GetVehicleInfo info;
@@ -46,7 +46,7 @@ PointPathSimActionExecutor::PointPathSimActionExecutor(const PointPathSimActionE
 	distanceSinceReplan(other.distanceSinceReplan),
 	listener(buffer)
 {
-	infoClient = nh.serviceClient<underwater_vehicle_msgs::GetVehicleInfo>("vehicles/get_info");
+	infoClient = nh.serviceClient<underwater_vehicle_msgs::GetVehicleInfo>("underwater_vehicle_sim/vehicles/get_info");
 	infoClient.waitForExistence();
 
 	underwater_vehicle_msgs::GetVehicleInfo info;

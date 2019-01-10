@@ -26,7 +26,7 @@ void addAllPublishers(std::vector<ros::Publisher>& publishers, ros::NodeHandle& 
 {
     //Create the vehicle objects
     std::vector<std::string> vehicleNames;
-    nh.getParam("vehicles/names", vehicleNames);
+    nh.getParam("underwater_vehicle_sim/vehicles/names", vehicleNames);
 
     for(std::string& name : vehicleNames)
     {
@@ -35,10 +35,10 @@ void addAllPublishers(std::vector<ros::Publisher>& publishers, ros::NodeHandle& 
 
         //get the name of the propulsion module and create the needed 
 
-        if(nh.hasParam("vehicles/" + name + "/propModuleName"))
+        if(nh.hasParam("underwater_vehicle_sim/vehicles/" + name + "/propModuleName"))
         {
-            nh.getParam("vehicles/" + name + "/propModuleName", propModuleName);
-            topic = "vehicles/" + name + "/" + propModuleName + "/command_velocity";
+            nh.getParam("underwater_vehicle_sim/vehicles/" + name + "/propModuleName", propModuleName);
+            topic = "underwater_vehicle_sim/vehicles/" + name + "/" + propModuleName + "/command_velocity";
             ros::Publisher pub = nh.advertise<geometry_msgs::Twist>(topic, 1);
             publishers.push_back(pub);
         }

@@ -56,4 +56,4 @@ def listener(dataStream):
 
 
 if __name__ == '__main__':
-    listener("/vehicles/v1/imu/data")
+    listener("/underwater_vehicle_sim/vehicles/v1/imu/data")

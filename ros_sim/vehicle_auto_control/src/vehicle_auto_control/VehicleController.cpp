@@ -7,8 +7,8 @@ nh(parentNH)
 {
 	//Create the vehicle objects
 	std::vector<std::string> vehicleNames;
-	nh.getParam("vehicles/names", vehicleNames);
-	infoClient = nh.serviceClient<underwater_vehicle_msgs::GetVehicleInfo>("vehicles/get_info");
+	nh.getParam("underwater_vehicle_sim/vehicles/names", vehicleNames);
+	infoClient = nh.serviceClient<underwater_vehicle_msgs::GetVehicleInfo>("underwater_vehicle_sim/vehicles/get_info");
 	infoClient.waitForExistence();
 	std::string propModuleName;
 

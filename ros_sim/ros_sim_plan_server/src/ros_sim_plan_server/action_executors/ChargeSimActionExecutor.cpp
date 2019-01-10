@@ -16,15 +16,15 @@ ChargeSimActionExecutor::ChargeSimActionExecutor(ros::NodeHandle& nh, std::strin
 	vehicleName(vehicleName),
 	nh(nh)
 {
-	infoClient = nh.serviceClient<underwater_vehicle_msgs::GetVehicleInfo>("vehicles/get_info");
+	infoClient = nh.serviceClient<underwater_vehicle_msgs::GetVehicleInfo>("underwater_vehicle_sim/vehicles/get_info");
 	infoClient.waitForExistence();
 
 	underwater_vehicle_msgs::GetVehicleInfo info;
 	info.request.name = vehicleName;
 	infoClient.call(info);
 	vehicleInfo = info.response;
-    pub = nh.advertise<std_msgs::Float64>("vehicles/" + vehicleName + "charging", 1000);
-    sub = nh.subscribe("vehicles/" + vehicleName + "/power", 1, &ChargeSimActionExecutor::charge_Remaining_Callback, this);
+    pub = nh.advertise<std_msgs::Float64>("underwater_vehicle_sim/vehicles/" + vehicleName + "charging", 1000);
+    sub = nh.subscribe("underwater_vehicle_sim/vehicles/" + vehicleName + "/power", 1, &ChargeSimActionExecutor::charge_Remaining_Callback, this);
     charge_msg.data = 1;
 }
 
@@ -32,15 +32,15 @@ ChargeSimActionExecutor::ChargeSimActionExecutor(const ChargeSimActionExecutor& 
 	vehicleName(other.vehicleName),
 	nh(other.nh)
 {
-	infoClient = nh.serviceClient<underwater_vehicle_msgs::GetVehicleInfo>("vehicles/get_info");
+	infoClient = nh.serviceClient<underwater_vehicle_msgs::GetVehicleInfo>("underwater_vehicle_sim/vehicles/get_info");
 	infoClient.waitForExistence();
 
 	underwater_vehicle_msgs::GetVehicleInfo info;
 	info.request.name = vehicleName;
 	infoClient.call(info);
 	vehicleInfo = info.response;
-    pub = nh.advertise<std_msgs::Float64>("vehicles/" + vehicleName + "/charging", 1000);
-    sub = nh.subscribe("vehicles/" + vehicleName + "/power", 1, &ChargeSimActionExecutor::charge_Remaining_Callback, this);
+    pub = nh.advertise<std_msgs::Float64>("underwater_vehicle_sim/vehicles/" + vehicleName + "/charging", 1000);
+    sub = nh.subscribe("underwater_vehicle_sim/vehicles/" + vehicleName + "/power", 1, &ChargeSimActionExecutor::charge_Remaining_Callback, this);
     charge_msg.data = 1;
 }
 

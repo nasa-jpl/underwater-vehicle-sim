@@ -35,9 +35,9 @@ int main(int argc, char **argv)
     }
 
     std::vector<std::string> vehicleNames;
-    if(!nh.getParam("vehicles/names", vehicleNames))
+    if(!nh.getParam("underwater_vehicle_sim/vehicles/names", vehicleNames))
     {
-        ROS_FATAL("Parameter \"vehicles/names\" not present in the parameter server.");
+        ROS_FATAL("Parameter \"underwater_vehicle_sim/vehicles/names\" not present in the parameter server.");
         exit(1);
     }
 
@@ -46,7 +46,7 @@ int main(int argc, char **argv)
     std::vector<std::unique_ptr<PointPathController>> pointPathControllers;
 
     //Wait until the simulation starts to proceed
-    ros::ServiceClient vehicleInfoClient = nh.serviceClient<underwater_vehicle_msgs::GetVehicleInfo>("vehicles/get_info");
+    ros::ServiceClient vehicleInfoClient = nh.serviceClient<underwater_vehicle_msgs::GetVehicleInfo>("underwater_vehicle_sim/vehicles/get_info");
     vehicleInfoClient.waitForExistence();
 
     for(auto& name : vehicleNames)

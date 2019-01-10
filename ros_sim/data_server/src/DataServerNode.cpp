@@ -145,8 +145,8 @@ int main(int argc, char **argv)
     ros::NodeHandle nh("data_server");
 
     std::vector<std::string> vehicleNames;
-    nh.getParam("/vehicles/names", vehicleNames);
-	ros::ServiceClient infoClient = nh.serviceClient<underwater_vehicle_msgs::GetVehicleInfo>("/vehicles/get_info");
+    nh.getParam("/underwater_vehicle_sim/vehicles/names", vehicleNames);
+	ros::ServiceClient infoClient = nh.serviceClient<underwater_vehicle_msgs::GetVehicleInfo>("/underwater_vehicle_sim/vehicles/get_info");
 	infoClient.waitForExistence();
 
 	std::vector<ros::Subscriber> subscribers;
@@ -164,9 +164,7 @@ int main(int argc, char **argv)
 
 			if(info.response.moduleTypes[i] == "DataBroadcaster")
 			{
-
-				subscribers.push_back(nh.subscribe("/vehicles/" + name + "/" + info.response.moduleNames[i] + "/data", 5000, recieveData));
-                std::string str = "/vehicles/" + name + "/" + info.response.moduleNames[i] + "/data";
+				subscribers.push_back(nh.subscribe("/underwater_vehicle_sim/vehicles/" + name + "/" + info.response.moduleNames[i] + "/data", 5000, recieveData));
 			}
 		}
 

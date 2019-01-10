@@ -13,11 +13,11 @@
 
 TEST(FourDOFPropulsion, SendCommand) {
     //Initalize ROS node handle
-    ros::NodeHandle n("/vehicles/v1");
+    ros::NodeHandle n("/underwater_vehicle_sim/vehicles/v1");
     VehicleState state(n);
     FourDOFPropulsion module("prop", state, n);
 
-    ros::Publisher vel_pub = n.advertise<geometry_msgs::Twist>("/vehicles/v1/prop/command_velocity", 1000);
+    ros::Publisher vel_pub = n.advertise<geometry_msgs::Twist>("/underwater_vehicle_sim/vehicles/v1/prop/command_velocity", 1000);
 
      //wait for subscriber, should be almost instant
     while(vel_pub.getNumSubscribers() <= 0);

@@ -15,9 +15,9 @@ PowerCapacityModule::PowerCapacityModule(std::string name, ros::NodeHandle& pare
     inBaseRange = false;
     nh.getParam("charge_rate", chargeRate);
     nh.getParam("max_charge", maxCharge);
-    chargingSub = nh.subscribe("vehicles/" + vehicleName + "/charging", 1, &PowerCapacityModule::chargingCallback, this);
-    baseSub = nh.subscribe("vehicles/" + vehicleName + "/atBase", 1, &PowerCapacityModule::baseCallback, this);
-	pub = nh.advertise<std_msgs::Float64>("vehicles/" + vehicleName + "/power", 1000);
+    chargingSub = nh.subscribe("underwater_vehicle_sim/vehicles/" + vehicleName + "/charging", 1, &PowerCapacityModule::chargingCallback, this);
+    baseSub = nh.subscribe("underwater_vehicle_sim/vehicles/" + vehicleName + "/atBase", 1, &PowerCapacityModule::baseCallback, this);
+	pub = nh.advertise<std_msgs::Float64>("underwater_vehicle_sim/vehicles/" + vehicleName + "/power", 1000);
 }
 
 void PowerCapacityModule::baseCallback(const std_msgs::Bool::ConstPtr& msg)

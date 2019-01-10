@@ -13,7 +13,6 @@
 DataBroadcasterModule::DataBroadcasterModule(std::string name, ros::NodeHandle& parentNH, std::string vehicleName) :
 	GeneralModule(name, "DataBroadcaster", parentNH, vehicleName)
 {
-
 	dataRecorder = nh.advertise<underwater_vehicle_msgs::VehicleData>("data", 1000);
 	client = nh.serviceClient<model_server::GetModelData>("/get_model_data");
 }

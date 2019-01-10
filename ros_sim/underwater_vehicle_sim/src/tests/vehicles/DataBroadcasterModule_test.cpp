@@ -23,7 +23,7 @@ void dataCallback(const underwater_vehicle_msgs::VehicleDataPtr& vel)
 
 TEST(DataBroadcasterModule, TestDataRecording){
     //Initalize ROS node handle
-    ros::NodeHandle nh("/vehicles/v1");
+    ros::NodeHandle nh("/underwater_vehicle_sim/vehicles/v1");
     VehicleState state(nh);
     DataBroadcasterModule module("data_broadcaster", nh, "v1");
 

@@ -360,10 +360,10 @@ int main(int argc, char** argv){
   getPlumeDataClient = n.serviceClient<data_server::GetPlumeData>("/data_server/get_plume");
   saveData = n.advertise<std_msgs::String>("/data_server/save", 1000);
 
-  v1SendData = n.advertise<underwater_vehicle_msgs::VehicleData>("/vehicles/v1/broadcaster/data", 1000);
-  v2SendData = n.advertise<underwater_vehicle_msgs::VehicleData>("/vehicles/v2/broadcaster/data", 1000);
+  v1SendData = n.advertise<underwater_vehicle_msgs::VehicleData>("/underwater_vehicle_sim/vehicles/v1/broadcaster/data", 1000);
+  v2SendData = n.advertise<underwater_vehicle_msgs::VehicleData>("/underwater_vehicle_sim/vehicles/v2/broadcaster/data", 1000);
 
-  infoService = n.advertiseService("/vehicles/get_info", &getVehicleInfo);
+  infoService = n.advertiseService("/underwater_vehicle_sim/vehicles/get_info", &getVehicleInfo);
 
   while(v1SendData.getNumSubscribers() < 1 ||
   	    v2SendData.getNumSubscribers() < 1)

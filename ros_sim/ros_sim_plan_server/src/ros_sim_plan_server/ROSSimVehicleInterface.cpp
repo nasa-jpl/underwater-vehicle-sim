@@ -16,7 +16,7 @@ ROSSimVehicleInterface::ROSSimVehicleInterface(ros::NodeHandle& nh, VehicleInfo 
     std::vector<std::string> data = info.getModuleNamesOfType("DataBroadcaster");
     if(data.size() > 0)
     {
-        dataSub = nh.subscribe("vehicles/" + info.getName() + "/" + data[0] + "/data", 1, &ROSSimVehicleInterface::receiveData, this);
+        dataSub = nh.subscribe("underwater_vehicle_sim/vehicles/" + info.getName() + "/" + data[0] + "/data", 1, &ROSSimVehicleInterface::receiveData, this);
     }
     else
     {

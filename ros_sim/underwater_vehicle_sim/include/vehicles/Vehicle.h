@@ -24,7 +24,7 @@
 class Vehicle
 {
 public:
-	Vehicle(std::string name, ros::NodeHandle& parentNH);
+	Vehicle(std::string name, ros::NodeHandle& parentNH, bool evectByCurrents);
 	Vehicle(Vehicle&& other);
 	
 	void update();
@@ -115,6 +115,11 @@ private:
     * Model client used to get the model data at the vehicle location
     */
     ros::ServiceClient modelClient;
+
+	/**
+	* Dictates if currents evect the vehicle
+	*/
+	bool evectByCurrents;
 };
 
 #endif

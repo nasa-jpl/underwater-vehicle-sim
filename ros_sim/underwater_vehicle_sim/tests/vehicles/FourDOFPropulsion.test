@@ -1,7 +1,7 @@
 <launch>
- <rosparam param="/vehicles/v1/prop/max_linear_velocity">5</rosparam>
- <rosparam param="/vehicles/v1/prop/max_vertical_velocity">4</rosparam>
- <rosparam param="/vehicles/v1/prop/max_angular_velocity">0.4</rosparam>
+ <rosparam param="/underwater_vehicle_sim/vehicles/v1/prop/max_linear_velocity">5</rosparam>
+ <rosparam param="/underwater_vehicle_sim/vehicles/v1/prop/max_vertical_velocity">4</rosparam>
+ <rosparam param="/underwater_vehicle_sim/vehicles/v1/prop/max_angular_velocity">0.4</rosparam>
 
  <test test-name="four_dof_propulsion_test" pkg="underwater_vehicle_sim" type="four_dof_propulsion_test" />
 </launch>

@@ -94,14 +94,19 @@ bool VehicleState::seafloorCollision(ModelData& data)
 
 void VehicleState::evectByCurrents(ModelData& data, const ros::Duration deltaTime)
 {
-	//Get the total linear movement due to currents
-	//v is north (x in NED coordinate frame)
-	//u is east (y in NED coordinate frame)
-	//w is upward (-z in NED coordinate frame)
-	tf2::Vector3 currentMovement(data.v, data.u, -data.w);
+	if(!std::isnan(data.u) &&
+	   !std::isnan(data.v) &&
+	   !std::isnan(data.w))
+	{
+		//Get the total linear movement due to currents
+		//v is north (x in NED coordinate frame)
+		//u is east (y in NED coordinate frame)
+		//w is upward (-z in NED coordinate frame)
+		tf2::Vector3 currentMovement(data.v, data.u, -data.w);
 
-	//apply the movement due to currents
-	position += currentMovement * deltaTime.toSec();
+		//apply the movement due to currents
+		position += currentMovement * deltaTime.toSec();
+	}
 }
 
 tf2::Vector3 VehicleState::getPositionNED() const

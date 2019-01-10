@@ -22,7 +22,7 @@ TEST(InitVehicle, InitVehicleTest){
     tf2_ros::TransformListener listener(buffer);
 
     //Initalize vehicle
-    Vehicle vehicle1("v1", n);
+    Vehicle vehicle1("v1", n, false);
     ros::spinOnce();
     
     geometry_msgs::TransformStamped transformMsgV1;
