@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(ros_sim_plan_server)
+project(ros_sim_autonomy_interface)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
 add_compile_options(-std=c++11)
@@ -112,7 +112,7 @@ find_package (Eigen3 3.3 REQUIRED NO_MODULE)
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
    INCLUDE_DIRS include
-   LIBRARIES ros_sim_plan_server
+   LIBRARIES ros_sim_autonomy_interface
 #  CATKIN_DEPENDS other_catkin_pkg
 #  DEPENDS system_lib
 )
@@ -130,13 +130,13 @@ include_directories(
 
 ## Declare a C++ library
   add_library(${PROJECT_NAME}
-    src/${PROJECT_NAME}/RosSimPlanServer.cpp  
-    src/${PROJECT_NAME}/ROSSimVentActionFactory.cpp
-    src/${PROJECT_NAME}/ROSSimVehicleInterface.cpp
-    src/${PROJECT_NAME}/action_executors/PointPathSimActionExecutor.cpp
-    src/${PROJECT_NAME}/action_executors/ChargeSimActionExecutor.cpp
-    src/${PROJECT_NAME}/action_executors/DataTransferSimActionExecutor.cpp
-    src/${PROJECT_NAME}/controllers/PointPathController.cpp
+    src/ros_sim_plan_server/RosSimPlanServer.cpp  
+    src/ros_sim_plan_server/ROSSimVentActionFactory.cpp
+    src/ros_sim_plan_server/ROSSimVehicleInterface.cpp
+    src/ros_sim_plan_server/action_executors/PointPathSimActionExecutor.cpp
+    src/ros_sim_plan_server/action_executors/ChargeSimActionExecutor.cpp
+    src/ros_sim_plan_server/action_executors/DataTransferSimActionExecutor.cpp
+    src/ros_sim_plan_server/controllers/PointPathController.cpp
   )
 
 ## Add cmake target dependencies of the library
@@ -144,7 +144,7 @@ include_directories(
 ## either from message generation or dynamic reconfigure
  add_dependencies(${PROJECT_NAME} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
- target_link_libraries(ros_sim_plan_server
+ target_link_libraries(ros_sim_autonomy_interface
    vent_planner
    ${catkin_LIBRARIES}
  )
@@ -152,21 +152,21 @@ include_directories(
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
- add_executable(${PROJECT_NAME}_node src/ROSSimPlanServerNode.cpp)
+ add_executable(ros_sim_plan_server_node src/ROSSimPlanServerNode.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
 ## target back to the shorter version for ease of user use
 ## e.g. "rosrun someones_pkg node" instead of "rosrun someones_pkg someones_pkg_node"
-# set_target_properties(${PROJECT_NAME}_node PROPERTIES OUTPUT_NAME node PREFIX "")
+# set_target_properties(ros_sim_plan_server_node PROPERTIES OUTPUT_NAME node PREFIX "")
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
- add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+ add_dependencies(ros_sim_plan_server_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
- target_link_libraries(${PROJECT_NAME}_node
-   ros_sim_plan_server
+ target_link_libraries(ros_sim_plan_server_node
+   ros_sim_autonomy_interface
    vent_planner
    ${catkin_LIBRARIES}
  )

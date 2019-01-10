@@ -17,6 +17,12 @@ int main(int argc, char **argv)
         exit(1);
     }
 
-    ros::spin();
+    ros::Rate r(loopHertz);
+    while(ros::ok())
+    {
+        ros::spinOnce();
+        r.sleep();
+    }
+
     return 0;
 }

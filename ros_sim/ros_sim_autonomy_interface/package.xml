@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package  format="2">
-  <name>ros_sim_plan_server</name>
+  <name>ros_sim_autonomy_interface</name>
   <version>0.0.0</version>
-  <description>The ros_sim_plan_server package</description>
+  <description>The ros_sim_autonomy_interface package</description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag -->
   <!-- Example:  -->
