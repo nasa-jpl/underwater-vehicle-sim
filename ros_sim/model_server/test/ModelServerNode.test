@@ -2,5 +2,5 @@
  <rosparam param="model_type">fvcom</rosparam>
  <rosparam param="model/fvcom_directory" subst_value="True">$(find model_server)/test_data/axial_data_test</rosparam>
  <node pkg="model_server" type="model_server_node" name="model_server" output="screen" />
- <test test-name="model_node_interface_test" pkg="model_server" type="model_node_interface_test" />
+ <test test-name="model_server_node_test" pkg="model_server" type="model_server_node_test" />
 </launch>

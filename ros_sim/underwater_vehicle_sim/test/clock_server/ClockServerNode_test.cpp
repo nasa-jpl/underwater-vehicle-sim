@@ -7,7 +7,7 @@
 
 ros::ServiceClient client;
 
-TEST(ClockServer, TestTime){
+TEST(ClockServerNode, TestTime){
 	//Initalize ROS node handle
   	ros::NodeHandle n;
 
@@ -36,7 +36,7 @@ TEST(ClockServer, TestTime){
 
 int main(int argc, char** argv){
   testing::InitGoogleTest(&argc, argv);
-  ros::init(argc, argv, "clock_server_test");
+  ros::init(argc, argv, "clock_server_node_test");
 
   return RUN_ALL_TESTS();
 }

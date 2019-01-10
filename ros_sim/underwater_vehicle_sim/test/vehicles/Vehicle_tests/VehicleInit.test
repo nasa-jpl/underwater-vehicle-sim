@@ -8,5 +8,5 @@
  <rosparam param="underwater_vehicle_sim/vehicles/v1/start_power">100</rosparam>
  <rosparam param="underwater_vehicle_sim/vehicles/v1/start_dataCapacity">100</rosparam>
 
- <test test-name="init_vehicle_test" pkg="underwater_vehicle_sim" type="init_vehicle_test" />
+ <test test-name="vehicle_init_test" pkg="underwater_vehicle_sim" type="vehicle_init_test" />
 </launch>

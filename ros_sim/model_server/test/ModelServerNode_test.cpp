@@ -5,7 +5,7 @@
 
 ros::ServiceClient client;
 
-TEST(NodeInterface, GetFVCOMDataTest){
+TEST(ModelServerNode, GetFVCOMDataTest){
 	model_server::GetModelData srv1;
 	model_server::GetModelData srv2;
 	model_server::GetModelData srv3;
@@ -111,7 +111,7 @@ int main(int argc, char** argv){
   testing::InitGoogleTest(&argc, argv);
 
   //Initalize ROS components
-  ros::init(argc, argv, "node_interface_test");
+  ros::init(argc, argv, "model_server_node_test");
 
   ros::NodeHandle n;
 

@@ -350,7 +350,7 @@ int main(int argc, char** argv){
   testing::InitGoogleTest(&argc, argv);
 
   //Initalize ROS components
-  ros::init(argc, argv, "node_interface_test");
+  ros::init(argc, argv, "data_server_node_test");
 
   ros::NodeHandle n;
 

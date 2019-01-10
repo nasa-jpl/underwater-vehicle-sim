@@ -14,7 +14,7 @@
 
 ros::ServiceClient client;
 
-TEST(InitVehicle, InitVehicleTest){
+TEST(VehicleInit, VehicleInitTest){
     //Initalize ROS node handle
     ros::NodeHandle n;
 
@@ -76,7 +76,7 @@ void broadcastStaticTransform()
 
 int main(int argc, char** argv){
     testing::InitGoogleTest(&argc, argv);
-    ros::init(argc, argv, "init_vehicle_test");
+    ros::init(argc, argv, "vehicle_init_test");
 
     broadcastStaticTransform();
 

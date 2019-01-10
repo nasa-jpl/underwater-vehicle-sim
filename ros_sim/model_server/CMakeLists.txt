@@ -217,8 +217,8 @@ install(DIRECTORY include/${PROJECT_NAME}/
 if (CATKIN_ENABLE_TESTING)
  find_package(rostest REQUIRED)
 
- add_rostest_gtest(model_node_interface_test tests/NodeInterface.test src/tests/NodeInterface_test.cpp)
- target_link_libraries(model_node_interface_test ${catkin_LIBRARIES} ${NETCDF_LIBRARIES} ${Boost_LIBRARIES} netcdf_c++4)
+ add_rostest_gtest(model_server_node_test test/ModelServerNode.test test/ModelServerNode_test.cpp)
+ target_link_libraries(model_server_node_test ${catkin_LIBRARIES} ${NETCDF_LIBRARIES} ${Boost_LIBRARIES} netcdf_c++4)
 
 endif()
 

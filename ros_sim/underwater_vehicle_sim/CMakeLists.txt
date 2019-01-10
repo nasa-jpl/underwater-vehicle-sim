@@ -214,19 +214,19 @@ catkin_package(
 if (CATKIN_ENABLE_TESTING)
  find_package(rostest REQUIRED)
 
- add_rostest_gtest(clock_server_test tests/clock_server/ClockServer.test src/tests/clock_server/ClockServer_test.cpp)
- target_link_libraries(clock_server_test ${catkin_LIBRARIES} ${NETCDF_LIBRARIES})
+ add_rostest_gtest(clock_server_node_test test/clock_server/ClockServerNode.test test/clock_server/ClockServerNode_test.cpp)
+ target_link_libraries(clock_server_node_test ${catkin_LIBRARIES} ${NETCDF_LIBRARIES})
 
- add_rostest_gtest(vehicle_state_test tests/vehicles/VehicleState.test src/tests/vehicles/VehicleState_test.cpp)
+ add_rostest_gtest(vehicle_state_test test/vehicles/VehicleState.test test/vehicles/VehicleState_test.cpp)
  target_link_libraries(vehicle_state_test underwater_vehicles ${catkin_LIBRARIES} ${NETCDF_LIBRARIES})
 
- add_rostest_gtest(init_vehicle_test tests/vehicles/InitVehicle.test src/tests/vehicles/InitVehicle_test.cpp)
- target_link_libraries(init_vehicle_test underwater_vehicles ${catkin_LIBRARIES} ${NETCDF_LIBRARIES})
+ add_rostest_gtest(vehicle_init_test test/vehicles/Vehicle_tests/VehicleInit.test test/vehicles/Vehicle_tests/VehicleInit_test.cpp)
+ target_link_libraries(vehicle_init_test underwater_vehicles ${catkin_LIBRARIES} ${NETCDF_LIBRARIES})
 
- add_rostest_gtest(four_dof_propulsion_test tests/vehicles/FourDOFPropulsion.test src/tests/vehicles/FourDOFPropulsion_test.cpp)
+ add_rostest_gtest(four_dof_propulsion_test test/vehicles/FourDOFPropulsion.test test/vehicles/FourDOFPropulsion_test.cpp)
  target_link_libraries(four_dof_propulsion_test underwater_vehicles ${catkin_LIBRARIES} ${NETCDF_LIBRARIES})
 
- add_rostest_gtest(data_broadcaster_module_test tests/vehicles/DataBroadcasterModule.test src/tests/vehicles/DataBroadcasterModule_test.cpp)
+ add_rostest_gtest(data_broadcaster_module_test test/vehicles/DataBroadcasterModule.test test/vehicles/DataBroadcasterModule_test.cpp)
  target_link_libraries(data_broadcaster_module_test underwater_vehicles ${catkin_LIBRARIES} ${NETCDF_LIBRARIES})
  
 endif()

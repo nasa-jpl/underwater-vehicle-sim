@@ -4,5 +4,5 @@
  <rosparam param="speed_up_factor">5</rosparam>
  <rosparam param="sim_start_time">1000</rosparam>
  <node pkg="underwater_vehicle_sim" type="clock_server_node" name="clock_server" output="screen" />
- <test test-name="clock_server_test" pkg="underwater_vehicle_sim" type="clock_server_test" />
+ <test test-name="clock_server_node_test" pkg="underwater_vehicle_sim" type="clock_server_node_test" />
 </launch>

@@ -209,12 +209,11 @@ target_link_libraries(data_server ${catkin_LIBRARIES} ${Boost_LIBRARIES} )
 ## Add gtest based cpp test target and link libraries
 # catkin_add_gtest(${PROJECT_NAME}-test test/test_data_server.cpp)
  if(CATKIN_ENABLE_TESTING)
-   catkin_add_gtest(data_server_test src/tests/DataServer_test.cpp WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
-
+   catkin_add_gtest(data_server_test test/DataServer_test.cpp WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
    target_link_libraries(data_server_test data_server ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 
-   add_rostest_gtest(data_server_node_interface_test tests/DataServerNodeInterface.test src/tests/DataServerNodeInterface_test.cpp)
-   target_link_libraries(data_server_node_interface_test data_server ${catkin_LIBRARIES} ${Boost_LIBRARIES})
+   add_rostest_gtest(data_server_node_test test/DataServerNode.test test/DataServerNode_test.cpp)
+   target_link_libraries(data_server_node_test data_server ${catkin_LIBRARIES} ${Boost_LIBRARIES})
  endif()
 
 ## Add folders to be run by python nosetests
