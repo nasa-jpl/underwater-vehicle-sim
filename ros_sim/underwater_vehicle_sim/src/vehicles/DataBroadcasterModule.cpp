@@ -36,7 +36,7 @@ void DataBroadcasterModule::update(std::string name, const ros::Time& lastTime, 
 		data->h = nedPosition.getZ();
 		data->time = lastTime;
 
-		float precisionPow = std::pow(10, 4); //Set presision of temperature reading to 4 decimal places
+		float precisionPow = std::pow(10, 4); //Set precision of temperature reading to 4 decimal places
 		data->temp = std::round(modelData.temp * precisionPow) / precisionPow;
 		
 		data->salt = modelData.salt;

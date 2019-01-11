@@ -14,7 +14,7 @@
 #include "vent_planner/actions/PointPathAction.h"
 
 #include "actionlib/client/simple_action_client.h"
-#include "ros_sim_plan_server/PointPathRosAction.h"
+#include "ros_sim_autonomy_interface/PointPathRosAction.h"
 
 PointPathSimActionExecutor::PointPathSimActionExecutor(ros::NodeHandle& nh, std::string vehicleName) :
 	vehicleName(vehicleName),
@@ -120,7 +120,7 @@ bool PointPathSimActionExecutor::execute(std::shared_ptr<PointPathAction> action
 	}
 
 	//Creates an action goal and sends it to the action server for point path movement
-	pointPathGoal = ros_sim_plan_server::PointPathRosGoal();
+	pointPathGoal = ros_sim_autonomy_interface::PointPathRosGoal();
 
 	if(action->getDoInterruptPoint())
 	{
@@ -202,7 +202,7 @@ bool PointPathSimActionExecutor::triggerReplan(std::shared_ptr<PointPathAction> 
 
 void PointPathSimActionExecutor::actionDone(std::shared_ptr<PointPathAction> action,
 					const actionlib::SimpleClientGoalState& state,
-                	const ros_sim_plan_server::PointPathRosResultConstPtr& result)
+                	const ros_sim_autonomy_interface::PointPathRosResultConstPtr& result)
 {
 	if(state == actionlib::SimpleClientGoalState::RECALLED ||
 	   state == actionlib::SimpleClientGoalState::PREEMPTED)
@@ -240,7 +240,7 @@ void PointPathSimActionExecutor::actionActive(std::shared_ptr<PointPathAction> a
 }
 
 void PointPathSimActionExecutor::actionFeedback(std::shared_ptr<PointPathAction> action,
-					const ros_sim_plan_server::PointPathRosFeedbackConstPtr& feedback)
+					const ros_sim_autonomy_interface::PointPathRosFeedbackConstPtr& feedback)
 {
 	//Get the current point from the feedback
 	unsigned int adjustedCurrentPoint = feedback->currentPoint;

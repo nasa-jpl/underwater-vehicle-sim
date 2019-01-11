@@ -15,7 +15,7 @@
 #include "underwater_vehicle_msgs/GetVehicleInfo.h"
 
 #include "actionlib/client/simple_action_client.h"
-#include "ros_sim_plan_server/PointPathRosAction.h"
+#include "ros_sim_autonomy_interface/PointPathRosAction.h"
 
 
 class PointPathSimActionExecutor : public ActionExecutor<PointPathAction>
@@ -55,7 +55,7 @@ private:
     */
     void actionDone(std::shared_ptr<PointPathAction> action,
                     const actionlib::SimpleClientGoalState& state,
-                    const ros_sim_plan_server::PointPathRosResultConstPtr& result);
+                    const ros_sim_autonomy_interface::PointPathRosResultConstPtr& result);
 
     /**
     * Callback that occurs when the action goes active
@@ -68,7 +68,7 @@ private:
      * @param feedback Feedback pointer
      */
     void actionFeedback(std::shared_ptr<PointPathAction> action,
-                        const ros_sim_plan_server::PointPathRosFeedbackConstPtr& feedback);
+                        const ros_sim_autonomy_interface::PointPathRosFeedbackConstPtr& feedback);
 
 private:
     ros::NodeHandle& nh;
@@ -83,8 +83,8 @@ private:
     tf2::Vector3 lastLocation;
     std::string vehicleName;
 
-    actionlib::SimpleActionClient<ros_sim_plan_server::PointPathRosAction> pointPathClient;
-    ros_sim_plan_server::PointPathRosGoal pointPathGoal;
+    actionlib::SimpleActionClient<ros_sim_autonomy_interface::PointPathRosAction> pointPathClient;
+    ros_sim_autonomy_interface::PointPathRosGoal pointPathGoal;
 
     tf2_ros::Buffer buffer;
     tf2_ros::TransformListener listener;

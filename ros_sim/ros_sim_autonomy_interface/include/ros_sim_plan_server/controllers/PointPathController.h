@@ -6,7 +6,7 @@
 #include "actionlib/server/simple_action_server.h"
 #include "actionlib/client/simple_action_client.h"
 
-#include "ros_sim_plan_server/PointPathRosAction.h"
+#include "ros_sim_autonomy_interface/PointPathRosAction.h"
 
 #include "tf/LinearMath/Vector3.h"
 
@@ -49,7 +49,7 @@ private:
     void sendZGoal(const double z);
 
 private:
-    actionlib::SimpleActionServer<ros_sim_plan_server::PointPathRosAction> pointPathServer;
+    actionlib::SimpleActionServer<ros_sim_autonomy_interface::PointPathRosAction> pointPathServer;
     actionlib::SimpleActionClient<vehicle_auto_control::GoToXYRosAction> goToXYClient;
     actionlib::SimpleActionClient<vehicle_auto_control::GoToZRosAction> goToZClient;
 
