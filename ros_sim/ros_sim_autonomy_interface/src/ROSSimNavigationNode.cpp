@@ -4,6 +4,7 @@
 #include <eigen3/Eigen/Geometry>
 
 #include "underwater_navigation/NavigationFilter.h"
+#include "underwater_navigation/TrueNavigationFilter.h"
 
 #include "geometry_msgs/PoseWithCovariance.h"
 #include "underwater_vehicle_msgs/GetVehicleInfo.h"
@@ -20,15 +21,28 @@ struct VehicleFilter
 std::vector<VehicleFilter> vehicleFilters;
 ros::ServiceClient vehicleInfoClient;
 
+std::unique_ptr<NavigationFilter> createTrueNavigationFilter(ros::NodeHandle filterNH, VehicleInfo info)
+{
+    VehiclePose startPose(Eigen::Vector3d(info.getStartX(), info.getStartY(), info.getStartZ()));
+    std::unique_ptr<NavigationFilter> filter(new TrueNavigationFilter(startPose));
+    return NULL;
+}
+
 VehicleFilter createVehicleFilter(ros::NodeHandle nhNav, std::string filterName)
 {
     ros::NodeHandle filterNH(nhNav, "filters/" + filterName);
     std::string vehicleName;
+    std::string filterType;
 
     if(!filterNH.getParam("vehicle_name", vehicleName))
     {
-        std::string test = "test";
         ROS_INFO("Parameter \"%s/vehicle_name\" not present in the parameter server.", filterNH.getNamespace().c_str());
+        exit(1);
+    }
+
+    if(!filterNH.getParam("type", filterType))
+    {
+        ROS_INFO("Parameter \"%s/type\" not present in the parameter server.", filterNH.getNamespace().c_str());
         exit(1);
     }
 
@@ -37,11 +51,16 @@ VehicleFilter createVehicleFilter(ros::NodeHandle nhNav, std::string filterName)
     vehicleInfoClient.call(getInfo);
     VehicleInfo info(getInfo);
 
-    VehicleFilter filter;
-    filter.vehicleName = vehicleName;
-    filter.posePublisher = nhNav.advertise<geometry_msgs::PoseWithCovariance>(vehicleName + "/" + filterName, 1);
+    VehicleFilter vehicleFilter;
+    vehicleFilter.vehicleName = vehicleName;
+    vehicleFilter.posePublisher = nhNav.advertise<geometry_msgs::PoseWithCovariance>(vehicleName + "/" + filterName, 1);
 
-    return filter;
+    if(filterType == "TrueNavigation")
+    {
+        vehicleFilter.filter = createTrueNavigationFilter(filterNH, info);
+    }
+
+    return vehicleFilter;
 }
 
 int main(int argc, char **argv)

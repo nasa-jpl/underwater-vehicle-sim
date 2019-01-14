@@ -17,6 +17,10 @@ public:
     const std::vector<std::string> getModuleNames();
     const std::vector<std::string> getModuleTypes();
 
+    const double getStartX();
+    const double getStartY();
+    const double getStartZ();
+
     const std::vector<std::string> getModuleNamesOfType(const std::string type);
 
 private:
@@ -25,6 +29,10 @@ private:
     std::string propModuleType;
     std::vector<std::string> moduleNames;
     std::vector<std::string> moduleTypes;
+    
+    double startX;
+    double startY;
+    double startZ;
 };
 
 

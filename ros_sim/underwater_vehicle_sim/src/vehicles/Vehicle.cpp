@@ -41,10 +41,6 @@ Vehicle::Vehicle(Vehicle&& other)
 void Vehicle::initalizeVehicleFrame()
 {
 	//Get the parameters for the starting location of the vehicle
-	float startX = 0;
-	float startY = 0;
-	float startZ = 0;
-	
 	nh.getParam("start_x", startX);
 	nh.getParam("start_y", startY);
 	nh.getParam("start_z", startZ);
@@ -166,7 +162,7 @@ void Vehicle::getInfo(underwater_vehicle_msgs::GetVehicleInfo::Response &res)
     if(propulsionModule)
     {
         res.propModuleName = propulsionModule->getName();
-        res.propModuleType = propulsionModule->getType();  
+        res.propModuleType = propulsionModule->getType();
     }
     else
     {
@@ -179,6 +175,10 @@ void Vehicle::getInfo(underwater_vehicle_msgs::GetVehicleInfo::Response &res)
 		res.moduleNames.push_back(module->getName());
 		res.moduleTypes.push_back(module->getType());
 	}
+
+	res.startX = startX;
+	res.startY = startY;
+	res.startZ = startZ;
 }
 
 void Vehicle::broadcastTransform()

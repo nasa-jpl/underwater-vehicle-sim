@@ -120,6 +120,21 @@ private:
 	* Dictates if currents evect the vehicle
 	*/
 	bool evectByCurrents;
+
+	/**
+	* Starting X position of the vehicle
+	*/
+	double startX;
+
+	/**
+	* Starting Y position of the vehicle
+	*/
+	double startY;
+
+	/**
+	* Starting Z position of the vehicle
+	*/
+	double startZ;
 };
 
 #endif

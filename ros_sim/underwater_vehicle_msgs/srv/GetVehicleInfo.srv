@@ -4,3 +4,7 @@ string propModuleType
 string propModuleName
 string[] moduleNames
 string[] moduleTypes
+
+float64 startX
+float64 startY
+float64 startZ

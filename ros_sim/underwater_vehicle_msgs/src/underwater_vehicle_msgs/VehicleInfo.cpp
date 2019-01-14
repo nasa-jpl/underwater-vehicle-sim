@@ -5,7 +5,10 @@ VehicleInfo::VehicleInfo(underwater_vehicle_msgs::GetVehicleInfo info) :
     propModuleName(info.response.propModuleName),
     propModuleType(info.response.propModuleType),
     moduleNames(info.response.moduleNames),
-    moduleTypes(info.response.moduleTypes)
+    moduleTypes(info.response.moduleTypes),
+    startX(info.response.startX),
+    startY(info.response.startY),
+    startZ(info.response.startZ)
 {}
 
 const std::string VehicleInfo::getName()
@@ -31,6 +34,21 @@ const std::vector<std::string> VehicleInfo::getModuleNames()
 const std::vector<std::string> VehicleInfo::getModuleTypes()
 {
     return moduleTypes;
+}
+
+const double VehicleInfo::getStartX()
+{
+    return startX;
+}
+
+const double VehicleInfo::getStartY()
+{
+    return startY;
+}
+
+const double VehicleInfo::getStartZ()
+{
+    return startZ;
 }
 
 const std::vector<std::string> VehicleInfo::getModuleNamesOfType(const std::string type)
