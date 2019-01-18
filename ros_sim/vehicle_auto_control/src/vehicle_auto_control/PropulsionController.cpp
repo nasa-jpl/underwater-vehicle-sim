@@ -173,6 +173,9 @@ tf2::Stamped<tf2::Transform> PropulsionController::getCurrentTransform()
     tf2::Stamped<tf2::Transform> transform;
 	try
     {
+		//This gets the transform from the world from to the frame of the vehicle
+		//It is used to take a target point in the world frame to the vehicle frame
+		//for easier control calculations
         if(buffer.canTransform(info.getName(), "world_ned", ros::Time(0), ros::Duration(10.0)))
         {
             transformMsg = buffer.lookupTransform(info.getName(), "world_ned", ros::Time(0));

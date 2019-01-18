@@ -130,6 +130,7 @@ include_directories(
 
 ## Declare a C++ library
   add_library(${PROJECT_NAME}
+    src/ros_sim_navigation/ROSSimNavigationFilter.cpp
     src/ros_sim_plan_server/RosSimPlanServer.cpp  
     src/ros_sim_plan_server/ROSSimVentActionFactory.cpp
     src/ros_sim_plan_server/ROSSimVehicleInterface.cpp
@@ -214,10 +215,13 @@ include_directories(
 #############
 
 ## Add gtest based cpp test target and link libraries
-#if (CATKIN_ENABLE_TESTING)
-#  find_package(rostest REQUIRED)
+if (CATKIN_ENABLE_TESTING)
+ find_package(rostest REQUIRED)
 
-#endif()
+ add_rostest_gtest(ros_sim_navigation_filter_test test/ros_sim_navigation/ROSSimNavigationFilter.test test/ros_sim_navigation/ROSSimNavigationFilter_test.cpp)
+ target_link_libraries(ros_sim_navigation_filter_test ros_sim_autonomy_interface ${catkin_LIBRARIES} )
+ 
+endif()
 
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)

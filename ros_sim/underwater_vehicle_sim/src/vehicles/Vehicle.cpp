@@ -50,10 +50,10 @@ void Vehicle::initalizeVehicleFrame()
 	//broadcast the inital frame for this vehicle
 	tf2::Quaternion initialRotation;
 	initialRotation.setRPY(0, 0, 0);
-	vehicleState.setRotationENU(initialRotation);
+	vehicleState.setRotationNED(initialRotation);
 
 	tf2::Vector3 initialPosition(startX, startY, startZ);
-	vehicleState.setPositionENU(initialPosition);
+	vehicleState.setPositionNED(initialPosition);
 
 	//Set transform time and data
 	lastTransformTime = ros::Time::now();

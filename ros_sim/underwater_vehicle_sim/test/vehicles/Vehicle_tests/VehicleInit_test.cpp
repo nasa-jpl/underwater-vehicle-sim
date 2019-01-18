@@ -34,7 +34,7 @@ TEST(VehicleInit, VehicleInitTest){
     {
         try
         {
-            transformMsgV1 = buffer.lookupTransform("world", "v1",  
+            transformMsgV1 = buffer.lookupTransform("world_ned", "v1",  
                                                     ros::Time(0));
             tf2::fromMsg(transformMsgV1, transformV1);
             transformsRecieved = true;
