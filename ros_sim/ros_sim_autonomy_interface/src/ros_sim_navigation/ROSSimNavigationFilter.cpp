@@ -2,7 +2,7 @@
 
 #include "underwater_navigation/TrueNavigationFilter.h"
 
-#include "geometry_msgs/PoseWithCovariance.h"
+#include "nav_msgs/Odometry.h"
 #include "underwater_vehicle_msgs/GetVehicleInfo.h"
 #include "underwater_vehicle_msgs/VehicleInfo.h"
 
@@ -31,7 +31,7 @@ ROSSimNavigationFilter ROSSimNavigationFilter::createNavigationFilter(ros::NodeH
         exit(1);
     }
 
-    ros::Publisher posePublisher = nhNav.advertise<geometry_msgs::PoseWithCovariance>(info.getName() + "/" + filterName, 1);
+    ros::Publisher posePublisher = nhNav.advertise<nav_msgs::Odometry>(info.getName() + "/" + filterName, 1);
     std::unique_ptr<NavigationFilter> filter;
 
     if(filterType == "TrueNavigation")
@@ -54,27 +54,50 @@ void ROSSimNavigationFilter::publishPose()
 
     Eigen::Vector3d position = pose.getPosition();
     Eigen::Quaterniond orientation = pose.getOrientation();
-    Eigen::Matrix<double,6,6> covariance = pose.getPoseCovariance();
+    Eigen::Matrix<double,6,6> poseCovariance = pose.getPoseCovariance();
 
-    geometry_msgs::PoseWithCovariance poseMsg;
-    poseMsg.pose.position.x = position[0];
-    poseMsg.pose.position.y = position[1];
-    poseMsg.pose.position.z = position[2];
+    Eigen::Vector3d linearVelocity = pose.getLinearVelocity();
+    Eigen::Vector3d angularVelocity = pose.getAngularVelocity();
+    Eigen::Matrix<double,6,6> twistCovariance = pose.getTwistCovariance();
 
-    poseMsg.pose.orientation.x = orientation.x();
-    poseMsg.pose.orientation.y = orientation.y();
-    poseMsg.pose.orientation.z = orientation.z();
-    poseMsg.pose.orientation.w = orientation.w();
+    nav_msgs::Odometry odoMsg;
+    odoMsg.header.stamp = ros::Time::now();
+    odoMsg.header.frame_id = "world_ned"; //pose frame
+    odoMsg.child_frame_id = info.getName(); //twist frame
+    odoMsg.pose.pose.position.x = position[0];
+    odoMsg.pose.pose.position.y = position[1];
+    odoMsg.pose.pose.position.z = position[2];
+
+    odoMsg.pose.pose.orientation.x = orientation.x();
+    odoMsg.pose.pose.orientation.y = orientation.y();
+    odoMsg.pose.pose.orientation.z = orientation.z();
+    odoMsg.pose.pose.orientation.w = orientation.w();
 
     for(unsigned int i = 0; i < 6; i++)
     {
         for(unsigned int j = 0; j < 6; j++)
         {
-            poseMsg.covariance[(i * 6) + j] = covariance(i, j);
+            odoMsg.pose.covariance[(i * 6) + j] = poseCovariance(i, j);
         }
     }
 
-    posePublisher.publish(poseMsg);
+    odoMsg.twist.twist.linear.x = linearVelocity[0];
+    odoMsg.twist.twist.linear.y = linearVelocity[1];
+    odoMsg.twist.twist.linear.z = linearVelocity[2];
+
+    odoMsg.twist.twist.angular.x = angularVelocity[0];
+    odoMsg.twist.twist.angular.y = angularVelocity[1];
+    odoMsg.twist.twist.angular.z = angularVelocity[2];
+
+    for(unsigned int i = 0; i < 6; i++)
+    {
+        for(unsigned int j = 0; j < 6; j++)
+        {
+            odoMsg.twist.covariance[(i * 6) + j] = twistCovariance(i, j);
+        }
+    }
+
+    posePublisher.publish(odoMsg);
 }
 
 void ROSSimNavigationFilter::sendPoseToFilter()
