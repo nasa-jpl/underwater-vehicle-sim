@@ -42,7 +42,7 @@ void filterPoseCallback(const geometry_msgs::PoseWithCovariance::ConstPtr& pose)
     VehiclePose vehiclePose;
     vehiclePose.setPosition(position);
     vehiclePose.setOrientation(orientation);
-    vehiclePose.setCovariance(covariance);
+    vehiclePose.setPoseCovariance(covariance);
 
     poses.push_back(vehiclePose);
 }

@@ -37,7 +37,7 @@ ROSSimNavigationFilter ROSSimNavigationFilter::createNavigationFilter(ros::NodeH
     if(filterType == "TrueNavigation")
     {
         VehiclePose startPose(Eigen::Vector3d(info.getStartX(), info.getStartY(), info.getStartZ()));
-        filter.reset(new TrueNavigationFilter(startPose));
+        filter.reset(new TrueNavigationFilter(startPose, ros::Time::now().toSec()));
     }
 
     return ROSSimNavigationFilter(info, std::move(posePublisher), std::move(filter));
@@ -54,7 +54,7 @@ void ROSSimNavigationFilter::publishPose()
 
     Eigen::Vector3d position = pose.getPosition();
     Eigen::Quaterniond orientation = pose.getOrientation();
-    Eigen::Matrix<double,6,6> covariance = pose.getCovariance();
+    Eigen::Matrix<double,6,6> covariance = pose.getPoseCovariance();
 
     geometry_msgs::PoseWithCovariance poseMsg;
     poseMsg.pose.position.x = position[0];
@@ -94,7 +94,7 @@ void ROSSimNavigationFilter::sendPoseToFilter()
             data.push_back(transformMsg.transform.rotation.z); //z orientation
             data.push_back(transformMsg.transform.rotation.w); //w orientation
 
-            filter->sensorMeasurment("pose", data);
+            filter->sensorMeasurment("pose", transformMsg.header.stamp.toSec(), data);
         }
 
         
