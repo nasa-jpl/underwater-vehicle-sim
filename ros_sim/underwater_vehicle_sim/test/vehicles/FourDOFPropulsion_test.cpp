@@ -8,6 +8,8 @@
 #include <geometry_msgs/TransformStamped.h>
 #include "tf2/LinearMath/Vector3.h"
 
+#include "std_msgs/Float64.h"
+
 #include "vehicles/FourDOFPropulsion.h"
 #include "vehicles/VehicleState.h"
 
@@ -17,84 +19,106 @@ TEST(FourDOFPropulsion, SendCommand) {
     VehicleState state(n);
     FourDOFPropulsion module("prop", state, n);
 
-    ros::Publisher vel_pub = n.advertise<geometry_msgs::Twist>("/underwater_vehicle_sim/vehicles/v1/prop/command_velocity", 1000);
+    ros::Publisher forward_thrust_pub = n.advertise<std_msgs::Float64>("/underwater_vehicle_sim/vehicles/v1/prop/command_forward_thruster", 1000);
+    ros::Publisher lateral_thrust_pub = n.advertise<std_msgs::Float64>("/underwater_vehicle_sim/vehicles/v1/prop/command_lateral_thruster", 1000);
+    ros::Publisher vertical_thrust_pub = n.advertise<std_msgs::Float64>("/underwater_vehicle_sim/vehicles/v1/prop/command_vertical_thruster", 1000);
+    ros::Publisher rudder_pub = n.advertise<std_msgs::Float64>("/underwater_vehicle_sim/vehicles/v1/prop/command_rudder", 1000);
 
-     //wait for subscriber, should be almost instant
-    while(vel_pub.getNumSubscribers() <= 0);
+    //wait for subscribers, should be almost instant
+    while(forward_thrust_pub.getNumSubscribers() <= 0);
+    while(lateral_thrust_pub.getNumSubscribers() <= 0);
+    while(vertical_thrust_pub.getNumSubscribers() <= 0);
+    while(rudder_pub.getNumSubscribers() <= 0);
 
+    
     //This needs to be a pointer or else message will not reliably
     //publish with a single ros::spinOnce() with no wait.
-    geometry_msgs::TwistPtr msg(new geometry_msgs::Twist);
+    std_msgs::Float64Ptr forwardMsg(new std_msgs::Float64);
+    forwardMsg->data = 50;
 
-    tf2::Vector3 linearVelocity(1, 2, -3);
-    tf2::Vector3 angularVelocity(0.1, -0.2, 0.3);
-    msg->linear.x = linearVelocity.x();
-    msg->linear.y = linearVelocity.y();
-    msg->linear.z = linearVelocity.z();
+    std_msgs::Float64Ptr lateralMsg(new std_msgs::Float64);
+    lateralMsg->data = -25;
 
-    msg->angular.x = angularVelocity.x();
-    msg->angular.y = angularVelocity.y();
-    msg->angular.z = angularVelocity.z();
-    
-    vel_pub.publish(msg);    
+    std_msgs::Float64Ptr verticalMsg(new std_msgs::Float64);
+    verticalMsg->data = 100;
+
+    std_msgs::Float64Ptr rudderMsg(new std_msgs::Float64);
+    rudderMsg->data = -45;
+
+    //Check forward thrust
+    forward_thrust_pub.publish(forwardMsg);    
     ros::spinOnce();
 
-    EXPECT_DOUBLE_EQ(linearVelocity.x(), state.getLinearVelocity().x());
-    EXPECT_DOUBLE_EQ(linearVelocity.y(), state.getLinearVelocity().y());
-    EXPECT_DOUBLE_EQ(linearVelocity.z(), state.getLinearVelocity().z());
+    EXPECT_DOUBLE_EQ(1, state.getLinearVelocity().x());
+    EXPECT_DOUBLE_EQ(0, state.getLinearVelocity().y());
+    EXPECT_DOUBLE_EQ(0, state.getLinearVelocity().z());
+    EXPECT_DOUBLE_EQ(0, state.getAngularVelocity().x());
+    EXPECT_DOUBLE_EQ(0, state.getAngularVelocity().y());
+    EXPECT_DOUBLE_EQ(0, state.getAngularVelocity().z());
 
-    EXPECT_NEAR(0.0, state.getAngularVelocity().x(), 0.00000000001);
-    EXPECT_NEAR(0.0, state.getAngularVelocity().y(), 0.00000000001);
-    EXPECT_DOUBLE_EQ(angularVelocity.z(), state.getAngularVelocity().z());
 
-
-    //Check that max velocities are followed
-    geometry_msgs::TwistPtr msgMax(new geometry_msgs::Twist);
-
-    tf2::Vector3 linearVelocityMax(6, 6, 6);
-    tf2::Vector3 angularVelocityMax(0.1, -0.2, 0.5);
-    msgMax->linear.x = linearVelocityMax.x();
-    msgMax->linear.y = linearVelocityMax.y();
-    msgMax->linear.z = linearVelocityMax.z();
-
-    msgMax->angular.x = angularVelocityMax.x();
-    msgMax->angular.y = angularVelocityMax.y();
-    msgMax->angular.z = angularVelocityMax.z();
-    
-    vel_pub.publish(msgMax);    
+    //Check lateral thrust
+    lateral_thrust_pub.publish(lateralMsg);    
     ros::spinOnce();
 
-    EXPECT_DOUBLE_EQ(5, state.getLinearVelocity().x());
-    EXPECT_DOUBLE_EQ(5, state.getLinearVelocity().y());
-    EXPECT_DOUBLE_EQ(4, state.getLinearVelocity().z());
+    EXPECT_DOUBLE_EQ(1, state.getLinearVelocity().x());
+    EXPECT_DOUBLE_EQ(-0.25, state.getLinearVelocity().y());
+    EXPECT_DOUBLE_EQ(0, state.getLinearVelocity().z());
+    EXPECT_DOUBLE_EQ(0, state.getAngularVelocity().x());
+    EXPECT_DOUBLE_EQ(0, state.getAngularVelocity().y());
+    EXPECT_DOUBLE_EQ(0, state.getAngularVelocity().z());
 
-    EXPECT_NEAR(0.0, state.getAngularVelocity().x(), 0.00000000001);
-    EXPECT_NEAR(0.0, state.getAngularVelocity().y(), 0.00000000001);
-    EXPECT_NEAR(0.4, state.getAngularVelocity().z(), 0.00000000001);
 
-    //Check that min velocity values are followed
-    geometry_msgs::TwistPtr msgMin(new geometry_msgs::Twist);
-
-    tf2::Vector3 linearVelocityMin(-6, -6, -6);
-    tf2::Vector3 angularVelocityMin(-0.1, 0.2, -0.5);
-    msgMin->linear.x = linearVelocityMin.x();
-    msgMin->linear.y = linearVelocityMin.y();
-    msgMin->linear.z = linearVelocityMin.z();
-
-    msgMin->angular.x = angularVelocityMin.x();
-    msgMin->angular.y = angularVelocityMin.y();
-    msgMin->angular.z = angularVelocityMin.z();
-    
-    vel_pub.publish(msgMin);    
+    //Check vertical thrust
+    vertical_thrust_pub.publish(verticalMsg);    
     ros::spinOnce();
 
-    EXPECT_DOUBLE_EQ(-5, state.getLinearVelocity().x());
-    EXPECT_DOUBLE_EQ(-5, state.getLinearVelocity().y());
-    EXPECT_DOUBLE_EQ(-4, state.getLinearVelocity().z());
+    EXPECT_DOUBLE_EQ(1, state.getLinearVelocity().x());
+    EXPECT_DOUBLE_EQ(-0.25, state.getLinearVelocity().y());
+    EXPECT_DOUBLE_EQ(1, state.getLinearVelocity().z());
+    EXPECT_DOUBLE_EQ(0, state.getAngularVelocity().x());
+    EXPECT_DOUBLE_EQ(0, state.getAngularVelocity().y());
+    EXPECT_DOUBLE_EQ(0, state.getAngularVelocity().z());
 
-    EXPECT_NEAR(0.0, state.getAngularVelocity().x(), 0.00000000001);
-    EXPECT_NEAR(0.0, state.getAngularVelocity().y(), 0.00000000001);
-    EXPECT_NEAR(-0.4, state.getAngularVelocity().z(), 0.00000000001);
+
+    //Check rudder
+    rudder_pub.publish(rudderMsg);    
+    ros::spinOnce();
+
+    EXPECT_DOUBLE_EQ(1, state.getLinearVelocity().x());
+    EXPECT_DOUBLE_EQ(-0.25, state.getLinearVelocity().y());
+    EXPECT_DOUBLE_EQ(1, state.getLinearVelocity().z());
+    EXPECT_DOUBLE_EQ(0, state.getAngularVelocity().x());
+    EXPECT_DOUBLE_EQ(0, state.getAngularVelocity().y());
+    EXPECT_DOUBLE_EQ(-5, state.getAngularVelocity().z());
+
+
+
+    //Test invalid messages
+    std_msgs::Float64Ptr forwardMsgInvalid(new std_msgs::Float64);
+    forwardMsg->data = 101;
+
+    std_msgs::Float64Ptr lateralMsgInvalid(new std_msgs::Float64);
+    lateralMsg->data = -101;
+
+    std_msgs::Float64Ptr verticalMsgInvalid(new std_msgs::Float64);
+    verticalMsg->data = 101;
+
+    std_msgs::Float64Ptr rudderMsgInvalid(new std_msgs::Float64);
+    rudderMsg->data = -46;
+
+    forward_thrust_pub.publish(forwardMsg);    
+    lateral_thrust_pub.publish(lateralMsg);    
+    vertical_thrust_pub.publish(verticalMsg);    
+    rudder_pub.publish(rudderMsg);    
+    ros::spinOnce();
+
+    EXPECT_DOUBLE_EQ(1, state.getLinearVelocity().x());
+    EXPECT_DOUBLE_EQ(-0.25, state.getLinearVelocity().y());
+    EXPECT_DOUBLE_EQ(1, state.getLinearVelocity().z());
+    EXPECT_DOUBLE_EQ(0, state.getAngularVelocity().x());
+    EXPECT_DOUBLE_EQ(0, state.getAngularVelocity().y());
+    EXPECT_DOUBLE_EQ(-5, state.getAngularVelocity().z());
 }
 
 //Had issues doing this in the roslaunch file for this test. Not sure why.

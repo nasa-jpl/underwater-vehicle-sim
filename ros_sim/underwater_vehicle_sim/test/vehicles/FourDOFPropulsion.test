@@ -1,7 +1,15 @@
 <launch>
- <rosparam param="/underwater_vehicle_sim/vehicles/v1/prop/max_linear_velocity">5</rosparam>
- <rosparam param="/underwater_vehicle_sim/vehicles/v1/prop/max_vertical_velocity">4</rosparam>
- <rosparam param="/underwater_vehicle_sim/vehicles/v1/prop/max_angular_velocity">0.4</rosparam>
+    <rosparam param="/underwater_vehicle_sim/vehicles/v1/prop/forward_thruster_thrust">[-100,0,100]</rosparam>
+    <rosparam param="/underwater_vehicle_sim/vehicles/v1/prop/forward_thruster_velocity">[-1,0,2]</rosparam>
 
- <test test-name="four_dof_propulsion_test" pkg="underwater_vehicle_sim" type="four_dof_propulsion_test" />
+    <rosparam param="/underwater_vehicle_sim/vehicles/v1/prop/lateral_thruster_thrust">[-100,0,100]</rosparam>
+    <rosparam param="/underwater_vehicle_sim/vehicles/v1/prop/lateral_thruster_velocity">[-1,0,1]</rosparam>
+
+    <rosparam param="/underwater_vehicle_sim/vehicles/v1/prop/vertical_thruster_thrust">[-100,0,100]</rosparam>
+    <rosparam param="/underwater_vehicle_sim/vehicles/v1/prop/vertical_thruster_velocity">[-1,0,1]</rosparam>
+
+    <rosparam param="/underwater_vehicle_sim/vehicles/v1/prop/rudder_angle">[-45,0,45]</rosparam>
+    <rosparam param="/underwater_vehicle_sim/vehicles/v1/prop/rudder_velocity">[-5,0,5]</rosparam>
+
+    <test test-name="four_dof_propulsion_test" pkg="underwater_vehicle_sim" type="four_dof_propulsion_test" />
 </launch>

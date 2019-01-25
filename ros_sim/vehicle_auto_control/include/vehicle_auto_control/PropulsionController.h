@@ -24,7 +24,7 @@ class PropulsionController
 {
 
 public:
-	PropulsionController(ros::NodeHandle& nh, VehicleInfo& info);
+	PropulsionController(VehicleInfo& info);
 	~PropulsionController() {}
 
 	void update(void);
@@ -57,7 +57,6 @@ private:
 
 	//Subscribers, publishers, and listeners
 	ros::Subscriber velocitySub;
-	ros::Publisher velocityPub;
 
 	//Point Path Goal Parameters
 	actionlib::SimpleActionServer<vehicle_auto_control::GoToXYRosAction> goToXYServer;

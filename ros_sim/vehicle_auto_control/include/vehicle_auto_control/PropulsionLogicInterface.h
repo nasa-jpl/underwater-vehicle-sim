@@ -19,30 +19,57 @@ class PropulsionLogicInterface
 {
 
 public:
-	PropulsionLogicInterface() {};
+	PropulsionLogicInterface(ros::NodeHandle vehicleNode, VehicleInfo& vehicleInfo);
 	virtual ~PropulsionLogicInterface() {}
 
 	virtual void setTargetVelocity(const geometry_msgs::Twist vel)=0;
 	virtual void processNewData(const underwater_vehicle_msgs::VehicleData data)=0;
 
-	virtual const geometry_msgs::Twist goToXYTwist(tf2::Stamped<tf2::Transform>& NEDToVehicle)=0;
-	virtual const geometry_msgs::Twist goToZTwist(tf2::Stamped<tf2::Transform>& NEDToVehicle)=0;
+	/**
+	* Sends messages to make vehicle go to xy location
+	*/
+	virtual const void goToXY(tf2::Stamped<tf2::Transform>& NEDToVehicle)=0;
 
-	virtual const geometry_msgs::Twist stopXYTwist()=0;
-	virtual const geometry_msgs::Twist stopZTwist()=0;
+	/**
+	* Sends messages to make vehicle go to z location
+	*/
+	virtual const void goToZ(tf2::Stamped<tf2::Transform>& NEDToVehicle)=0;
 
+	/**
+	* Sends messages to stop xy movement
+	*/
+	virtual const void stopXY()=0;
+
+	/**
+	* Sends messages to stop z movement
+	*/
+	virtual const void stopZ()=0;
+
+	/**
+	* Sets the target xy location for goToXY
+	*/
 	virtual void setTargetXY(double x, double y)=0;
+	
+	/**
+	* Sets the taget z location for goToZ
+	*/
 	virtual void setTargetZ(double z)=0;
 
+	/**
+	* Determines if the vehicle has reached the xy location
+	*/
 	virtual bool isAtXY(tf2::Stamped<tf2::Transform>& transform)=0;
+
+	/**
+	* Determines if the vehicle has reached the z location
+	*/
 	virtual bool isAtZ(tf2::Stamped<tf2::Transform>& transform)=0;
 	
-	static std::unique_ptr<PropulsionLogicInterface> makePropulsionLogic(VehicleInfo info);	
+	static std::unique_ptr<PropulsionLogicInterface> makePropulsionLogic(ros::NodeHandle vehicleNode, VehicleInfo& vehicleInfo);	
 
-private:
-
-private:
-
+protected:
+	ros::NodeHandle vehicleNode;
+	VehicleInfo& vehicleInfo;
 };
 
 #endif

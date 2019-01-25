@@ -7,12 +7,12 @@
 
 #include "underwater_vehicle_msgs/GetVehicleInfo.h"
 
-PropulsionController::PropulsionController(ros::NodeHandle& nh, VehicleInfo& info) :
-	controlNode(nh, "vehicle_controller/" + info.getName()), 
-	vehicleNode(nh, "underwater_vehicle_sim/vehicles/" + info.getName()),
+PropulsionController::PropulsionController(VehicleInfo& info) :
+	controlNode("vehicle_controller/" + info.getName()), 
+	vehicleNode("underwater_vehicle_sim/vehicles/" + info.getName()),
 	info(info),
 	listener(buffer),
-	logicController(PropulsionLogicInterface::makePropulsionLogic(info)),
+	logicController(PropulsionLogicInterface::makePropulsionLogic(vehicleNode, info)),
 	goToXYServer(controlNode, "go_to_xy", false),
 	goToZServer(controlNode, "go_to_z", false)
 {
@@ -24,7 +24,6 @@ PropulsionController::PropulsionController(ros::NodeHandle& nh, VehicleInfo& inf
         dataSub = vehicleNode.subscribe(dataModuleNames[0] + "/data", 1, &PropulsionController::getVehicleData, this);
     }
 
-	velocityPub = vehicleNode.advertise<geometry_msgs::Twist>(info.getPropModuleName() + "/command_velocity", 1000);
     velocitySub = controlNode.subscribe("command_target_velocity", 1, &PropulsionController::getTargetVelocityCommand, this);
 
 	goToXYServer.registerGoalCallback(boost::bind(&PropulsionController::goalGoToXYCB, this));
@@ -64,7 +63,7 @@ void PropulsionController::update(void)
 */ 
 void PropulsionController::goalGoToXYCB(void)
 {
-	velocityPub.publish(logicController->stopXYTwist());
+	logicController->stopXY();
     vehicle_auto_control::GoToXYRosGoalConstPtr goToXYGoal = goToXYServer.acceptNewGoal();
     
 	logicController->setTargetXY(goToXYGoal->x, goToXYGoal->y);
@@ -73,7 +72,7 @@ void PropulsionController::goalGoToXYCB(void)
 
 void PropulsionController::preemptGoToXYCB(void)
 {
-	velocityPub.publish(logicController->stopXYTwist());
+	logicController->stopXY();
 	
     goToXYServer.setPreempted();
 }
@@ -98,7 +97,7 @@ void PropulsionController::goToXYUpdate(void)
 
 	if(logicController->isAtXY(transform))
 	{
-		velocityPub.publish(logicController->stopXYTwist());
+		logicController->stopXY();
 		vehicle_auto_control::GoToXYRosResult result;
 		result.x = transform.inverse().getOrigin().getX();
 		result.y = transform.inverse().getOrigin().getY();
@@ -107,12 +106,12 @@ void PropulsionController::goToXYUpdate(void)
 	}
 	else
 	{
-		velocityPub.publish(logicController->goToXYTwist(transform));
+		logicController->goToXY(transform);
 
 		//Call this if Z is not active to prevent the vehicle from hitting the seafloor
 		if(!goToZServer.isActive())
 		{
-			velocityPub.publish(logicController->goToZTwist(transform));
+			logicController->goToZ(transform);
 		}
 	}
 }
@@ -122,7 +121,7 @@ void PropulsionController::goToXYUpdate(void)
 */ 
 void PropulsionController::goalGoToZCB(void)
 {
-	velocityPub.publish(logicController->stopZTwist());
+	logicController->stopZ();
     vehicle_auto_control::GoToZRosGoalConstPtr goToZGoal = goToZServer.acceptNewGoal();
 
 	logicController->setTargetZ(goToZGoal->z);
@@ -131,7 +130,7 @@ void PropulsionController::goalGoToZCB(void)
 
 void PropulsionController::preemptGoToZCB(void)
 {
-	velocityPub.publish(logicController->stopZTwist());
+	logicController->stopZ();
 	
     goToZServer.setPreempted();
 }
@@ -155,7 +154,7 @@ void PropulsionController::goToZUpdate(void)
 
 	if(logicController->isAtZ(transform))
 	{
-		velocityPub.publish(logicController->stopZTwist());
+		logicController->stopZ();
 		vehicle_auto_control::GoToZRosResult result;
         result.z = transform.getOrigin().getZ();
         goToZServer.setSucceeded(result); 
@@ -163,7 +162,7 @@ void PropulsionController::goToZUpdate(void)
 	}
 	else
 	{
-		velocityPub.publish(logicController->goToZTwist(transform));
+		logicController->goToZ(transform);
 	}
 }
 

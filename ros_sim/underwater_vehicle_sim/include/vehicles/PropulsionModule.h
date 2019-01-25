@@ -9,6 +9,13 @@ class PropulsionModule
 {
 
 public:
+	/**
+	* Constructor for propulsion modules
+	* @param name Name of the propulsion module
+	* @param type The type of propulsion module
+	* @param vehicleState The current state of the vehicle. This is a reference so the propulsion module can modify it as needed.
+	* @param parentNH NodeHandle for the vehicle
+	*/
 	PropulsionModule(std::string name, std::string type, VehicleState& vehicleState, ros::NodeHandle& parentNH);
 	virtual ~PropulsionModule() {}
 

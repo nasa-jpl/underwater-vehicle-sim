@@ -22,15 +22,14 @@ class FourDOFPropulsionLogic : public PropulsionLogicInterface
 {
 
 public:
-	FourDOFPropulsionLogic();
+	FourDOFPropulsionLogic(ros::NodeHandle vehicleNode, VehicleInfo& vehicleInfo);
 	~FourDOFPropulsionLogic() {}
-
-
-	const geometry_msgs::Twist goToXYTwist(tf2::Stamped<tf2::Transform>& NEDToVehicle) override;
-	const geometry_msgs::Twist goToZTwist(tf2::Stamped<tf2::Transform>& NEDToVehicle) override;
-
-	const geometry_msgs::Twist stopXYTwist() override;
-	const geometry_msgs::Twist stopZTwist() override;
+	
+	const void goToXY(tf2::Stamped<tf2::Transform>& NEDToVehicle) override;
+	const void goToZ(tf2::Stamped<tf2::Transform>& NEDToVehicle) override;
+	
+	const void stopXY() override;
+	const void stopZ() override;
 
 	void setTargetXY(double x, double y) override;
 	void setTargetZ(double z) override;
@@ -40,7 +39,6 @@ public:
 
 	void setTargetVelocity(const geometry_msgs::Twist vel) override;
 	void processNewData(const underwater_vehicle_msgs::VehicleData data) override;
-
 
 private:
 
@@ -68,6 +66,9 @@ private:
 	double angleErrorScale;
 	double verticalErrorScale;
 	double horizontalScaleError;
+
+	//Publishers for messages to the FourDOFPropulsion module
+	ros::Publisher velocityPub;
 
 	//Last command velocities
 	geometry_msgs::Vector3 lastLinearVelocity;

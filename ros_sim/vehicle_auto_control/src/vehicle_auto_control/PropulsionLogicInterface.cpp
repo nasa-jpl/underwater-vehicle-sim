@@ -2,12 +2,17 @@
 
 #include "vehicle_auto_control/FourDOFPropulsionLogic.h"
 
-std::unique_ptr<PropulsionLogicInterface> PropulsionLogicInterface::makePropulsionLogic(VehicleInfo info)
+PropulsionLogicInterface::PropulsionLogicInterface(ros::NodeHandle vehicleNode, VehicleInfo& vehicleInfo) :
+	vehicleNode(vehicleNode),
+	vehicleInfo(vehicleInfo)
+{}
+
+std::unique_ptr<PropulsionLogicInterface> PropulsionLogicInterface::makePropulsionLogic(ros::NodeHandle vehicleNode, VehicleInfo& vehicleInfo)
 {
 	std::unique_ptr<PropulsionLogicInterface> logic;
-	if(info.getPropModuleType() == "FourDOFPropulsion")
+	if(vehicleInfo.getPropModuleType() == "FourDOFPropulsion")
 	{
-		logic.reset(new FourDOFPropulsionLogic());
+		logic.reset(new FourDOFPropulsionLogic(vehicleNode, vehicleInfo));
 	}
 	return logic;
 }

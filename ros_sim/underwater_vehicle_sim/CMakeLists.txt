@@ -137,6 +137,7 @@ catkin_package(
    src/vehicles/DataCapacityModule.cpp
    src/vehicles/IMUModule.cpp
    src/vehicles/VehicleState.cpp
+   src/vehicles/LinearPiecewise.cpp
  )
 
  target_link_libraries(underwater_vehicles ${catkin_LIBRARIES})
@@ -213,6 +214,9 @@ catkin_package(
 ## Add gtest based cpp test target and link libraries
 if (CATKIN_ENABLE_TESTING)
  find_package(rostest REQUIRED)
+
+ catkin_add_gtest(linear_piecewise_test test/vehicles/LinearPiecewise_test.cpp)
+ target_link_libraries(linear_piecewise_test underwater_vehicles ${catkin_LIBRARIES})
 
  add_rostest_gtest(clock_server_node_test test/clock_server/ClockServerNode.test test/clock_server/ClockServerNode_test.cpp)
  target_link_libraries(clock_server_node_test ${catkin_LIBRARIES} ${NETCDF_LIBRARIES})

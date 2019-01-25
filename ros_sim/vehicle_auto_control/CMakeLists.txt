@@ -203,8 +203,9 @@ include_directories(
 if (CATKIN_ENABLE_TESTING)
  find_package(rostest REQUIRED)
 
- catkin_add_gtest(four_dof_propulsion_logic_test test/vehicle_auto_control/FourDOFPropulsionLogic_test.cpp)
- target_link_libraries(four_dof_propulsion_logic_test ${PROJECT_NAME} ${catkin_LIBRARIES})
+ add_rostest_gtest(four_dof_propulsion_logic_test test/vehicle_auto_control/FourDOFPropulsionLogic.test test/vehicle_auto_control/FourDOFPropulsionLogic_test.cpp)
+ target_link_libraries(four_dof_propulsion_logic_test ${PROJECT_NAME} ${catkin_LIBRARIES} ${NETCDF_LIBRARIES})
+
 endif()
 
 ## Add folders to be run by python nosetests

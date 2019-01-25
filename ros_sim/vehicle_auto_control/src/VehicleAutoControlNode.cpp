@@ -14,7 +14,7 @@ int main(int argc, char **argv)
         exit(1);
     }
 
-    VehicleController controller(nh);
+    VehicleController controller;
 
     ros::Rate loop(loopHertz);
     while(ros::ok())

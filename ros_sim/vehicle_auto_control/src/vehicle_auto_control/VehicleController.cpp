@@ -2,8 +2,7 @@
 
 #include "vehicle_auto_control/PropulsionController.h"
 
-VehicleController::VehicleController(ros::NodeHandle& parentNH) :
-nh(parentNH)
+VehicleController::VehicleController()
 {
 	//Create the vehicle objects
 	std::vector<std::string> vehicleNames;
@@ -21,7 +20,7 @@ nh(parentNH)
 		if(info.response.propModuleName != "")
 		{
 			VehicleInfo vehicleInfo(info);
-			std::unique_ptr<PropulsionController> controller(new PropulsionController(nh, vehicleInfo));
+			std::unique_ptr<PropulsionController> controller(new PropulsionController(vehicleInfo));
 		 	propControllers.push_back(std::move(controller));
 		}
 	}

@@ -10,7 +10,8 @@
 #include "vehicle_auto_control/Velocity.h"
 #include "vehicle_auto_control/FourDOFPropulsionLogic.h"
 
-FourDOFPropulsionLogic::FourDOFPropulsionLogic() :
+FourDOFPropulsionLogic::FourDOFPropulsionLogic(ros::NodeHandle vehicleNode, VehicleInfo& vehicleInfo) :
+    PropulsionLogicInterface(vehicleNode, vehicleInfo),
     lateralError(5.0),
     verticalError(1.0),
     latestSonarDepth(1000),
@@ -21,9 +22,11 @@ FourDOFPropulsionLogic::FourDOFPropulsionLogic() :
     verticalErrorScale(15),
     targetLinearVelocity(0,0,0),
     targetAngularVelocity(0,0,0)
-{}
+{
+    velocityPub = vehicleNode.advertise<geometry_msgs::Twist>(vehicleInfo.getPropModuleName() + "/command_velocity", 1000);
+}
 
-const geometry_msgs::Twist FourDOFPropulsionLogic::goToXYTwist(tf2::Stamped<tf2::Transform>& NEDToVehicle)
+const void FourDOFPropulsionLogic::goToXY(tf2::Stamped<tf2::Transform>& NEDToVehicle)
 {
     tf2::Vector3 point(targetX, targetY, 0);
     point = NEDToVehicle * point;
@@ -42,10 +45,10 @@ const geometry_msgs::Twist FourDOFPropulsionLogic::goToXYTwist(tf2::Stamped<tf2:
     newTwist.linear = lastLinearVelocity;
     newTwist.angular = lastAngularVelocity;
 
-    return newTwist;
+    velocityPub.publish(newTwist);
 }
 
-const geometry_msgs::Twist FourDOFPropulsionLogic::goToZTwist(tf2::Stamped<tf2::Transform>& NEDToVehicle)
+const void FourDOFPropulsionLogic::goToZ(tf2::Stamped<tf2::Transform>& NEDToVehicle)
 {
     double targetVertPosition = std::min(targetZ, (latestVehicleDepth + latestSonarDepth) - minSeafloorDistance);
     tf2::Vector3 point(0, 0, targetVertPosition);
@@ -57,10 +60,10 @@ const geometry_msgs::Twist FourDOFPropulsionLogic::goToZTwist(tf2::Stamped<tf2::
     newTwist.linear = lastLinearVelocity;
     newTwist.angular = lastAngularVelocity;
 
-    return newTwist;
+    velocityPub.publish(newTwist);
 }
 
-const geometry_msgs::Twist FourDOFPropulsionLogic::stopXYTwist(void)
+const void FourDOFPropulsionLogic::stopXY(void)
 {
 	lastLinearVelocity.x = 0;
     lastLinearVelocity.y = 0;
@@ -70,10 +73,10 @@ const geometry_msgs::Twist FourDOFPropulsionLogic::stopXYTwist(void)
     newTwist.linear = lastLinearVelocity;
     newTwist.angular = lastAngularVelocity;
 
-    return newTwist;
+    velocityPub.publish(newTwist);
 }
 
-const geometry_msgs::Twist FourDOFPropulsionLogic::stopZTwist(void)
+const void FourDOFPropulsionLogic::stopZ(void)
 {
     lastLinearVelocity.z = 0;
 
@@ -81,7 +84,7 @@ const geometry_msgs::Twist FourDOFPropulsionLogic::stopZTwist(void)
     newTwist.linear = lastLinearVelocity;
     newTwist.angular = lastAngularVelocity;
 
-    return newTwist;
+    velocityPub.publish(newTwist);
 }
 
 void FourDOFPropulsionLogic::setTargetXY(double x, double y)

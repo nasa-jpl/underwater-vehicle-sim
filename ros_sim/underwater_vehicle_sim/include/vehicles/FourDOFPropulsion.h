@@ -3,7 +3,10 @@
 
 #include "ros/ros.h"
 #include "geometry_msgs/Twist.h"
+#include "std_msgs/Float64.h"
+
 #include "vehicles/PropulsionModule.h"
+#include "vehicles/LinearPiecewise.h"
 
 /**
 *Propulson module which provides the vehicle with 4 degrees of freedom
@@ -23,23 +26,38 @@ private:
 	*/
 	void commandVelocityCallback(const geometry_msgs::Twist::ConstPtr& vel);
 
+	/**
+	* Callback for the message controlling the forward thruster
+	*/
+	void forwardThrusterCallback(const std_msgs::Float64::ConstPtr& val);
+
+	/**
+	* Callback for the message controlling the lateral thruster
+	*/
+	void lateralThrusterCallback(const std_msgs::Float64::ConstPtr& val);
+
+	/**
+	* Callback for the message controlling the vertical thruster
+	*/
+	void verticalThrusterCallback(const std_msgs::Float64::ConstPtr& val);
+
+	/**
+	* Callback for the message controlling the rudder
+	*/
+	void rudderCallback(const std_msgs::Float64::ConstPtr& val);
+
+
 private:
-	/**
-	*Max linear velocity for x,y
-	*/
-	double maxLinVelocity;
 
-	/**
-	*Max linear velocity for z
-	*/
-	double maxVertVelocity;
-	
-	/**
-	*Max rotational velocity for all DOF
-	*/
-	double maxRotVelocity;
+	ros::Subscriber forwardThrusterSub;
+	ros::Subscriber lateralThrusterSub;
+	ros::Subscriber verticalThrusterSub;
+	ros::Subscriber rudderSub;
 
-	ros::Subscriber commandVelocitySub;
+	LinearPiecewise forwardThrusterFunc;
+	LinearPiecewise lateralThrusterFunc;
+	LinearPiecewise verticalThrusterFunc;
+	LinearPiecewise rudderFunc;
 };
 
 
