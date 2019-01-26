@@ -15,7 +15,10 @@ find_package(catkin REQUIRED COMPONENTS
  roscpp
  geometry_msgs
  underwater_vehicle_msgs
+ nav_msgs
  message_generation)
+
+find_package(UnderwaterAutonomy REQUIRED)
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -132,7 +135,7 @@ include_directories(
    src/${PROJECT_NAME}/FourDOFPropulsionLogic.cpp
  )
 
- target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES})
+ target_link_libraries(${PROJECT_NAME} underwater_autonomy ${catkin_LIBRARIES})
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
 ## either from message generation or dynamic reconfigure

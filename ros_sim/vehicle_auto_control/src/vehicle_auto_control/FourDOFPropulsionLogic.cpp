@@ -10,6 +10,8 @@
 #include "vehicle_auto_control/Velocity.h"
 #include "vehicle_auto_control/FourDOFPropulsionLogic.h"
 
+#include "std_msgs/Float64.h"
+
 FourDOFPropulsionLogic::FourDOFPropulsionLogic(ros::NodeHandle vehicleNode, VehicleInfo& vehicleInfo) :
     PropulsionLogicInterface(vehicleNode, vehicleInfo),
     lateralError(5.0),
@@ -21,70 +23,71 @@ FourDOFPropulsionLogic::FourDOFPropulsionLogic(ros::NodeHandle vehicleNode, Vehi
     horizontalScaleError(100),
     verticalErrorScale(15),
     targetLinearVelocity(0,0,0),
-    targetAngularVelocity(0,0,0)
+    targetAngularVelocity(0,0,0),
+    lastForwardThrust(0),
+	lastRudder(0),
+	lastVertThrust(0)
 {
-    velocityPub = vehicleNode.advertise<geometry_msgs::Twist>(vehicleInfo.getPropModuleName() + "/command_velocity", 1000);
+    forwardThrustPub = vehicleNode.advertise<std_msgs::Float64>(vehicleInfo.getPropModuleName() + "/command_forward_thruster", 1000);
+    lateralThrustPub = vehicleNode.advertise<std_msgs::Float64>(vehicleInfo.getPropModuleName() + "/command_lateral_thruster", 1000);
+    verticalThrustPub = vehicleNode.advertise<std_msgs::Float64>(vehicleInfo.getPropModuleName() + "/command_vertical_thruster", 1000);
+    rudderPub = vehicleNode.advertise<std_msgs::Float64>(vehicleInfo.getPropModuleName() + "/command_rudder", 1000);
 }
 
-const void FourDOFPropulsionLogic::goToXY(tf2::Stamped<tf2::Transform>& NEDToVehicle)
+const void FourDOFPropulsionLogic::goToXY(VehiclePose& pose)
 {
-    tf2::Vector3 point(targetX, targetY, 0);
-    point = NEDToVehicle * point;
-    point.setZ(0); //Ignore z as we are only interested in x and y
+    Eigen::Vector3d point(targetX, targetY, 0);
 
-    double angle = atan2(point.getY(), point.getX());
+    //transform point to vehicle frame
+    point = pose.getPosition() - point;
+    point = pose.getOrientation().inverse() * point;
+    point[2] = 0; //Zero of z as we do not care about it
+
+    double angle = atan2(point[1], point[0]);
     
-    if(std::isfinite(angle))
-    {
-        lastAngularVelocity.z = scaleRotationalVelocity(angle);
-    }
+    double targetAngularVelocity = std::isfinite(angle) ? scaleRotationalVelocity(angle) : 0;
+    double targetForwardVelocity = scaleHorizontalVelocity(point.norm());
 
-    lastLinearVelocity.x = scaleHorizontalVelocity(point.length());
+    double currentAngularVelocity = pose.getAngularVelocity()[2];
+    double currentForwardVelocity = (pose.getOrientation() * pose.getLinearVelocity())[0];
 
-    geometry_msgs::Twist newTwist;
-    newTwist.linear = lastLinearVelocity;
-    newTwist.angular = lastAngularVelocity;
+    //This is a temporary measure to test command before changing things to incorporate a PID controller
+    std_msgs::Float64 forwardThrust;
+    forwardThrust.data = targetForwardVelocity;
+    forwardThrustPub.publish(forwardThrust);
 
-    velocityPub.publish(newTwist);
+    std_msgs::Float64 rudder;
+    rudder.data = targetAngularVelocity;
+    rudderPub.publish(rudder);
 }
 
-const void FourDOFPropulsionLogic::goToZ(tf2::Stamped<tf2::Transform>& NEDToVehicle)
+const void FourDOFPropulsionLogic::goToZ(VehiclePose& pose)
 {
     double targetVertPosition = std::min(targetZ, (latestVehicleDepth + latestSonarDepth) - minSeafloorDistance);
-    tf2::Vector3 point(0, 0, targetVertPosition);
-    point = NEDToVehicle * point;
+    double targetVertVelocity = scaleVerticalVelocity(targetVertPosition - pose.getPosition()[2]);
 
-    lastLinearVelocity.z = scaleVerticalVelocity(point.getZ());
+    double currentVertVelocity = pose.getLinearVelocity()[2];
 
-    geometry_msgs::Twist newTwist;
-    newTwist.linear = lastLinearVelocity;
-    newTwist.angular = lastAngularVelocity;
-
-    velocityPub.publish(newTwist);
+    //This is a temporary measure to test command before changing things to incorporate a PID controller
+    std_msgs::Float64 vertThrust;
+    vertThrust.data = targetVertVelocity;
+    verticalThrustPub.publish(vertThrust);
 }
 
 const void FourDOFPropulsionLogic::stopXY(void)
 {
-	lastLinearVelocity.x = 0;
-    lastLinearVelocity.y = 0;
-    lastAngularVelocity.z = 0;
-
-    geometry_msgs::Twist newTwist;
-    newTwist.linear = lastLinearVelocity;
-    newTwist.angular = lastAngularVelocity;
-
-    velocityPub.publish(newTwist);
+    std_msgs::Float64 msg;
+    msg.data = 0;
+    forwardThrustPub.publish(msg);
+    lateralThrustPub.publish(msg);
+    rudderPub.publish(msg);
 }
 
 const void FourDOFPropulsionLogic::stopZ(void)
 {
-    lastLinearVelocity.z = 0;
-
-    geometry_msgs::Twist newTwist;
-    newTwist.linear = lastLinearVelocity;
-    newTwist.angular = lastAngularVelocity;
-
-    velocityPub.publish(newTwist);
+    std_msgs::Float64 msg;
+    msg.data = 0;
+    verticalThrustPub.publish(msg);
 }
 
 void FourDOFPropulsionLogic::setTargetXY(double x, double y)
@@ -98,20 +101,16 @@ void FourDOFPropulsionLogic::setTargetZ(double z)
     targetZ = z;
 }
 
-bool FourDOFPropulsionLogic::isAtXY(tf2::Stamped<tf2::Transform>& NEDToVehicle)
+bool FourDOFPropulsionLogic::isAtXY(VehiclePose& pose)
 {
-    tf2::Vector3 point(targetX, targetY, 0);
-    point = NEDToVehicle * point;
-    point.setZ(0); //Zero out z as we are only interested in xy
-
+    tf2::Vector3 point(targetX - pose.getPosition()[0], targetY - pose.getPosition()[1], 0);
     return abs(point.length()) <= lateralError;
 }
 
-bool FourDOFPropulsionLogic::isAtZ(tf2::Stamped<tf2::Transform>& NEDToVehicle)
+bool FourDOFPropulsionLogic::isAtZ(VehiclePose& pose)
 {
     double targetVertPosition = std::min(targetZ, (latestVehicleDepth + latestSonarDepth) - minSeafloorDistance);
-    tf2::Vector3 point(0, 0, targetVertPosition);
-    point = NEDToVehicle * point;
+    tf2::Vector3 point(0, 0, targetVertPosition - pose.getPosition()[2]);
 
     //We only care about z
     return abs(point.z()) <= verticalError;

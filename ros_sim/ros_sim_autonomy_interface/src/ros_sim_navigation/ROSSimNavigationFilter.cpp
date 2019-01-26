@@ -63,7 +63,7 @@ void ROSSimNavigationFilter::publishPose()
     nav_msgs::Odometry odoMsg;
     odoMsg.header.stamp = ros::Time::now();
     odoMsg.header.frame_id = "world_ned"; //pose frame
-    odoMsg.child_frame_id = info.getName(); //twist frame
+    odoMsg.child_frame_id = "world_ned"; //twist frame
     odoMsg.pose.pose.position.x = position[0];
     odoMsg.pose.pose.position.y = position[1];
     odoMsg.pose.pose.position.z = position[2];

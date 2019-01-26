@@ -25,8 +25,8 @@ public:
 	FourDOFPropulsionLogic(ros::NodeHandle vehicleNode, VehicleInfo& vehicleInfo);
 	~FourDOFPropulsionLogic() {}
 	
-	const void goToXY(tf2::Stamped<tf2::Transform>& NEDToVehicle) override;
-	const void goToZ(tf2::Stamped<tf2::Transform>& NEDToVehicle) override;
+	const void goToXY(VehiclePose& pose) override;
+	const void goToZ(VehiclePose& pose) override;
 	
 	const void stopXY() override;
 	const void stopZ() override;
@@ -34,8 +34,8 @@ public:
 	void setTargetXY(double x, double y) override;
 	void setTargetZ(double z) override;
 
-	bool isAtXY(tf2::Stamped<tf2::Transform>& transform) override;
-	bool isAtZ(tf2::Stamped<tf2::Transform>& transform) override;
+	bool isAtXY(VehiclePose& pose) override;
+	bool isAtZ(VehiclePose& pose) override;
 
 	void setTargetVelocity(const geometry_msgs::Twist vel) override;
 	void processNewData(const underwater_vehicle_msgs::VehicleData data) override;
@@ -68,7 +68,10 @@ private:
 	double horizontalScaleError;
 
 	//Publishers for messages to the FourDOFPropulsion module
-	ros::Publisher velocityPub;
+	ros::Publisher forwardThrustPub;
+    ros::Publisher lateralThrustPub;
+    ros::Publisher verticalThrustPub;
+    ros::Publisher rudderPub;
 
 	//Last command velocities
 	geometry_msgs::Vector3 lastLinearVelocity;
@@ -76,6 +79,10 @@ private:
 
 	tf2::Vector3 targetLinearVelocity;
 	tf2::Vector3 targetAngularVelocity;
+
+	double lastForwardThrust;
+	double lastRudder;
+	double lastVertThrust;
 };
 
 

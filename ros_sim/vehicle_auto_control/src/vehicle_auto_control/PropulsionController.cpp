@@ -8,6 +8,7 @@
 #include "underwater_vehicle_msgs/GetVehicleInfo.h"
 
 PropulsionController::PropulsionController(VehicleInfo& info) :
+	navNode("navigation/" + info.getName()), 
 	controlNode("vehicle_controller/" + info.getName()), 
 	vehicleNode("underwater_vehicle_sim/vehicles/" + info.getName()),
 	info(info),
@@ -24,7 +25,8 @@ PropulsionController::PropulsionController(VehicleInfo& info) :
         dataSub = vehicleNode.subscribe(dataModuleNames[0] + "/data", 1, &PropulsionController::getVehicleData, this);
     }
 
-    velocitySub = controlNode.subscribe("command_target_velocity", 1, &PropulsionController::getTargetVelocityCommand, this);
+    velSub = controlNode.subscribe("command_target_velocity", 1, &PropulsionController::getTargetVelocityCommand, this);
+	poseSub = navNode.subscribe("primary", 1, &PropulsionController::navigationFilterCallback, this);
 
 	goToXYServer.registerGoalCallback(boost::bind(&PropulsionController::goalGoToXYCB, this));
     goToXYServer.registerPreemptCallback(boost::bind(&PropulsionController::preemptGoToXYCB, this));
@@ -78,40 +80,29 @@ void PropulsionController::preemptGoToXYCB(void)
 }
 
 void PropulsionController::goToXYUpdate(void)
-{
-	tf2::Stamped<tf2::Transform> transform;
-	try
-	{
-		transform = getCurrentTransform();
-	}
-	catch(tf2::TransformException ex)
-	{
-		ROS_ERROR("%s",ex.what());
-		return;
-	}
-	
+{	
 	vehicle_auto_control::GoToXYRosFeedback feedback;
-	feedback.x = transform.inverse().getOrigin().getX();
-	feedback.y = transform.inverse().getOrigin().getY();
+	feedback.x = currentPose.getPosition()[0];
+	feedback.y = currentPose.getPosition()[1];
 	goToXYServer.publishFeedback(feedback);
 
-	if(logicController->isAtXY(transform))
+	if(logicController->isAtXY(currentPose))
 	{
 		logicController->stopXY();
 		vehicle_auto_control::GoToXYRosResult result;
-		result.x = transform.inverse().getOrigin().getX();
-		result.y = transform.inverse().getOrigin().getY();
+		result.x = currentPose.getPosition()[0];
+		result.y = currentPose.getPosition()[1];
 		goToXYServer.setSucceeded(result);
 		ROS_INFO("GoToXY Server goal completed: %f %f", result.x, result.y);
 	}
 	else
 	{
-		logicController->goToXY(transform);
+		logicController->goToXY(currentPose);
 
 		//Call this if Z is not active to prevent the vehicle from hitting the seafloor
 		if(!goToZServer.isActive())
 		{
-			logicController->goToZ(transform);
+			logicController->goToZ(currentPose);
 		}
 	}
 }
@@ -137,34 +128,70 @@ void PropulsionController::preemptGoToZCB(void)
 
 void PropulsionController::goToZUpdate(void)
 {
-	tf2::Stamped<tf2::Transform> transform;
-	try
-	{
-		transform = getCurrentTransform();
-	}
-	catch(tf2::TransformException ex)
-	{
-		ROS_ERROR("%s",ex.what());
-		return;
-	}
-	
 	vehicle_auto_control::GoToZRosFeedback feedback;
-    feedback.z = transform.getOrigin().getZ();
+    feedback.z = currentPose.getPosition()[2];
     goToZServer.publishFeedback(feedback);
 
-	if(logicController->isAtZ(transform))
+	if(logicController->isAtZ(currentPose))
 	{
 		logicController->stopZ();
 		vehicle_auto_control::GoToZRosResult result;
-        result.z = transform.getOrigin().getZ();
+        result.z = currentPose.getPosition()[2];
         goToZServer.setSucceeded(result); 
 		ROS_INFO("GoToZ Server goal completeted: %f", result.z);
 	}
 	else
 	{
-		logicController->goToZ(transform);
+		logicController->goToZ(currentPose);
 	}
 }
+
+void PropulsionController::navigationFilterCallback(const nav_msgs::Odometry odo)
+{	
+	Eigen::Vector3d position(odo.pose.pose.position.x,
+							 odo.pose.pose.position.y,
+							 odo.pose.pose.position.z);
+
+	Eigen::Quaterniond orientation(odo.pose.pose.orientation.w,
+								   odo.pose.pose.orientation.x,
+								   odo.pose.pose.orientation.y,
+								   odo.pose.pose.orientation.z);
+
+	Eigen::Matrix<double,6,6> poseCovariance;
+	for(unsigned int i = 0; i < 6; i++)
+	{
+		for(unsigned int j = 0; j < 6; j++)
+		{
+			poseCovariance(i, j) = odo.pose.covariance[(i * 6) + j];
+		}
+	}
+
+
+	Eigen::Vector3d linearVelocity(odo.twist.twist.linear.x,
+								   odo.twist.twist.linear.y,
+								   odo.twist.twist.linear.z);
+	Eigen::Vector3d angularVelocity(odo.twist.twist.angular.x,
+								    odo.twist.twist.angular.y,
+									odo.twist.twist.angular.z);
+
+	Eigen::Matrix<double,6,6> twistCovariance;
+	for(unsigned int i = 0; i < 6; i++)
+	{
+		for(unsigned int j = 0; j < 6; j++)
+		{
+			twistCovariance(i, j) = odo.twist.covariance[(i * 6) + j];
+		}
+	}
+
+	currentPose.setPosition(position);
+    currentPose.setOrientation(orientation);
+    currentPose.setPoseCovariance(poseCovariance);
+    
+    currentPose.setLinearVelocity(linearVelocity);
+    currentPose.setAngularVelocity(angularVelocity);
+    currentPose.setTwistCovariance(twistCovariance);
+}
+
 
 tf2::Stamped<tf2::Transform> PropulsionController::getCurrentTransform()
 {

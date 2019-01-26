@@ -36,7 +36,7 @@ int main(int argc, char **argv)
     
     if(!nhNav.getParam("filter/names", filterNames))
     {
-        ROS_FATAL("Parameter \"%s/filters\" not present in the parameter server.", nhNav.getNamespace().c_str());
+        ROS_FATAL("Parameter \"%s/filter/names\" not present in the parameter server.", nhNav.getNamespace().c_str());
         exit(1);
     }
     

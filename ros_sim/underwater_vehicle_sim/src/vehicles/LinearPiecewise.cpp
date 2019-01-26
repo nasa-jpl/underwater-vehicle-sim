@@ -31,7 +31,7 @@ LinearPiecewise::Point LinearPiecewise::getY(double x)
         //to avoid any issues with floating point error
         if(x > aboveX->x - 0.000001)
         {
-            return {x, aboveX->y}; 
+            return {x, aboveX->y};
         }
         else
         {

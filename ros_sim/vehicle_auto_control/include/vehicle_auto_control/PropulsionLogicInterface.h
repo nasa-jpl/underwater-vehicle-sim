@@ -15,6 +15,8 @@
 #include "underwater_vehicle_msgs/VehicleInfo.h"
 #include "underwater_vehicle_msgs/VehicleData.h"
 
+#include "underwater_util/VehiclePose.h"
+
 class PropulsionLogicInterface
 {
 
@@ -28,12 +30,12 @@ public:
 	/**
 	* Sends messages to make vehicle go to xy location
 	*/
-	virtual const void goToXY(tf2::Stamped<tf2::Transform>& NEDToVehicle)=0;
+	virtual const void goToXY(VehiclePose& pose)=0;
 
 	/**
 	* Sends messages to make vehicle go to z location
 	*/
-	virtual const void goToZ(tf2::Stamped<tf2::Transform>& NEDToVehicle)=0;
+	virtual const void goToZ(VehiclePose& pose)=0;
 
 	/**
 	* Sends messages to stop xy movement
@@ -58,12 +60,12 @@ public:
 	/**
 	* Determines if the vehicle has reached the xy location
 	*/
-	virtual bool isAtXY(tf2::Stamped<tf2::Transform>& transform)=0;
+	virtual bool isAtXY(VehiclePose& pose)=0;
 
 	/**
 	* Determines if the vehicle has reached the z location
 	*/
-	virtual bool isAtZ(tf2::Stamped<tf2::Transform>& transform)=0;
+	virtual bool isAtZ(VehiclePose& pose)=0;
 	
 	static std::unique_ptr<PropulsionLogicInterface> makePropulsionLogic(ros::NodeHandle vehicleNode, VehicleInfo& vehicleInfo);	
 

@@ -7,7 +7,9 @@
 #include "ros/ros.h"
 #include "actionlib/server/simple_action_server.h"
 
+#include "nav_msgs/Odometry.h"
 #include "geometry_msgs/Twist.h"
+
 #include "tf2/LinearMath/Transform.h"
 #include "tf2_ros/transform_listener.h"
 
@@ -20,6 +22,8 @@
 #include "vehicle_auto_control/GoToXYRosAction.h"
 #include "vehicle_auto_control/GoToZRosAction.h"
 
+#include "underwater_util/VehiclePose.h"
+
 class PropulsionController
 {
 
@@ -31,6 +35,8 @@ public:
 
 private:
 	tf2::Stamped<tf2::Transform> getCurrentTransform();
+
+	void navigationFilterCallback(const nav_msgs::Odometry odo);
 	void getTargetVelocityCommand(const geometry_msgs::Twist vel);
 	void getVehicleData(const underwater_vehicle_msgs::VehicleData data);
 
@@ -49,14 +55,14 @@ private:
 	void goToZUpdate(void);
 
 private:
+
+	ros::NodeHandle navNode;
 	ros::NodeHandle controlNode;
 	ros::NodeHandle vehicleNode;
+
 	VehicleInfo info;
 
 	std::unique_ptr<PropulsionLogicInterface> logicController;
-
-	//Subscribers, publishers, and listeners
-	ros::Subscriber velocitySub;
 
 	//Point Path Goal Parameters
 	actionlib::SimpleActionServer<vehicle_auto_control::GoToXYRosAction> goToXYServer;
@@ -67,6 +73,10 @@ private:
 
 	ros::Subscriber dataSub;
 
+	ros::Subscriber velSub;
+	ros::Subscriber poseSub;
+
+	VehiclePose currentPose;
 	
 };
 
