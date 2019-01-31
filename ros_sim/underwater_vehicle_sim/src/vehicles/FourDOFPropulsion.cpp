@@ -9,24 +9,24 @@
 
 #define SECONDS_IN_DAY 86400
 
-FourDOFPropulsion::FourDOFPropulsion(std::string name, VehicleState& vehicleState, ros::NodeHandle& parentNH) :
-	PropulsionModule(name, "FourDOFPropulsion", vehicleState, parentNH)
+FourDOFPropulsion::FourDOFPropulsion(VehicleState& vehicleState) :
+	PropulsionModule("FourDOFPropulsion", vehicleState)
 {
-
-    if(nh.hasParam("forward_thruster_thrust") && 
-       nh.hasParam("forward_thruster_velocity"))
+    ros::NodeHandle nhPriv("~");
+    if(nhPriv.hasParam("forward_thruster_thrust") && 
+       nhPriv.hasParam("forward_thruster_velocity"))
     {
         std::vector<double> thrust;
         std::vector<double> velocity;
-        nh.getParam("forward_thruster_thrust", thrust);
-        nh.getParam("forward_thruster_velocity", velocity);
+        nhPriv.getParam("forward_thruster_thrust", thrust);
+        nhPriv.getParam("forward_thruster_velocity", velocity);
 
         if(thrust.size() == velocity.size())
         {
 
             if(thrust.size() == 0)
             {
-                ROS_WARN("%s/forward_thruster_thrust and %s/forward_thruster_velocity are empty.  Default values will be used.", nh.getNamespace().c_str(), nh.getNamespace().c_str());
+                ROS_WARN("%s/forward_thruster_thrust and %s/forward_thruster_velocity are empty.  Default values will be used.", nhPriv.getNamespace().c_str(), nhPriv.getNamespace().c_str());
             }
             else
             {
@@ -40,27 +40,27 @@ FourDOFPropulsion::FourDOFPropulsion(std::string name, VehicleState& vehicleStat
         }
         else
         {
-            ROS_WARN("%s/forward_thruster_thrust and %s/forward_thruster_velocity have differing length.  Default values will be used.", nh.getNamespace().c_str(), nh.getNamespace().c_str());
+            ROS_WARN("%s/forward_thruster_thrust and %s/forward_thruster_velocity have differing length.  Default values will be used.", nhPriv.getNamespace().c_str(), nhPriv.getNamespace().c_str());
         }
     }
     else
     {
-        ROS_WARN("%s/forward_thruster_thrust or %s/forward_thruster_velocity does not exist.  Default values will be used.", nh.getNamespace().c_str(), nh.getNamespace().c_str());
+        ROS_WARN("%s/forward_thruster_thrust or %s/forward_thruster_velocity does not exist.  Default values will be used.", nhPriv.getNamespace().c_str(), nhPriv.getNamespace().c_str());
     }
 
-    if(nh.hasParam("lateral_thruster_thrust") && 
-       nh.hasParam("lateral_thruster_velocity"))
+    if(nhPriv.hasParam("lateral_thruster_thrust") && 
+       nhPriv.hasParam("lateral_thruster_velocity"))
     {
         std::vector<double> thrust;
         std::vector<double> velocity;
-        nh.getParam("lateral_thruster_thrust", thrust);
-        nh.getParam("lateral_thruster_velocity", velocity);
+        nhPriv.getParam("lateral_thruster_thrust", thrust);
+        nhPriv.getParam("lateral_thruster_velocity", velocity);
 
         if(thrust.size() == velocity.size())
         {
             if(thrust.size() == 0)
             {
-                ROS_WARN("%s/lateral_thruster_thrust and %s/lateral_thruster_velocity are empty.  Default values will be used.", nh.getNamespace().c_str(), nh.getNamespace().c_str());
+                ROS_WARN("%s/lateral_thruster_thrust and %s/lateral_thruster_velocity are empty.  Default values will be used.", nhPriv.getNamespace().c_str(), nhPriv.getNamespace().c_str());
             }
             else
             {
@@ -74,27 +74,27 @@ FourDOFPropulsion::FourDOFPropulsion(std::string name, VehicleState& vehicleStat
         }
         else
         {
-            ROS_WARN("%s/lateral_thruster_thrust and %s/lateral_thruster_velocity have differing length.  Default values will be used.", nh.getNamespace().c_str(), nh.getNamespace().c_str());
+            ROS_WARN("%s/lateral_thruster_thrust and %s/lateral_thruster_velocity have differing length.  Default values will be used.", nhPriv.getNamespace().c_str(), nhPriv.getNamespace().c_str());
         }
     }
     else
     {
-        ROS_WARN("%s/lateral_thruster_thrust or %s/lateral_thruster_velocity does not exist.  Default values will be used.", nh.getNamespace().c_str(), nh.getNamespace().c_str());
+        ROS_WARN("%s/lateral_thruster_thrust or %s/lateral_thruster_velocity does not exist.  Default values will be used.", nhPriv.getNamespace().c_str(), nhPriv.getNamespace().c_str());
     }
 
-    if(nh.hasParam("vertical_thruster_thrust") && 
-       nh.hasParam("vertical_thruster_velocity"))
+    if(nhPriv.hasParam("vertical_thruster_thrust") && 
+       nhPriv.hasParam("vertical_thruster_velocity"))
     {
         std::vector<double> thrust;
         std::vector<double> velocity;
-        nh.getParam("vertical_thruster_thrust", thrust);
-        nh.getParam("vertical_thruster_velocity", velocity);
+        nhPriv.getParam("vertical_thruster_thrust", thrust);
+        nhPriv.getParam("vertical_thruster_velocity", velocity);
 
         if(thrust.size() == velocity.size())
         {
             if(thrust.size() == 0)
             {
-                ROS_WARN("%s/vertical_thruster_thrust and %s/vertical_thruster_velocity are empty.  Default values will be used.", nh.getNamespace().c_str(), nh.getNamespace().c_str());
+                ROS_WARN("%s/vertical_thruster_thrust and %s/vertical_thruster_velocity are empty.  Default values will be used.", nhPriv.getNamespace().c_str(), nhPriv.getNamespace().c_str());
             }
             else
             {
@@ -108,27 +108,27 @@ FourDOFPropulsion::FourDOFPropulsion(std::string name, VehicleState& vehicleStat
         }
         else
         {
-            ROS_WARN("%s/vertical_thruster_thrust and %s/vertical_thruster_velocity have differing length.  Default values will be used.", nh.getNamespace().c_str(), nh.getNamespace().c_str());
+            ROS_WARN("%s/vertical_thruster_thrust and %s/vertical_thruster_velocity have differing length.  Default values will be used.", nhPriv.getNamespace().c_str(), nhPriv.getNamespace().c_str());
         }
     }
     else
     {
-        ROS_WARN("%s/vertical_thruster_thrust or %s/vertical_thruster_velocity does not exist.  Default values will be used.", nh.getNamespace().c_str(), nh.getNamespace().c_str());
+        ROS_WARN("%s/vertical_thruster_thrust or %s/vertical_thruster_velocity does not exist.  Default values will be used.", nhPriv.getNamespace().c_str(), nhPriv.getNamespace().c_str());
     }
 
-    if(nh.hasParam("rudder_angle") && 
-       nh.hasParam("rudder_velocity"))
+    if(nhPriv.hasParam("rudder_angle") && 
+       nhPriv.hasParam("rudder_velocity"))
     {
         std::vector<double> angle;
         std::vector<double> velocity;
-        nh.getParam("rudder_angle", angle);
-        nh.getParam("rudder_velocity", velocity);
+        nhPriv.getParam("rudder_angle", angle);
+        nhPriv.getParam("rudder_velocity", velocity);
 
         if(angle.size() == velocity.size())
         {
             if(angle.size() == 0)
             {
-                ROS_WARN("%s/rudder_angle and %s/rudder_velocity are empty.  Default values will be used.", nh.getNamespace().c_str(), nh.getNamespace().c_str());
+                ROS_WARN("%s/rudder_angle and %s/rudder_velocity are empty.  Default values will be used.", nhPriv.getNamespace().c_str(), nhPriv.getNamespace().c_str());
             }
             else
             {
@@ -142,12 +142,12 @@ FourDOFPropulsion::FourDOFPropulsion(std::string name, VehicleState& vehicleStat
         }
         else
         {
-            ROS_WARN("%s/rudder_angle and %s/rudder_velocity have differing length.  Default values will be used.", nh.getNamespace().c_str(), nh.getNamespace().c_str());
+            ROS_WARN("%s/rudder_angle and %s/rudder_velocity have differing length.  Default values will be used.", nhPriv.getNamespace().c_str(), nhPriv.getNamespace().c_str());
         }
     }
     else
     {
-        ROS_WARN("%s/rudder_angle or %s/rudder_velocity does not exist.  Default values will be used.", nh.getNamespace().c_str(), nh.getNamespace().c_str());
+        ROS_WARN("%s/rudder_angle or %s/rudder_velocity does not exist.  Default values will be used.", nhPriv.getNamespace().c_str(), nhPriv.getNamespace().c_str());
     }
 
     forwardThrusterSub = nh.subscribe("command_forward_thruster", 1, &FourDOFPropulsion::forwardThrusterCallback, this);

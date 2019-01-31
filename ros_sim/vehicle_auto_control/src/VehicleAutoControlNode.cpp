@@ -6,11 +6,12 @@ int main(int argc, char **argv)
 {
     ros::init(argc, argv, "vehicle_auto_control");
     ros::NodeHandle nh;
+    ros::NodeHandle nhPriv("~");
 
     float loopHertz;
-    if(!nh.getParam("vehicle_controller/hertz", loopHertz))
+    if(!nhPriv.getParam("hertz", loopHertz))
     {
-        ROS_FATAL("Parameter \"vehicle_controller/hertz\" not present in the parameter server.");
+        ROS_FATAL("Parameter \"%s/hertz\" not present in the parameter server.", nhPriv.getNamespace().c_str());
         exit(1);
     }
 

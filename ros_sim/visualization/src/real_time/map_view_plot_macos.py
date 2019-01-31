@@ -51,5 +51,5 @@ def listener(dataStream):
     rospy.spin()
 
 if __name__ == '__main__':
-    listener("/underwater_vehicle_sim/vehicles/v1/data_broadcaster/data")
+    listener("/v1/data_broadcaster/data")
 

@@ -18,7 +18,7 @@ public:
     
     ~ROSSimNavigationFilter() {}
 
-    static ROSSimNavigationFilter createNavigationFilter(ros::NodeHandle& nhRoot, ros::NodeHandle& nhNav, std::string& filterName, VehicleInfo info);
+    static ROSSimNavigationFilter createNavigationFilter(std::string& filterName, VehicleInfo info);
 
     void update();
     void publishPose();

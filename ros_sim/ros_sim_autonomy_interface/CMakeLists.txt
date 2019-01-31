@@ -136,8 +136,6 @@ include_directories(
     src/ros_sim_plan_server/ROSSimVentActionFactory.cpp
     src/ros_sim_plan_server/ROSSimVehicleInterface.cpp
     src/ros_sim_plan_server/action_executors/PointPathSimActionExecutor.cpp
-    src/ros_sim_plan_server/action_executors/ChargeSimActionExecutor.cpp
-    src/ros_sim_plan_server/action_executors/DataTransferSimActionExecutor.cpp
     src/ros_sim_plan_server/controllers/PointPathController.cpp
   )
 

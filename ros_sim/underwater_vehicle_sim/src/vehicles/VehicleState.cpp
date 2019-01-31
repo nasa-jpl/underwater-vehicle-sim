@@ -7,7 +7,7 @@
 #include <tf2_ros/transform_listener.h>
 #include "tf2_geometry_msgs/tf2_geometry_msgs.h"
 
-VehicleState::VehicleState(ros::NodeHandle& nh) :
+VehicleState::VehicleState() :
 	angularVelocity(0,0,0),
 	linearVelocity(0,0,0),
 	powerCapacity(0),
@@ -116,7 +116,8 @@ tf2::Vector3 VehicleState::getPositionNED() const
 
 tf2::Vector3 VehicleState::getPositionENU() const
 {
-	return NEDtoENU(position);
+	tf2::Vector3 enuPos = NEDtoENU(position);
+	return enuPos;
 }
 
 tf2::Vector3 VehicleState::getLinearVelocity() const

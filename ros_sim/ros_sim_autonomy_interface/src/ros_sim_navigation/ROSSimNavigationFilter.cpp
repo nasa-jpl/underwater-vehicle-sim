@@ -20,18 +20,19 @@ ROSSimNavigationFilter::ROSSimNavigationFilter(ROSSimNavigationFilter&& other) :
     listener(buffer)
 {}
 
-ROSSimNavigationFilter ROSSimNavigationFilter::createNavigationFilter(ros::NodeHandle& nhRoot, ros::NodeHandle& nhNav, std::string& filterName, VehicleInfo info)
+ROSSimNavigationFilter ROSSimNavigationFilter::createNavigationFilter(std::string& filterName, VehicleInfo info)
 {
-    ros::NodeHandle filterNH(nhNav, "filter/" + filterName);
+    ros::NodeHandle filterNhPriv("~/filter/" + filterName);
+    ros::NodeHandle filterNh("nav_filters");
 
     std::string filterType;
-    if(!filterNH.getParam("type", filterType))
+    if(!filterNhPriv.getParam("type", filterType))
     {
-        ROS_INFO("Parameter \"%s/type\" not present in the parameter server.", filterNH.getNamespace().c_str());
+        ROS_INFO("Parameter \"%s/type\" not present in the parameter server.", filterNhPriv.getNamespace().c_str());
         exit(1);
     }
 
-    ros::Publisher posePublisher = nhNav.advertise<nav_msgs::Odometry>(info.getName() + "/" + filterName, 1);
+    ros::Publisher posePublisher = filterNh.advertise<nav_msgs::Odometry>(filterName, 1);
     std::unique_ptr<NavigationFilter> filter;
 
     if(filterType == "TrueNavigation")
@@ -103,11 +104,13 @@ void ROSSimNavigationFilter::publishPose()
 void ROSSimNavigationFilter::sendPoseToFilter()
 {
     geometry_msgs::TransformStamped transformMsg;
+    ros::NodeHandle nh;
+    std::string vehicleName = nh.getNamespace().substr(1);
 	try
     {
-        if(buffer.canTransform("world_ned", info.getName(), ros::Time(0), ros::Duration(1.0)))
+        if(buffer.canTransform("world_ned", vehicleName, ros::Time(0), ros::Duration(1.0)))
         {
-            transformMsg = buffer.lookupTransform("world_ned", info.getName(), ros::Time(0));
+            transformMsg = buffer.lookupTransform("world_ned", vehicleName, ros::Time(0));
             std::vector<double> data;
             data.push_back(transformMsg.transform.translation.x); //x position
             data.push_back(transformMsg.transform.translation.y); //y position

@@ -8,25 +8,22 @@
 #include "underwater_vehicle_msgs/GetVehicleInfo.h"
 
 PropulsionController::PropulsionController(VehicleInfo& info) :
-	navNode("navigation/" + info.getName()), 
-	controlNode("vehicle_controller/" + info.getName()), 
-	vehicleNode("underwater_vehicle_sim/vehicles/" + info.getName()),
+	nh(),
 	info(info),
 	listener(buffer),
-	logicController(PropulsionLogicInterface::makePropulsionLogic(vehicleNode, info)),
-	goToXYServer(controlNode, "go_to_xy", false),
-	goToZServer(controlNode, "go_to_z", false)
+	logicController(PropulsionLogicInterface::makePropulsionLogic(info)),
+	goToXYServer(nh, "go_to_xy", false),
+	goToZServer(nh, "go_to_z", false)
 {
 	std::vector<std::string> dataModuleNames = info.getModuleNamesOfType("DataBroadcaster");
-	
 	if(dataModuleNames.size() > 0)
     {
 		//default to using first module of type DataBroadcaster if more than 1 exists
-        dataSub = vehicleNode.subscribe(dataModuleNames[0] + "/data", 1, &PropulsionController::getVehicleData, this);
+        dataSub = nh.subscribe(dataModuleNames[0] + "/data", 1, &PropulsionController::getVehicleData, this);
     }
 
-    velSub = controlNode.subscribe("command_target_velocity", 1, &PropulsionController::getTargetVelocityCommand, this);
-	poseSub = navNode.subscribe("primary", 1, &PropulsionController::navigationFilterCallback, this);
+    velSub = nh.subscribe("command_target_velocity", 1, &PropulsionController::getTargetVelocityCommand, this);
+	poseSub = nh.subscribe("primary_navigation", 1, &PropulsionController::navigationFilterCallback, this);
 
 	goToXYServer.registerGoalCallback(boost::bind(&PropulsionController::goalGoToXYCB, this));
     goToXYServer.registerPreemptCallback(boost::bind(&PropulsionController::preemptGoToXYCB, this));
@@ -89,6 +86,11 @@ void PropulsionController::goToXYUpdate(void)
 	if(logicController->isAtXY(currentPose))
 	{
 		logicController->stopXY();
+		if(!goToZServer.isActive())
+		{
+			logicController->stopZ();
+		}
+
 		vehicle_auto_control::GoToXYRosResult result;
 		result.x = currentPose.getPosition()[0];
 		result.y = currentPose.getPosition()[1];

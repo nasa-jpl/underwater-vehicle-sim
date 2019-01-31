@@ -5,22 +5,18 @@
 #include "vehicles/GeneralModule.h"
 
 #include "vehicles/DataBroadcasterModule.h"
-#include "vehicles/PowerCapacityModule.h"
-#include "vehicles/DataCapacityModule.h"
 #include "vehicles/IMUModule.h"
 
-GeneralModule::GeneralModule(std::string name, std::string type, 
-                ros::NodeHandle parentNH, std::string vehicleName) :
-	nh(ros::NodeHandle(parentNH, name)),
+GeneralModule::GeneralModule(std::string name, std::string type) :
+	nh(name),
 	name(name),
-	type(type),
-    vehicleName(vehicleName)
-
+	type(type)
 {
-	if(nh.hasParam("hertz"))
+	ros::NodeHandle nhPriv("~/" + name);
+	if(nhPriv.hasParam("hertz"))
 	{
 		useHertz = true;
-		nh.getParam("hertz", hertz);
+		nhPriv.getParam("hertz", hertz);
 	}
 	else
 	{
@@ -29,44 +25,35 @@ GeneralModule::GeneralModule(std::string name, std::string type,
 	}
 }
 
-std::unique_ptr<GeneralModule> GeneralModule::makeGeneralModule(std::string moduleName, 
-                            ros::NodeHandle& parentNH, std::string vehicleName)
+std::unique_ptr<GeneralModule> GeneralModule::makeGeneralModule(std::string moduleName)
 {
-	std::string moduleType;
-	parentNH.getParam(moduleName + "/type", moduleType);
+	ros::NodeHandle nh(moduleName);
+	ros::NodeHandle nhPriv("~/" + moduleName);
+	std::string moduleType;	
+	nhPriv.getParam("type", moduleType);
 
 	if(moduleType == "DataBroadcaster")
 	{
-		std::unique_ptr<GeneralModule> returnPtr(new DataBroadcasterModule(moduleName, parentNH, vehicleName));
-		return returnPtr;
-	}
-	if(moduleType == "PowerCapacity")
-	{
-		std::unique_ptr<GeneralModule> returnPtr(new PowerCapacityModule(moduleName, parentNH, vehicleName));
-		return returnPtr;
-	}
-	if(moduleType == "DataCapacity")
-	{
-		std::unique_ptr<GeneralModule> returnPtr(new DataCapacityModule(moduleName, parentNH, vehicleName));
+		std::unique_ptr<GeneralModule> returnPtr(new DataBroadcasterModule(moduleName));
 		return returnPtr;
 	}
 	if(moduleType == "IMU")
 	{
-		std::unique_ptr<GeneralModule> returnPtr(new IMUModule(moduleName, parentNH, vehicleName));
+		std::unique_ptr<GeneralModule> returnPtr(new IMUModule(moduleName));
 		return returnPtr;
 	}
 
 	return NULL;
 }
 
-void GeneralModule::updateAtRate(std::string name, const ros::Time& lastTime, VehicleState& vehicleState, ModelData& data)
+void GeneralModule::updateAtRate(const ros::Time& lastTime, VehicleState& vehicleState, ModelData& data)
 {
 	ros::Duration rate(1 / hertz);
 
 	if(!useHertz || ros::Time::now() - lastUpdate >= rate)
 	{
 		lastUpdate = ros::Time::now();
-		update(name, lastTime, vehicleState, data);
+		update(lastTime, vehicleState, data);
 	}
 }
 

@@ -13,10 +13,10 @@ class IMUModule : public GeneralModule
 {
 
 public:
-	IMUModule(std::string name, ros::NodeHandle& parentNH, std::string vehicleName);
+	IMUModule(std::string name);
 	~IMUModule() {}
 
-	void update(std::string name, const ros::Time& lastTime, VehicleState& vehicleState, ModelData& modelData);
+	void update(const ros::Time& lastTime, VehicleState& vehicleState, ModelData& modelData);
 
 private:
 	

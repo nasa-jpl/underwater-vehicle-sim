@@ -133,8 +133,6 @@ catkin_package(
    src/vehicles/PropulsionModule.cpp
    src/vehicles/FourDOFPropulsion.cpp
    src/vehicles/DataBroadcasterModule.cpp
-   src/vehicles/PowerCapacityModule.cpp
-   src/vehicles/DataCapacityModule.cpp
    src/vehicles/IMUModule.cpp
    src/vehicles/VehicleState.cpp
    src/vehicles/LinearPiecewise.cpp
@@ -151,7 +149,7 @@ catkin_package(
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
  add_executable(clock_server_node src/clock_server/ClockServerNode.cpp)
- add_executable(${PROJECT_NAME}_node src/underwater_vehicle_sim/UnderwaterVehicleSimNode.cpp src/underwater_vehicle_sim/UnderwaterVehicleSim.cpp)
+ add_executable(${PROJECT_NAME}_node src/UnderwaterVehicleSimNode.cpp)
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
 ## target back to the shorter version for ease of user use

@@ -5,6 +5,7 @@
 #include "geometry_msgs/PointStamped.h"
 #include "geometry_msgs/Twist.h"
 
+#include "std_msgs/Float64.h"
 #include "tf2/LinearMath/Transform.h"
 #include "tf2/LinearMath/Vector3.h"
 #include "tf2_ros/transform_listener.h"
@@ -22,7 +23,7 @@ class FourDOFPropulsionLogic : public PropulsionLogicInterface
 {
 
 public:
-	FourDOFPropulsionLogic(ros::NodeHandle vehicleNode, VehicleInfo& vehicleInfo);
+	FourDOFPropulsionLogic(VehicleInfo& vehicleInfo);
 	~FourDOFPropulsionLogic() {}
 	
 	const void goToXY(VehiclePose& pose) override;
@@ -42,9 +43,13 @@ public:
 
 private:
 
+	void forwardThrusterControlEffortCB(std_msgs::Float64 data);
+	void lateralThrusterControlEffortCB(std_msgs::Float64 data);
+	void verticalThrusterControlEffortCB(std_msgs::Float64 data);
+	void rudderControlEffortCB(std_msgs::Float64 data);
+
 	double scaleHorizontalVelocity(double distance);
 	double scaleVerticalVelocity(double zDifference);
-	double scaleRotationalVelocity(double angle);
 
 private:
 	double targetX;
@@ -67,12 +72,7 @@ private:
 	double verticalErrorScale;
 	double horizontalScaleError;
 
-	//Publishers for messages to the FourDOFPropulsion module
-	ros::Publisher forwardThrustPub;
-    ros::Publisher lateralThrustPub;
-    ros::Publisher verticalThrustPub;
-    ros::Publisher rudderPub;
-
+	
 	//Last command velocities
 	geometry_msgs::Vector3 lastLinearVelocity;
     geometry_msgs::Vector3 lastAngularVelocity;
@@ -83,6 +83,37 @@ private:
 	double lastForwardThrust;
 	double lastRudder;
 	double lastVertThrust;
+
+	ros::Publisher forwardThrustPub;
+	ros::Publisher lateralThrustPub;
+	ros::Publisher verticalThrustPub;
+	ros::Publisher rudderPub;
+
+	bool xyEnabled;
+	bool zEnabled;
+	//Forward Thruster Pub/Sub
+	ros::Publisher forwardThrusterState;
+	ros::Publisher forwardThrusterSetpoint;
+	ros::Publisher forwardThrusterEnable;
+	ros::Subscriber forwardThrusterControlEffort;
+
+	//Lateral Thruster Pub/Sub
+	ros::Publisher lateralThrusterState;
+	ros::Publisher lateralThrusterSetpoint;
+	ros::Publisher lateralThrusterEnable;
+	ros::Subscriber lateralThrusterControlEffort;
+
+	//Vertical Thruster Pub/Sub
+	ros::Publisher verticalThrusterState;
+	ros::Publisher verticalThrusterSetpoint;
+	ros::Publisher verticalThrusterEnable;
+	ros::Subscriber verticalThrusterControlEffort;
+
+	//Rudder Pub/Sub
+	ros::Publisher rudderState;
+	ros::Publisher rudderSetpoint;
+	ros::Publisher rudderEnable;
+	ros::Subscriber rudderControlEffort;
 };
 
 

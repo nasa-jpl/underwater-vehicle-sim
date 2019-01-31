@@ -7,31 +7,29 @@
 
 #include "vehicles/DataBroadcasterModule.h"
 
-#include "vehicles/PowerCapacityModule.h"
-#include "vehicles/DataCapacityModule.h"
 #include "vehicles/FourDOFPropulsion.h"
 
 #include "underwater_vehicle_msgs/VehicleData.h"
 
 #define SECONDS_IN_DAY 86400
 
-Vehicle::Vehicle(std::string name, ros::NodeHandle& parentNH, bool evectByCurrents) :
-	name(name),
-	nh(ros::NodeHandle(parentNH, "underwater_vehicle_sim/vehicles/" + name)),
-	vehicleState(parentNH),
-	modelClient(parentNH.serviceClient<model_server::GetModelData>("/get_model_data")),
-	evectByCurrents(evectByCurrents)
+Vehicle::Vehicle()
 {
+	ros::NodeHandle nhPriv("~");
+	nhPriv.getParam("evect_by_currents", evectByCurrents);
+
+	modelClient = nh.serviceClient<model_server::GetModelData>("/get_model_data");
+
 	initalizeVehicleFrame();
   	
-	initalizePropulsionModule();
+	propulsionModule = PropulsionModule::makePropulsionModule(vehicleState);
+
 	initalizeGeneralModules();
 }
 
 Vehicle::Vehicle(Vehicle&& other)
 	: propulsionModule(std::move(other.propulsionModule)), 
       modules(std::move(other.modules)),
-      name(std::move(other.name)),
       nh(std::move(other.nh)),
       lastTransformTime(std::move(other.lastTransformTime)),
 	  vehicleState(std::move(other.vehicleState)),
@@ -40,12 +38,13 @@ Vehicle::Vehicle(Vehicle&& other)
 
 void Vehicle::initalizeVehicleFrame()
 {
+	ros::NodeHandle nhPriv("~");
 	//Get the parameters for the starting location of the vehicle
-	nh.getParam("start_x", startX);
-	nh.getParam("start_y", startY);
-	nh.getParam("start_z", startZ);
-	nh.getParam("start_power", powerCapacity);
-	nh.getParam("start_dataCapacity", dataCapacity);
+	nhPriv.getParam("start_x", startX);
+	nhPriv.getParam("start_y", startY);
+	nhPriv.getParam("start_z", startZ);
+	nhPriv.getParam("start_power", powerCapacity);
+	nhPriv.getParam("start_dataCapacity", dataCapacity);
 
 	//broadcast the inital frame for this vehicle
 	tf2::Quaternion initialRotation;
@@ -62,26 +61,15 @@ void Vehicle::initalizeVehicleFrame()
 	broadcastTransform();
 }
 
-void Vehicle::initalizePropulsionModule()
-{
-	std::string propModuleName;
-
-	//get the name of the propulsion module and create the needed 
-	if(nh.hasParam("propModuleName"))
-	{
-		nh.getParam("propModuleName", propModuleName);
-		propulsionModule = PropulsionModule::makePropulsionModule(propModuleName, vehicleState, nh);
-	}
-}
-
 void Vehicle::initalizeGeneralModules()
 {
+	ros::NodeHandle nhPriv("~");
 	std::vector<std::string> moduleNames;
-	nh.getParam("moduleNames", moduleNames);
+	nhPriv.getParam("moduleNames", moduleNames);
 
 	for(std::string& name : moduleNames)
 	{
-		modules.push_back(GeneralModule::makeGeneralModule(name, nh, getName()));
+		modules.push_back(GeneralModule::makeGeneralModule(name));
 	}
 }
 
@@ -99,7 +87,7 @@ void Vehicle::update()
 
 	//Update time and data
 	lastTransformTime = currentTime;
-	dataAtLastTransform = getModelData();
+	//dataAtLastTransform = getModelData();
 
 	//Prevent the vehicle from clipping through the seafloor
 	if(vehicleState.seafloorCollision(dataAtLastTransform))
@@ -107,42 +95,40 @@ void Vehicle::update()
 		dataAtLastTransform = getModelData();
 	}
 
-	//Broadcast the latest transform
-	broadcastTransform();
-
 	//update all modules
 	for(std::unique_ptr<GeneralModule>& module : modules)
 	{
-		module->updateAtRate(name, currentTime, vehicleState, dataAtLastTransform);
+		module->updateAtRate(currentTime, vehicleState, dataAtLastTransform);
 	}
+
+	//Broadcast the latest transform
+	broadcastTransform();
+
 }
 
 ModelData Vehicle::getModelData()
 {
 	ModelData data;
 
-	if(modelClient.exists())
+	model_server::GetModelData srv;
+
+	tf2::Vector3 enuPosition = vehicleState.getPositionENU();
+	srv.request.x = enuPosition.getX();
+	srv.request.y = enuPosition.getY();
+	srv.request.h = enuPosition.getZ();
+	srv.request.time = lastTransformTime.toSec() / SECONDS_IN_DAY; //convert from seconds to days
+
+
+	bool success = modelClient.call(srv);
+
+	if(success)
 	{
-		model_server::GetModelData srv;
-
-		tf2::Vector3 enuPosition = vehicleState.getPositionENU();
-		srv.request.x = enuPosition.getX();
-		srv.request.y = enuPosition.getY();
-		srv.request.h = enuPosition.getZ();
-		srv.request.time = lastTransformTime.toSec() / SECONDS_IN_DAY; //convert from seconds to days
-
-		bool success = modelClient.call(srv);
-
-		//depth is positive so invert depth
-		if(success)
-		{
-			data.u = srv.response.u;
-			data.v = srv.response.v;
-			data.temp = srv.response.temp;
-			data.salt = srv.response.salt;
-			data.dye = srv.response.dye;
-			data.depth = srv.response.depth;
-		}
+		data.u = srv.response.u;
+		data.v = srv.response.v;
+		data.temp = srv.response.temp;
+		data.salt = srv.response.salt;
+		data.dye = srv.response.dye;
+		data.depth = srv.response.depth;
 	}
 	else
 	{
@@ -161,7 +147,6 @@ void Vehicle::getInfo(underwater_vehicle_msgs::GetVehicleInfo::Response &res)
 {
     if(propulsionModule)
     {
-        res.propModuleName = propulsionModule->getName();
         res.propModuleType = propulsionModule->getType();
     }
     else
@@ -188,7 +173,7 @@ void Vehicle::broadcastTransform()
 	geometry_msgs::TransformStamped transformStamped;
 	transformStamped.header.stamp = lastTransformTime;
   	transformStamped.header.frame_id = "world_ned";
-  	transformStamped.child_frame_id = name;
+  	transformStamped.child_frame_id = nh.getNamespace();
 
 	tf2::Vector3 position = vehicleState.getPositionNED();
 	transformStamped.transform.translation.x = position.x();
@@ -202,9 +187,4 @@ void Vehicle::broadcastTransform()
 	transformStamped.transform.rotation.w = rotation.w();
 	
   	br.sendTransform(transformStamped);
-}
-
-std::string Vehicle::getName()
-{
-	return name;
 }

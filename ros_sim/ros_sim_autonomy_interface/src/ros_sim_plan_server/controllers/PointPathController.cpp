@@ -2,19 +2,17 @@
 
 #include "data_server/GetPlumeData.h"
 
-PointPathController::PointPathController(ros::NodeHandle nh, 
-                                         VehicleInfo vehicleInfo) :
-    nh(nh),
-    goToXYClient(nh, "vehicle_controller/" + vehicleInfo.getName() + "/go_to_xy", false),
-    goToZClient(nh, "vehicle_controller/" + vehicleInfo.getName() + "/go_to_z", false),
-    pointPathServer(nh, "planner/" + vehicleInfo.getName() + "/point_path", false),
+PointPathController::PointPathController(VehicleInfo vehicleInfo) :
+    goToXYClient("go_to_xy", false),
+    goToZClient("go_to_z", false),
+    pointPathServer("point_path", false),
     vehicleInfo(vehicleInfo),
     newGoalAccepted(false)
 {
     std::vector<std::string> data = vehicleInfo.getModuleNamesOfType("DataBroadcaster");
     if(data.size() > 0)
     {
-        dataSub = nh.subscribe("underwater_vehicle_sim/vehicles/" + vehicleInfo.getName() + "/" + data[0] + "/data", 1, &PointPathController::getVehicleData, this);
+        dataSub = nh.subscribe(data[0] + "/data", 1, &PointPathController::getVehicleData, this);
     }
 
     //Init action server

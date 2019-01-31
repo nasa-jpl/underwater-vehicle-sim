@@ -16,7 +16,7 @@ public:
 	* @param vehicleState The current state of the vehicle. This is a reference so the propulsion module can modify it as needed.
 	* @param parentNH NodeHandle for the vehicle
 	*/
-	PropulsionModule(std::string name, std::string type, VehicleState& vehicleState, ros::NodeHandle& parentNH);
+	PropulsionModule(std::string type, VehicleState& vehicleState);
 	virtual ~PropulsionModule() {}
 
 	/**
@@ -25,14 +25,13 @@ public:
 	* @param parentNH The parent node handle for this ros node
 	* @return A pointer to the newly created module
 	*/
-	static std::unique_ptr<PropulsionModule> makePropulsionModule(std::string moduleName, VehicleState& vehicleState, ros::NodeHandle& parentNH);
+	static std::unique_ptr<PropulsionModule> makePropulsionModule(VehicleState& vehicleState);
 
-	std::string& getName();
 	std::string& getType();
 protected:
-	std::string name;
-	std::string type;
+
 	ros::NodeHandle nh;
+	std::string type;
 	VehicleState& vehicleState;
 
 	ros::Time lastUpdate;

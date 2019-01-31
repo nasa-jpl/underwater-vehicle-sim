@@ -19,8 +19,7 @@
 class PointPathController
 {
 public:
-    PointPathController(ros::NodeHandle nh, 
-                        VehicleInfo vehicleInfo);
+    PointPathController(VehicleInfo vehicleInfo);
     
     ~PointPathController() {}
 
@@ -49,11 +48,11 @@ private:
     void sendZGoal(const double z);
 
 private:
+    ros::NodeHandle nh;
+    
     actionlib::SimpleActionServer<ros_sim_autonomy_interface::PointPathRosAction> pointPathServer;
     actionlib::SimpleActionClient<vehicle_auto_control::GoToXYRosAction> goToXYClient;
     actionlib::SimpleActionClient<vehicle_auto_control::GoToZRosAction> goToZClient;
-
-    ros::NodeHandle nh;
 
     VehicleInfo vehicleInfo;
 

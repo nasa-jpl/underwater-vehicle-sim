@@ -9,10 +9,12 @@
 #include "tf2/LinearMath/Vector3.h"
 #include "tf2/LinearMath/Transform.h"
 
+#include "nav_msgs/Odometry.h"
+
 #include "underwater_planner/ActionExecutor.h"
 #include "vent_planner/actions/PointPathAction.h"
 
-#include "underwater_vehicle_msgs/GetVehicleInfo.h"
+#include "underwater_vehicle_msgs/VehicleInfo.h"
 
 #include "actionlib/client/simple_action_client.h"
 #include "ros_sim_autonomy_interface/PointPathRosAction.h"
@@ -21,7 +23,7 @@
 class PointPathSimActionExecutor : public ActionExecutor<PointPathAction>
 {
 public:
-    PointPathSimActionExecutor(ros::NodeHandle& nh, std::string vehicleName);
+    PointPathSimActionExecutor(VehicleInfo& info);
     PointPathSimActionExecutor(const PointPathSimActionExecutor& other);
     ~PointPathSimActionExecutor() {}
 
@@ -47,7 +49,7 @@ public:
 
 
 private:
-    bool hasPublisher(std::string topic);
+    void navigationFilterCallback(const nav_msgs::Odometry odo);
 
     /**
     * Callback that occurs when the action is finished
@@ -71,17 +73,16 @@ private:
                         const ros_sim_autonomy_interface::PointPathRosFeedbackConstPtr& feedback);
 
 private:
-    ros::NodeHandle& nh;
-    ros::ServiceClient infoClient;
-    underwater_vehicle_msgs::GetVehicleInfo::Response vehicleInfo;
-    std::unordered_map<std::string, ros::Publisher> publishers;
+    VehicleInfo vehicleInfo;
+
+    ros::Publisher velPub;
+    ros::Subscriber poseSub;
 
     bool replanGoingUp;
     bool replanNextUpdate;
     ros::Time lastReplan;
     double distanceSinceReplan;
     tf2::Vector3 lastLocation;
-    std::string vehicleName;
 
     actionlib::SimpleActionClient<ros_sim_autonomy_interface::PointPathRosAction> pointPathClient;
     ros_sim_autonomy_interface::PointPathRosGoal pointPathGoal;
@@ -93,6 +94,8 @@ private:
     * Offset to apply to the currentPoint variable in the ActionLib feedback
     */
     unsigned int currentPointOffset;
+
+    VehiclePose currentPose;
 };
 
 #endif

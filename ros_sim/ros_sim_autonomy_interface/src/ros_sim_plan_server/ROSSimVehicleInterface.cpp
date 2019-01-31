@@ -8,22 +8,23 @@
 
 #include "std_msgs/String.h"
 
-ROSSimVehicleInterface::ROSSimVehicleInterface(ros::NodeHandle& nh, VehicleInfo info) :
-    nh(nh),
+ROSSimVehicleInterface::ROSSimVehicleInterface(VehicleInfo info) :
     info(info),
     listener(buffer)
 {
+    ros::NodeHandle nh;
     std::vector<std::string> data = info.getModuleNamesOfType("DataBroadcaster");
     if(data.size() > 0)
     {
-        dataSub = nh.subscribe("underwater_vehicle_sim/vehicles/" + info.getName() + "/" + data[0] + "/data", 1, &ROSSimVehicleInterface::receiveData, this);
+        dataSub = nh.subscribe(data[0] + "/data", 1, &ROSSimVehicleInterface::receiveData, this);
     }
     else
     {
         ROS_FATAL("No DataBroadcaster module in vehicle");
     }
 
-    goalPub = nh.advertise<std_msgs::String>("planner/" + info.getName() + "/goal", 1, true);
+    poseSub = nh.subscribe("primary_navigation", 1, &ROSSimVehicleInterface::navigationFilterCallback, this);
+    goalPub = nh.advertise<std_msgs::String>("goal", 1, true);
 }
 
 void ROSSimVehicleInterface::sendGoalStatus(GoalStatus status)
@@ -95,32 +96,51 @@ void ROSSimVehicleInterface::receiveData(const underwater_vehicle_msgs::VehicleD
 
 VehiclePose ROSSimVehicleInterface::getPosition()
 {
-    VehiclePose pose(Eigen::Vector3d(std::numeric_limits<double>::quiet_NaN(),
-                                     std::numeric_limits<double>::quiet_NaN(),
-                                     std::numeric_limits<double>::quiet_NaN()));
+    return currentPose;
+}
 
-    geometry_msgs::TransformStamped transformMsg;
-    tf2::Stamped<tf2::Transform> transform;
-	try
-    {
-        if(buffer.canTransform(info.getName(), "world_ned", ros::Time(0), ros::Duration(10.0)))
-        {
-            transformMsg = buffer.lookupTransform("world_ned", info.getName(), ros::Time(0));
-            tf2::fromMsg(transformMsg, transform);
-            pose = VehiclePose(Eigen::Vector3d((double)(transform.getOrigin().getX()),
-                                               (double)(transform.getOrigin().getY()),
-                                               (double)(transform.getOrigin().getZ()))); 
-        }
-        else
-        {
-            ROS_ERROR("No valid transform available");
-        }
-		
-	}
-	catch(tf2::TransformException ex)
+void ROSSimVehicleInterface::navigationFilterCallback(const nav_msgs::Odometry odo)
+{	
+	Eigen::Vector3d position(odo.pose.pose.position.x,
+							 odo.pose.pose.position.y,
+							 odo.pose.pose.position.z);
+
+	Eigen::Quaterniond orientation(odo.pose.pose.orientation.w,
+								   odo.pose.pose.orientation.x,
+								   odo.pose.pose.orientation.y,
+								   odo.pose.pose.orientation.z);
+
+	Eigen::Matrix<double,6,6> poseCovariance;
+	for(unsigned int i = 0; i < 6; i++)
 	{
-	    ROS_ERROR("%s",ex.what());
+		for(unsigned int j = 0; j < 6; j++)
+		{
+			poseCovariance(i, j) = odo.pose.covariance[(i * 6) + j];
+		}
 	}
 
-    return pose;
+
+	Eigen::Vector3d linearVelocity(odo.twist.twist.linear.x,
+								   odo.twist.twist.linear.y,
+								   odo.twist.twist.linear.z);
+	Eigen::Vector3d angularVelocity(odo.twist.twist.angular.x,
+								    odo.twist.twist.angular.y,
+									odo.twist.twist.angular.z);
+
+	Eigen::Matrix<double,6,6> twistCovariance;
+	for(unsigned int i = 0; i < 6; i++)
+	{
+		for(unsigned int j = 0; j < 6; j++)
+		{
+			twistCovariance(i, j) = odo.twist.covariance[(i * 6) + j];
+		}
+	}
+
+	currentPose.setPosition(position);
+    currentPose.setOrientation(orientation);
+    currentPose.setPoseCovariance(poseCovariance);
+    
+    currentPose.setLinearVelocity(linearVelocity);
+    currentPose.setAngularVelocity(angularVelocity);
+    currentPose.setTwistCovariance(twistCovariance);
 }

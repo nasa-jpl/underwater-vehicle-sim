@@ -21,7 +21,7 @@
 class VehicleState
 {
 public:
-	VehicleState(ros::NodeHandle& nh);
+	VehicleState();
 	VehicleState(VehicleState&& other);
 
     /**

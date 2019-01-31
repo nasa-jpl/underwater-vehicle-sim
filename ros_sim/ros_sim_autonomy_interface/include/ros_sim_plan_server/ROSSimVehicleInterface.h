@@ -11,22 +11,24 @@
 
 #include "tf2_ros/transform_listener.h"
 
+#include "nav_msgs/Odometry.h"
+
 class ROSSimVehicleInterface : public VehicleInterface
 {
 public:
-    ROSSimVehicleInterface(ros::NodeHandle& nh, VehicleInfo info);
+    ROSSimVehicleInterface(VehicleInfo info);
     ~ROSSimVehicleInterface() override = default;
 
     void sendGoalStatus(GoalStatus status) override;
     void log(LogLevel level, std::string string) override;
     void registerDataCallback(std::function<void(const PlannerData&)> cb) override;
+
     VehiclePose getPosition() override;
 
 private:
     void receiveData(const underwater_vehicle_msgs::VehicleData::ConstPtr& msg);
-
+    void navigationFilterCallback(const nav_msgs::Odometry odo);
 private:
-    ros::NodeHandle& nh;
     VehicleInfo info;
 
     tf2_ros::Buffer buffer;
@@ -36,7 +38,9 @@ private:
 
     ros::Publisher goalPub;
     ros::Subscriber dataSub;
+    ros::Subscriber poseSub;
 
+    VehiclePose currentPose;
 };
 
 #endif

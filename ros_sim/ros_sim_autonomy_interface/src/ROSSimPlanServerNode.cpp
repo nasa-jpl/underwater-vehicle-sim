@@ -15,120 +15,123 @@
 
 #include "data_server/GetLatestData.h"
 
+bool dataStarted = false;
+bool navStarted = false;
+
+void receiveData(const underwater_vehicle_msgs::VehicleData::ConstPtr& msg)
+{
+    dataStarted = true;
+}
+
+void receiveNav(const nav_msgs::Odometry::ConstPtr& msg)
+{
+    navStarted = true;
+}
+
 int main(int argc, char **argv)
 {
     ros::init(argc, argv, "ros_sim_plan_server");
     ros::NodeHandle nh;
+    ros::NodeHandle nhPriv("~");
 
     float loopHertz;
-    if(!nh.getParam("planner/hertz", loopHertz))
+    if(!nhPriv.getParam("hertz", loopHertz))
     {
-        ROS_FATAL("Parameter \"planner/hertz\" not present in the parameter server.");
+        ROS_FATAL("Parameter \"%s/hertz\" not present in the parameter server.", nhPriv.getNamespace().c_str());
         exit(1);
     }
 
     std::string plannerType;
-    if(!nh.getParam("planner/type", plannerType))
+    if(!nhPriv.getParam("type", plannerType))
     {
-        ROS_FATAL("Parameter \"planner/type\" not present in the parameter server.");
+        ROS_FATAL("Parameter \"%s/type\" not present in the parameter server.", nhPriv.getNamespace().c_str());
         exit(1);
     }
-
-    std::vector<std::string> vehicleNames;
-    if(!nh.getParam("underwater_vehicle_sim/vehicles/names", vehicleNames))
-    {
-        ROS_FATAL("Parameter \"underwater_vehicle_sim/vehicles/names\" not present in the parameter server.");
-        exit(1);
-    }
-
-    std::vector<ROSSimPlanServer> servers;
-
-    std::vector<std::unique_ptr<PointPathController>> pointPathControllers;
 
     //Wait until the simulation starts to proceed
-    ros::ServiceClient vehicleInfoClient = nh.serviceClient<underwater_vehicle_msgs::GetVehicleInfo>("underwater_vehicle_sim/vehicles/get_info");
+    ros::ServiceClient vehicleInfoClient = nh.serviceClient<underwater_vehicle_msgs::GetVehicleInfo>("get_info");
     vehicleInfoClient.waitForExistence();
 
-    for(auto& name : vehicleNames)
+    underwater_vehicle_msgs::GetVehicleInfo getInfo;
+    vehicleInfoClient.call(getInfo);
+    VehicleInfo info(getInfo);
+
+    std::unique_ptr<PlanDispatcher> dispatcher(new PlanDispatcher());
+    std::unique_ptr<VentActionFactory> factory(new ROSSimVentActionFactory(info));
+    std::unique_ptr<VehicleInterface> interface(new ROSSimVehicleInterface(info));
+    std::unique_ptr<Planner> planner;
+
+    if(plannerType == "SurfaceGradient")
     {
-        underwater_vehicle_msgs::GetVehicleInfo getInfo;
-        getInfo.request.name = name;
-        vehicleInfoClient.call(getInfo);
+        SurfaceGradientVentPlanner::Parameters parameters;
+        nhPriv.getParam("fail_time", parameters.failTime);
+        nhPriv.getParam("spiral_spacing", parameters.spiralSpacing);
+        nhPriv.getParam("detection_threshold", parameters.detectionThreshold);
+        nhPriv.getParam("gradient_radius", parameters.gradientCalcRadius);
+        nhPriv.getParam("gradient_threshold", parameters.gradientThreshold);
+        nhPriv.getParam("max_follow_distance", parameters.gradientMaxFollowDistance);
+        nhPriv.getParam("min_follow_distance", parameters.gradientMinFollowDistance);
+        nhPriv.getParam("gradient_window", parameters.gradientWindow);
 
-        VehicleInfo info(getInfo);
-
-        std::unique_ptr<PlanDispatcher> dispatcher(new PlanDispatcher());
-        std::unique_ptr<VentActionFactory> factory(new ROSSimVentActionFactory(nh, info));
-        std::unique_ptr<VehicleInterface> interface(new ROSSimVehicleInterface(nh, info));
-        std::unique_ptr<Planner> planner;
-        if(plannerType == "SurfaceGradient")
-        {
-            SurfaceGradientVentPlanner::Parameters parameters;
-            nh.getParam("planner/fail_time", parameters.failTime);
-            nh.getParam("planner/spiral_spacing", parameters.spiralSpacing);
-            nh.getParam("planner/detection_threshold", parameters.detectionThreshold);
-            nh.getParam("planner/gradient_radius", parameters.gradientCalcRadius);
-            nh.getParam("planner/gradient_threshold", parameters.gradientThreshold);
-            nh.getParam("planner/max_follow_distance", parameters.gradientMaxFollowDistance);
-            nh.getParam("planner/min_follow_distance", parameters.gradientMinFollowDistance);
-            nh.getParam("planner/gradient_window", parameters.gradientWindow);
-
-            planner.reset(new SurfaceGradientVentPlanner(std::move(factory), std::move(interface), std::move(parameters)));
-        }
-        else if(plannerType == "NestedBin")
-        {
-            NestedBinVentPlanner::Parameters parameters;
-            nh.getParam("planner/spiral_spacing", parameters.spiralSpacing);
-            nh.getParam("planner/inital_spacing", parameters.initialSpacing);
-            nh.getParam("planner/final_spacing", parameters.finalSpacing);
-            nh.getParam("planner/fail_time", parameters.failTime);
-            planner.reset(new NestedBinVentPlanner(std::move(factory), std::move(interface), std::move(parameters)));
-        }
-        else if(plannerType == "DirectionSet")
-        {
-            DirectionSetVentPlanner::Parameters parameters;
-            nh.getParam("planner/fail_time", parameters.failTime);
-            nh.getParam("planner/spiral_spacing", parameters.spiralSpacing);
-            nh.getParam("planner/detection_threshold", parameters.detectionThreshold);
-            nh.getParam("planner/min_leg_length", parameters.minLegLength);
-            nh.getParam("planner/max_leg_length", parameters.maxLegLength);
-            nh.getParam("planner/leg_section_length", parameters.legSectionLength);
-            nh.getParam("planner/new_max_threshold", parameters.newMaxThreshold);
-            nh.getParam("planner/num_sections_threshold", parameters.numSectionsThreshold);
-
-            planner.reset(new DirectionSetVentPlanner(std::move(factory), std::move(interface), std::move(parameters)));
-        }
-        
-        std::unique_ptr<PointPathController> pointPathController(new PointPathController(nh, info));
-        pointPathControllers.push_back(std::move(pointPathController));
-      
-        servers.emplace_back(nh, std::move(dispatcher), std::move(planner));
+        planner.reset(new SurfaceGradientVentPlanner(std::move(factory), std::move(interface), std::move(parameters)));
     }
+    else if(plannerType == "NestedBin")
+    {
+        NestedBinVentPlanner::Parameters parameters;
+        nhPriv.getParam("spiral_spacing", parameters.spiralSpacing);
+        nhPriv.getParam("inital_spacing", parameters.initialSpacing);
+        nhPriv.getParam("final_spacing", parameters.finalSpacing);
+        nhPriv.getParam("fail_time", parameters.failTime);
+        planner.reset(new NestedBinVentPlanner(std::move(factory), std::move(interface), std::move(parameters)));
+    }
+    else if(plannerType == "DirectionSet")
+    {
+        DirectionSetVentPlanner::Parameters parameters;
+        nhPriv.getParam("fail_time", parameters.failTime);
+        nhPriv.getParam("spiral_spacing", parameters.spiralSpacing);
+        nhPriv.getParam("detection_threshold", parameters.detectionThreshold);
+        nhPriv.getParam("min_leg_length", parameters.minLegLength);
+        nhPriv.getParam("max_leg_length", parameters.maxLegLength);
+        nhPriv.getParam("leg_section_length", parameters.legSectionLength);
+        nhPriv.getParam("new_max_threshold", parameters.newMaxThreshold);
+        nhPriv.getParam("num_sections_threshold", parameters.numSectionsThreshold);
+
+        planner.reset(new DirectionSetVentPlanner(std::move(factory), std::move(interface), std::move(parameters)));
+    }
+
+    std::unique_ptr<PointPathController> pointPathController(new PointPathController(info));
+      
+    ROSSimPlanServer server(std::move(dispatcher), std::move(planner));
+
 
     ROS_INFO("Planner Initalized");
 
     //Wait until valid data starts streaming
-    ros::ServiceClient dataServerClient = nh.serviceClient<data_server::GetLatestData>("data_server/get_latest");
-    dataServerClient.waitForExistence();
-    data_server::GetLatestData srv;
-    srv.request.name = vehicleNames[0];
-    while(!dataServerClient.call(srv))
+    ros::Subscriber dataSub;
+    std::vector<std::string> data = info.getModuleNamesOfType("DataBroadcaster");
+
+    if(data.size() > 0)
     {
-       ros::WallDuration sleepDuration(1.0);
-       sleepDuration.sleep();
+        dataSub = nh.subscribe(data[0] + "/data", 1, &receiveData);
     }
-    
-    bool plannersCompleted = false;
-    ros::Rate r(loopHertz);
-    while(!plannersCompleted && ros::ok())
+
+    //Wait until valid navigation starts streaming
+    ros::Subscriber navSub = nh.subscribe("primary_navigation", 1, &receiveNav);
+
+
+    while(!(dataStarted && navStarted))
     {
-        bool updatePlannersCompleted = true;
-        for(auto& server : servers)
-        {
-            updatePlannersCompleted = false;
-            server.update();
-        }
-        plannersCompleted = updatePlannersCompleted;
+        ros::Duration(1.0).sleep();
+        ros::spinOnce();
+    }
+
+    ROS_INFO("Planner Started");
+
+    bool plannerCompleted = false;
+    ros::Rate r(loopHertz);
+    while(ros::ok())
+    {
+        server.update();
 
         ros::spinOnce();
         r.sleep();

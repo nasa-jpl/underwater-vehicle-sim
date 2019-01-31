@@ -25,8 +25,7 @@ bool quaterionsEqual(tf2::Quaternion q1, tf2::Quaternion q2)
 
 TEST(VehicleState, FrameConvert){
 
-    ros::NodeHandle n;
-    VehicleState state(n);
+    VehicleState state;
     
     std::vector<tf2::Vector3> posNED;
     std::vector<tf2::Vector3> posENU;
@@ -110,11 +109,10 @@ TEST(VehicleState, FrameConvert){
 
 TEST(VehicleState, UpdateTest){
     //Initalize ROS node handle
-    ros::NodeHandle n;
     ros::Time currentTime(100);
     ros::Duration deltaTime(0.5);
 
-    VehicleState state(n);
+    VehicleState state;
 
     tf2::Vector3 linearVelocity(1, 2, 1);
     tf2::Vector3 angularVelocity(-0.2, -0.4, 0.6);
@@ -153,11 +151,10 @@ TEST(VehicleState, UpdateTest){
 
 TEST(VehicleState, UpperBoundTest){
         //Initalize ROS node handle
-    ros::NodeHandle n;
     ros::Time currentTime(100);
     ros::Duration deltaTime(0.5);
 
-    VehicleState state(n);
+    VehicleState state;
 
     tf2::Vector3 linearVelocity(0, 0, -1);
     tf2::Vector3 angularVelocity(0, 0, 0);
@@ -188,11 +185,10 @@ TEST(VehicleState, UpperBoundTest){
 
 TEST(VehicleState, LowerBoundTest){
     //Initalize ROS node handle
-    ros::NodeHandle n;
     ros::Time currentTime(100);
     ros::Duration deltaTime(0.5);
 
-    VehicleState state(n);
+    VehicleState state;
 
     tf2::Vector3 linearVelocity(0, 0, 1);
     tf2::Vector3 angularVelocity(0, 0, 0);
@@ -228,11 +224,10 @@ TEST(VehicleState, LowerBoundTest){
 TEST(VehicleState, EvectByCurrentsTest)
 {
     //Initalize ROS node handle
-    ros::NodeHandle n;
     ros::Time currentTime(100);
     ros::Duration deltaTime(0.5);
 
-    VehicleState state(n);
+    VehicleState state;
 
     tf2::Vector3 linearVelocity(0.26, -0.16, 1);
     tf2::Vector3 angularVelocity(0, 0, 0);

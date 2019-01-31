@@ -24,7 +24,7 @@
 class Vehicle
 {
 public:
-	Vehicle(std::string name, ros::NodeHandle& parentNH, bool evectByCurrents);
+	Vehicle();
 	Vehicle(Vehicle&& other);
 	
 	void update();
@@ -39,11 +39,6 @@ private:
 	* @param transform Transform to broadcast
 	*/
 	void broadcastTransform();
-
-	/**
-	* Initalizes the propulsion module the propulsion module
-	*/
-	void initalizePropulsionModule();
 
 	/**
 	* Initalizes the general modules
@@ -66,6 +61,12 @@ private:
 	void applyCurrents(ModelData& modelData, ros::Duration deltaTime);
 
 private:
+
+    /**
+	 * ros node handle for this vehicle
+	 */
+	ros::NodeHandle nh;
+
 	/**
 	 * Holds entire current vehicle state
 	 */
@@ -90,16 +91,6 @@ private:
 	 * Modules to handle all other vehicle tasks
 	 */
 	std::vector<std::unique_ptr<GeneralModule>> modules;
-
-	/**
-	 * name of the vehicle
-	 */
-	std::string name;
-
-	/**
-	 * ros node handle for this vehicle
-	 */
-	ros::NodeHandle nh;
 
 	/**
 	* Tracks power remaining for this vehicle

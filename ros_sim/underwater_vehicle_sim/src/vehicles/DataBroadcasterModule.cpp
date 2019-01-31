@@ -10,14 +10,14 @@
 
 #define SECONDS_IN_DAY 86400
 
-DataBroadcasterModule::DataBroadcasterModule(std::string name, ros::NodeHandle& parentNH, std::string vehicleName) :
-	GeneralModule(name, "DataBroadcaster", parentNH, vehicleName)
+DataBroadcasterModule::DataBroadcasterModule(std::string name) :
+	GeneralModule(name, "DataBroadcaster")
 {
 	dataRecorder = nh.advertise<underwater_vehicle_msgs::VehicleData>("data", 1000);
 	client = nh.serviceClient<model_server::GetModelData>("/get_model_data");
 }
 
-void DataBroadcasterModule::update(std::string name, const ros::Time& lastTime, VehicleState& vehicleState, ModelData& modelData) 
+void DataBroadcasterModule::update(const ros::Time& lastTime, VehicleState& vehicleState, ModelData& modelData) 
 {
 	if(!(std::isnan(modelData.u) &&
 	     std::isnan(modelData.v) &&
@@ -27,6 +27,7 @@ void DataBroadcasterModule::update(std::string name, const ros::Time& lastTime, 
 	     std::isnan(modelData.depth)))
 	{
 		tf2::Vector3 nedPosition = vehicleState.getPositionNED();
+		tf2::Vector3 enuPosition = vehicleState.getPositionENU();
 
 		underwater_vehicle_msgs::VehicleDataPtr data(new underwater_vehicle_msgs::VehicleData);
 
@@ -41,7 +42,7 @@ void DataBroadcasterModule::update(std::string name, const ros::Time& lastTime, 
 		
 		data->salt = modelData.salt;
 		data->dye = modelData.dye;
-		data->sonarDepth = modelData.depth - nedPosition.getZ(); //depth + z, becuase z is negative while depth is positive
+		data->sonarDepth = modelData.depth - nedPosition.getZ();
 
 		dataRecorder.publish(data);
 	}

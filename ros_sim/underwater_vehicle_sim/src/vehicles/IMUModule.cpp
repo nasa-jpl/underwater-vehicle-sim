@@ -7,18 +7,19 @@
 
 #include "sensor_msgs/Imu.h"
 
-IMUModule::IMUModule(std::string name, ros::NodeHandle& parentNH, std::string vehicleName) :
-	GeneralModule(name, "IMU", parentNH, vehicleName)
+IMUModule::IMUModule(std::string name) :
+	GeneralModule(name, "IMU")
 {
-	nh.param("angular_velocity_variance", angularVelocityVariance, 0.00174533); //default is 0.1 deg in radians
+	ros::NodeHandle nhPriv("~");
+	nhPriv.param("angular_velocity_variance", angularVelocityVariance, 0.00174533); //default is 0.1 deg in radians
 
-	nh.param("heading_variance", headingVariance, 0.00872665); //default is 0.5 deg in radians
-	nh.param("tilt_variance", tiltVariance, 0.0174533); //default is 1 deg in radians
+	nhPriv.param("heading_variance", headingVariance, 0.00872665); //default is 0.5 deg in radians
+	nhPriv.param("tilt_variance", tiltVariance, 0.0174533); //default is 1 deg in radians
 
 	imu = nh.advertise<sensor_msgs::Imu>("data", 1000);
 }
 
-void IMUModule::update(std::string name, const ros::Time& lastTime, VehicleState& vehicleState, ModelData& modelData) 
+void IMUModule::update(const ros::Time& lastTime, VehicleState& vehicleState, ModelData& modelData) 
 {
 	tf2::Quaternion rotation(vehicleState.getRotationNED());
 	tf2::Vector3 angularVelocity = vehicleState.getAngularVelocity();

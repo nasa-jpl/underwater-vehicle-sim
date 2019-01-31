@@ -56,9 +56,7 @@ private:
 
 private:
 
-	ros::NodeHandle navNode;
-	ros::NodeHandle controlNode;
-	ros::NodeHandle vehicleNode;
+	ros::NodeHandle nh;
 
 	VehicleInfo info;
 

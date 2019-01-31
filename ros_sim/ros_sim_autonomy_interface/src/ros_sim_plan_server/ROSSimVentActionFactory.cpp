@@ -9,12 +9,8 @@
 #include "vent_planner/actions/DataTransferAction.h"
 
 #include "ros_sim_plan_server/action_executors/PointPathSimActionExecutor.h"
-#include "ros_sim_plan_server/action_executors/ChargeSimActionExecutor.h"
-#include "ros_sim_plan_server/action_executors/DataTransferSimActionExecutor.h"
 
-
-ROSSimVentActionFactory::ROSSimVentActionFactory(ros::NodeHandle& nh, VehicleInfo vehicleInfo) :
-    nh(nh),
+ROSSimVentActionFactory::ROSSimVentActionFactory(VehicleInfo vehicleInfo) :
     vehicleInfo(vehicleInfo)
 {}
 
@@ -28,7 +24,7 @@ std::shared_ptr<PointPathAction> ROSSimVentActionFactory::createPointPathAction(
                                                                              const double periodicReplanTime)
 {
 
-    std::unique_ptr<ActionExecutor<PointPathAction>> executor(new PointPathSimActionExecutor(nh, vehicleInfo.getName()));
+    std::unique_ptr<ActionExecutor<PointPathAction>> executor(new PointPathSimActionExecutor(vehicleInfo));
     return std::unique_ptr<PointPathAction>(new PointPathAction(std::move(executor),
                                                                 targetHorizontalVelocity,
                                                                 targetRotationalVelocity,
@@ -48,7 +44,7 @@ std::shared_ptr<PointPathAction> ROSSimVentActionFactory::createPointPathAction(
                                                                              const PointPathAction::ReplanType replan,
                                                                              const double periodicReplanTime)
 {
-    std::unique_ptr<ActionExecutor<PointPathAction>> executor(new PointPathSimActionExecutor(nh, vehicleInfo.getName()));
+    std::unique_ptr<ActionExecutor<PointPathAction>> executor(new PointPathSimActionExecutor(vehicleInfo));
     return std::unique_ptr<PointPathAction>(new PointPathAction(std::move(executor),
                                                                 targetHorizontalVelocity,
                                                                 targetRotationalVelocity,
@@ -60,16 +56,3 @@ std::shared_ptr<PointPathAction> ROSSimVentActionFactory::createPointPathAction(
                                                                 replan,
                                                                 periodicReplanTime));
 }
-
-std::shared_ptr<ChargeAction> ROSSimVentActionFactory::createChargeAction()
-{
-    std::unique_ptr<ActionExecutor<ChargeAction>> executor(new ChargeSimActionExecutor(nh, vehicleInfo.getName()));
-    return std::unique_ptr<ChargeAction>(new ChargeAction(std::move(executor)));
-}    
-
-std::shared_ptr<DataTransferAction> ROSSimVentActionFactory::createDataTransferAction()
-{
-    std::unique_ptr<ActionExecutor<DataTransferAction>> executor(new DataTransferSimActionExecutor(nh, vehicleInfo.getName()));
-
-    return std::unique_ptr<DataTransferAction>(new DataTransferAction(std::move(executor)));
-}    

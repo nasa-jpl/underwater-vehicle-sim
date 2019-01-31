@@ -7,13 +7,15 @@
 
 #include "ros/ros.h"
 
-ROSSimPlanServer::ROSSimPlanServer(ros::NodeHandle nh, std::unique_ptr<PlanDispatcher> planDispatcher, std::unique_ptr<Planner> planner) :
-    nh(nh),
+ROSSimPlanServer::ROSSimPlanServer(std::unique_ptr<PlanDispatcher> planDispatcher, std::unique_ptr<Planner> planner) :
     planDispatcher(std::move(planDispatcher)),
-    planner(std::move(planner)),
-    clockSpeedPub(nh.advertise<std_msgs::Float64>("/clock_server/speed_up_factor", 1))
+    planner(std::move(planner))
 {
-    nh.param<float>("speed_up_factor", speedUpFactor, 1);
+    ros::NodeHandle nh;
+
+    clockSpeedPub = nh.advertise<std_msgs::Float64>("/clock_server/speed_up_factor", 1);
+    nh.param<float>("/speed_up_factor", speedUpFactor, 1);
+    
     this->planDispatcher->run();
 }
 

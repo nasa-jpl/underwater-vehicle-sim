@@ -16,7 +16,7 @@ class FourDOFPropulsion : public PropulsionModule
 {
 
 public:
-	FourDOFPropulsion(std::string name, VehicleState& vehicleState, ros::NodeHandle& parentNH);
+	FourDOFPropulsion(VehicleState& vehicleState);
 	~FourDOFPropulsion() {}
 	
 private:

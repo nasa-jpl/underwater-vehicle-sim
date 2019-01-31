@@ -21,7 +21,7 @@ class PropulsionLogicInterface
 {
 
 public:
-	PropulsionLogicInterface(ros::NodeHandle vehicleNode, VehicleInfo& vehicleInfo);
+	PropulsionLogicInterface(VehicleInfo& vehicleInfo);
 	virtual ~PropulsionLogicInterface() {}
 
 	virtual void setTargetVelocity(const geometry_msgs::Twist vel)=0;
@@ -67,7 +67,7 @@ public:
 	*/
 	virtual bool isAtZ(VehiclePose& pose)=0;
 	
-	static std::unique_ptr<PropulsionLogicInterface> makePropulsionLogic(ros::NodeHandle vehicleNode, VehicleInfo& vehicleInfo);	
+	static std::unique_ptr<PropulsionLogicInterface> makePropulsionLogic(VehicleInfo& vehicleInfo);	
 
 protected:
 	ros::NodeHandle vehicleNode;
