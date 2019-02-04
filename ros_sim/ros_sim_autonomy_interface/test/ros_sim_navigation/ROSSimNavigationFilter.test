@@ -1,8 +1,9 @@
 <launch>
- <rosparam param="navigation/hertz">10</rosparam>
- <rosparam param="navigation/filter/names-">[v1_true]</rosparam>
+ 
+ <test test-name="ros_sim_navigation_filter_test" pkg="ros_sim_autonomy_interface" type="ros_sim_navigation_filter_test" ns="v1">
+    <rosparam param="hertz">10</rosparam>
+    <rosparam param="filter/names-">[true_nav]</rosparam>
 
- <rosparam param="navigation/filter/v1_true/type">TrueNavigation</rosparam>
- <rosparam param="navigation/filter/v1_true/vehicle_name">v1</rosparam>
- <test test-name="ros_sim_navigation_filter_test" pkg="ros_sim_autonomy_interface" type="ros_sim_navigation_filter_test"/>
+    <rosparam param="filter/true_nav/type">TrueNavigation</rosparam>
+ </test>
 </launch>

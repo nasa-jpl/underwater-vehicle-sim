@@ -75,15 +75,12 @@ TEST(ROSSimNavigationFilter, TrueNavigation)
     static tf2_ros::TransformBroadcaster br;
 
     ros::NodeHandle nhRoot;
-    ros::NodeHandle nhNav("navigation");
 
     std::vector<VehiclePose> targetPoses;
-    ros::Subscriber poseSub = nhNav.subscribe("v1/v1_true", 10, &filterPoseCallback);
+    ros::Subscriber poseSub = nhRoot.subscribe("/v1/nav_filters/true_nav", 10, &filterPoseCallback);
 
 
     underwater_vehicle_msgs::GetVehicleInfo infoSrv;
-    infoSrv.request.name = "v1";
-
     infoSrv.response.propModuleType = "None";
     infoSrv.response.propModuleName = "None";
 
@@ -92,10 +89,8 @@ TEST(ROSSimNavigationFilter, TrueNavigation)
     infoSrv.response.startZ = 10.5;
 
     VehicleInfo info(infoSrv);
-    std::string filterName = "v1_true";
-    ROSSimNavigationFilter filter = ROSSimNavigationFilter::createNavigationFilter(nhRoot,
-                                                                                   nhNav,
-                                                                                   filterName,
+    std::string filterName = "true_nav";
+    ROSSimNavigationFilter filter = ROSSimNavigationFilter::createNavigationFilter(filterName,
                                                                                    info);
 
 

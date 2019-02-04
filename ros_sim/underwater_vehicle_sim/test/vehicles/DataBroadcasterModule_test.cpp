@@ -23,9 +23,9 @@ void dataCallback(const underwater_vehicle_msgs::VehicleDataPtr& vel)
 
 TEST(DataBroadcasterModule, TestDataRecording){
     //Initalize ROS node handle
-    ros::NodeHandle nh("/underwater_vehicle_sim/vehicles/v1");
-    VehicleState state(nh);
-    DataBroadcasterModule module("data_broadcaster", nh, "v1");
+    ros::NodeHandle nh;
+    VehicleState state;
+    DataBroadcasterModule module("data_broadcaster");
 
     ros::Subscriber dataSub = nh.subscribe("data_broadcaster/data", 1, &dataCallback);
 
@@ -58,7 +58,7 @@ TEST(DataBroadcasterModule, TestDataRecording){
         data.dye = maxDye * (zeroDistance - distance) / zeroDistance;
 
         state.setPositionENU(pos);
-        module.update("v1", time, state, data);
+        module.update(time, state, data);
         ros::spinOnce();
     }
 
