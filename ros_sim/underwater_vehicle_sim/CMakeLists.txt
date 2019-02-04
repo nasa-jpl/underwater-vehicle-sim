@@ -15,6 +15,8 @@ find_package(catkin REQUIRED COMPONENTS
   sensor_msgs
   model_server
   model_interface
+  fvcom
+  general_models
   underwater_vehicle_msgs
   tf2_geometry_msgs
 )

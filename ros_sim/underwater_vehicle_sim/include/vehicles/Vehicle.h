@@ -13,6 +13,7 @@
 
 #include "underwater_vehicle_msgs/GetVehicleInfo.h"
 
+#include "model_interface/ModelInterface.h"
 #include "model_interface/ModelData.h"
 #include "model_server/GetModelData.h"
 
@@ -25,6 +26,7 @@ class Vehicle
 {
 public:
 	Vehicle();
+	Vehicle(std::unique_ptr<ModelInterface> model);
 	Vehicle(Vehicle&& other);
 	
 	void update();
@@ -126,6 +128,12 @@ private:
 	* Starting Z position of the vehicle
 	*/
 	double startZ;
+
+	/**
+	* Local model used if speed in important
+	*/
+	std::unique_ptr<ModelInterface> model;
+
 };
 
 #endif

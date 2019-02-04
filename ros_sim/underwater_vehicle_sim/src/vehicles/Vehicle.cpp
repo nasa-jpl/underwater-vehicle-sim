@@ -27,13 +27,32 @@ Vehicle::Vehicle()
 	initalizeGeneralModules();
 }
 
+Vehicle::Vehicle(std::unique_ptr<ModelInterface> model)	:
+	model(std::move(model))
+{
+	ros::NodeHandle nhPriv("~");
+	nhPriv.getParam("evect_by_currents", evectByCurrents);
+
+	if(model == NULL)
+	{
+		modelClient = nh.serviceClient<model_server::GetModelData>("/get_model_data");
+	}
+
+	initalizeVehicleFrame();
+  	
+	propulsionModule = PropulsionModule::makePropulsionModule(vehicleState);
+
+	initalizeGeneralModules();
+}
+
 Vehicle::Vehicle(Vehicle&& other)
 	: propulsionModule(std::move(other.propulsionModule)), 
       modules(std::move(other.modules)),
       nh(std::move(other.nh)),
       lastTransformTime(std::move(other.lastTransformTime)),
 	  vehicleState(std::move(other.vehicleState)),
-	  evectByCurrents(other.evectByCurrents)
+	  evectByCurrents(other.evectByCurrents),
+	  model(std::move(other.model))
 {}
 
 void Vehicle::initalizeVehicleFrame()
@@ -87,7 +106,7 @@ void Vehicle::update()
 
 	//Update time and data
 	lastTransformTime = currentTime;
-	//dataAtLastTransform = getModelData();
+	dataAtLastTransform = getModelData();
 
 	//Prevent the vehicle from clipping through the seafloor
 	if(vehicleState.seafloorCollision(dataAtLastTransform))
@@ -109,36 +128,62 @@ void Vehicle::update()
 ModelData Vehicle::getModelData()
 {
 	ModelData data;
-
-	model_server::GetModelData srv;
-
 	tf2::Vector3 enuPosition = vehicleState.getPositionENU();
-	srv.request.x = enuPosition.getX();
-	srv.request.y = enuPosition.getY();
-	srv.request.h = enuPosition.getZ();
-	srv.request.time = lastTransformTime.toSec() / SECONDS_IN_DAY; //convert from seconds to days
 
-
-	bool success = modelClient.call(srv);
-
-	if(success)
+	if(model != NULL)
 	{
-		data.u = srv.response.u;
-		data.v = srv.response.v;
-		data.temp = srv.response.temp;
-		data.salt = srv.response.salt;
-		data.dye = srv.response.dye;
-		data.depth = srv.response.depth;
+		try
+		{
+			data = model->getData(enuPosition.getX(), 
+								  enuPosition.getY(), 
+								  enuPosition.getZ(), 
+								  lastTransformTime.toSec() / SECONDS_IN_DAY);
+		}
+		catch(const std::out_of_range& e)
+		{
+			ROS_INFO("ModelServer: Out of Range: %f %f %f %f", enuPosition.getX(), 
+															   enuPosition.getY(), 
+															   enuPosition.getZ(), 
+															   lastTransformTime.toSec() / SECONDS_IN_DAY);
+			data = model->getDataOutOfRange(enuPosition.getX(), 
+											enuPosition.getY(), 
+											enuPosition.getZ(), 
+											lastTransformTime.toSec() / SECONDS_IN_DAY);
+		}    
 	}
 	else
 	{
-		data.u = std::numeric_limits<double>::quiet_NaN();
-		data.v = std::numeric_limits<double>::quiet_NaN();
-		data.temp = std::numeric_limits<double>::quiet_NaN();
-		data.salt = std::numeric_limits<double>::quiet_NaN();
-		data.dye = std::numeric_limits<double>::quiet_NaN();
-		data.depth = std::numeric_limits<double>::quiet_NaN();
+		model_server::GetModelData srv;
+
+		srv.request.x = enuPosition.getX();
+		srv.request.y = enuPosition.getY();
+		srv.request.h = enuPosition.getZ();
+		srv.request.time = lastTransformTime.toSec() / SECONDS_IN_DAY; //convert from seconds to days
+
+
+		bool success = modelClient.call(srv);
+
+		if(success)
+		{
+			data.u = srv.response.u;
+			data.v = srv.response.v;
+			data.temp = srv.response.temp;
+			data.salt = srv.response.salt;
+			data.dye = srv.response.dye;
+			data.depth = srv.response.depth;
+		}
+		else
+		{
+			data.u = std::numeric_limits<double>::quiet_NaN();
+			data.v = std::numeric_limits<double>::quiet_NaN();
+			data.temp = std::numeric_limits<double>::quiet_NaN();
+			data.salt = std::numeric_limits<double>::quiet_NaN();
+			data.dye = std::numeric_limits<double>::quiet_NaN();
+			data.depth = std::numeric_limits<double>::quiet_NaN();
+		}
 	}
+
+	
 
 	return data;
 }

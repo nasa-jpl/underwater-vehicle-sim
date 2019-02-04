@@ -1,36 +1,16 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(model_server)
+project(general_models)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
- add_compile_options(-std=c++11 -g)
+add_compile_options(-std=c++11)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
-find_package(catkin REQUIRED COMPONENTS
-  roscpp
-  std_msgs
-  message_generation
-  model_interface
-  general_models
-  fvcom
-)
+find_package(catkin REQUIRED
+             model_interface)
 
 ## System dependencies are found with CMake's conventions
-set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/modules)
-
-set (NETCDF_CXX "YES")
-find_package(NetCDF REQUIRED)
-# find_package(netCDF REQUIRED COMPONENTS system)
-
-# Boost
-set(boost_min_ver 1.50.0)
-set(boost_libs system filesystem)
-find_package(Boost ${boost_min_ver})
-
-if(Boost_FOUND)
-    find_package(Boost ${boost_min_ver} COMPONENTS ${boost_libs})
-endif()
 
 ## Uncomment this if the package has a setup.py. This macro ensures
 ## modules and global scripts declared therein get installed
@@ -47,10 +27,10 @@ endif()
 ##   your messages/services/actions (e.g. std_msgs, actionlib_msgs, ...).
 ## * In the file package.xml:
 ##   * add a build_depend tag for "message_generation"
-##   * add a build_depend and a run_depend tag for each package in MSG_DEP_SET
+##   * add a build_depend and a exec_depend tag for each package in MSG_DEP_SET
 ##   * If MSG_DEP_SET isn't empty the following dependency has been pulled in
 ##     but can be declared for certainty nonetheless:
-##     * add a run_depend tag for "message_runtime"
+##     * add a exec_depend tag for "message_runtime"
 ## * In this file (CMakeLists.txt):
 ##   * add "message_generation" and every package in MSG_DEP_SET to
 ##     find_package(catkin REQUIRED COMPONENTS ...)
@@ -64,14 +44,16 @@ endif()
 ## Generate messages in the 'msg' folder
 # add_message_files(
 #   FILES
-#   QueryModel.msg
+#   Message1.msg
+#   Message2.msg
 # )
 
 ## Generate services in the 'srv' folder
- add_service_files(
-   FILES
-   GetModelData.srv
- )
+# add_service_files(
+#   FILES
+#   Service1.srv
+#   Service2.srv
+# )
 
 ## Generate actions in the 'action' folder
 # add_action_files(
@@ -81,10 +63,10 @@ endif()
 # )
 
 ## Generate added messages and services with any dependencies listed here
- generate_messages(
-   DEPENDENCIES
-   std_msgs
- )
+# generate_messages(
+#   DEPENDENCIES
+#   std_msgs  # Or other packages containing msgs
+# )
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##
@@ -93,7 +75,7 @@ endif()
 ## To declare and build dynamic reconfigure parameters within this
 ## package, follow these steps:
 ## * In the file package.xml:
-##   * add a build_depend and a run_depend tag for "dynamic_reconfigure"
+##   * add a build_depend and a exec_depend tag for "dynamic_reconfigure"
 ## * In this file (CMakeLists.txt):
 ##   * add "dynamic_reconfigure" to
 ##     find_package(catkin REQUIRED COMPONENTS ...)
@@ -111,14 +93,14 @@ endif()
 ###################################
 ## The catkin_package macro generates cmake config files for your package
 ## Declare things to be passed to dependent projects
-## INCLUDE_DIRS: uncomment this if you package contains header files
+## INCLUDE_DIRS: uncomment this if your package contains header files
 ## LIBRARIES: libraries you create in this project that dependent projects also need
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
   INCLUDE_DIRS include
-  LIBRARIES
-  CATKIN_DEPENDS roscpp std_msgs message_runtime
+  LIBRARIES general_models
+#  CATKIN_DEPENDS other_catkin_pkg
 #  DEPENDS system_lib
 )
 
@@ -131,19 +113,25 @@ catkin_package(
 include_directories(
   include
   ${catkin_INCLUDE_DIRS}
-  ${NETCDF_INCLUDES}
-  ${Boost_INCLUDES}
 )
+
+## Declare a C++ library
+  add_library(${PROJECT_NAME}
+    src/${PROJECT_NAME}/ConstantModel.cpp
+    src/${PROJECT_NAME}/LinearModel.cpp
+  )
+
+target_link_libraries(general_models ${catkin_LIBRARIES})
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
 ## either from message generation or dynamic reconfigure
-# add_dependencies(${PROJECT_NAME} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+ #add_dependencies(${PROJECT_NAME} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
- add_executable(${PROJECT_NAME}_node src/ModelServerNode.cpp)
+# add_executable(${PROJECT_NAME}_node src/fvcom_node.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -153,17 +141,13 @@ include_directories(
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
- add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+# add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
- target_link_libraries(${PROJECT_NAME}_node
-   fvcom
-   general_models
-   ${catkin_LIBRARIES}
-   ${NETCDF_LIBRARIES}
-   ${Boost_LIBRARIES}
-   netcdf_c++4
- )
+# target_link_libraries(${PROJECT_NAME}_node
+#   ${catkin_LIBRARIES}
+# )
+
 #############
 ## Install ##
 #############
@@ -186,11 +170,11 @@ include_directories(
 # )
 
 ## Mark cpp header files for installation
-install(DIRECTORY include/${PROJECT_NAME}/
-   DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
-   FILES_MATCHING PATTERN "*.h"
-   PATTERN ".svn" EXCLUDE
- )
+# install(DIRECTORY include/${PROJECT_NAME}/
+#   DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+#   FILES_MATCHING PATTERN "*.h"
+#   PATTERN ".svn" EXCLUDE
+# )
 
 ## Mark other files for installation (e.g. launch and bag files, etc.)
 # install(FILES
@@ -198,18 +182,3 @@ install(DIRECTORY include/${PROJECT_NAME}/
 #   # myfile2
 #   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 # )
-
-#############
-## Testing ##
-#############
-## Add gtest based cpp test target and link libraries
-if (CATKIN_ENABLE_TESTING)
- find_package(rostest REQUIRED)
-
- add_rostest_gtest(model_server_node_test test/ModelServerNode.test test/ModelServerNode_test.cpp)
- target_link_libraries(model_server_node_test ${catkin_LIBRARIES} ${NETCDF_LIBRARIES} ${Boost_LIBRARIES} netcdf_c++4)
-
-endif()
-
-## Add folders to be run by python nosetests
-# catkin_add_nosetests(test)

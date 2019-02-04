@@ -15,14 +15,14 @@
 
 TEST(FourDOFPropulsion, SendCommand) {
     //Initalize ROS node handle
-    ros::NodeHandle n("/underwater_vehicle_sim/vehicles/v1");
-    VehicleState state(n);
-    FourDOFPropulsion module("prop", state, n);
+    ros::NodeHandle n;
+    VehicleState state;
+    FourDOFPropulsion module(state);
 
-    ros::Publisher forward_thrust_pub = n.advertise<std_msgs::Float64>("/underwater_vehicle_sim/vehicles/v1/prop/command_forward_thruster", 1000);
-    ros::Publisher lateral_thrust_pub = n.advertise<std_msgs::Float64>("/underwater_vehicle_sim/vehicles/v1/prop/command_lateral_thruster", 1000);
-    ros::Publisher vertical_thrust_pub = n.advertise<std_msgs::Float64>("/underwater_vehicle_sim/vehicles/v1/prop/command_vertical_thruster", 1000);
-    ros::Publisher rudder_pub = n.advertise<std_msgs::Float64>("/underwater_vehicle_sim/vehicles/v1/prop/command_rudder", 1000);
+    ros::Publisher forward_thrust_pub = n.advertise<std_msgs::Float64>("/v1/command_forward_thruster", 1000);
+    ros::Publisher lateral_thrust_pub = n.advertise<std_msgs::Float64>("/v1/command_lateral_thruster", 1000);
+    ros::Publisher vertical_thrust_pub = n.advertise<std_msgs::Float64>("/v1/command_vertical_thruster", 1000);
+    ros::Publisher rudder_pub = n.advertise<std_msgs::Float64>("/v1/command_rudder", 1000);
 
     //wait for subscribers, should be almost instant
     while(forward_thrust_pub.getNumSubscribers() <= 0);

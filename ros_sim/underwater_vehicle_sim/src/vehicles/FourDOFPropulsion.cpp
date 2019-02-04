@@ -13,6 +13,7 @@ FourDOFPropulsion::FourDOFPropulsion(VehicleState& vehicleState) :
 	PropulsionModule("FourDOFPropulsion", vehicleState)
 {
     ros::NodeHandle nhPriv("~");
+    
     if(nhPriv.hasParam("forward_thruster_thrust") && 
        nhPriv.hasParam("forward_thruster_velocity"))
     {

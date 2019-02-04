@@ -1,6 +1,5 @@
-#include "linear_model/LinearModel.h"
+#include "general_models/LinearModel.h"
 #include "model_interface/ModelData.h"
-#include "ros/ros.h"
 
 #include <string>
 #include <stdexcept>

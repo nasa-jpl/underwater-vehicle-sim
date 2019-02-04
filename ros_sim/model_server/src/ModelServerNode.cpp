@@ -8,8 +8,8 @@
 #include "model_server/GetModelData.h"
 
 
-#include "linear_model/LinearModel.h"
-#include "constant_model/ConstantModel.h"
+#include "general_models/LinearModel.h"
+#include "general_models/ConstantModel.h"
 #include "fvcom/FVCOM.h"
 
 #include "std_msgs/Float64.h"
