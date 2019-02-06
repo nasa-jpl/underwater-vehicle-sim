@@ -11,19 +11,7 @@ GeneralModule::GeneralModule(std::string name, std::string type) :
 	nh(name),
 	name(name),
 	type(type)
-{
-	ros::NodeHandle nhPriv("~/" + name);
-	if(nhPriv.hasParam("hertz"))
-	{
-		useHertz = true;
-		nhPriv.getParam("hertz", hertz);
-	}
-	else
-	{
-		useHertz = false;
-		hertz = 1;
-	}
-}
+{}
 
 std::unique_ptr<GeneralModule> GeneralModule::makeGeneralModule(std::string moduleName)
 {
@@ -44,17 +32,6 @@ std::unique_ptr<GeneralModule> GeneralModule::makeGeneralModule(std::string modu
 	}
 
 	return NULL;
-}
-
-void GeneralModule::updateAtRate(const ros::Time& lastTime, VehicleState& vehicleState, ModelData& data)
-{
-	ros::Duration rate(1 / hertz);
-
-	if(!useHertz || ros::Time::now() - lastUpdate >= rate)
-	{
-		lastUpdate = ros::Time::now();
-		update(lastTime, vehicleState, data);
-	}
 }
 
 std::string& GeneralModule::getName()

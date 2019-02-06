@@ -19,8 +19,6 @@ public:
 
 	virtual void update(const ros::Time& lastTime, VehicleState& vehicleState, ModelData& modelData)=0;
 
-	void updateAtRate(const ros::Time& lastTime, VehicleState& vehicleState, ModelData& modelData);
-
 	static std::unique_ptr<GeneralModule> makeGeneralModule(std::string moduleName);
 
 	std::string& getName();
@@ -34,8 +32,6 @@ protected:
 	ros::NodeHandle nh;
 
 	ros::Time lastUpdate;
-	bool useHertz;
-	float hertz;
 };
 
 

@@ -58,9 +58,10 @@ private:
 	ModelData getModelData();
 
 	/**
-	* Apply the currents to the vehicle given by modelData over the given time
-	*/
-	void applyCurrents(ModelData& modelData, ros::Duration deltaTime);
+	 * Callback to call module update. This is called by a timer callback
+	 * @param moduleIndex The index of the module to call update on
+	 */
+	void moduleTimerCallback(unsigned int moduleIndex);
 
 private:
 
@@ -93,6 +94,11 @@ private:
 	 * Modules to handle all other vehicle tasks
 	 */
 	std::vector<std::unique_ptr<GeneralModule>> modules;
+
+	/**
+	 * Timer to handle update
+	 */
+	std::vector<ros::Timer> moduleTimers;
 
 	/**
 	* Tracks power remaining for this vehicle

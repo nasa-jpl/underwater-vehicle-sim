@@ -48,6 +48,7 @@ find_package(catkin REQUIRED
 add_message_files(
     FILES
     VehicleData.msg
+    USBL.msg
 #   Message2.msg
 )
 

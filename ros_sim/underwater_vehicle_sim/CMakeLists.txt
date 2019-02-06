@@ -136,6 +136,7 @@ catkin_package(
    src/vehicles/FourDOFPropulsion.cpp
    src/vehicles/DataBroadcasterModule.cpp
    src/vehicles/IMUModule.cpp
+   src/vehicles/USBLModule.cpp
    src/vehicles/VehicleState.cpp
    src/vehicles/LinearPiecewise.cpp
  )
@@ -233,6 +234,9 @@ if (CATKIN_ENABLE_TESTING)
  add_rostest_gtest(data_broadcaster_module_test test/vehicles/DataBroadcasterModule.test test/vehicles/DataBroadcasterModule_test.cpp)
  target_link_libraries(data_broadcaster_module_test underwater_vehicles ${catkin_LIBRARIES} ${NETCDF_LIBRARIES})
  
+ add_rostest_gtest(usbl_module_test test/vehicles/USBLModule.test test/vehicles/USBLModule_test.cpp)
+ target_link_libraries(usbl_module_test underwater_vehicles ${catkin_LIBRARIES} ${NETCDF_LIBRARIES})
+
 endif()
 
 

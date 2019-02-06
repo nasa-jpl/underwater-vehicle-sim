@@ -88,8 +88,20 @@ void Vehicle::initalizeGeneralModules()
 
 	for(std::string& name : moduleNames)
 	{
+		double moduleHertz = 1;
+		nhPriv.getParam(name + "/hertz", moduleHertz);
+
 		modules.push_back(GeneralModule::makeGeneralModule(name));
+		moduleTimers.push_back(nh.createTimer(ros::Duration(1 / moduleHertz),
+											  std::bind(&Vehicle::moduleTimerCallback, this, modules.size() - 1)));
+		moduleTimers[moduleTimers.size() - 1].start();
 	}
+}
+
+void Vehicle::moduleTimerCallback(unsigned int moduleIndex)
+{
+
+	modules[moduleIndex]->update(lastTransformTime, vehicleState, dataAtLastTransform);
 }
 
 void Vehicle::update()
@@ -114,12 +126,6 @@ void Vehicle::update()
 		dataAtLastTransform = getModelData();
 	}
 
-	//update all modules
-	for(std::unique_ptr<GeneralModule>& module : modules)
-	{
-		module->updateAtRate(currentTime, vehicleState, dataAtLastTransform);
-	}
-
 	//Broadcast the latest transform
 	broadcastTransform();
 
@@ -135,7 +141,7 @@ ModelData Vehicle::getModelData()
 		try
 		{
 			data = model->getData(enuPosition.getX(), 
-								  enuPosition.getY(), 
+								  enuPosition.getY(),
 								  enuPosition.getZ(), 
 								  lastTransformTime.toSec() / SECONDS_IN_DAY);
 		}

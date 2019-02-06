@@ -1,0 +1,61 @@
+<launch>
+    <test test-name="usbl_module_test" pkg="underwater_vehicle_sim" ns="v1" type="usbl_module_test">
+        <rosparam param="valid_range_usbl/bearing_random_error">0</rosparam>
+        <rosparam param="valid_range_usbl/bearing_bias_error">0</rosparam>
+
+        <rosparam param="valid_range_usbl/range_random_error">0</rosparam>
+        <rosparam param="valid_range_usbl/range_bias_error">0</rosparam>
+
+        <rosparam param="valid_range_usbl/valid_bearing_distance">100</rosparam>
+        <rosparam param="valid_range_usbl/valid_range_distance">200</rosparam>
+
+        <rosparam param="valid_range_usbl/bad_range_probability">0</rosparam>
+        <rosparam param="valid_range_usbl/bad_range_error">0</rosparam>
+
+        <rosparam param="valid_range_usbl/beacon_x">10</rosparam>
+        <rosparam param="valid_range_usbl/beacon_y">-5</rosparam>
+        <rosparam param="valid_range_usbl/beacon_z">20</rosparam>
+
+        <rosparam param="valid_range_usbl/random_seed">111</rosparam>
+
+
+
+        <rosparam param="error_usbl/bearing_random_error">0.0174533</rosparam>
+        <rosparam param="error_usbl/bearing_bias_error">0.0872665</rosparam>
+
+        <rosparam param="error_usbl/range_random_error">0.005</rosparam>
+        <rosparam param="error_usbl/range_bias_error">5</rosparam>
+
+        <rosparam param="error_usbl/valid_bearing_distance">100</rosparam>
+        <rosparam param="error_usbl/valid_range_distance">200</rosparam>
+
+        <rosparam param="error_usbl/bad_range_probability">0</rosparam>
+        <rosparam param="error_usbl/bad_range_error">0</rosparam>
+
+        <rosparam param="error_usbl/beacon_x">10</rosparam>
+        <rosparam param="error_usbl/beacon_y">-5</rosparam>
+        <rosparam param="error_usbl/beacon_z">20</rosparam>
+
+        <rosparam param="error_usbl/random_seed">111</rosparam>
+
+
+
+        <rosparam param="bad_range_usbl/bearing_random_error">0.0174533</rosparam>
+        <rosparam param="bad_range_usbl/bearing_bias_error">0.0872665</rosparam>
+
+        <rosparam param="bad_range_usbl/range_random_error">0.005</rosparam>
+        <rosparam param="bad_range_usbl/range_bias_error">5</rosparam>
+
+        <rosparam param="bad_range_usbl/valid_bearing_distance">100</rosparam>
+        <rosparam param="bad_range_usbl/valid_range_distance">200</rosparam>
+
+        <rosparam param="bad_range_usbl/bad_range_probability">0.5</rosparam>
+        <rosparam param="bad_range_usbl/bad_range_error">100</rosparam>
+
+        <rosparam param="bad_range_usbl/beacon_x">10</rosparam>
+        <rosparam param="bad_range_usbl/beacon_y">-5</rosparam>
+        <rosparam param="bad_range_usbl/beacon_z">20</rosparam>
+
+        <rosparam param="bad_range_usbl/random_seed">111</rosparam>
+    </test>
+</launch>
