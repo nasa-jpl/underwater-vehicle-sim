@@ -92,10 +92,10 @@ public:
      */
     void setRotationENU(const tf2::Quaternion rotation);
 
-    tf2::Vector3 getLinearVelocity() const;
-    tf2::Vector3 getAngularVelocity() const;
-    void setLinearVelocity(const tf2::Vector3 velocity);
-    void setAngularVelocity(const tf2::Vector3 velocity);
+    tf2::Vector3 getLinearVelocityNED() const;
+    tf2::Vector3 getAngularVelocityNED() const;
+    void setLinearVelocityNED(const tf2::Vector3 velocity);
+    void setAngularVelocityNED(const tf2::Vector3 velocity);
     	
     double getPowerCapacity();
     double getDataCapacity();

@@ -137,6 +137,7 @@ catkin_package(
    src/vehicles/DataBroadcasterModule.cpp
    src/vehicles/IMUModule.cpp
    src/vehicles/USBLModule.cpp
+   src/vehicles/DepthModule.cpp
    src/vehicles/VehicleState.cpp
    src/vehicles/LinearPiecewise.cpp
  )
@@ -236,6 +237,12 @@ if (CATKIN_ENABLE_TESTING)
  
  add_rostest_gtest(usbl_module_test test/vehicles/USBLModule.test test/vehicles/USBLModule_test.cpp)
  target_link_libraries(usbl_module_test underwater_vehicles ${catkin_LIBRARIES} ${NETCDF_LIBRARIES})
+
+ add_rostest_gtest(imu_module_test test/vehicles/IMUModule.test test/vehicles/IMUModule_test.cpp)
+ target_link_libraries(imu_module_test underwater_vehicles ${catkin_LIBRARIES} ${NETCDF_LIBRARIES})
+
+ add_rostest_gtest(depth_module_test test/vehicles/DepthModule.test test/vehicles/DepthModule_test.cpp)
+ target_link_libraries(depth_module_test underwater_vehicles ${catkin_LIBRARIES} ${NETCDF_LIBRARIES})
 
 endif()
 

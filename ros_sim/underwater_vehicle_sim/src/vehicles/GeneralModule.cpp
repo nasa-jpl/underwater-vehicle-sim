@@ -6,6 +6,7 @@
 
 #include "vehicles/DataBroadcasterModule.h"
 #include "vehicles/IMUModule.h"
+#include "vehicles/USBLModule.h"
 
 GeneralModule::GeneralModule(std::string name, std::string type) :
 	nh(name),
@@ -28,6 +29,11 @@ std::unique_ptr<GeneralModule> GeneralModule::makeGeneralModule(std::string modu
 	if(moduleType == "IMU")
 	{
 		std::unique_ptr<GeneralModule> returnPtr(new IMUModule(moduleName));
+		return returnPtr;
+	}
+	if(moduleType == "USBL")
+	{
+		std::unique_ptr<GeneralModule> returnPtr(new USBLModule(moduleName));
 		return returnPtr;
 	}
 

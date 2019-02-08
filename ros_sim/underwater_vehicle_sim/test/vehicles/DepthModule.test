@@ -1,0 +1,9 @@
+<launch>
+    <test test-name="depth_module_test" pkg="underwater_vehicle_sim" ns="v1" type="depth_module_test">
+        <rosparam param="depth/depth_random_error">1</rosparam>
+        <rosparam param="depth/depth_bias_error">2</rosparam>
+
+        <rosparam param="depth/random_seed">111</rosparam>
+
+    </test>
+</launch>

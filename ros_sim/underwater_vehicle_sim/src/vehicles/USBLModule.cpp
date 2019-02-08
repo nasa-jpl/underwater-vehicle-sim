@@ -88,6 +88,10 @@ void USBLModule::update(const ros::Time& lastTime, VehicleState& vehicleState, M
 	}
 
 	underwater_vehicle_msgs::USBLPtr usblMsg(new underwater_vehicle_msgs::USBL);
+
+	usblMsg->header.frame_id = "world_ned";
+	usblMsg->header.stamp = lastTime;
+
 	usblMsg->name = name;
 	usblMsg->beacon_x = beaconX;
 	usblMsg->beacon_y = beaconY;

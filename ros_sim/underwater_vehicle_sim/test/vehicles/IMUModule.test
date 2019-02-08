@@ -1,0 +1,27 @@
+<launch>
+    <test test-name="imu_module_test" pkg="underwater_vehicle_sim" ns="v1" type="imu_module_test">
+        <rosparam param="no_error_imu/angular_velocity_random_error">0</rosparam>
+        <rosparam param="no_error_imu/angular_velocity_bias_error">[0,0,0]</rosparam>
+
+        <rosparam param="no_error_imu/heading_random_error">0</rosparam>
+        <rosparam param="no_error_imu/heading_bias_error">0</rosparam>
+
+        <rosparam param="no_error_imu/roll_pitch_random_error">0</rosparam>
+        <rosparam param="no_error_imu/roll_bias_error">0</rosparam>
+        <rosparam param="no_error_imu/pitch_bias_error">0</rosparam>
+        <rosparam param="no_error_imu/random_seed">111</rosparam>
+
+
+        <rosparam param="error_imu/angular_velocity_random_error">0.09</rosparam>
+        <rosparam param="error_imu/angular_velocity_bias_error">[-0.01,0.02,0.03]</rosparam>
+
+        <rosparam param="error_imu/heading_random_error">0.04</rosparam>
+        <rosparam param="error_imu/heading_bias_error">0.05</rosparam>
+
+        <rosparam param="error_imu/roll_pitch_random_error">0.06</rosparam>
+        <rosparam param="error_imu/roll_bias_error">0.07</rosparam>
+        <rosparam param="error_imu/pitch_bias_error">0.08</rosparam>
+        <rosparam param="error_imu/random_seed">111</rosparam>
+
+    </test>
+</launch>

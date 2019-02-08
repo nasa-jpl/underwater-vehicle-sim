@@ -1,5 +1,5 @@
-#ifndef SIX_DOF_PROPULSION_H
-#define SIX_DOF_PROPULSION_H
+#ifndef FOUR_DOF_PROPULSION_H
+#define FOUR_DOF_PROPULSION_H
 
 #include "ros/ros.h"
 #include "geometry_msgs/Twist.h"

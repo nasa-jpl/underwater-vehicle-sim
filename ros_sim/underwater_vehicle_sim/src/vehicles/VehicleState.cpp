@@ -59,17 +59,13 @@ void VehicleState::updatePose(const ros::Time currentTime, const ros::Duration d
 	//apply the linear movement
 	position += totalLinMovement;
 
-    //create a Quaternion to represent rotation using the axis of rotation and angle of rotation
-	tf2::Quaternion totalRotMovement;
-
-    //Z rotation is negative because heading increases clockwise
-	totalRotMovement.setRPY(angularVelocity.getX() * deltaTime.toSec(),
-							angularVelocity.getY() * deltaTime.toSec(),
-							angularVelocity.getZ() * deltaTime.toSec());
-	
-	//Apply the rotation to the current rotation of the vehicle
-	rotation = rotation * totalRotMovement;
-
+	if(angularVelocity.length() != 0)
+	{
+		//Apply the angular velocity * delta time to the current rotation of the vehicle
+		tf2::Quaternion deltaRotation(angularVelocity.normalized(), angularVelocity.length() * deltaTime.toSec());
+		rotation = deltaRotation * rotation;
+	}
+						  
 	//prevent position from leaving the top of the model
 	if(position.getZ() < 0)
 	{
@@ -120,7 +116,7 @@ tf2::Vector3 VehicleState::getPositionENU() const
 	return enuPos;
 }
 
-tf2::Vector3 VehicleState::getLinearVelocity() const
+tf2::Vector3 VehicleState::getLinearVelocityNED() const
 {
     return linearVelocity;
 }
@@ -135,7 +131,7 @@ tf2::Quaternion VehicleState::getRotationENU() const
 	return NEDtoENU * rotation;
 }
 
-tf2::Vector3 VehicleState::getAngularVelocity() const
+tf2::Vector3 VehicleState::getAngularVelocityNED() const
 {
     return angularVelocity;
 }
@@ -160,12 +156,12 @@ void VehicleState::setRotationENU(const tf2::Quaternion rotation)
 	this->rotation = ENUtoNED * rotation;
 }
 
-void VehicleState::setLinearVelocity(const tf2::Vector3 velocity)
+void VehicleState::setLinearVelocityNED(const tf2::Vector3 velocity)
 {
     linearVelocity = velocity;
 }
 
-void VehicleState::setAngularVelocity(const tf2::Vector3 velocity)
+void VehicleState::setAngularVelocityNED(const tf2::Vector3 velocity)
 {
     angularVelocity = velocity;
 }

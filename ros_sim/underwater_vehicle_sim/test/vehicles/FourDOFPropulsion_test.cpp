@@ -49,48 +49,48 @@ TEST(FourDOFPropulsion, SendCommand) {
     forward_thrust_pub.publish(forwardMsg);    
     ros::spinOnce();
 
-    EXPECT_DOUBLE_EQ(1, state.getLinearVelocity().x());
-    EXPECT_DOUBLE_EQ(0, state.getLinearVelocity().y());
-    EXPECT_DOUBLE_EQ(0, state.getLinearVelocity().z());
-    EXPECT_DOUBLE_EQ(0, state.getAngularVelocity().x());
-    EXPECT_DOUBLE_EQ(0, state.getAngularVelocity().y());
-    EXPECT_DOUBLE_EQ(0, state.getAngularVelocity().z());
+    EXPECT_DOUBLE_EQ(1, state.getLinearVelocityNED().x());
+    EXPECT_DOUBLE_EQ(0, state.getLinearVelocityNED().y());
+    EXPECT_DOUBLE_EQ(0, state.getLinearVelocityNED().z());
+    EXPECT_DOUBLE_EQ(0, state.getAngularVelocityNED().x());
+    EXPECT_DOUBLE_EQ(0, state.getAngularVelocityNED().y());
+    EXPECT_DOUBLE_EQ(0, state.getAngularVelocityNED().z());
 
 
     //Check lateral thrust
     lateral_thrust_pub.publish(lateralMsg);    
     ros::spinOnce();
 
-    EXPECT_DOUBLE_EQ(1, state.getLinearVelocity().x());
-    EXPECT_DOUBLE_EQ(-0.25, state.getLinearVelocity().y());
-    EXPECT_DOUBLE_EQ(0, state.getLinearVelocity().z());
-    EXPECT_DOUBLE_EQ(0, state.getAngularVelocity().x());
-    EXPECT_DOUBLE_EQ(0, state.getAngularVelocity().y());
-    EXPECT_DOUBLE_EQ(0, state.getAngularVelocity().z());
+    EXPECT_DOUBLE_EQ(1, state.getLinearVelocityNED().x());
+    EXPECT_DOUBLE_EQ(-0.25, state.getLinearVelocityNED().y());
+    EXPECT_DOUBLE_EQ(0, state.getLinearVelocityNED().z());
+    EXPECT_DOUBLE_EQ(0, state.getAngularVelocityNED().x());
+    EXPECT_DOUBLE_EQ(0, state.getAngularVelocityNED().y());
+    EXPECT_DOUBLE_EQ(0, state.getAngularVelocityNED().z());
 
 
     //Check vertical thrust
     vertical_thrust_pub.publish(verticalMsg);    
     ros::spinOnce();
 
-    EXPECT_DOUBLE_EQ(1, state.getLinearVelocity().x());
-    EXPECT_DOUBLE_EQ(-0.25, state.getLinearVelocity().y());
-    EXPECT_DOUBLE_EQ(1, state.getLinearVelocity().z());
-    EXPECT_DOUBLE_EQ(0, state.getAngularVelocity().x());
-    EXPECT_DOUBLE_EQ(0, state.getAngularVelocity().y());
-    EXPECT_DOUBLE_EQ(0, state.getAngularVelocity().z());
+    EXPECT_DOUBLE_EQ(1, state.getLinearVelocityNED().x());
+    EXPECT_DOUBLE_EQ(-0.25, state.getLinearVelocityNED().y());
+    EXPECT_DOUBLE_EQ(1, state.getLinearVelocityNED().z());
+    EXPECT_DOUBLE_EQ(0, state.getAngularVelocityNED().x());
+    EXPECT_DOUBLE_EQ(0, state.getAngularVelocityNED().y());
+    EXPECT_DOUBLE_EQ(0, state.getAngularVelocityNED().z());
 
 
     //Check rudder
     rudder_pub.publish(rudderMsg);    
     ros::spinOnce();
 
-    EXPECT_DOUBLE_EQ(1, state.getLinearVelocity().x());
-    EXPECT_DOUBLE_EQ(-0.25, state.getLinearVelocity().y());
-    EXPECT_DOUBLE_EQ(1, state.getLinearVelocity().z());
-    EXPECT_DOUBLE_EQ(0, state.getAngularVelocity().x());
-    EXPECT_DOUBLE_EQ(0, state.getAngularVelocity().y());
-    EXPECT_DOUBLE_EQ(-5, state.getAngularVelocity().z());
+    EXPECT_DOUBLE_EQ(1, state.getLinearVelocityNED().x());
+    EXPECT_DOUBLE_EQ(-0.25, state.getLinearVelocityNED().y());
+    EXPECT_DOUBLE_EQ(1, state.getLinearVelocityNED().z());
+    EXPECT_DOUBLE_EQ(0, state.getAngularVelocityNED().x());
+    EXPECT_DOUBLE_EQ(0, state.getAngularVelocityNED().y());
+    EXPECT_DOUBLE_EQ(-5, state.getAngularVelocityNED().z());
 
 
 
@@ -113,12 +113,12 @@ TEST(FourDOFPropulsion, SendCommand) {
     rudder_pub.publish(rudderMsg);    
     ros::spinOnce();
 
-    EXPECT_DOUBLE_EQ(1, state.getLinearVelocity().x());
-    EXPECT_DOUBLE_EQ(-0.25, state.getLinearVelocity().y());
-    EXPECT_DOUBLE_EQ(1, state.getLinearVelocity().z());
-    EXPECT_DOUBLE_EQ(0, state.getAngularVelocity().x());
-    EXPECT_DOUBLE_EQ(0, state.getAngularVelocity().y());
-    EXPECT_DOUBLE_EQ(-5, state.getAngularVelocity().z());
+    EXPECT_DOUBLE_EQ(1, state.getLinearVelocityNED().x());
+    EXPECT_DOUBLE_EQ(-0.25, state.getLinearVelocityNED().y());
+    EXPECT_DOUBLE_EQ(1, state.getLinearVelocityNED().z());
+    EXPECT_DOUBLE_EQ(0, state.getAngularVelocityNED().x());
+    EXPECT_DOUBLE_EQ(0, state.getAngularVelocityNED().y());
+    EXPECT_DOUBLE_EQ(-5, state.getAngularVelocityNED().z());
 }
 
 //Had issues doing this in the roslaunch file for this test. Not sure why.

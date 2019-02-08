@@ -115,29 +115,27 @@ TEST(VehicleState, UpdateTest){
     VehicleState state;
 
     tf2::Vector3 linearVelocity(1, 2, 1);
-    tf2::Vector3 angularVelocity(-0.2, -0.4, 0.6);
+    tf2::Vector3 angularVelocity(-2, -4, 6);
 
     tf2::Vector3 startPosition(1.2, 3.4, 5.6);
     tf2::Vector3 endPosition(0.2, 3.9, 6.1);
 
     tf2::Quaternion startRotation;
     startRotation.setRPY(0, 0, M_PI / 2);
-    tf2::Quaternion rotation;
-    rotation.setRPY(-0.2 * deltaTime.toSec(), 
-                    -0.4 * deltaTime.toSec(), 
-                    0.6 * deltaTime.toSec());
-    tf2::Quaternion endRotation(startRotation * rotation);
+
+	tf2::Quaternion deltaRotation(angularVelocity.normalized(), angularVelocity.length() * deltaTime.toSec());
+    tf2::Quaternion endRotation = deltaRotation * startRotation;
 
     state.setPositionNED(startPosition);
     state.setRotationNED(startRotation);
-    state.setLinearVelocity(linearVelocity);
-    state.setAngularVelocity(angularVelocity);
+    state.setLinearVelocityNED(linearVelocity);
+    state.setAngularVelocityNED(angularVelocity);
 
     //Before movement
     EXPECT_EQ(startPosition, state.getPositionNED());
     EXPECT_EQ(startRotation, state.getRotationNED());
-    EXPECT_EQ(linearVelocity, state.getLinearVelocity());
-    EXPECT_EQ(angularVelocity, state.getAngularVelocity());
+    EXPECT_EQ(linearVelocity, state.getLinearVelocityNED());
+    EXPECT_EQ(angularVelocity, state.getAngularVelocityNED());
 
     state.updatePose(currentTime, deltaTime);
 
@@ -166,14 +164,14 @@ TEST(VehicleState, UpperBoundTest){
     startRotation.setRPY(0, 0, 0);
     state.setPositionNED(startPosition);
     state.setRotationNED(startRotation);
-    state.setLinearVelocity(linearVelocity);
-    state.setAngularVelocity(angularVelocity);
+    state.setLinearVelocityNED(linearVelocity);
+    state.setAngularVelocityNED(angularVelocity);
 
     //Before movement
     EXPECT_EQ(startPosition, state.getPositionNED());
     EXPECT_EQ(startRotation, state.getRotationNED());
-    EXPECT_EQ(linearVelocity, state.getLinearVelocity());
-    EXPECT_EQ(angularVelocity, state.getAngularVelocity());
+    EXPECT_EQ(linearVelocity, state.getLinearVelocityNED());
+    EXPECT_EQ(angularVelocity, state.getAngularVelocityNED());
 
     state.updatePose(currentTime, deltaTime);
 
@@ -201,14 +199,14 @@ TEST(VehicleState, LowerBoundTest){
     
     state.setPositionNED(startPosition);
     state.setRotationNED(startRotation);
-    state.setLinearVelocity(linearVelocity);
-    state.setAngularVelocity(angularVelocity);
+    state.setLinearVelocityNED(linearVelocity);
+    state.setAngularVelocityNED(angularVelocity);
 
     //Before movement
     EXPECT_EQ(startPosition, state.getPositionNED());
     EXPECT_EQ(startRotation, state.getRotationNED());
-    EXPECT_EQ(linearVelocity, state.getLinearVelocity());
-    EXPECT_EQ(angularVelocity, state.getAngularVelocity());
+    EXPECT_EQ(linearVelocity, state.getLinearVelocityNED());
+    EXPECT_EQ(angularVelocity, state.getAngularVelocityNED());
 
     state.updatePose(currentTime, deltaTime);
     ModelData data;
@@ -245,14 +243,14 @@ TEST(VehicleState, EvectByCurrentsTest)
     
     state.setPositionNED(startPosition);
     state.setRotationNED(startRotation);
-    state.setLinearVelocity(linearVelocity);
-    state.setAngularVelocity(angularVelocity);
+    state.setLinearVelocityNED(linearVelocity);
+    state.setAngularVelocityNED(angularVelocity);
 
     //Before movement
     EXPECT_EQ(startPosition, state.getPositionNED());
     EXPECT_EQ(startRotation, state.getRotationNED());
-    EXPECT_EQ(linearVelocity, state.getLinearVelocity());
-    EXPECT_EQ(angularVelocity, state.getAngularVelocity());
+    EXPECT_EQ(linearVelocity, state.getLinearVelocityNED());
+    EXPECT_EQ(angularVelocity, state.getAngularVelocityNED());
 
     state.evectByCurrents(data, deltaTime);
 

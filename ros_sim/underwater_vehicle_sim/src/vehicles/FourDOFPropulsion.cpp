@@ -156,13 +156,13 @@ FourDOFPropulsion::FourDOFPropulsion(VehicleState& vehicleState) :
     verticalThrusterSub = nh.subscribe("command_vertical_thruster", 1, &FourDOFPropulsion::verticalThrusterCallback, this);
 	rudderSub = nh.subscribe("command_rudder", 1, &FourDOFPropulsion::rudderCallback, this);
 
-    vehicleState.setLinearVelocity(tf2::Vector3(0,0,0));
-    vehicleState.setAngularVelocity(tf2::Vector3(0,0,0));
+    vehicleState.setLinearVelocityNED(tf2::Vector3(0,0,0));
+    vehicleState.setAngularVelocityNED(tf2::Vector3(0,0,0));
 }
 
 void FourDOFPropulsion::forwardThrusterCallback(const std_msgs::Float64::ConstPtr& val)
 {
-    tf2::Vector3 updatedLinearVelocity = vehicleState.getLinearVelocity();
+    tf2::Vector3 updatedLinearVelocity = vehicleState.getLinearVelocityNED();
     if(std::isfinite(val->data))
     {
         LinearPiecewise::Point vel = forwardThrusterFunc.getY(val->data);
@@ -172,12 +172,12 @@ void FourDOFPropulsion::forwardThrusterCallback(const std_msgs::Float64::ConstPt
         }
     }
 
-    vehicleState.setLinearVelocity(updatedLinearVelocity);
+    vehicleState.setLinearVelocityNED(updatedLinearVelocity);
 }
 
 void FourDOFPropulsion::lateralThrusterCallback(const std_msgs::Float64::ConstPtr& val)
 {
-    tf2::Vector3 updatedLinearVelocity = vehicleState.getLinearVelocity();
+    tf2::Vector3 updatedLinearVelocity = vehicleState.getLinearVelocityNED();
 
     if(std::isfinite(val->data))
     {
@@ -188,12 +188,12 @@ void FourDOFPropulsion::lateralThrusterCallback(const std_msgs::Float64::ConstPt
         }
     }
 
-    vehicleState.setLinearVelocity(updatedLinearVelocity);
+    vehicleState.setLinearVelocityNED(updatedLinearVelocity);
 }
 
 void FourDOFPropulsion::verticalThrusterCallback(const std_msgs::Float64::ConstPtr& val)
 {
-    tf2::Vector3 updatedLinearVelocity = vehicleState.getLinearVelocity();
+    tf2::Vector3 updatedLinearVelocity = vehicleState.getLinearVelocityNED();
 
     if(std::isfinite(val->data))
     {
@@ -204,12 +204,12 @@ void FourDOFPropulsion::verticalThrusterCallback(const std_msgs::Float64::ConstP
         }
     }
 
-    vehicleState.setLinearVelocity(updatedLinearVelocity);
+    vehicleState.setLinearVelocityNED(updatedLinearVelocity);
 }
 
 void FourDOFPropulsion::rudderCallback(const std_msgs::Float64::ConstPtr& val)
 {
-    tf2::Vector3 updatedAngularVelocity = vehicleState.getAngularVelocity();
+    tf2::Vector3 updatedAngularVelocity = vehicleState.getAngularVelocityNED();
 
     if(std::isfinite(val->data))
     {
@@ -220,5 +220,5 @@ void FourDOFPropulsion::rudderCallback(const std_msgs::Float64::ConstPtr& val)
         }
     }
 
-    vehicleState.setAngularVelocity(updatedAngularVelocity);
+    vehicleState.setAngularVelocityNED(updatedAngularVelocity);
 }

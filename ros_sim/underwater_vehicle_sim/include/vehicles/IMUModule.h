@@ -16,17 +16,32 @@ public:
 	IMUModule(std::string name);
 	~IMUModule() {}
 
+	/**
+	* The vehicle orientation is taken and noise is added. The noise characteristics in the yaw direction
+	* can be set independently that in the roll and pitch direction. No seperate field in the resulting message
+	* contains magnetic heading information. This information can be pulled from the orientation.
+	*/
 	void update(const ros::Time& lastTime, VehicleState& vehicleState, ModelData& modelData);
 
 private:
 	
 private:
 	ros::Publisher imu;
+
 	double angularVelocityVariance;
+	std::vector<double> angularVelocityBiasError;
+
 	double headingVariance;
-	double tiltVariance;
+	double headingBiasError;
+
+	double rollPitchVariance;
+	double rollBiasError;
+	double pitchBiasError;
 
 	std::default_random_engine generator;
+	std::normal_distribution<double> rotationDistribution;
+	std::normal_distribution<double> headingDist;
+	std::normal_distribution<double> tiltDist;
 };
 
 #endif
