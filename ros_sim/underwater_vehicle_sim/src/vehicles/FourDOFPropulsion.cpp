@@ -307,7 +307,7 @@ void FourDOFPropulsion::publishSensors()
 	rudderMsg->header.frame_id = "world_ned";
 	rudderMsg->header.stamp = currentTime;
 	rudderMsg->data = rudderMeasurment;
-	rudderMsg->variance = thrustSensorRandomNoise;
+	rudderMsg->variance = rudderSensorRandomNoise;
 
     forwardThrusterPub.publish(forwardMsg);
 	lateralThrusterPub.publish(lateralMsg);
