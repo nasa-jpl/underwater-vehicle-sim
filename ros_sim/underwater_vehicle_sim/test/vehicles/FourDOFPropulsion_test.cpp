@@ -160,9 +160,16 @@ TEST(FourDOFPropulsion, SendCommand) {
     ASSERT_EQ(4, rudderMessages.size());
 
     EXPECT_DOUBLE_EQ(forwardThrust + expectedForwardError[3], forwardMessages[3].data);
+    EXPECT_DOUBLE_EQ(thrustSensorNoise, forwardMessages[3].variance);
+
     EXPECT_DOUBLE_EQ(lateralThrust + expectedLateralError[3], lateralMessages[3].data);
+    EXPECT_DOUBLE_EQ(thrustSensorNoise, lateralMessages[3].variance);
+
     EXPECT_DOUBLE_EQ(verticalThrust + expectedVerticalError[3], verticalMessages[3].data);
+    EXPECT_DOUBLE_EQ(thrustSensorNoise, verticalMessages[3].variance);
+
     EXPECT_DOUBLE_EQ(rudderThrust + expectedRudderError[3], rudderMessages[3].data);
+    EXPECT_DOUBLE_EQ(rudderSensorNoise, rudderMessages[3].variance);
 
     //Test invalid messages
     std_msgs::Float64Ptr forwardMsgInvalid(new std_msgs::Float64);
