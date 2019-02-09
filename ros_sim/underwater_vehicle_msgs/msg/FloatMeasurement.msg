@@ -1,4 +1,4 @@
 Header header
 
-float64 depth
+float64 data
 float64 variance

@@ -30,8 +30,6 @@ protected:
     std::string vehicleName;
 
 	ros::NodeHandle nh;
-
-	ros::Time lastUpdate;
 };
 
 

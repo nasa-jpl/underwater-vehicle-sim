@@ -4,13 +4,13 @@
 
 #include <tf2_ros/static_transform_broadcaster.h>
 
-#include "underwater_vehicle_msgs/Depth.h"
+#include "underwater_vehicle_msgs/FloatMeasurement.h"
 
 #include "vehicles/DepthModule.h"
 
-std::vector<underwater_vehicle_msgs::Depth> depthMessages;
+std::vector<underwater_vehicle_msgs::FloatMeasurement> depthMessages;
 
-void imuNoErrorCallback(const underwater_vehicle_msgs::DepthPtr& vel)
+void imuNoErrorCallback(const underwater_vehicle_msgs::FloatMeasurementPtr& vel)
 {
     depthMessages.push_back(*vel);
 }
@@ -40,7 +40,7 @@ TEST(DepthModule, ErrorTest)
     ASSERT_EQ(1, depthMessages.size());
 
     EXPECT_DOUBLE_EQ(1.234, depthMessages[0].header.stamp.toSec());
-    EXPECT_DOUBLE_EQ(depth + depthBias + depthError, depthMessages[0].depth);
+    EXPECT_DOUBLE_EQ(depth + depthBias + depthError, depthMessages[0].data);
     EXPECT_DOUBLE_EQ(1, depthMessages[0].variance);
 }
 

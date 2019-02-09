@@ -7,13 +7,31 @@
 #include "vehicles/FourDOFPropulsion.h"
 #include "model_server/GetModelData.h"
 
+#include "underwater_vehicle_msgs/FloatMeasurement.h"
+
 #define SECONDS_IN_DAY 86400
 
 FourDOFPropulsion::FourDOFPropulsion(VehicleState& vehicleState) :
-	PropulsionModule("FourDOFPropulsion", vehicleState)
+	PropulsionModule("FourDOFPropulsion", vehicleState),
+    forwardThrust(0),
+	lateralThrust(0),
+	verticalThrust(0),
+	rudder(0)
 {
     ros::NodeHandle nhPriv("~");
     
+    int randomSeed = 0;
+    if(nhPriv.getParam("propulsion_random_seed", randomSeed))
+    {
+         generator = std::default_random_engine(randomSeed);
+    }
+
+    nhPriv.param("thrust_sensor_random_noise", thrustSensorRandomNoise, 0.0);
+    nhPriv.param("rudder_sensor_random_noise", rudderSensorRandomNoise, 0.0);
+
+    thrustSensorDistribution = std::normal_distribution<double>(0, sqrt(thrustSensorRandomNoise));
+	rudderSensorDistribution = std::normal_distribution<double>(0, sqrt(rudderSensorRandomNoise));
+
     if(nhPriv.hasParam("forward_thruster_thrust") && 
        nhPriv.hasParam("forward_thruster_velocity"))
     {
@@ -156,69 +174,149 @@ FourDOFPropulsion::FourDOFPropulsion(VehicleState& vehicleState) :
     verticalThrusterSub = nh.subscribe("command_vertical_thruster", 1, &FourDOFPropulsion::verticalThrusterCallback, this);
 	rudderSub = nh.subscribe("command_rudder", 1, &FourDOFPropulsion::rudderCallback, this);
 
+    forwardThrusterPub = nh.advertise<underwater_vehicle_msgs::FloatMeasurement>("measured_forward_thruster", 10);
+	lateralThrusterPub = nh.advertise<underwater_vehicle_msgs::FloatMeasurement>("measured_lateral_thruster", 10);
+	verticalThrusterPub = nh.advertise<underwater_vehicle_msgs::FloatMeasurement>("measured_vertical_thruster", 10);
+	rudderPub = nh.advertise<underwater_vehicle_msgs::FloatMeasurement>("measured_rudder", 10);
+
     vehicleState.setLinearVelocityNED(tf2::Vector3(0,0,0));
     vehicleState.setAngularVelocityNED(tf2::Vector3(0,0,0));
 }
 
 void FourDOFPropulsion::forwardThrusterCallback(const std_msgs::Float64::ConstPtr& val)
 {
+    forwardThrust = val->data;
+}
+
+void FourDOFPropulsion::lateralThrusterCallback(const std_msgs::Float64::ConstPtr& val)
+{
+    lateralThrust = val->data;
+}
+
+void FourDOFPropulsion::verticalThrusterCallback(const std_msgs::Float64::ConstPtr& val)
+{
+    verticalThrust = val->data;
+}
+
+void FourDOFPropulsion::rudderCallback(const std_msgs::Float64::ConstPtr& val)
+{
+    rudder = val->data;
+}
+
+void FourDOFPropulsion::updateTwist()
+{
     tf2::Vector3 updatedLinearVelocity = vehicleState.getLinearVelocityNED();
-    if(std::isfinite(val->data))
+    tf2::Vector3 updatedAngularVelocity = vehicleState.getAngularVelocityNED();
+
+    if(std::isfinite(forwardThrust))
     {
-        LinearPiecewise::Point vel = forwardThrusterFunc.getY(val->data);
+        LinearPiecewise::Point vel = forwardThrusterFunc.getY(forwardThrust);
         if(std::isfinite(vel.y))
         {
             updatedLinearVelocity.setX(vel.y);
         }
     }
 
-    vehicleState.setLinearVelocityNED(updatedLinearVelocity);
-}
-
-void FourDOFPropulsion::lateralThrusterCallback(const std_msgs::Float64::ConstPtr& val)
-{
-    tf2::Vector3 updatedLinearVelocity = vehicleState.getLinearVelocityNED();
-
-    if(std::isfinite(val->data))
+    if(std::isfinite(lateralThrust))
     {
-        LinearPiecewise::Point vel = lateralThrusterFunc.getY(val->data);
+        LinearPiecewise::Point vel = lateralThrusterFunc.getY(lateralThrust);
         if(std::isfinite(vel.y))
         {
             updatedLinearVelocity.setY(vel.y);
         }
     }
 
-    vehicleState.setLinearVelocityNED(updatedLinearVelocity);
-}
-
-void FourDOFPropulsion::verticalThrusterCallback(const std_msgs::Float64::ConstPtr& val)
-{
-    tf2::Vector3 updatedLinearVelocity = vehicleState.getLinearVelocityNED();
-
-    if(std::isfinite(val->data))
+    if(std::isfinite(verticalThrust))
     {
-        LinearPiecewise::Point vel = verticalThrusterFunc.getY(val->data);
+        LinearPiecewise::Point vel = verticalThrusterFunc.getY(verticalThrust);
         if(std::isfinite(vel.y))
         {
             updatedLinearVelocity.setZ(vel.y);
         }
     }
 
-    vehicleState.setLinearVelocityNED(updatedLinearVelocity);
-}
-
-void FourDOFPropulsion::rudderCallback(const std_msgs::Float64::ConstPtr& val)
-{
-    tf2::Vector3 updatedAngularVelocity = vehicleState.getAngularVelocityNED();
-
-    if(std::isfinite(val->data))
+    if(std::isfinite(rudder))
     {
-        LinearPiecewise::Point vel = rudderFunc.getY(val->data);
+        LinearPiecewise::Point vel = rudderFunc.getY(rudder);
         if(std::isfinite(vel.y))
         {
             updatedAngularVelocity.setZ(vel.y);
         }
     }
 
+    vehicleState.setLinearVelocityNED(updatedLinearVelocity);
     vehicleState.setAngularVelocityNED(updatedAngularVelocity);
+}
+
+void FourDOFPropulsion::publishSensors()
+{   
+    double forwardError = thrustSensorDistribution(generator);
+    double lateralError = thrustSensorDistribution(generator);
+    double verticalError = thrustSensorDistribution(generator);
+    double rudderError = rudderSensorDistribution(generator);
+
+    double forwardMeasurment = forwardThrust + forwardError;
+    if((forwardThrust > 0 && forwardMeasurment < 0) ||
+       (forwardThrust < 0 && forwardMeasurment > 0))
+    {
+        forwardMeasurment = 0;
+    }
+
+    double lateralMeasurment = lateralThrust + lateralError;
+    if((lateralThrust > 0 && lateralMeasurment < 0) ||
+       (lateralThrust < 0 && lateralMeasurment > 0))
+    {
+        lateralMeasurment = 0;
+    }
+
+    double verticalMeasurment = verticalThrust + verticalError;
+    if((verticalThrust > 0 && verticalMeasurment < 0) ||
+       (verticalThrust < 0 && verticalMeasurment > 0))
+    {
+        verticalMeasurment = 0;
+    }
+
+    double rudderMeasurment = rudder + rudderError;
+    if((rudder > 0 && rudderMeasurment < 0) ||
+       (rudder < 0 && rudderMeasurment > 0))
+    {
+        rudderMeasurment = 0;
+    }
+
+    ros::Time currentTime = ros::Time::now();
+
+    underwater_vehicle_msgs::FloatMeasurementPtr forwardMsg(new underwater_vehicle_msgs::FloatMeasurement);
+	forwardMsg->header.frame_id = "world_ned";
+	forwardMsg->header.stamp = currentTime;
+	forwardMsg->data = forwardMeasurment;
+	forwardMsg->variance = thrustSensorRandomNoise;
+
+    underwater_vehicle_msgs::FloatMeasurementPtr lateralMsg(new underwater_vehicle_msgs::FloatMeasurement);
+	lateralMsg->header.frame_id = "world_ned";
+	lateralMsg->header.stamp = currentTime;
+	lateralMsg->data = lateralMeasurment;
+	lateralMsg->variance = thrustSensorRandomNoise;
+
+    underwater_vehicle_msgs::FloatMeasurementPtr verticalMsg(new underwater_vehicle_msgs::FloatMeasurement);
+	verticalMsg->header.frame_id = "world_ned";
+	verticalMsg->header.stamp = currentTime;
+	verticalMsg->data = verticalMeasurment;
+	verticalMsg->variance = thrustSensorRandomNoise;
+
+    underwater_vehicle_msgs::FloatMeasurementPtr rudderMsg(new underwater_vehicle_msgs::FloatMeasurement);
+	rudderMsg->header.frame_id = "world_ned";
+	rudderMsg->header.stamp = currentTime;
+	rudderMsg->data = rudderMeasurment;
+	rudderMsg->variance = thrustSensorRandomNoise;
+
+    forwardThrusterPub.publish(forwardMsg);
+	lateralThrusterPub.publish(lateralMsg);
+	verticalThrusterPub.publish(verticalMsg);
+	rudderPub.publish(rudderMsg);
+}
+
+void FourDOFPropulsion::update()
+{
+    updateTwist();
+    publishSensors();
 }

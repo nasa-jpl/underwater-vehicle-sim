@@ -43,9 +43,14 @@ private:
 	void broadcastTransform();
 
 	/**
-	* Initalizes the general modules
+	* Initalizes the general modules. Starting the callback timers
 	*/
 	void initalizeGeneralModules();
+
+	/**
+	* Initalizes the propulsion module. Starting the callback timer
+	*/
+	void initalizePropulsionModule();
 
 	/**
 	* Initalizes the vehicle frame using tf
@@ -63,6 +68,10 @@ private:
 	 */
 	void moduleTimerCallback(unsigned int moduleIndex);
 
+	/**
+	 * Callback to call propulsion module update. This is called by a timer callback.
+	 */
+	void propModuleTimerCallback();
 private:
 
     /**
@@ -99,6 +108,11 @@ private:
 	 * Timer to handle update
 	 */
 	std::vector<ros::Timer> moduleTimers;
+
+	/**
+	 * Time to handle updates of the propulsion module
+	 */
+	ros::Timer propTimer;
 
 	/**
 	* Tracks power remaining for this vehicle

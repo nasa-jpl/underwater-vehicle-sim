@@ -49,15 +49,13 @@ add_message_files(
     FILES
     VehicleData.msg
     USBL.msg
-    Depth.msg
-#   Message2.msg
+    FloatMeasurement.msg
 )
 
 ## Generate services in the 'srv' folder
 add_service_files(
     FILES
     GetVehicleInfo.srv
-#   Service2.srv
 )
 
 ## Generate actions in the 'action' folder

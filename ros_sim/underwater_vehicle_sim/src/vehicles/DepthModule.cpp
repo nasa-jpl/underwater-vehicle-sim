@@ -7,7 +7,7 @@
 #include "tf2/LinearMath/Vector3.h"
 #include "tf2/LinearMath/Quaternion.h"
 
-#include "underwater_vehicle_msgs/Depth.h"
+#include "underwater_vehicle_msgs/FloatMeasurement.h"
 
 DepthModule::DepthModule(std::string name) :
 	GeneralModule(name, "depth")
@@ -24,7 +24,7 @@ DepthModule::DepthModule(std::string name) :
 
 	depthDistribution = std::normal_distribution<double>(depthBiasError, sqrt(depthRandomError));
 
-	depth = nh.advertise<underwater_vehicle_msgs::Depth>("data", 1000);
+	depth = nh.advertise<underwater_vehicle_msgs::FloatMeasurement>("data", 1000);
 }
 
 void DepthModule::update(const ros::Time& lastTime, VehicleState& vehicleState, ModelData& modelData) 
@@ -37,11 +37,11 @@ void DepthModule::update(const ros::Time& lastTime, VehicleState& vehicleState, 
 		depthReading += depthDistribution(generator);
 	}
 
-	underwater_vehicle_msgs::DepthPtr depthMsg(new underwater_vehicle_msgs::Depth);
+	underwater_vehicle_msgs::FloatMeasurementPtr depthMsg(new underwater_vehicle_msgs::FloatMeasurement);
 
 	depthMsg->header.frame_id = "world_ned";
 	depthMsg->header.stamp = lastTime;
-	depthMsg->depth = depthReading;
+	depthMsg->data = depthReading;
 	depthMsg->variance = depthRandomError;
 
 	depth.publish(depthMsg);

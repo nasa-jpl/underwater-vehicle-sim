@@ -22,8 +22,7 @@ Vehicle::Vehicle()
 
 	initalizeVehicleFrame();
   	
-	propulsionModule = PropulsionModule::makePropulsionModule(vehicleState);
-
+	initalizePropulsionModule();
 	initalizeGeneralModules();
 }
 
@@ -40,8 +39,7 @@ Vehicle::Vehicle(std::unique_ptr<ModelInterface> model)	:
 
 	initalizeVehicleFrame();
   	
-	propulsionModule = PropulsionModule::makePropulsionModule(vehicleState);
-
+	initalizePropulsionModule();
 	initalizeGeneralModules();
 }
 
@@ -80,6 +78,18 @@ void Vehicle::initalizeVehicleFrame()
 	broadcastTransform();
 }
 
+void Vehicle::initalizePropulsionModule()
+{
+	ros::NodeHandle nhPriv("~");
+	double propulsionHertz = 1;
+	nhPriv.getParam("propulsion_hertz", propulsionHertz);
+
+	propulsionModule = PropulsionModule::makePropulsionModule(vehicleState);
+
+	propTimer = nh.createTimer(ros::Duration(1 / propulsionHertz), std::bind(&Vehicle::propModuleTimerCallback, this));
+	propTimer.start();
+}
+
 void Vehicle::initalizeGeneralModules()
 {
 	ros::NodeHandle nhPriv("~");
@@ -98,9 +108,13 @@ void Vehicle::initalizeGeneralModules()
 	}
 }
 
+void Vehicle::propModuleTimerCallback()
+{
+	propulsionModule->update();
+}
+
 void Vehicle::moduleTimerCallback(unsigned int moduleIndex)
 {
-
 	modules[moduleIndex]->update(lastTransformTime, vehicleState, dataAtLastTransform);
 }
 
@@ -128,7 +142,6 @@ void Vehicle::update()
 
 	//Broadcast the latest transform
 	broadcastTransform();
-
 }
 
 ModelData Vehicle::getModelData()

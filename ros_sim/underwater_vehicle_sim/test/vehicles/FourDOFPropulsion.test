@@ -11,5 +11,9 @@
 
         <rosparam param="rudder_angle">[-45,0,45]</rosparam>
         <rosparam param="rudder_velocity">[-5,0,5]</rosparam>
+
+        <rosparam param="thrust_sensor_random_noise">4</rosparam>
+        <rosparam param="rudder_sensor_random_noise">6</rosparam>
+        <rosparam param="propulsion_random_seed">111</rosparam>
     </test>
 </launch>

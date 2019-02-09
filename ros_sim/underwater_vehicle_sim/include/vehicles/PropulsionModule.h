@@ -28,6 +28,12 @@ public:
 	static std::unique_ptr<PropulsionModule> makePropulsionModule(VehicleState& vehicleState);
 
 	std::string& getType();
+
+	/**
+	* Update called at a fixed rate. This can be used for various housekeeping tasks
+	* such as applying noise to the propulsion method
+	*/
+	virtual void update()=0;
 protected:
 
 	ros::NodeHandle nh;
