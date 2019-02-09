@@ -250,10 +250,23 @@ void FourDOFPropulsion::updateTwist()
 
 void FourDOFPropulsion::publishSensors()
 {   
-    double forwardError = thrustSensorDistribution(generator);
-    double lateralError = thrustSensorDistribution(generator);
-    double verticalError = thrustSensorDistribution(generator);
-    double rudderError = rudderSensorDistribution(generator);
+    double forwardError = 0;
+    double lateralError = 0;
+    double verticalError = 0;
+    double rudderError = 0;
+
+    if(thrustSensorRandomNoise > 0)
+    {
+        forwardError = thrustSensorDistribution(generator);
+        lateralError = thrustSensorDistribution(generator);
+        verticalError = thrustSensorDistribution(generator);
+    }
+   
+    if(rudderSensorRandomNoise > 0)
+    {
+        rudderError = rudderSensorDistribution(generator);
+    }
+    
 
     double forwardMeasurment = forwardThrust + forwardError;
     if((forwardThrust > 0 && forwardMeasurment < 0) ||
