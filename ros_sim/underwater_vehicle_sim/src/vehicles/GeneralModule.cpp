@@ -7,6 +7,7 @@
 #include "vehicles/DataBroadcasterModule.h"
 #include "vehicles/IMUModule.h"
 #include "vehicles/USBLModule.h"
+#include "vehicles/DepthModule.h"
 
 GeneralModule::GeneralModule(std::string name, std::string type) :
 	nh(name),
@@ -26,14 +27,19 @@ std::unique_ptr<GeneralModule> GeneralModule::makeGeneralModule(std::string modu
 		std::unique_ptr<GeneralModule> returnPtr(new DataBroadcasterModule(moduleName));
 		return returnPtr;
 	}
-	if(moduleType == "IMU")
+	else if(moduleType == "IMU")
 	{
 		std::unique_ptr<GeneralModule> returnPtr(new IMUModule(moduleName));
 		return returnPtr;
 	}
-	if(moduleType == "USBL")
+	else if(moduleType == "USBL")
 	{
 		std::unique_ptr<GeneralModule> returnPtr(new USBLModule(moduleName));
+		return returnPtr;
+	}
+	else if(moduleType == "Depth")
+	{
+		std::unique_ptr<GeneralModule> returnPtr(new DepthModule(moduleName));
 		return returnPtr;
 	}
 
