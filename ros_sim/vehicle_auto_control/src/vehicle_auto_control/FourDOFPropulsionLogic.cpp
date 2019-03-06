@@ -95,7 +95,7 @@ const void FourDOFPropulsionLogic::goToXY(VehiclePose& pose)
     double targetForwardVelocity = scaleHorizontalVelocity(point.norm());
 
     double currentAngularVelocity = pose.getAngularVelocity()[2];
-    double currentForwardVelocity = (pose.getOrientation().inverse() * pose.getLinearVelocity())[0];
+    double currentForwardVelocity = pose.getLinearVelocity()[0];
 
     if(std::isfinite(currentForwardVelocity))
     {
@@ -106,14 +106,6 @@ const void FourDOFPropulsionLogic::goToXY(VehiclePose& pose)
         std_msgs::Float64 forwardSetpointMsg;
         forwardSetpointMsg.data = targetForwardVelocity;
         forwardThrusterSetpoint.publish(forwardSetpointMsg);
-/*
-        std_msgs::Float64 forwardStateMsg;
-        forwardStateMsg.data = targetForwardVelocity - currentForwardVelocity;
-        forwardThrusterState.publish(forwardStateMsg);
-
-        std_msgs::Float64 forwardSetpointMsg;
-        forwardSetpointMsg.data = 0;
-        forwardThrusterSetpoint.publish(forwardSetpointMsg);*/
     }
     
     if(std::isfinite(angle))
