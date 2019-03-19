@@ -8,7 +8,8 @@
 #include "std_msgs/Float64.h"
 
 #include "vehicles/PropulsionModule.h"
-#include "vehicles/LinearPiecewise.h"
+
+#include "underwater_util/LinearPiecewise.h"
 
 /**
 *Propulson module which provides the vehicle with 4 degrees of freedom

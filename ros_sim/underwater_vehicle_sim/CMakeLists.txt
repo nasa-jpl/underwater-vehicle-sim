@@ -21,8 +21,7 @@ find_package(catkin REQUIRED COMPONENTS
   tf2_geometry_msgs
 )
 
-## System dependencies are found with CMake's conventions
-# find_package(Boost REQUIRED COMPONENTS system)
+find_package(UnderwaterAutonomy REQUIRED)
 
 
 ## Uncomment this if the package has a setup.py. This macro ensures
@@ -139,10 +138,9 @@ catkin_package(
    src/vehicles/USBLModule.cpp
    src/vehicles/DepthModule.cpp
    src/vehicles/VehicleState.cpp
-   src/vehicles/LinearPiecewise.cpp
  )
 
- target_link_libraries(underwater_vehicles ${catkin_LIBRARIES})
+ target_link_libraries(underwater_vehicles underwater_autonomy ${catkin_LIBRARIES})
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
@@ -216,9 +214,6 @@ catkin_package(
 ## Add gtest based cpp test target and link libraries
 if (CATKIN_ENABLE_TESTING)
  find_package(rostest REQUIRED)
-
- catkin_add_gtest(linear_piecewise_test test/vehicles/LinearPiecewise_test.cpp)
- target_link_libraries(linear_piecewise_test underwater_vehicles ${catkin_LIBRARIES})
 
  add_rostest_gtest(clock_server_node_test test/clock_server/ClockServerNode.test test/clock_server/ClockServerNode_test.cpp)
  target_link_libraries(clock_server_node_test ${catkin_LIBRARIES} ${NETCDF_LIBRARIES})

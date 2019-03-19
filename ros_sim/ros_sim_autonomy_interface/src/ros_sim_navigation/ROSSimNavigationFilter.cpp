@@ -186,17 +186,17 @@ void ROSSimNavigationFilter::sendUSBLToFilter(underwater_vehicle_msgs::USBL usbl
     std::vector<double> filterRangeData;
     std::vector<double> filterUSBLData;
     std::vector<double> input;
+    
+    input.push_back(usblData.beacon_x);
+    input.push_back(usblData.beacon_y);
+    input.push_back(usblData.beacon_z);
+    
+    filterRangeData.push_back(usblData.range);
 
-    //Correct range for slant
-    double deltaDepth = usblData.beacon_z - filter->getPoseEstimation().getPosition()[2];
-    double correctedRange = sqrt(pow(usblData.range, 2) - pow(deltaDepth, 2));
-
-    filterRangeData.push_back(correctedRange);
-
-    filterUSBLData.push_back(correctedRange);
+    filterUSBLData.push_back(usblData.range);
     filterUSBLData.push_back(usblData.bearing);
 
-    filter->sensorMeasurement("range_without_beacon", usblData.header.stamp.toSec(), filterRangeData, input);
+    filter->sensorMeasurement("slant_range", usblData.header.stamp.toSec(), filterRangeData, input);
     filter->sensorMeasurement("usbl", usblData.header.stamp.toSec(), filterUSBLData, input);
 }
 

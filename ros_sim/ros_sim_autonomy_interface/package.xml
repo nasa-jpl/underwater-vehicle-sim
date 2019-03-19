@@ -41,8 +41,6 @@
   <!--   <test_depend>gtest</test_depend> -->
   <buildtool_depend>catkin</buildtool_depend>
   <build_depend>roscpp</build_depend>
-  <build_depend>planner</build_depend>
-  <build_depend>vent_planner</build_depend>
   <build_depend>planner_log</build_depend>
   <build_depend>vehicle_auto_control</build_depend>
   <build_depend>actionlib_msgs</build_depend>
@@ -52,8 +50,6 @@
   <build_depend>nav_msgs</build_depend>
 
   <exec_depend>roscpp</exec_depend>
-  <exec_depend>planner</exec_depend>
-  <exec_depend>vent_planner</exec_depend>
   <exec_depend>planner_log</exec_depend>
   <exec_depend>vehicle_auto_control</exec_depend>
   <exec_depend>tf2</exec_depend>
