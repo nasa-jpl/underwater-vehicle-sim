@@ -115,7 +115,7 @@ TEST(VehicleState, UpdateTest){
     VehicleState state;
 
     tf2::Vector3 linearVelocity(1, 2, 1);
-    tf2::Vector3 angularVelocity(-2, -4, 6);
+    tf2::Vector3 angularVelocity(0, 0, -M_PI / 2);
 
     tf2::Vector3 startPosition(1.2, 3.4, 5.6);
     tf2::Vector3 endPosition(0.2, 3.9, 6.1);
@@ -123,8 +123,9 @@ TEST(VehicleState, UpdateTest){
     tf2::Quaternion startRotation;
     startRotation.setRPY(0, 0, M_PI / 2);
 
-	tf2::Quaternion deltaRotation(angularVelocity.normalized(), angularVelocity.length() * deltaTime.toSec());
-    tf2::Quaternion endRotation = deltaRotation * startRotation;
+    tf2::Quaternion endRotation;
+    endRotation.setRPY(0, 0, M_PI / 4);
+
 
     state.setPositionNED(startPosition);
     state.setRotationNED(startRotation);

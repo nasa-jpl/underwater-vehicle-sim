@@ -114,7 +114,7 @@ TEST(ROSSimNavigationFilter, TrueNavigation)
     m2 = Eigen::AngleAxisd(0, Eigen::Vector3d::UnitX())
        * Eigen::AngleAxisd(0, Eigen::Vector3d::UnitY())
        * Eigen::AngleAxisd(M_PI / 2, Eigen::Vector3d::UnitZ());
-    targetPoses.emplace_back(Eigen::Vector3d(1.1, 2.1, 3.1),
+    targetPoses.emplace_back(Eigen::Vector3d(1.1, 1.8, 3.1),   //-0.2 -0.1 0.1
                       Eigen::Quaterniond(m2));
 
     filter.publishPose();
@@ -170,15 +170,19 @@ TEST(ROSSimNavigationFilter, TrueNavigation)
         ros::spinOnce();
         ros::spinOnce();
     }
-    
-    targetPoses[2].setLinearVelocity(Eigen::Vector3d((targetPoses[2].getPosition()[0] - targetPoses[1].getPosition()[0]) / (transformStamped2.header.stamp.toSec() - transformStamped1.header.stamp.toSec()),
-                                                     (targetPoses[2].getPosition()[1] - targetPoses[1].getPosition()[1]) / (transformStamped2.header.stamp.toSec() - transformStamped1.header.stamp.toSec()),
-                                                     (targetPoses[2].getPosition()[2] - targetPoses[1].getPosition()[2]) / (transformStamped2.header.stamp.toSec() - transformStamped1.header.stamp.toSec())));
+   
+    //Body frame linear velocity between pose 1 and pose 2
+    targetPoses[2].setLinearVelocity(Eigen::Vector3d(-0.2 / (transformStamped2.header.stamp.toSec() - transformStamped1.header.stamp.toSec()),
+                                                     -0.1 / (transformStamped2.header.stamp.toSec() - transformStamped1.header.stamp.toSec()),
+                                                     0.1 / (transformStamped2.header.stamp.toSec() - transformStamped1.header.stamp.toSec())));
+
+    //Body frame angular velocity between pose 1 and pose 2
     targetPoses[2].setAngularVelocity(Eigen::Vector3d(0, 0, (M_PI / 4) / (transformStamped2.header.stamp.toSec() - transformStamped1.header.stamp.toSec())));
 
     ASSERT_EQ(3, poses.size());
     EXPECT_TRUE(targetPoses[0] == poses[0]);
     //pose 1 is not checked becuase we do not know the twist as we do not know when the filter was initialized
+
     EXPECT_TRUE(targetPoses[2] == poses[2]);
 }
 

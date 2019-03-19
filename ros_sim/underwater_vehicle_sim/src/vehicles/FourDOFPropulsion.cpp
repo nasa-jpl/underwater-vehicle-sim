@@ -42,7 +42,6 @@ FourDOFPropulsion::FourDOFPropulsion(VehicleState& vehicleState) :
 
         if(thrust.size() == velocity.size())
         {
-
             if(thrust.size() == 0)
             {
                 ROS_WARN("%s/forward_thruster_thrust and %s/forward_thruster_velocity are empty.  Default values will be used.", nhPriv.getNamespace().c_str(), nhPriv.getNamespace().c_str());

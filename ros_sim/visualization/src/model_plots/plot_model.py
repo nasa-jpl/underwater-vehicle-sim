@@ -76,6 +76,8 @@ def dye_plot(fvcomData, plotType, siglay, minColor=-1, maxColor=-1):
         depth.append(d[3]),
         dye.append(d[4][siglay])
 
+    print("Depth Range: " + str(min(z)) + " " + str(max(z)))
+
     if plotType == "3d":
         fig = plt.figure()
         ax = fig.add_subplot(111, projection='3d')
@@ -102,11 +104,8 @@ def dye_plot(fvcomData, plotType, siglay, minColor=-1, maxColor=-1):
         if maxColor == -1:
             maxColor = max(dye)
 
-        lev_exp = np.arange(np.floor(np.log10(minColor)-1),
-                            np.ceil(np.log10(maxColor)+1))
-        levs = np.power(10, lev_exp)
-        cf = ax.contourf(X, Y, Z, levs, norm=colors.LogNorm(), cmap=plt.get_cmap('inferno'))
-
+        cf = ax.scatter(x, y, c=dye, vmin=minColor, vmax=maxColor, linewidth=0, norm=colors.SymLogNorm(1))
+     #   cf = ax.scatter(x, y, c=dye, vmin=minColor, vmax=maxColor, linewidth=0)
         fig.colorbar(cf, ax=ax)
 
 
@@ -129,7 +128,7 @@ def bathymetry_plot(fvcomData, plotType):
         fig = plt.figure()
         ax = fig.add_subplot(111, projection='3d')
         ax.set_title("Bathymetry")
-        ax.scatter(x, y, h)
+        ax.scatter(x, y, depth)
         ax.invert_zaxis()
     elif plotType == "contour":
         fig = plt.figure()
@@ -141,7 +140,7 @@ def bathymetry_plot(fvcomData, plotType):
         yi = linspace(min(y), max(y), resY)
         Z = griddata(x, y, depth, xi, yi, interp="linear")
         X, Y = meshgrid(xi, yi)
-        levels = MaxNLocator(nbins=15).tick_values(min(depth), max(depth))
+        levels = MaxNLocator(nbins=30).tick_values(min(depth), max(depth))
         cf = ax.contourf(X, Y, Z, levels=levels, cmap=plt.get_cmap('YlGnBu'))
         fig.colorbar(cf, ax=ax)
 
@@ -150,16 +149,31 @@ def main():
     plotType = sys.argv[2]
     outputDir = sys.argv[3]
 
+
+ #   for i in xrange(0, 24, 1):
+ #       fvcomData = loadFVCOM(fvcomFile, i)
+ #       fvcomData = filterXY(fvcomData, (-4250, 3750), (-3000, 5000))
+
+ #       dye_plot(fvcomData, plotType, 8, minColor=0, maxColor=100)
+
+ #       filename = format(i, '03') + ".png"
+ #       plt.savefig(os.path.join(outputDir, filename), bbox_inches='tight')
+ #       plt.close()
+
     fvcomData = loadFVCOM(fvcomFile, 1)
+    fvcomData = filterXY(fvcomData, (-4250, 3750), (-3000, 5000))
 
-    fvcomData = filterXY(fvcomData, (-50000, 50000), (-50000, 50000))
 
-    for i in xrange(0,127,2):
+    for i in xrange(0,127,1):
         print("Output: " + str(i))
         dye_plot(fvcomData, plotType, i, minColor=0, maxColor=100)
 
         filename = format(i, '03') + ".png"
         plt.savefig(os.path.join(outputDir, filename), bbox_inches='tight')
+        plt.close()
+
+   # bathymetry_plot(fvcomData, plotType)
+   # plt.show()
 
 
 if __name__== "__main__":

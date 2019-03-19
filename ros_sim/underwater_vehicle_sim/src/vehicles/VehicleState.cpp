@@ -50,10 +50,10 @@ VehicleState::VehicleState(VehicleState&& other)
 
 void VehicleState::updatePose(const ros::Time currentTime, const ros::Duration deltaTime)
 {
-    //Get the total linear movement in the vehicle frame
+    //Get the total linear movement in the body frame
 	tf2::Vector3 totalLinMovement = linearVelocity * deltaTime.toSec();
 
-	//rotate the total linear movement to be in the world frame
+	//rotate the total linear movement from the body frame into the world frame
 	totalLinMovement = totalLinMovement.rotate(rotation.getAxis(), rotation.getAngle());
 
 	//apply the linear movement
@@ -61,8 +61,13 @@ void VehicleState::updatePose(const ros::Time currentTime, const ros::Duration d
 
 	if(angularVelocity.length() != 0)
 	{
-		//Apply the angular velocity * delta time to the current rotation of the vehicle
-		tf2::Quaternion deltaRotation(angularVelocity.normalized(), angularVelocity.length() * deltaTime.toSec());
+		//rotate from body frame to world frame
+		tf2::Vector3 worldFrameAngularVelocity = angularVelocity.rotate(rotation.getAxis(), rotation.getAngle());
+
+		//Apply the world frame angular velocity * delta time to the current rotation of the vehicle
+		tf2::Quaternion deltaRotation(worldFrameAngularVelocity.normalized(), 
+									  worldFrameAngularVelocity.length() * deltaTime.toSec());
+		
 		rotation = deltaRotation * rotation;
 	}
 						  

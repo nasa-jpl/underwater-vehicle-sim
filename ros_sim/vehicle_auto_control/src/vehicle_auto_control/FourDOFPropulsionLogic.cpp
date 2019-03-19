@@ -94,7 +94,8 @@ const void FourDOFPropulsionLogic::goToXY(VehiclePose& pose)
 
     double targetForwardVelocity = scaleHorizontalVelocity(point.norm());
 
-    double currentAngularVelocity = pose.getAngularVelocity()[2];
+    //rotate angular velocity from body frame into world frame and get angular velocity corresponding to heading
+    double currentAngularVelocity =  (pose.getOrientation() * pose.getAngularVelocity())[2];
     double currentForwardVelocity = pose.getLinearVelocity()[0];
 
     if(std::isfinite(currentForwardVelocity))

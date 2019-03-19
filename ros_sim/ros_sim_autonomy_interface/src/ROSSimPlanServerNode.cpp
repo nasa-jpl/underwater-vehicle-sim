@@ -82,6 +82,20 @@ int main(int argc, char **argv)
         nhPriv.getParam("inital_spacing", parameters.initialSpacing);
         nhPriv.getParam("final_spacing", parameters.finalSpacing);
         nhPriv.getParam("fail_time", parameters.failTime);
+        
+        double startX, startY, startZ;
+        nhPriv.getParam("spiral_start_x", startX);
+        nhPriv.getParam("spiral_start_y", startY);
+        nhPriv.getParam("spiral_start_z", startZ);
+        parameters.startLocation = Eigen::Vector3d(startX, startY, startZ);
+
+        double minX, minY, maxX, maxY;
+        nhPriv.getParam("operation_region_min_x", minX);
+        nhPriv.getParam("operation_region_min_y", minY);
+        nhPriv.getParam("operation_region_max_x", maxX);
+        nhPriv.getParam("operation_region_max_y", maxY);
+        parameters.operationRegion = OperationRegion(minX, minY, maxX, maxY);
+
         planner.reset(new NestedBinVentPlanner(std::move(factory), std::move(interface), std::move(parameters)));
     }
     else if(plannerType == "DirectionSet")

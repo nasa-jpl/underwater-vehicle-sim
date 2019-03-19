@@ -3,8 +3,13 @@
 
 #include "ros/ros.h"
 
+#include "tf2/LinearMath/Quaternion.h"
 #include "tf2/LinearMath/Transform.h"
 #include "tf2_ros/transform_listener.h"
+
+#include "sensor_msgs/Imu.h"
+#include "underwater_vehicle_msgs/USBL.h"
+#include "underwater_vehicle_msgs/FloatMeasurement.h"
 
 #include "underwater_navigation/NavigationFilter.h"
 
@@ -25,6 +30,13 @@ public:
 
     void sendPoseToFilter();
 
+    void sendIMUToFilter(sensor_msgs::Imu imuData);
+    void sendDepthToFilter(underwater_vehicle_msgs::FloatMeasurement depthData);
+    void sendRotationalVelocityToFilter();
+    void sendUSBLToFilter(underwater_vehicle_msgs::USBL usblData);
+    void sendVelocityWRTWaterBodyFrameToFilter();
+    void sendVelocityWRTWaterWorldFrameToFilter();
+
 private:
     tf2_ros::Buffer buffer;
  	tf2_ros::TransformListener listener;
@@ -32,6 +44,10 @@ private:
     VehicleInfo info;
     ros::Publisher posePublisher;
     std::unique_ptr<NavigationFilter> filter;
+
+    ros::Subscriber imuData;
+    ros::Subscriber usblData;
+    ros::Subscriber depthData;
 };
 
 #endif
