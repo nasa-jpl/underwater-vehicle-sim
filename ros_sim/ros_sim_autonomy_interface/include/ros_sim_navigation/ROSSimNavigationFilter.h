@@ -32,10 +32,10 @@ public:
 
     void sendIMUToFilter(sensor_msgs::Imu imuData);
     void sendDepthToFilter(underwater_vehicle_msgs::FloatMeasurement depthData);
-    void sendRotationalVelocityToFilter();
     void sendUSBLToFilter(underwater_vehicle_msgs::USBL usblData);
-    void sendVelocityWRTWaterBodyFrameToFilter();
-    void sendVelocityWRTWaterWorldFrameToFilter();
+
+    void sendForwardThruster(underwater_vehicle_msgs::FloatMeasurement forwardData);
+    void sendLateralThruster(underwater_vehicle_msgs::FloatMeasurement lateralData);
 
 private:
     tf2_ros::Buffer buffer;
@@ -48,6 +48,9 @@ private:
     ros::Subscriber imuData;
     ros::Subscriber usblData;
     ros::Subscriber depthData;
+
+    ros::Subscriber forwardThrusterData;
+    ros::Subscriber lateralThrusterData;
 };
 
 #endif

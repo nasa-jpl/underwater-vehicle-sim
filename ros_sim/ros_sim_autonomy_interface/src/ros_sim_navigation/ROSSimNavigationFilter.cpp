@@ -42,6 +42,20 @@ ROSSimNavigationFilter::ROSSimNavigationFilter(VehicleInfo info, ros::Publisher 
                                          this);
         }
     }
+
+    if(info.getPropModuleType() == "FourDOFPropulsion")
+    {
+        forwardThrusterData = nhPriv.subscribe(info.getPropModuleName() + "/measured_forward_thruster", 
+                                               100, 
+                                               &ROSSimNavigationFilter::sendForwardThruster, 
+                                               this);
+
+        lateralThrusterData = nhPriv.subscribe(info.getPropModuleName() + "/measured_lateral_thruster", 
+                                               100, 
+                                               &ROSSimNavigationFilter::sendLateralThruster, 
+                                               this);
+        //subscribe to thruster info
+    }
 }
 
 ROSSimNavigationFilter::ROSSimNavigationFilter(ROSSimNavigationFilter&& other) :
@@ -77,6 +91,9 @@ ROSSimNavigationFilter ROSSimNavigationFilter::createNavigationFilter(std::strin
 
 void ROSSimNavigationFilter::update()
 {
+    std::vector<double> inputs;
+    double currentTime = ros::Time::now().toSec();
+    filter->predict(currentTime, inputs);
     sendPoseToFilter();
 }
 
@@ -205,6 +222,27 @@ void ROSSimNavigationFilter::sendDepthToFilter(underwater_vehicle_msgs::FloatMea
     std::vector<double> filterDepthData;
     std::vector<double> input;
 
-    filter->sensorMeasurement("depth", depthData.header.stamp.toSec(), filterDepthData, input);
+    filterDepthData.push_back(depthData.data);
 
+    filter->sensorMeasurement("depth", depthData.header.stamp.toSec(), filterDepthData, input);
 }
+
+void ROSSimNavigationFilter::sendForwardThruster(underwater_vehicle_msgs::FloatMeasurement forwardData)
+{
+    std::vector<double> filterForwardThrusterData;
+    std::vector<double> input;
+
+    filterForwardThrusterData.push_back(forwardData.data);
+
+    filter->sensorMeasurement("forward_thruster_command", forwardData.header.stamp.toSec(), filterForwardThrusterData, input);
+}
+
+void ROSSimNavigationFilter::sendLateralThruster(underwater_vehicle_msgs::FloatMeasurement lateralData)
+{
+    std::vector<double> filterLateralThrusterData;
+    std::vector<double> input;
+
+    filterLateralThrusterData.push_back(lateralData.data);
+
+    filter->sensorMeasurement("lateral_thruster_command", lateralData.header.stamp.toSec(), filterLateralThrusterData, input);
+} 

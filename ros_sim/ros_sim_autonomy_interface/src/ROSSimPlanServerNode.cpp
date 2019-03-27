@@ -10,6 +10,7 @@
 #include "vent_planner/NestedBinVentPlanner.h"
 #include "vent_planner/SurfaceGradientVentPlanner.h"
 #include "vent_planner/DirectionSetVentPlanner.h"
+#include "vent_planner/WaypointsPlanner.h"
 
 #include "ros_sim_plan_server/controllers/PointPathController.h"
 
@@ -113,6 +114,33 @@ int main(int argc, char **argv)
         nhPriv.getParam("num_sections_threshold", parameters.numSectionsThreshold);
 
         planner.reset(new DirectionSetVentPlanner(std::move(factory), std::move(interface), std::move(parameters)));
+    }
+    else if(plannerType == "Waypoints")
+    {
+        WaypointsPlanner::Parameters parameters;
+        std::vector<double> waypointsX;
+        std::vector<double> waypointsY;
+        std::vector<double> waypointsZ;
+
+        nhPriv.getParam("waypoints_x", waypointsX);
+        nhPriv.getParam("waypoints_y", waypointsY);
+        nhPriv.getParam("waypoints_z", waypointsZ);
+
+        if(waypointsX.size() != waypointsX.size() || 
+          waypointsX.size() != waypointsZ.size())
+        {
+            ROS_FATAL("Parameters \"%s/waypoints_x\", \"%s/waypoints_y\", and \"%s/waypoints_z\" must have the same size.", nhPriv.getNamespace().c_str(), 
+                                                                                                                            nhPriv.getNamespace().c_str(), 
+                                                                                                                            nhPriv.getNamespace().c_str());
+            exit(1);
+        }
+        
+        for(unsigned int i = 0; i < waypointsX.size(); i++)
+        {
+            parameters.waypoints.push_back(Eigen::Vector3d(waypointsX[i], waypointsY[i], waypointsZ[i]));
+        }
+
+        planner.reset(new WaypointsPlanner(std::move(factory), std::move(interface), std::move(parameters)));
     }
 
     std::unique_ptr<PointPathController> pointPathController(new PointPathController(info));
