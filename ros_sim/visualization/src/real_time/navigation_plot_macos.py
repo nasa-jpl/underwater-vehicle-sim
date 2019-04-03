@@ -15,7 +15,7 @@ import matplotlib.pyplot as plt
 import matplotlib.colors
 from matplotlib.animation import FuncAnimation
 
-
+colors = ["b", "g", "r", "c", "m", "y", "k"]
 
 xdata = []
 ydata = []
@@ -50,7 +50,7 @@ def main():
 
     for i, arg in enumerate(sys.argv[1:]):
         rospy.Subscriber(arg, Odometry, callback, (i, ))
-        scatters.append(plt.scatter([], [], linewidth=0, animated=True))
+        scatters.append(plt.scatter([], [], linewidth=0, animated=True, c=colors[i]))
 
         xdata.append([])
         ydata.append([])
