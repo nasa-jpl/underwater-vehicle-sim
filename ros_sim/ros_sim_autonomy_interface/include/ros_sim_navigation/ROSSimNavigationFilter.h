@@ -18,15 +18,18 @@
 class ROSSimNavigationFilter
 {
 public:
-    ROSSimNavigationFilter(VehicleInfo info, ros::Publisher posePublisher, std::unique_ptr<NavigationFilter> filter);
+
+    ROSSimNavigationFilter(std::string filterName, VehicleInfo info);
     ROSSimNavigationFilter(ROSSimNavigationFilter&& other);
     
     ~ROSSimNavigationFilter() {}
 
-    static ROSSimNavigationFilter createNavigationFilter(std::string& filterName, VehicleInfo info);
-
     void update();
     void publishPose();
+
+private:
+    void initializeCallbacks(std::string& filterName, VehicleInfo& info);
+    void initializeNavFilter(std::string& filterName, VehicleInfo& info);
 
     void sendPoseToFilter();
 
@@ -37,10 +40,12 @@ public:
     void sendForwardThruster(underwater_vehicle_msgs::FloatMeasurement forwardData);
     void sendLateralThruster(underwater_vehicle_msgs::FloatMeasurement lateralData);
 
+    static std::vector<std::vector<double>> get2dArrayParam(ros::NodeHandle nh, std::string name, std::vector<std::vector<double>> defaultVal);
 private:
     tf2_ros::Buffer buffer;
  	tf2_ros::TransformListener listener;
 
+    std::string filterName;
     VehicleInfo info;
     ros::Publisher posePublisher;
     std::unique_ptr<NavigationFilter> filter;

@@ -40,14 +40,13 @@ int main(int argc, char **argv)
         exit(1);
     }
     
-    for(std::string& filterName : filterNames)
+    for(std::string filterName : filterNames)
     {
         underwater_vehicle_msgs::GetVehicleInfo getInfo;
         vehicleInfoClient.call(getInfo);
         VehicleInfo info(getInfo);
 
-        ROSSimNavigationFilter filter = ROSSimNavigationFilter::createNavigationFilter(filterName, info);
-        vehicleFilters.push_back(std::move(filter));
+        vehicleFilters.emplace_back(filterName, info);
     }
 
     ros::Rate r(loopHertz);

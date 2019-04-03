@@ -1,5 +1,7 @@
 #include "underwater_vehicle_msgs/VehicleInfo.h"
 
+VehicleInfo::VehicleInfo() {}
+
 VehicleInfo::VehicleInfo(underwater_vehicle_msgs::GetVehicleInfo info) :
     name(info.request.name),
     propModuleName(info.response.propModuleName),

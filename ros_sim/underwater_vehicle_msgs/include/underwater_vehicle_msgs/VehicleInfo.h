@@ -7,6 +7,7 @@ class VehicleInfo
 {
 
 public:
+    VehicleInfo();
     VehicleInfo(underwater_vehicle_msgs::GetVehicleInfo info);
     ~VehicleInfo() {}
 

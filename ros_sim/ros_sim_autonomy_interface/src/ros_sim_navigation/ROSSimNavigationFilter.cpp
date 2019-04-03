@@ -1,56 +1,83 @@
 #include "ros_sim_navigation/ROSSimNavigationFilter.h"
 
 #include "underwater_navigation/TrueNavigationFilter.h"
+#include "underwater_navigation/KalmanNavigationFilter.h"
 
 #include "nav_msgs/Odometry.h"
 #include "underwater_vehicle_msgs/GetVehicleInfo.h"
 #include "underwater_vehicle_msgs/VehicleInfo.h"
 
-ROSSimNavigationFilter::ROSSimNavigationFilter(VehicleInfo info, ros::Publisher posePublisher, std::unique_ptr<NavigationFilter> filter) :
+ROSSimNavigationFilter::ROSSimNavigationFilter(std::string filterName, VehicleInfo info) :
     info(info),
-    posePublisher(std::move(posePublisher)),
-    filter(std::move(filter)),
-    listener(buffer)
+    listener(buffer),
+    filterName(filterName)
 {
-    ros::NodeHandle nhPriv("~");
+    initializeNavFilter(filterName, info);
 
+    ros::NodeHandle filterNh("nav_filters");
+    posePublisher = filterNh.advertise<nav_msgs::Odometry>(filterName, 1);
+
+    initializeCallbacks(filterName, info);    
+}
+
+ROSSimNavigationFilter::ROSSimNavigationFilter(ROSSimNavigationFilter&& other) :
+    info(std::move(other.info)),
+    filterName(std::move(other.filterName)),
+    posePublisher(std::move(other.posePublisher)),
+    filter(std::move(other.filter)),
+    listener(buffer),
+    imuData(std::move(other.imuData)),
+    usblData(std::move(other.usblData)),
+    depthData(std::move(other.depthData)),
+    forwardThrusterData(std::move(other.forwardThrusterData)),
+    lateralThrusterData(std::move(other.lateralThrusterData))
+{
+    initializeCallbacks(filterName, info);
+}
+
+void ROSSimNavigationFilter::initializeCallbacks(std::string& filterName, VehicleInfo& info)
+{
     std::vector<std::string> moduleNames = info.getModuleNames();
     std::vector<std::string> moduleTypes = info.getModuleTypes();
 
     for(unsigned int i = 0; i < moduleNames.size(); i++)
     {
-        if(moduleTypes[i] == "imu")
+        ros::NodeHandle nh(moduleNames[i]);
+
+        if(moduleTypes[i] == "IMU")
         {
-            imuData = nhPriv.subscribe(moduleNames[i] + "/data", 
+            imuData = nh.subscribe("data", 
                                        100, 
                                        &ROSSimNavigationFilter::sendIMUToFilter, 
                                        this);
         }
-        else if(moduleTypes[i] == "usbl")
+        else if(moduleTypes[i] == "USBL")
         {
-            usblData = nhPriv.subscribe(moduleNames[i] + "/data", 
+            usblData = nh.subscribe("data", 
                                         100, 
                                         &ROSSimNavigationFilter::sendUSBLToFilter, 
                                         this);
             //usblData
         }
-        else if(moduleTypes[i] == "depth")
+        else if(moduleTypes[i] == "Depth")
         {
-            depthData = nhPriv.subscribe(moduleNames[i] + "/data", 
-                                         100, 
-                                         &ROSSimNavigationFilter::sendDepthToFilter, 
-                                         this);
+            depthData = nh.subscribe("data", 
+                                     100, 
+                                     &ROSSimNavigationFilter::sendDepthToFilter, 
+                                     this);
         }
     }
 
     if(info.getPropModuleType() == "FourDOFPropulsion")
     {
-        forwardThrusterData = nhPriv.subscribe(info.getPropModuleName() + "/measured_forward_thruster", 
+        ros::NodeHandle nh(info.getPropModuleName());
+
+        forwardThrusterData = nh.subscribe("measured_forward_thruster", 
                                                100, 
                                                &ROSSimNavigationFilter::sendForwardThruster, 
                                                this);
 
-        lateralThrusterData = nhPriv.subscribe(info.getPropModuleName() + "/measured_lateral_thruster", 
+        lateralThrusterData = nh.subscribe("measured_lateral_thruster", 
                                                100, 
                                                &ROSSimNavigationFilter::sendLateralThruster, 
                                                this);
@@ -58,14 +85,7 @@ ROSSimNavigationFilter::ROSSimNavigationFilter(VehicleInfo info, ros::Publisher 
     }
 }
 
-ROSSimNavigationFilter::ROSSimNavigationFilter(ROSSimNavigationFilter&& other) :
-    info(std::move(other.info)),
-    posePublisher(std::move(other.posePublisher)),
-    filter(std::move(other.filter)),
-    listener(buffer)
-{}
-
-ROSSimNavigationFilter ROSSimNavigationFilter::createNavigationFilter(std::string& filterName, VehicleInfo info)
+void ROSSimNavigationFilter::initializeNavFilter(std::string& filterName, VehicleInfo& info)
 {
     ros::NodeHandle filterNhPriv("~/filter/" + filterName);
     ros::NodeHandle filterNh("nav_filters");
@@ -77,16 +97,115 @@ ROSSimNavigationFilter ROSSimNavigationFilter::createNavigationFilter(std::strin
         exit(1);
     }
 
-    ros::Publisher posePublisher = filterNh.advertise<nav_msgs::Odometry>(filterName, 1);
-    std::unique_ptr<NavigationFilter> filter;
 
     if(filterType == "TrueNavigation")
     {
         VehiclePose startPose(Eigen::Vector3d(info.getStartX(), info.getStartY(), info.getStartZ()));
         filter.reset(new TrueNavigationFilter(startPose, ros::Time::now().toSec()));
     }
+    else if(filterType == "KalmanFilter")
+    {
+        KalmanNavigationFilter::Parameters parameters;
+        filterNhPriv.param<std::vector<double>>("system_noise_mu", parameters.systemNoiseMu, {0,0,0,0,0,0});
+        filterNhPriv.param<std::vector<double>>("prior", parameters.prior, {0,0,0,0,0,0});
 
-    return ROSSimNavigationFilter(info, std::move(posePublisher), std::move(filter));
+        filterNhPriv.param<double>("sigma_meas_noise_heading", parameters.sigmaMeasNoiseHeading, 0.0174533);
+        filterNhPriv.param<double>("sigma_meas_noise_rot_vel", parameters.sigmaMeasNoiseRotVel, 0.0174533);
+        filterNhPriv.param<double>("sigma_meas_noise_forward_vel", parameters.sigmaMeasNoiseForwardVel, 0.1);
+        filterNhPriv.param<double>("sigma_meas_noise_lateral_vel", parameters.sigmaMeasNoiseLateralVel, 0.1);
+        filterNhPriv.param<double>("sigma_meas_noise_range", parameters.sigmaMeasNoiseRange, 5);
+        filterNhPriv.param<double>("sigma_meas_noise_x_vel", parameters.sigmaMeasNoiseXVel, 0.1);
+        filterNhPriv.param<double>("sigma_meas_noise_y_vel", parameters.sigmaMeasNoiseYVel, 0.1);
+        parameters.systemCovariance = get2dArrayParam(filterNhPriv, "system_covariance", {{0,0,0,0,0,0},
+                                                                                          {0,0,0,0,0,0},
+                                                                                          {0,0,0,0,0,0},
+                                                                                          {0,0,0,0,0,0},
+                                                                                          {0,0,0,0,0,0},
+                                                                                          {0,0,0,0,0,0}});
+        
+        parameters.priorCovariance = get2dArrayParam(filterNhPriv, "prior_covariance", {{0,0,0,0,0,0},
+                                                                                        {0,0,0,0,0,0},
+                                                                                        {0,0,0,0,0,0},
+                                                                                        {0,0,0,0,0,0},
+                                                                                        {0,0,0,0,0,0},
+                                                                                        {0,0,0,0,0,0}});
+        
+        std::vector<double> forwardThrust;
+        std::vector<double> forwardVelocity;
+        filterNhPriv.getParam("forward_thruster_thrust_model", forwardThrust);
+        filterNhPriv.getParam("forward_thruster_velocity_model", forwardVelocity);
+
+        if(forwardThrust.size() == forwardVelocity.size())
+        {
+            if(forwardThrust.size() != 0)
+            {
+                std::vector<LinearPiecewise::Point> points;
+                for(unsigned int i = 0; i < forwardThrust.size(); i++)
+                {
+                    points.push_back({forwardThrust[i], forwardVelocity[i]});
+                }
+                parameters.forwardThrustToVelocity = LinearPiecewise(points);
+            }
+        }
+
+
+        std::vector<double> lateralThrust;
+        std::vector<double> lateralVelocity;
+        filterNhPriv.getParam("lateral_thruster_thrust_model", lateralThrust);
+        filterNhPriv.getParam("lateral_thruster_velocity_model", lateralVelocity);
+
+        if(lateralThrust.size() == lateralVelocity.size())
+        {
+            if(lateralThrust.size() != 0)
+            {
+                std::vector<LinearPiecewise::Point> points;
+                for(unsigned int i = 0; i < lateralThrust.size(); i++)
+                {
+                    points.push_back({lateralThrust[i], lateralVelocity[i]});
+                }
+                parameters.lateralThrustToVelocity = LinearPiecewise(points);
+            }
+        }
+
+        filter.reset(new KalmanNavigationFilter(parameters, ros::Time::now().toSec()));
+    }
+
+}
+
+std::vector<std::vector<double>> ROSSimNavigationFilter::get2dArrayParam(ros::NodeHandle nh, std::string name, std::vector<std::vector<double>> defaultVal)
+{
+    std::vector<std::vector<double>> returnList;
+
+    XmlRpc::XmlRpcValue list;
+    if(nh.getParam(name, list))
+    {
+        ROS_ASSERT(list.getType() == XmlRpc::XmlRpcValue::TypeArray);
+
+        for(unsigned int i = 0; i < list.size(); i++)
+        {
+            ROS_ASSERT(list[i].getType() == XmlRpc::XmlRpcValue::TypeArray);
+            returnList.push_back({});
+            for(unsigned int j = 0; j < list[i].size(); j++)
+            {
+                ROS_ASSERT(list[i][j].getType() == XmlRpc::XmlRpcValue::TypeDouble ||
+                           list[i][j].getType() == XmlRpc::XmlRpcValue::TypeInt);
+                if(list[i][j].getType() == XmlRpc::XmlRpcValue::TypeDouble)
+                {
+                    returnList[i].push_back(static_cast<double>(list[i][j]));
+                }
+                else if(list[i][j].getType() == XmlRpc::XmlRpcValue::TypeInt)
+                {
+                    returnList[i].push_back(static_cast<int>(list[i][j]));
+                }
+            }
+        }
+    }
+    else
+    {
+        returnList = defaultVal;
+    
+    }
+    return returnList;
 }
 
 void ROSSimNavigationFilter::update()
@@ -233,7 +352,8 @@ void ROSSimNavigationFilter::sendForwardThruster(underwater_vehicle_msgs::FloatM
     std::vector<double> input;
 
     filterForwardThrusterData.push_back(forwardData.data);
-
+    
+    
     filter->sensorMeasurement("forward_thruster_command", forwardData.header.stamp.toSec(), filterForwardThrusterData, input);
 }
 

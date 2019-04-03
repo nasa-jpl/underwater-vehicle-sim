@@ -10,7 +10,7 @@
 #include "underwater_vehicle_msgs/FloatMeasurement.h"
 
 DepthModule::DepthModule(std::string name) :
-	GeneralModule(name, "depth")
+	GeneralModule(name, "Depth")
 {
 	ros::NodeHandle nhPriv("~/" + name);
 	nhPriv.param("depth_random_error", depthRandomError, 0.0);

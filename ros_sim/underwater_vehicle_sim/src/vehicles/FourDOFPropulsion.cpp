@@ -268,21 +268,24 @@ void FourDOFPropulsion::publishSensors()
     
 
     double forwardMeasurment = forwardThrust + forwardError;
-    if((forwardThrust > 0 && forwardMeasurment < 0) ||
+    if(forwardThrust == 0 ||
+       (forwardThrust > 0 && forwardMeasurment < 0) ||
        (forwardThrust < 0 && forwardMeasurment > 0))
     {
         forwardMeasurment = 0;
     }
 
     double lateralMeasurment = lateralThrust + lateralError;
-    if((lateralThrust > 0 && lateralMeasurment < 0) ||
+    if(lateralThrust == 0 ||
+       (lateralThrust > 0 && lateralMeasurment < 0) ||
        (lateralThrust < 0 && lateralMeasurment > 0))
     {
         lateralMeasurment = 0;
     }
 
     double verticalMeasurment = verticalThrust + verticalError;
-    if((verticalThrust > 0 && verticalMeasurment < 0) ||
+    if(verticalThrust == 0 ||
+       (verticalThrust > 0 && verticalMeasurment < 0) ||
        (verticalThrust < 0 && verticalMeasurment > 0))
     {
         verticalMeasurment = 0;
