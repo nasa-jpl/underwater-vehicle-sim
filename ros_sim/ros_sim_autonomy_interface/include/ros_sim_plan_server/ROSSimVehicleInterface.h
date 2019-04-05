@@ -28,6 +28,7 @@ public:
 private:
     void receiveData(const underwater_vehicle_msgs::VehicleData::ConstPtr& msg);
     void navigationFilterCallback(const nav_msgs::Odometry odo);
+    
 private:
     VehicleInfo info;
 

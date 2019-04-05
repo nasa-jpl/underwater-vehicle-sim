@@ -90,8 +90,7 @@ TEST(ROSSimNavigationFilter, TrueNavigation)
 
     VehicleInfo info(infoSrv);
     std::string filterName = "true_nav";
-    ROSSimNavigationFilter filter = ROSSimNavigationFilter::createNavigationFilter(filterName,
-                                                                                   info);
+    ROSSimNavigationFilter filter(filterName, info);
 
 
     Eigen::Matrix3d m0;

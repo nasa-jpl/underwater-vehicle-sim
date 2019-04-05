@@ -82,25 +82,14 @@ bool PointPathSimActionExecutor::execute(std::shared_ptr<PointPathAction> action
 	//Creates an action goal and sends it to the action server for point path movement
 	pointPathGoal = ros_sim_autonomy_interface::PointPathRosGoal();
 
-	if(action->getDoInterruptPoint())
-	{
-		Eigen::Vector3d& interruptPoint = action->getInterruptPoint();
-		geometry_msgs::Point p;
-		p.x = interruptPoint[0];
-		p.y = interruptPoint[1];
-		p.z = interruptPoint[2];
-		pointPathGoal.points.push_back(p);
-	}
-
+	std::vector<Eigen::Vector3d> pointList = action->getCommandPoints();
 	currentPointOffset = action->getCurrentPoint();
-	for(unsigned int i = action->getCurrentPoint(); i < action->getPoints().size(); i++)
+	for(unsigned int i = 0; i < pointList.size(); i++)
 	{
-		
-		Eigen::Vector3d point = action->getPoints()[i];
 		geometry_msgs::Point p;
-		p.x = point[0];
-		p.y = point[1];
-		p.z = point[2];
+		p.x = pointList[i][0];
+		p.y = pointList[i][1];
+		p.z = pointList[i][2];
 		pointPathGoal.points.push_back(p);
 	}
 
