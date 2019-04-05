@@ -9,14 +9,14 @@
 class ROSSimPlanServer
 {
 public:
-    ROSSimPlanServer(std::unique_ptr<PlanDispatcher> planDispatcher, std::unique_ptr<Planner> planner);
+    ROSSimPlanServer(std::unique_ptr<Planner> planner);
     ROSSimPlanServer(ROSSimPlanServer&& other);
     ~ROSSimPlanServer() {}
 
     void update();
 
 private:
-    std::unique_ptr<PlanDispatcher> planDispatcher;
+    PlanDispatcher planDispatcher;
     std::unique_ptr<Planner> planner;
 
     ros::Publisher clockSpeedPub;

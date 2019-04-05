@@ -57,9 +57,8 @@ int main(int argc, char **argv)
     vehicleInfoClient.call(getInfo);
     VehicleInfo info(getInfo);
 
-    std::unique_ptr<PlanDispatcher> dispatcher(new PlanDispatcher());
-    std::unique_ptr<VentActionFactory> factory(new ROSSimVentActionFactory(info));
-    std::unique_ptr<VehicleInterface> interface(new ROSSimVehicleInterface(info));
+    ROSSimVentActionFactory factory(info);
+    ROSSimVehicleInterface interface(info);
     std::unique_ptr<Planner> planner;
 
     if(plannerType == "SurfaceGradient")
@@ -74,7 +73,7 @@ int main(int argc, char **argv)
         nhPriv.getParam("min_follow_distance", parameters.gradientMinFollowDistance);
         nhPriv.getParam("gradient_window", parameters.gradientWindow);
 
-        planner.reset(new SurfaceGradientVentPlanner(std::move(factory), std::move(interface), std::move(parameters)));
+        planner.reset(new SurfaceGradientVentPlanner(factory, interface, std::move(parameters)));
     }
     else if(plannerType == "NestedBin")
     {
@@ -99,7 +98,7 @@ int main(int argc, char **argv)
         nhPriv.getParam("operation_region_max_y", maxY);
         parameters.operationRegion = OperationRegion(minX, minY, maxX, maxY);
 
-        planner.reset(new NestedBinVentPlanner(std::move(factory), std::move(interface), std::move(parameters)));
+        planner.reset(new NestedBinVentPlanner(factory, interface, std::move(parameters)));
     }
     else if(plannerType == "DirectionSet")
     {
@@ -113,7 +112,7 @@ int main(int argc, char **argv)
         nhPriv.getParam("new_max_threshold", parameters.newMaxThreshold);
         nhPriv.getParam("num_sections_threshold", parameters.numSectionsThreshold);
 
-        planner.reset(new DirectionSetVentPlanner(std::move(factory), std::move(interface), std::move(parameters)));
+        planner.reset(new DirectionSetVentPlanner(factory, interface, std::move(parameters)));
     }
     else if(plannerType == "Waypoints")
     {
@@ -140,12 +139,12 @@ int main(int argc, char **argv)
             parameters.waypoints.push_back(Eigen::Vector3d(waypointsX[i], waypointsY[i], waypointsZ[i]));
         }
 
-        planner.reset(new WaypointsPlanner(std::move(factory), std::move(interface), std::move(parameters)));
+        planner.reset(new WaypointsPlanner(factory, interface, std::move(parameters)));
     }
 
     std::unique_ptr<PointPathController> pointPathController(new PointPathController(info));
       
-    ROSSimPlanServer server(std::move(dispatcher), std::move(planner));
+    ROSSimPlanServer server(std::move(planner));
 
 
     ROS_INFO("Planner Initalized");

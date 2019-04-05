@@ -7,8 +7,7 @@
 
 #include "ros/ros.h"
 
-ROSSimPlanServer::ROSSimPlanServer(std::unique_ptr<PlanDispatcher> planDispatcher, std::unique_ptr<Planner> planner) :
-    planDispatcher(std::move(planDispatcher)),
+ROSSimPlanServer::ROSSimPlanServer(std::unique_ptr<Planner> planner) :
     planner(std::move(planner))
 {
     ros::NodeHandle nh;
@@ -16,21 +15,21 @@ ROSSimPlanServer::ROSSimPlanServer(std::unique_ptr<PlanDispatcher> planDispatche
     clockSpeedPub = nh.advertise<std_msgs::Float64>("/clock_server/speed_up_factor", 1);
     nh.param<float>("/speed_up_factor", speedUpFactor, 1);
     
-    this->planDispatcher->run();
+    planDispatcher.run();
 }
 
 ROSSimPlanServer::ROSSimPlanServer(ROSSimPlanServer&& other) :
-    planDispatcher(std::move(other.planDispatcher)),
+    planDispatcher(other.planDispatcher),
     planner(std::move(other.planner))
 {
-    this->planDispatcher->run();
+    planDispatcher.run();
 }
 
 void ROSSimPlanServer::update()
 {
-    planDispatcher->update();
+    planDispatcher.update();
 
-    if(planDispatcher->triggerReplan())
+    if(planDispatcher.triggerReplan())
     {
         std_msgs::Float64 slowSim;
         slowSim.data = 1;
@@ -44,8 +43,8 @@ void ROSSimPlanServer::update()
 
         if(newPlan)
         {
-            planDispatcher->setPlan(newPlan);
-            planDispatcher->run();
+            planDispatcher.setPlan(newPlan);
+            planDispatcher.run();
         }
     }
 }
