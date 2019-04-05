@@ -181,39 +181,14 @@ void PointPathSimActionExecutor::actionFeedback(std::shared_ptr<PointPathAction>
 	{
 		adjustedCurrentPoint--;
 	}
-
 	//Add the currentPointOffset as we did not necessarily start at point 0
 	adjustedCurrentPoint += currentPointOffset;
 	
-	//Check for replan
-	if(action->getReplanType() == PointPathAction::ReplanType::ON_POINT_REACHED &&
-	   action->getCurrentPoint() >= 1 && //at least at the first point
-	   adjustedCurrentPoint != action->getCurrentPoint()) //reached a new point
-	{
-		replanNextUpdate = true;
-	}
-	else if(action->getReplanType() == PointPathAction::ReplanType::ON_YOYO_TURN && 
-			action->getYoyo() && //insure we are yoyoing
-			feedback->goingUp != action->getGoingUp() && //at top or bottom of yoyo
-	   		action->getCurrentPoint() >= 1 && //at least at the first point
-	   		(!action->getDoInterruptPoint() || (action->getDoInterruptPoint() && feedback->currentPoint >= 1))) //past the interrupt point
-	{
-		replanNextUpdate = true;
-	}
-	else if(action->getReplanType() == PointPathAction::ReplanType::PERIODIC_TIME &&
-		    action->getCurrentPoint() >= 1 && 
-		    (ros::Time::now() - lastReplan).toSec() > action->getPeriodicReplanValue())
-	{
-		replanNextUpdate = true;
-	}
-	else if(action->getReplanType() == PointPathAction::ReplanType::PERIODIC_DISTANCE &&
-		    action->getCurrentPoint() >= 1)
-	{
-		if(distanceSinceReplan >= action->getPeriodicReplanValue())
-		{
-			replanNextUpdate = true;
-		}
-	}
+	
+	replanNextUpdate = action->doReplan(adjustedCurrentPoint,
+										feedback->goingUp,
+										(ros::Time::now() - lastReplan).toSec(),
+										distanceSinceReplan);
 
 	if(adjustedCurrentPoint != action->getCurrentPoint())
 	{
