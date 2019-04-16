@@ -78,7 +78,6 @@ private:
     ros::Publisher velPub;
     ros::Subscriber poseSub;
 
-    bool replanGoingUp;
     bool replanNextUpdate;
     ros::Time lastReplan;
     double distanceSinceReplan;

@@ -23,7 +23,7 @@ public:
     void log(LogLevel level, std::string string) override;
     void registerDataCallback(std::function<void(const PlannerData&)> cb) override;
 
-    VehiclePose getPosition() override;
+    VehiclePose getPosition() const override;
 
 private:
     void receiveData(const underwater_vehicle_msgs::VehicleData::ConstPtr& msg);

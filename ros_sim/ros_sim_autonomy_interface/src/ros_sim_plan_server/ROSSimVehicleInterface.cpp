@@ -94,7 +94,7 @@ void ROSSimVehicleInterface::receiveData(const underwater_vehicle_msgs::VehicleD
     }
 }
 
-VehiclePose ROSSimVehicleInterface::getPosition()
+VehiclePose ROSSimVehicleInterface::getPosition() const
 {
     return currentPose;
 }

@@ -125,7 +125,7 @@ int main(int argc, char **argv)
         nhPriv.getParam("waypoints_y", waypointsY);
         nhPriv.getParam("waypoints_z", waypointsZ);
 
-        if(waypointsX.size() != waypointsX.size() || 
+        if(waypointsX.size() != waypointsY.size() || 
           waypointsX.size() != waypointsZ.size())
         {
             ROS_FATAL("Parameters \"%s/waypoints_x\", \"%s/waypoints_y\", and \"%s/waypoints_z\" must have the same size.", nhPriv.getNamespace().c_str(), 

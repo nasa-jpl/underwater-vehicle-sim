@@ -93,9 +93,6 @@ bool PointPathSimActionExecutor::execute(std::shared_ptr<PointPathAction> action
 		pointPathGoal.points.push_back(p);
 	}
 
-	//Set so the triggerReplan function knows when the yoyo direction changes
-	replanGoingUp = true;
-
 	pointPathGoal.upperDepth = action->getUpperDepth();
 	pointPathGoal.lowerDepth = action->getLowerDepth();
 	pointPathGoal.yoyo = action->getYoyo();
