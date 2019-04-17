@@ -19,7 +19,6 @@
 PointPathSimActionExecutor::PointPathSimActionExecutor(VehicleInfo& vehicleInfo) :
 	vehicleInfo(vehicleInfo),
 	pointPathClient("point_path", true),
-	replanGoingUp(true),
 	currentPointOffset(0),
 	replanNextUpdate(false),
 	lastReplan(ros::Time::now()),

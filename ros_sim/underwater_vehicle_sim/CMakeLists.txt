@@ -14,15 +14,11 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
   sensor_msgs
   model_server
-  model_interface
-  fvcom
-  general_models
   underwater_vehicle_msgs
   tf2_geometry_msgs
 )
 
 find_package(UnderwaterAutonomy REQUIRED)
-
 
 ## Uncomment this if the package has a setup.py. This macro ensures
 ## modules and global scripts declared therein get installed
@@ -169,6 +165,7 @@ catkin_package(
 
  target_link_libraries(${PROJECT_NAME}_node
    underwater_vehicles
+   ocean_models
    ${catkin_LIBRARIES}
  )
 
@@ -216,28 +213,28 @@ if (CATKIN_ENABLE_TESTING)
  find_package(rostest REQUIRED)
 
  add_rostest_gtest(clock_server_node_test test/clock_server/ClockServerNode.test test/clock_server/ClockServerNode_test.cpp)
- target_link_libraries(clock_server_node_test ${catkin_LIBRARIES} ${NETCDF_LIBRARIES})
+ target_link_libraries(clock_server_node_test ${catkin_LIBRARIES})
 
  add_rostest_gtest(vehicle_state_test test/vehicles/VehicleState.test test/vehicles/VehicleState_test.cpp)
- target_link_libraries(vehicle_state_test underwater_vehicles ${catkin_LIBRARIES} ${NETCDF_LIBRARIES})
+ target_link_libraries(vehicle_state_test underwater_vehicles ${catkin_LIBRARIES})
 
  add_rostest_gtest(vehicle_init_test test/vehicles/Vehicle_tests/VehicleInit.test test/vehicles/Vehicle_tests/VehicleInit_test.cpp)
- target_link_libraries(vehicle_init_test underwater_vehicles ${catkin_LIBRARIES} ${NETCDF_LIBRARIES})
+ target_link_libraries(vehicle_init_test underwater_vehicles ${catkin_LIBRARIES})
 
  add_rostest_gtest(four_dof_propulsion_test test/vehicles/FourDOFPropulsion.test test/vehicles/FourDOFPropulsion_test.cpp)
- target_link_libraries(four_dof_propulsion_test underwater_vehicles ${catkin_LIBRARIES} ${NETCDF_LIBRARIES})
+ target_link_libraries(four_dof_propulsion_test underwater_vehicles ${catkin_LIBRARIES})
 
  add_rostest_gtest(data_broadcaster_module_test test/vehicles/DataBroadcasterModule.test test/vehicles/DataBroadcasterModule_test.cpp)
- target_link_libraries(data_broadcaster_module_test underwater_vehicles ${catkin_LIBRARIES} ${NETCDF_LIBRARIES})
+ target_link_libraries(data_broadcaster_module_test underwater_vehicles ${catkin_LIBRARIES})
  
  add_rostest_gtest(usbl_module_test test/vehicles/USBLModule.test test/vehicles/USBLModule_test.cpp)
- target_link_libraries(usbl_module_test underwater_vehicles ${catkin_LIBRARIES} ${NETCDF_LIBRARIES})
+ target_link_libraries(usbl_module_test underwater_vehicles ${catkin_LIBRARIES})
 
  add_rostest_gtest(imu_module_test test/vehicles/IMUModule.test test/vehicles/IMUModule_test.cpp)
- target_link_libraries(imu_module_test underwater_vehicles ${catkin_LIBRARIES} ${NETCDF_LIBRARIES})
+ target_link_libraries(imu_module_test underwater_vehicles ${catkin_LIBRARIES})
 
  add_rostest_gtest(depth_module_test test/vehicles/DepthModule.test test/vehicles/DepthModule_test.cpp)
- target_link_libraries(depth_module_test underwater_vehicles ${catkin_LIBRARIES} ${NETCDF_LIBRARIES})
+ target_link_libraries(depth_module_test underwater_vehicles ${catkin_LIBRARIES})
 
 endif()
 

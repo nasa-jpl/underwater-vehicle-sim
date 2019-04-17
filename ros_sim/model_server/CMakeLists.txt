@@ -11,26 +11,10 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   std_msgs
   message_generation
-  model_interface
-  general_models
-  fvcom
 )
 
 ## System dependencies are found with CMake's conventions
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/modules)
-
-set (NETCDF_CXX "YES")
-find_package(NetCDF REQUIRED)
-# find_package(netCDF REQUIRED COMPONENTS system)
-
-# Boost
-set(boost_min_ver 1.50.0)
-set(boost_libs system filesystem)
-find_package(Boost ${boost_min_ver})
-
-if(Boost_FOUND)
-    find_package(Boost ${boost_min_ver} COMPONENTS ${boost_libs})
-endif()
 
 ## Uncomment this if the package has a setup.py. This macro ensures
 ## modules and global scripts declared therein get installed
@@ -131,8 +115,6 @@ catkin_package(
 include_directories(
   include
   ${catkin_INCLUDE_DIRS}
-  ${NETCDF_INCLUDES}
-  ${Boost_INCLUDES}
 )
 
 ## Add cmake target dependencies of the library
@@ -157,12 +139,8 @@ include_directories(
 
 ## Specify libraries to link a library or executable target against
  target_link_libraries(${PROJECT_NAME}_node
-   fvcom
-   general_models
+   ocean_models
    ${catkin_LIBRARIES}
-   ${NETCDF_LIBRARIES}
-   ${Boost_LIBRARIES}
-   netcdf_c++4
  )
 
 #############
