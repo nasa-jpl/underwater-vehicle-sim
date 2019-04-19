@@ -18,8 +18,8 @@ find_package(catkin REQUIRED
              vehicle_auto_control
              nav_msgs)
 
-find_package(UnderwaterAutonomy REQUIRED)
-find_package(VentPlanner REQUIRED)
+#find_package(UnderwaterAutonomy REQUIRED)
+#find_package(VentPlanner REQUIRED)
 find_package (Eigen3 3.3 REQUIRED NO_MODULE)
 
 ################################################
@@ -130,6 +130,7 @@ include_directories(
     src/ros_sim_plan_server/action_executors/PointPathSimActionExecutor.cpp
     src/ros_sim_plan_server/controllers/PointPathController.cpp
   )
+target_include_directories(${PROJECT_NAME} PUBLIC /usr/local/include/bfl)
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
@@ -137,6 +138,7 @@ include_directories(
  add_dependencies(${PROJECT_NAME} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
  target_link_libraries(ros_sim_autonomy_interface
+   underwater_autonomy
    vent_planner
    ${catkin_LIBRARIES}
  )
@@ -150,6 +152,7 @@ include_directories(
 
  target_link_libraries(ros_sim_plan_server_node
    ros_sim_autonomy_interface
+   underwater_autonomy
    vent_planner
    ${catkin_LIBRARIES}
  )
@@ -162,6 +165,7 @@ include_directories(
 
  target_link_libraries(ros_sim_navigation_node
    ros_sim_autonomy_interface
+   underwater_autonomy
    vent_planner
    ${catkin_LIBRARIES}
  )
