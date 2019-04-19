@@ -13,6 +13,8 @@
 
 #define SECONDS_IN_DAY 86400
 
+using namespace ocean_models;
+
 Vehicle::Vehicle()
 {
 	ros::NodeHandle nhPriv("~");

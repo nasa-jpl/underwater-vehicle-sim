@@ -8,6 +8,8 @@
 #include "underwater_vehicle_msgs/VehicleData.h"
 #include "vehicles/DataBroadcasterModule.h"
 
+using namespace ocean_models;
+
 #define SECONDS_IN_DAY 86400
 
 DataBroadcasterModule::DataBroadcasterModule(std::string name) :

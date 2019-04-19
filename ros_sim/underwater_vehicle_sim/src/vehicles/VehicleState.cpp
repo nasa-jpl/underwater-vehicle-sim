@@ -7,6 +7,8 @@
 #include <tf2_ros/transform_listener.h>
 #include "tf2_geometry_msgs/tf2_geometry_msgs.h"
 
+using namespace ocean_models;
+
 VehicleState::VehicleState() :
 	angularVelocity(0,0,0),
 	linearVelocity(0,0,0),

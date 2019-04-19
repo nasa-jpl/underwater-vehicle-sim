@@ -9,6 +9,8 @@
 
 #include "underwater_vehicle_msgs/USBL.h"
 
+using namespace ocean_models;
+
 USBLModule::USBLModule(std::string name) :
 	GeneralModule(name, "USBL")
 {

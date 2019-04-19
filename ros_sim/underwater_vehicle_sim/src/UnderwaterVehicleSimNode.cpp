@@ -9,6 +9,8 @@
 #include "vehicles/Vehicle.h"
 #include "std_msgs/Float64.h"
 
+using namespace ocean_models;
+
 std::unique_ptr<Vehicle> vehicle;
 std::unique_ptr<ModelInterface> model;
 

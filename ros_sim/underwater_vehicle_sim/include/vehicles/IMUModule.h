@@ -21,7 +21,7 @@ public:
 	* can be set independently that in the roll and pitch direction. No seperate field in the resulting message
 	* contains magnetic heading information. This information can be pulled from the orientation.
 	*/
-	void update(const ros::Time& lastTime, VehicleState& vehicleState, ModelData& modelData);
+	void update(const ros::Time& lastTime, VehicleState& vehicleState, ocean_models::ModelData& modelData);
 
 private:
 	

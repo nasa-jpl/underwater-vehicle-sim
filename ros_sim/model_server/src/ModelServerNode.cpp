@@ -16,7 +16,7 @@
 #include <string>
 #include <stdexcept>
 
-
+using namespace ocean_models;
 std::unique_ptr<ModelInterface> model;
 
 

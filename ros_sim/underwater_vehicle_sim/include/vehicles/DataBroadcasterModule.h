@@ -12,7 +12,7 @@ public:
 	DataBroadcasterModule(std::string name);
 	~DataBroadcasterModule() {}
 
-	void update(const ros::Time& lastTime, VehicleState& vehicleState, ModelData& modelData);
+	void update(const ros::Time& lastTime, VehicleState& vehicleState, ocean_models::ModelData& modelData);
 
 	
 private:

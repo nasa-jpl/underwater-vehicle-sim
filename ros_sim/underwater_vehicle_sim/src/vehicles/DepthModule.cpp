@@ -9,6 +9,8 @@
 
 #include "underwater_vehicle_msgs/FloatMeasurement.h"
 
+using namespace ocean_models;
+
 DepthModule::DepthModule(std::string name) :
 	GeneralModule(name, "Depth")
 {

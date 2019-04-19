@@ -36,14 +36,14 @@ public:
      * Update the vehicle state if it is below the seafloor
      * @data Model data containing depth at the current location
      */
-    bool seafloorCollision(ModelData& data);
+    bool seafloorCollision(ocean_models::ModelData& data);
 
     /**
      * Update the vehicle state based on the currents
      * @data Model data containing currents are the current location and time
      * @deltaTime The time since the last update
      */
-    void evectByCurrents(ModelData& data, const ros::Duration deltaTime);
+    void evectByCurrents(ocean_models::ModelData& data, const ros::Duration deltaTime);
 
     /**
      * Get the position of the vehicle in the NED frame.
