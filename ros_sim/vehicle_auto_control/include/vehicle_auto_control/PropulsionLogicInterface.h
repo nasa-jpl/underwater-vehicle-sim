@@ -30,12 +30,12 @@ public:
 	/**
 	* Sends messages to make vehicle go to xy location
 	*/
-	virtual const void goToXY(VehiclePose& pose)=0;
+	virtual const void goToXY(underwater_autonomy::VehiclePose& pose)=0;
 
 	/**
 	* Sends messages to make vehicle go to z location
 	*/
-	virtual const void goToZ(VehiclePose& pose)=0;
+	virtual const void goToZ(underwater_autonomy::VehiclePose& pose)=0;
 
 	/**
 	* Sends messages to stop xy movement
@@ -60,12 +60,12 @@ public:
 	/**
 	* Determines if the vehicle has reached the xy location
 	*/
-	virtual bool isAtXY(VehiclePose& pose)=0;
+	virtual bool isAtXY(underwater_autonomy::VehiclePose& pose)=0;
 
 	/**
 	* Determines if the vehicle has reached the z location
 	*/
-	virtual bool isAtZ(VehiclePose& pose)=0;
+	virtual bool isAtZ(underwater_autonomy::VehiclePose& pose)=0;
 	
 	static std::unique_ptr<PropulsionLogicInterface> makePropulsionLogic(VehicleInfo& vehicleInfo);	
 

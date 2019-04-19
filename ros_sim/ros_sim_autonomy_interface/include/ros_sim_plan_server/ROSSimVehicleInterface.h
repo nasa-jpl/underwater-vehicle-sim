@@ -13,17 +13,17 @@
 
 #include "nav_msgs/Odometry.h"
 
-class ROSSimVehicleInterface : public VehicleInterface
+class ROSSimVehicleInterface : public underwater_autonomy::VehicleInterface
 {
 public:
     ROSSimVehicleInterface(VehicleInfo info);
     ~ROSSimVehicleInterface() override = default;
 
-    void sendGoalStatus(GoalStatus status) override;
-    void log(LogLevel level, std::string string) override;
-    void registerDataCallback(std::function<void(const PlannerData&)> cb) override;
+    void sendGoalStatus(underwater_autonomy::GoalStatus status) override;
+    void log(underwater_autonomy::LogLevel level, std::string string) override;
+    void registerDataCallback(std::function<void(const underwater_autonomy::PlannerData&)> cb) override;
 
-    VehiclePose getPosition() const override;
+    underwater_autonomy::VehiclePose getPosition() const override;
 
 private:
     void receiveData(const underwater_vehicle_msgs::VehicleData::ConstPtr& msg);
@@ -35,13 +35,13 @@ private:
     tf2_ros::Buffer buffer;
     tf2_ros::TransformListener listener;
 
-    std::vector<std::function<void(const PlannerData&)>> dataCallbacks;
+    std::vector<std::function<void(const underwater_autonomy::PlannerData&)>> dataCallbacks;
 
     ros::Publisher goalPub;
     ros::Subscriber dataSub;
     ros::Subscriber poseSub;
 
-    VehiclePose currentPose;
+    underwater_autonomy::VehiclePose currentPose;
 };
 
 #endif

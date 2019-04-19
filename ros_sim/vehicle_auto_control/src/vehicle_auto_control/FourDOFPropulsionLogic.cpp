@@ -13,6 +13,8 @@
 #include "std_msgs/Float64.h"
 #include "std_msgs/Bool.h"
 
+using namespace underwater_autonomy;
+
 FourDOFPropulsionLogic::FourDOFPropulsionLogic(VehicleInfo& vehicleInfo) :
     PropulsionLogicInterface(vehicleInfo),
     lateralError(5.0),

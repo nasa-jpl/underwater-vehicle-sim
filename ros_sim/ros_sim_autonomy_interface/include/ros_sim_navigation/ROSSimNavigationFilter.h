@@ -48,7 +48,7 @@ private:
     std::string filterName;
     VehicleInfo info;
     ros::Publisher posePublisher;
-    std::unique_ptr<NavigationFilter> filter;
+    std::unique_ptr<underwater_autonomy::NavigationFilter> filter;
 
     ros::Subscriber imuData;
     ros::Subscriber usblData;

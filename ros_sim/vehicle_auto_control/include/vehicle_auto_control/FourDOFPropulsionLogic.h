@@ -26,8 +26,8 @@ public:
 	FourDOFPropulsionLogic(VehicleInfo& vehicleInfo);
 	~FourDOFPropulsionLogic() {}
 	
-	const void goToXY(VehiclePose& pose) override;
-	const void goToZ(VehiclePose& pose) override;
+	const void goToXY(underwater_autonomy::VehiclePose& pose) override;
+	const void goToZ(underwater_autonomy::VehiclePose& pose) override;
 	
 	const void stopXY() override;
 	const void stopZ() override;
@@ -35,8 +35,8 @@ public:
 	void setTargetXY(double x, double y) override;
 	void setTargetZ(double z) override;
 
-	bool isAtXY(VehiclePose& pose) override;
-	bool isAtZ(VehiclePose& pose) override;
+	bool isAtXY(underwater_autonomy::VehiclePose& pose) override;
+	bool isAtZ(underwater_autonomy::VehiclePose& pose) override;
 
 	void setTargetVelocity(const geometry_msgs::Twist vel) override;
 	void processNewData(const underwater_vehicle_msgs::VehicleData data) override;

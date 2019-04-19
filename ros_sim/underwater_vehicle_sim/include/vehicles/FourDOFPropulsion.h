@@ -81,10 +81,10 @@ private:
 	/*
 	*Functions defining thrust to velocity
 	*/
-	LinearPiecewise forwardThrusterFunc;
-	LinearPiecewise lateralThrusterFunc;
-	LinearPiecewise verticalThrusterFunc;
-	LinearPiecewise rudderFunc;
+	underwater_autonomy::LinearPiecewise forwardThrusterFunc;
+	underwater_autonomy::LinearPiecewise lateralThrusterFunc;
+	underwater_autonomy::LinearPiecewise verticalThrusterFunc;
+	underwater_autonomy::LinearPiecewise rudderFunc;
 
 	/*
 	*Latest thrust commands

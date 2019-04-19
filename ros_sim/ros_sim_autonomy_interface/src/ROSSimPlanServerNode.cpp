@@ -16,6 +16,9 @@
 
 #include "data_server/GetLatestData.h"
 
+using namespace underwater_autonomy;
+using namespace vent_planner;
+
 bool dataStarted = false;
 bool navStarted = false;
 

@@ -16,6 +16,9 @@
 #include "actionlib/client/simple_action_client.h"
 #include "ros_sim_autonomy_interface/PointPathRosAction.h"
 
+using namespace underwater_autonomy;
+using namespace vent_planner;
+
 PointPathSimActionExecutor::PointPathSimActionExecutor(VehicleInfo& vehicleInfo) :
 	vehicleInfo(vehicleInfo),
 	pointPathClient("point_path", true),
@@ -41,7 +44,7 @@ PointPathSimActionExecutor::PointPathSimActionExecutor(const PointPathSimActionE
 	listener(buffer)
 {}
 
-std::unique_ptr<ActionExecutor<PointPathAction>> PointPathSimActionExecutor::clone()
+std::unique_ptr<ActionExecutor<vent_planner::PointPathAction>> PointPathSimActionExecutor::clone()
 {
 	std::unique_ptr<ActionExecutor<PointPathAction>> a(new PointPathSimActionExecutor(*this));
     return a;

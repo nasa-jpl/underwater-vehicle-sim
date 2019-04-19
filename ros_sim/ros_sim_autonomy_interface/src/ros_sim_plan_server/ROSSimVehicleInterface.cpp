@@ -8,6 +8,8 @@
 
 #include "std_msgs/String.h"
 
+using namespace underwater_autonomy;
+
 ROSSimVehicleInterface::ROSSimVehicleInterface(VehicleInfo info) :
     info(info),
     listener(buffer)

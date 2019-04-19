@@ -11,6 +11,8 @@
 
 #define SECONDS_IN_DAY 86400
 
+using namespace underwater_autonomy;
+
 FourDOFPropulsion::FourDOFPropulsion(VehicleState& vehicleState) :
 	PropulsionModule("FourDOFPropulsion", vehicleState),
     forwardThrust(0),

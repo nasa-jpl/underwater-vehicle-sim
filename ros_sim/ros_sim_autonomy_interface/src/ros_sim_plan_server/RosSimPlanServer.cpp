@@ -7,6 +7,8 @@
 
 #include "ros/ros.h"
 
+using namespace underwater_autonomy;
+
 ROSSimPlanServer::ROSSimPlanServer(std::unique_ptr<Planner> planner) :
     planner(std::move(planner))
 {

@@ -74,7 +74,7 @@ private:
 	ros::Subscriber velSub;
 	ros::Subscriber poseSub;
 
-	VehiclePose currentPose;
+	underwater_autonomy::VehiclePose currentPose;
 	
 };
 

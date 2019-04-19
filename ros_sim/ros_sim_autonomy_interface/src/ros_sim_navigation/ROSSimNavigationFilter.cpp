@@ -7,6 +7,8 @@
 #include "underwater_vehicle_msgs/GetVehicleInfo.h"
 #include "underwater_vehicle_msgs/VehicleInfo.h"
 
+using namespace underwater_autonomy;
+
 ROSSimNavigationFilter::ROSSimNavigationFilter(std::string filterName, VehicleInfo info) :
     info(info),
     listener(buffer),

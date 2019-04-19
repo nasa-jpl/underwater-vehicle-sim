@@ -5,10 +5,11 @@
 
 #include "ros_sim_plan_server/ROSSimVentActionFactory.h"
 #include "vent_planner/actions/VentActionFactory.h"
-#include "vent_planner/actions/ChargeAction.h"
-#include "vent_planner/actions/DataTransferAction.h"
 
 #include "ros_sim_plan_server/action_executors/PointPathSimActionExecutor.h"
+
+using namespace underwater_autonomy;
+using namespace vent_planner;
 
 ROSSimVentActionFactory::ROSSimVentActionFactory(VehicleInfo vehicleInfo) :
     vehicleInfo(vehicleInfo)
