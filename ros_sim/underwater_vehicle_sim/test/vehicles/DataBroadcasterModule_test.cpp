@@ -14,6 +14,8 @@
 #include "underwater_vehicle_msgs/VehicleData.h"
 #include "vehicles/DataBroadcasterModule.h"
 
+using namespace ocean_models;
+
 std::vector<underwater_vehicle_msgs::VehicleData> receivedMessages;
 
 void dataCallback(const underwater_vehicle_msgs::VehicleDataPtr& vel)

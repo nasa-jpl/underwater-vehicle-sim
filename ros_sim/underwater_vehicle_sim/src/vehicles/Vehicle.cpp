@@ -11,8 +11,6 @@
 
 #include "underwater_vehicle_msgs/VehicleData.h"
 
-#define SECONDS_IN_DAY 86400
-
 using namespace ocean_models;
 
 Vehicle::Vehicle()
@@ -158,18 +156,18 @@ ModelData Vehicle::getModelData()
 			data = model->getData(enuPosition.getX(), 
 								  enuPosition.getY(),
 								  enuPosition.getZ(), 
-								  lastTransformTime.toSec() / SECONDS_IN_DAY);
+								  lastTransformTime.toSec());
 		}
 		catch(const std::out_of_range& e)
 		{
 			ROS_INFO("ModelServer: Out of Range: %f %f %f %f", enuPosition.getX(), 
 															   enuPosition.getY(), 
 															   enuPosition.getZ(), 
-															   lastTransformTime.toSec() / SECONDS_IN_DAY);
+															   lastTransformTime.toSec());
 			data = model->getDataOutOfRange(enuPosition.getX(), 
 											enuPosition.getY(), 
 											enuPosition.getZ(), 
-											lastTransformTime.toSec() / SECONDS_IN_DAY);
+											lastTransformTime.toSec());
 		}    
 	}
 	else
@@ -179,7 +177,7 @@ ModelData Vehicle::getModelData()
 		srv.request.x = enuPosition.getX();
 		srv.request.y = enuPosition.getY();
 		srv.request.h = enuPosition.getZ();
-		srv.request.time = lastTransformTime.toSec() / SECONDS_IN_DAY; //convert from seconds to days
+		srv.request.time = lastTransformTime.toSec();
 
 
 		bool success = modelClient.call(srv);

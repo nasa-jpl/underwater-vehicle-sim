@@ -17,6 +17,8 @@
 
 #include <iostream>
 
+using namespace underwater_autonomy;
+
 std::vector<VehiclePose> poses;
 
 void filterPoseCallback(const nav_msgs::Odometry::ConstPtr& odo)

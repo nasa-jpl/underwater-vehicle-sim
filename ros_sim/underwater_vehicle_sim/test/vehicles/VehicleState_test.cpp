@@ -11,6 +11,8 @@
 
 #include "vehicles/VehicleState.h"
 
+using namespace ocean_models;
+
 ros::ServiceClient client;
 
 bool doubleEqual(double d1, double d2)

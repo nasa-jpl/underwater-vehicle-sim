@@ -8,6 +8,8 @@
 
 #include "vehicles/DepthModule.h"
 
+using namespace ocean_models;
+
 std::vector<underwater_vehicle_msgs::FloatMeasurement> depthMessages;
 
 void imuNoErrorCallback(const underwater_vehicle_msgs::FloatMeasurementPtr& vel)

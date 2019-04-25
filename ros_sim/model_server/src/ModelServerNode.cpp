@@ -24,6 +24,10 @@ ros::Publisher clockSpeedPub;
 ros::ServiceServer dataService;
 float speedUpFactor;   
 
+double modelTimeOffset = 0;
+double modelXOffset = 0;
+double modelYOffset = 0;
+
 void startModelLoad()
 {
     std_msgs::Float64 slowSim;
@@ -44,7 +48,7 @@ bool getModelData(model_server::GetModelData::Request &req,
 {   
     try
     {
-        ModelData data = model->getData(req.x, req.y, req.h, req.time);
+        ModelData data = model->getData(req.x + modelXOffset, req.y + modelYOffset, req.h, req.time + modelTimeOffset);
         res.u = data.u;
         res.v = data.v;
         res.dye = data.dye;
@@ -54,8 +58,8 @@ bool getModelData(model_server::GetModelData::Request &req,
     }
     catch(const std::out_of_range& e)
     {
-        ROS_INFO("ModelServer: Out of Range: %f %f %f %f", req.x, req.y, req.h, req.time);
-        ModelData data = model->getDataOutOfRange(req.x, req.y, req.h, req.time);
+        ROS_INFO("ModelServer: Out of Range: %f %f %f %f", req.x + modelXOffset, req.y + modelYOffset, req.h, req.time + modelTimeOffset);
+        ModelData data = model->getDataOutOfRange(req.x + modelXOffset, req.y + modelYOffset, req.h, req.time + modelTimeOffset);
         res.u = data.u;
         res.v = data.v;
         res.dye = data.dye;
@@ -83,6 +87,10 @@ int main(int argc, char **argv)
         ROS_FATAL("Parameter \"model_type\" not present in the parameter server.");
         exit(1);
     }
+
+    n.getParam("model/model_time_offset", modelTimeOffset);
+    n.getParam("model/model_x_offset", modelXOffset);
+    n.getParam("model/model_y_offset", modelYOffset);
 
     if(model_type == "FVCOM" || model_type == "fvcom")
     {

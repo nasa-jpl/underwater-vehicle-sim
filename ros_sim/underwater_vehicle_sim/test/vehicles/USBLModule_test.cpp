@@ -7,6 +7,8 @@
 #include "underwater_vehicle_msgs/USBL.h"
 #include "vehicles/USBLModule.h"
 
+using namespace ocean_models;
+
 std::vector<underwater_vehicle_msgs::USBL> validRangeMessages;
 std::vector<underwater_vehicle_msgs::USBL> biasAndRandomErrorMessages;
 std::vector<underwater_vehicle_msgs::USBL> badRangeMessages;

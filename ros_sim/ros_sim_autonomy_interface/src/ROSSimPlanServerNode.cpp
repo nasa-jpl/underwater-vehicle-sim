@@ -87,7 +87,6 @@ int main(int argc, char **argv)
         nhPriv.getParam("fail_time", parameters.failTime);
         nhPriv.getParam("target_data", parameters.targetData);
 
-
         double startX, startY, startZ;
         nhPriv.getParam("spiral_start_x", startX);
         nhPriv.getParam("spiral_start_y", startY);
