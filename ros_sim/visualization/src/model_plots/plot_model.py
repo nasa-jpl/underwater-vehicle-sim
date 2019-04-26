@@ -161,7 +161,7 @@ def main():
  #       plt.close()
 
     fvcomData = loadFVCOM(fvcomFile, 1)
-    fvcomData = filterXY(fvcomData, (-4250, 3750), (-3000, 5000))
+    fvcomData = filterXY(fvcomData, (-1000, 1000), (-1000, 1000))
 
 
     for i in xrange(0,127,1):

@@ -21,7 +21,7 @@ FourDOFPropulsionLogic::FourDOFPropulsionLogic(VehicleInfo& vehicleInfo) :
     verticalError(1.0),
     latestSonarDepth(1000),
     latestVehicleDepth(0),
-    minSeafloorDistance(10.0),
+    minSeafloorDistance(3.0),
     angleErrorScale(M_PI),
     horizontalScaleError(25),
     verticalErrorScale(15),
