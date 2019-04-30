@@ -86,6 +86,8 @@ int main(int argc, char **argv)
         nhPriv.getParam("final_spacing", parameters.finalSpacing);
         nhPriv.getParam("fail_time", parameters.failTime);
         nhPriv.getParam("target_data", parameters.targetData);
+        nhPriv.getParam("yoyo_min_depth", parameters.yoyoMinDepth);
+        nhPriv.getParam("yoyo_max_depth", parameters.yoyoMaxDepth);
 
         double startX, startY, startZ;
         nhPriv.getParam("spiral_start_x", startX);
