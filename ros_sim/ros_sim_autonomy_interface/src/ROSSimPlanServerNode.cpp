@@ -88,6 +88,7 @@ int main(int argc, char **argv)
         nhPriv.getParam("target_data", parameters.targetData);
         nhPriv.getParam("yoyo_min_depth", parameters.yoyoMinDepth);
         nhPriv.getParam("yoyo_max_depth", parameters.yoyoMaxDepth);
+        nhPriv.getParam("target_horizontal_velocity", parameters.targetHorizontalVelocity);
 
         double startX, startY, startZ;
         nhPriv.getParam("spiral_start_x", startX);
