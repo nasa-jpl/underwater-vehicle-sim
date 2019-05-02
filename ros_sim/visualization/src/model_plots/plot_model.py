@@ -61,7 +61,7 @@ def filterXY(fvcomData, xInterval, yInterval):
     fvcomData = [d for d in fvcomData if (xInterval[0] <= d[0] <= xInterval[1] and yInterval[0] <= d[1] <= yInterval[1])]
     return fvcomData
 
-def dye_plot(fvcomData, plotType, siglay, minColor=-1, maxColor=-1):
+def dye_plot(fvcomData, plotType, siglays, minColor=-1, maxColor=-1):
 
     x = []
     y = []
@@ -70,24 +70,25 @@ def dye_plot(fvcomData, plotType, siglay, minColor=-1, maxColor=-1):
     dye = []
 
     for d in fvcomData:
-        x.append(d[0])
-        y.append(d[1])
-        z.append(d[2][siglay])
-        depth.append(d[3]),
-        dye.append(d[4][siglay])
+        for siglay in siglays:
+            x.append(d[0])
+            y.append(d[1])
+            z.append(d[2][siglay])
+            depth.append(d[3]),
+            dye.append(d[4][siglay])
 
     print("Depth Range: " + str(min(z)) + " " + str(max(z)))
 
     if plotType == "3d":
         fig = plt.figure()
         ax = fig.add_subplot(111, projection='3d')
-        ax.set_title("Dye, siglay " + str(siglay))
+        ax.set_title("Dye, siglay " + str(siglays[0]) + " to " + str(siglays[-1]))
         ax.scatter(x, y, z, c=dye)
         ax.invert_zaxis()
     elif plotType == "contour":
         fig = plt.figure()
         ax = fig.add_subplot(111, axisbg='black')
-        ax.set_title("Dye, siglay " + str(siglay))
+        ax.set_title("Dye, siglay " + str(siglays[0]) + " to " + str(siglays[-1]))
         resX = 10
         resY = 10
         xi = linspace(min(x), max(x), resX)
@@ -149,24 +150,16 @@ def main():
     plotType = sys.argv[2]
     outputDir = sys.argv[3]
 
-
- #   for i in xrange(0, 24, 1):
- #       fvcomData = loadFVCOM(fvcomFile, i)
- #       fvcomData = filterXY(fvcomData, (-4250, 3750), (-3000, 5000))
-
- #       dye_plot(fvcomData, plotType, 8, minColor=0, maxColor=100)
-
- #       filename = format(i, '03') + ".png"
- #       plt.savefig(os.path.join(outputDir, filename), bbox_inches='tight')
- #       plt.close()
-
     fvcomData = loadFVCOM(fvcomFile, 1)
     fvcomData = filterXY(fvcomData, (-1000, 1000), (-1000, 1000))
 
+    #bathymetry_plot(fvcomData, plotType)
+ #   dye_plot(fvcomData, plotType, range(90, 127, 3), minColor=0, maxColor=100)
+  #  plt.show()
 
     for i in xrange(0,127,1):
         print("Output: " + str(i))
-        dye_plot(fvcomData, plotType, i, minColor=0, maxColor=100)
+        dye_plot(fvcomData, plotType, [i], minColor=0, maxColor=100)
 
         filename = format(i, '03') + ".png"
         plt.savefig(os.path.join(outputDir, filename), bbox_inches='tight')
