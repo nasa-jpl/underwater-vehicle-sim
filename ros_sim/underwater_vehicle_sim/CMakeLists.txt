@@ -136,7 +136,10 @@ catkin_package(
    src/vehicles/VehicleState.cpp
  )
 
- target_link_libraries(underwater_vehicles underwater_autonomy ${catkin_LIBRARIES})
+ target_link_libraries(underwater_vehicles 
+    underwater_autonomy 
+    ocean_models
+    ${catkin_LIBRARIES})
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries

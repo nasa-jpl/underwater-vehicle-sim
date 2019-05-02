@@ -57,6 +57,11 @@ void loadModelLocal(ros::NodeHandle& nhPriv)
 
         if(model_type == "FVCOM" || model_type == "fvcom")
         {
+            float offsetX = 0;
+            float offsetY = 0;
+            float offsetHeight = 0;
+            float offsetTime = 0;
+
             std::string fvcom_directory;
             if(!nhPriv.getParam("/model/fvcom_directory", fvcom_directory))
             {
@@ -64,7 +69,14 @@ void loadModelLocal(ros::NodeHandle& nhPriv)
                 exit(1);
             }
 
+            nhPriv.getParam("/model/offset_x", offsetX);
+            nhPriv.getParam("/model/offset_y", offsetY);
+            nhPriv.getParam("/model/offset_height", offsetHeight);
+            nhPriv.getParam("/model/offset_time", offsetTime);
+
             model.reset(new FVCOM(fvcom_directory, &startModelLoad, &endModelLoad, 1000, 1000, 10, 10, 100));
+            model->setOffsets(offsetX, offsetY, offsetHeight, offsetTime);
+
             ROS_INFO("FVCOM Model Loaded: %s", fvcom_directory.c_str());
         }
         else if(model_type == "constant")
@@ -76,6 +88,12 @@ void loadModelLocal(ros::NodeHandle& nhPriv)
             float dye = 0;
             float depth = -100;
 
+            float offsetX = 0;
+            float offsetY = 0;
+            float offsetHeight = 0;
+            float offsetTime = 0;
+
+
             nhPriv.getParam("/model/u", u);
             nhPriv.getParam("/model/v", v);
             nhPriv.getParam("/model/temp", temp);
@@ -83,7 +101,13 @@ void loadModelLocal(ros::NodeHandle& nhPriv)
             nhPriv.getParam("/model/dye", dye);
             nhPriv.getParam("/model/depth", depth);
 
+            nhPriv.getParam("/model/offset_x", offsetX);
+            nhPriv.getParam("/model/offset_y", offsetY);
+            nhPriv.getParam("/model/offset_height", offsetHeight);
+            nhPriv.getParam("/model/offset_time", offsetTime);
+
             model.reset(new ConstantModel(u, v, temp, salt, dye, depth));
+            model->setOffsets(offsetX, offsetY, offsetHeight, offsetTime);
             ROS_INFO("Constant Model Loaded");
         } 
         else if(model_type == "linear")
@@ -99,6 +123,12 @@ void loadModelLocal(ros::NodeHandle& nhPriv)
             float centerY = 0;
             float centerZ = 0;
             float zeroDistance = 100;
+
+            float offsetX = 0;
+            float offsetY = 0;
+            float offsetHeight = 0;
+            float offsetTime = 0;
+
             std::string type = "circle";
 
             nhPriv.getParam("/model/centerX", centerX);
@@ -114,7 +144,14 @@ void loadModelLocal(ros::NodeHandle& nhPriv)
             nhPriv.getParam("/model/dye", dye);
             nhPriv.getParam("/model/depth", depth);
 
+            nhPriv.getParam("/model/offset_x", offsetX);
+            nhPriv.getParam("/model/offset_y", offsetY);
+            nhPriv.getParam("/model/offset_height", offsetHeight);
+            nhPriv.getParam("/model/offset_time", offsetTime);
+
             model.reset(new LinearModel(u, v, temp, salt, dye, depth, zeroDistance, centerX, centerY, centerZ, type));
+            model->setOffsets(offsetX, offsetY, offsetHeight, offsetTime);
+
             ROS_INFO("Linear Model Loaded");
         }   
         else

@@ -150,7 +150,7 @@ private:
 	double startZ;
 
 	/**
-	* Local model used if speed in important
+	* Local model used if speed is important
 	*/
 	std::unique_ptr<ocean_models::ModelInterface> model;
 
