@@ -9,7 +9,7 @@
 
 #include "vehicles/PropulsionModule.h"
 
-#include "underwater_util/LinearPiecewise.h"
+#include "underwater_autonomy/util/LinearPiecewise.h"
 
 /**
 *Propulson module which provides the vehicle with 4 degrees of freedom

@@ -1,7 +1,7 @@
 #include "ros_sim_navigation/ROSSimNavigationFilter.h"
 
-#include "underwater_navigation/TrueNavigationFilter.h"
-#include "underwater_navigation/KalmanNavigationFilter.h"
+#include "underwater_autonomy/navigation/TrueNavigationFilter.h"
+#include "underwater_autonomy/navigation/KalmanNavigationFilter.h"
 
 #include "nav_msgs/Odometry.h"
 #include "underwater_vehicle_msgs/GetVehicleInfo.h"

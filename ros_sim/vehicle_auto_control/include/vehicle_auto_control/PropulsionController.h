@@ -22,7 +22,7 @@
 #include "vehicle_auto_control/GoToXYRosAction.h"
 #include "vehicle_auto_control/GoToZRosAction.h"
 
-#include "underwater_util/VehiclePose.h"
+#include "underwater_autonomy/util/VehiclePose.h"
 
 class PropulsionController
 {

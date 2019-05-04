@@ -8,7 +8,7 @@
 
 #include "vehicles/VehicleState.h"
 
-#include "model_interface/ModelData.h"
+#include "ocean_models/model_interface/ModelData.h"
 
 class GeneralModule
 {

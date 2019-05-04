@@ -11,7 +11,7 @@
 #include "underwater_vehicle_msgs/USBL.h"
 #include "underwater_vehicle_msgs/FloatMeasurement.h"
 
-#include "underwater_navigation/NavigationFilter.h"
+#include "underwater_autonomy/navigation/NavigationFilter.h"
 
 #include "underwater_vehicle_msgs/VehicleInfo.h"
 

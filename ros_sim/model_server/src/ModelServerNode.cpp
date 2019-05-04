@@ -2,15 +2,15 @@
 
 #include "ros/ros.h"
 
-#include "model_interface/ModelInterface.h"
-#include "model_interface/ModelData.h"
+#include "ocean_models/model_interface/ModelInterface.h"
+#include "ocean_models/model_interface/ModelData.h"
 
 #include "model_server/GetModelData.h"
 
 
-#include "general_models/LinearModel.h"
-#include "general_models/ConstantModel.h"
-#include "fvcom/FVCOM.h"
+#include "ocean_models/general_models/LinearModel.h"
+#include "ocean_models/general_models/ConstantModel.h"
+#include "ocean_models/fvcom/FVCOM.h"
 
 #include "std_msgs/Float64.h"
 #include <string>

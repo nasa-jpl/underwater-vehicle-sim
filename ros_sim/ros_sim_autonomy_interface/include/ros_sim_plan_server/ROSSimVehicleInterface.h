@@ -3,8 +3,8 @@
 
 #include "ros/ros.h"
 
-#include "underwater_planner/GoalStatus.h"
-#include "underwater_planner/VehicleInterface.h"
+#include "underwater_autonomy/planner/GoalStatus.h"
+#include "underwater_autonomy/planner/VehicleInterface.h"
 
 #include "underwater_vehicle_msgs/VehicleInfo.h"
 #include "underwater_vehicle_msgs/VehicleData.h"

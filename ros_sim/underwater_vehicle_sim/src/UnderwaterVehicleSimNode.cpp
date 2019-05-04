@@ -1,9 +1,9 @@
 #include "ros/ros.h"
 
-#include "model_interface/ModelInterface.h"
-#include "general_models/LinearModel.h"
-#include "general_models/ConstantModel.h"
-#include "fvcom/FVCOM.h"
+#include "ocean_models/model_interface/ModelInterface.h"
+#include "ocean_models/general_models/LinearModel.h"
+#include "ocean_models/general_models/ConstantModel.h"
+#include "ocean_models/fvcom/FVCOM.h"
 
 
 #include "vehicles/Vehicle.h"

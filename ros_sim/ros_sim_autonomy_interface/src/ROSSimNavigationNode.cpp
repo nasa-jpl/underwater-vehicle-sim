@@ -9,8 +9,8 @@
 
 #include "ros_sim_navigation/ROSSimNavigationFilter.h"
 
-#include "underwater_navigation/NavigationFilter.h"
-#include "underwater_navigation/TrueNavigationFilter.h"
+#include "underwater_autonomy/navigation/NavigationFilter.h"
+#include "underwater_autonomy/navigation/TrueNavigationFilter.h"
 
 std::vector<ROSSimNavigationFilter> vehicleFilters;
 ros::ServiceClient vehicleInfoClient;

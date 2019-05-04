@@ -15,7 +15,7 @@
 #include "underwater_vehicle_msgs/VehicleInfo.h"
 #include "underwater_vehicle_msgs/VehicleData.h"
 
-#include "underwater_util/VehiclePose.h"
+#include "underwater_autonomy/util/VehiclePose.h"
 
 class PropulsionLogicInterface
 {

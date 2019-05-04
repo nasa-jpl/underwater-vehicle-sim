@@ -11,7 +11,7 @@
 #include "tf2/LinearMath/Transform.h"
 
 #include "model_server/GetModelData.h"
-#include "model_interface/ModelData.h"
+#include "ocean_models/model_interface/ModelData.h"
 
 /**
  * Class used to represent a vehicle in the simulation

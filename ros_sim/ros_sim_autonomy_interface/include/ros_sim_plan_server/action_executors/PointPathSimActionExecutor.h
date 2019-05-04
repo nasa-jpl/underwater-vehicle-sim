@@ -11,7 +11,7 @@
 
 #include "nav_msgs/Odometry.h"
 
-#include "underwater_planner/ActionExecutor.h"
+#include "underwater_autonomy/planner/ActionExecutor.h"
 #include "vent_planner/actions/PointPathAction.h"
 
 #include "underwater_vehicle_msgs/VehicleInfo.h"

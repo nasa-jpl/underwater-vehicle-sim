@@ -1,7 +1,7 @@
 #include "ros_sim_plan_server/ROSSimPlanServer.h"
 
-#include "underwater_planner/Planner.h"
-#include "underwater_planner/PlanDispatcher.h"
+#include "underwater_autonomy/planner/Planner.h"
+#include "underwater_autonomy/planner/PlanDispatcher.h"
 
 #include "std_msgs/Float64.h"
 
