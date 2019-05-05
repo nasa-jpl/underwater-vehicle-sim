@@ -162,7 +162,7 @@ int main(int argc, char **argv)
 
     std::unique_ptr<PointPathController> pointPathController(new PointPathController(info));
       
-    ROSSimPlanServer server(std::move(planner));
+    ROSSimPlanServer server(std::move(planner), interface);
 
 
     ROS_INFO("Planner Initalized");
