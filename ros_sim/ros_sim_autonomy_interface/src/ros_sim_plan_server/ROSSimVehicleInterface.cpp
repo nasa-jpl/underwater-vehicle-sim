@@ -44,6 +44,10 @@ void ROSSimVehicleInterface::sendGoalStatus(GoalStatus status)
     {
         msg.data = "failed";
     }
+        else if(status == GoalStatus::PAUSED)
+    {
+        msg.data = "paused";
+    }
     goalPub.publish(msg);
 }
 
