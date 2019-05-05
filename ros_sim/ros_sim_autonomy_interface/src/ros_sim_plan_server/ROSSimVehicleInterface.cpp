@@ -29,22 +29,22 @@ ROSSimVehicleInterface::ROSSimVehicleInterface(VehicleInfo info) :
     goalPub = nh.advertise<std_msgs::String>("goal", 1, true);
 }
 
-void ROSSimVehicleInterface::sendGoalStatus(GoalStatus status)
+void ROSSimVehicleInterface::sendPlannerStatus(PlannerStatus status)
 {
     std_msgs::String msg;
-    if(status == GoalStatus::RUNNING)
+    if(status == PlannerStatus::RUNNING)
     {
          msg.data = "running";
     }
-    else if(status == GoalStatus::SUCCESS)
+    else if(status == PlannerStatus::SUCCESS)
     {
         msg.data = "success";
     }
-    else if(status == GoalStatus::FAILED)
+    else if(status == PlannerStatus::FAILED)
     {
         msg.data = "failed";
     }
-        else if(status == GoalStatus::PAUSED)
+        else if(status == PlannerStatus::PAUSED)
     {
         msg.data = "paused";
     }
