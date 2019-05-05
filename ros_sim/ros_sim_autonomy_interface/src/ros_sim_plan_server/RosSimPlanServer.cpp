@@ -48,10 +48,6 @@ void ROSSimPlanServer::update()
         startSim.data = speedUpFactor;
         clockSpeedPub.publish(startSim);
 
-        if(newPlan)
-        {
-            planDispatcher.setPlan(newPlan);
-            planDispatcher.run();
-        }
+        planDispatcher.setPlan(newPlan);
     }
 }
