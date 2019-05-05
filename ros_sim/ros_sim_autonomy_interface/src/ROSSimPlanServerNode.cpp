@@ -67,7 +67,6 @@ int main(int argc, char **argv)
     if(plannerType == "SurfaceGradient")
     {
         SurfaceGradientVentPlanner::Parameters parameters;
-        nhPriv.getParam("fail_time", parameters.failTime);
         nhPriv.getParam("spiral_spacing", parameters.spiralSpacing);
         nhPriv.getParam("detection_threshold", parameters.detectionThreshold);
         nhPriv.getParam("gradient_radius", parameters.gradientCalcRadius);
@@ -84,7 +83,6 @@ int main(int argc, char **argv)
         nhPriv.getParam("spiral_spacing", parameters.spiralSpacing);
         nhPriv.getParam("inital_spacing", parameters.initialSpacing);
         nhPriv.getParam("final_spacing", parameters.finalSpacing);
-        nhPriv.getParam("fail_time", parameters.failTime);
         nhPriv.getParam("target_data", parameters.targetData);
         nhPriv.getParam("yoyo_min_depth", parameters.yoyoMinDepth);
         nhPriv.getParam("yoyo_max_depth", parameters.yoyoMaxDepth);
@@ -96,19 +94,34 @@ int main(int argc, char **argv)
         nhPriv.getParam("spiral_start_z", startZ);
         parameters.startLocation = Eigen::Vector3d(startX, startY, startZ);
 
-        double minX, minY, maxX, maxY;
+        double targetX, targetY;
+        if(nhPriv.hasParam("sim_target_x") && nhPriv.hasParam("sim_target_y"))
+        {
+            parameters.hasSimTarget = true;
+            nhPriv.getParam("sim_target_x", targetX);
+            nhPriv.getParam("sim_target_y", targetY);
+            parameters.simTarget = Eigen::Vector3d(targetX, targetY, 0);
+        }
+        else
+        {
+            parameters.hasSimTarget = false;
+        }
+
+        double minX, minY, minZ, maxX, maxY, maxZ;
         nhPriv.getParam("operation_region_min_x", minX);
         nhPriv.getParam("operation_region_min_y", minY);
+        nhPriv.getParam("operation_region_min_z", minZ);
+
         nhPriv.getParam("operation_region_max_x", maxX);
         nhPriv.getParam("operation_region_max_y", maxY);
-        parameters.operationRegion = OperationRegion(minX, minY, maxX, maxY);
+          nhPriv.getParam("operation_region_max_z", maxZ);
+        parameters.operationRegion = OperationRegion(minX, minY, minZ, maxX, maxY, maxZ);
 
         planner.reset(new NestedBinVentPlanner(factory, interface, std::move(parameters)));
     }
     else if(plannerType == "DirectionSet")
     {
         DirectionSetVentPlanner::Parameters parameters;
-        nhPriv.getParam("fail_time", parameters.failTime);
         nhPriv.getParam("spiral_spacing", parameters.spiralSpacing);
         nhPriv.getParam("detection_threshold", parameters.detectionThreshold);
         nhPriv.getParam("min_leg_length", parameters.minLegLength);

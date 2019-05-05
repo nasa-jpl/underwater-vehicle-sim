@@ -15,7 +15,8 @@ ROSSimVentActionFactory::ROSSimVentActionFactory(VehicleInfo vehicleInfo) :
     vehicleInfo(vehicleInfo)
 {}
 
-std::shared_ptr<PointPathAction> ROSSimVentActionFactory::createPointPathAction(const double targetHorizontalVelocity, 
+std::shared_ptr<PointPathAction> ROSSimVentActionFactory::createPointPathAction(const OperationRegion operationRegion,
+                                                                             const double targetHorizontalVelocity, 
                                                                              const double targetRotationalVelocity,
                                                                              const double targetSlope,
                                                                              const double upperDepth,
@@ -27,6 +28,7 @@ std::shared_ptr<PointPathAction> ROSSimVentActionFactory::createPointPathAction(
 
     std::unique_ptr<ActionExecutor<PointPathAction>> executor(new PointPathSimActionExecutor(vehicleInfo));
     return std::unique_ptr<PointPathAction>(new PointPathAction(std::move(executor),
+                                                                operationRegion,
                                                                 targetHorizontalVelocity,
                                                                 targetRotationalVelocity,
                                                                 targetSlope,
@@ -38,7 +40,8 @@ std::shared_ptr<PointPathAction> ROSSimVentActionFactory::createPointPathAction(
                                                                 periodicReplanTime));
 }    
 
-std::shared_ptr<PointPathAction> ROSSimVentActionFactory::createPointPathAction(const double targetHorizontalVelocity, 
+std::shared_ptr<PointPathAction> ROSSimVentActionFactory::createPointPathAction(const OperationRegion operationRegion,
+                                                                             const double targetHorizontalVelocity, 
                                                                              const double targetRotationalVelocity,
                                                                              const double targetSlope,
                                                                              const std::vector<Eigen::Vector3d>& points,
@@ -47,6 +50,7 @@ std::shared_ptr<PointPathAction> ROSSimVentActionFactory::createPointPathAction(
 {
     std::unique_ptr<ActionExecutor<PointPathAction>> executor(new PointPathSimActionExecutor(vehicleInfo));
     return std::unique_ptr<PointPathAction>(new PointPathAction(std::move(executor),
+                                                                operationRegion,
                                                                 targetHorizontalVelocity,
                                                                 targetRotationalVelocity,
                                                                 targetSlope,

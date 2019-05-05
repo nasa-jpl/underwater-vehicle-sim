@@ -9,6 +9,7 @@
 #include "ros/ros.h"
 
 #include "underwater_autonomy/util/VehiclePose.h"
+#include "underwater_autonomy/util/OperationRegion.h"
 
 #include "vent_planner/actions/VentActionFactory.h"
 #include "vent_planner/actions/PointPathAction.h"
@@ -23,7 +24,8 @@ public:
     ROSSimVentActionFactory(VehicleInfo vehicleInfo);
     ~ROSSimVentActionFactory() {}
 
-    std::shared_ptr<vent_planner::PointPathAction> createPointPathAction(const double targetHorizontalVelocity, 
+    std::shared_ptr<vent_planner::PointPathAction> createPointPathAction(underwater_autonomy::OperationRegion operationRegion,
+                                                           const double targetHorizontalVelocity, 
                                                            const double targetRotationalVelocity,
                                                            const double targetSlope,
                                                            const double upperDepth,
@@ -32,7 +34,8 @@ public:
                                                            const vent_planner::PointPathAction::ReplanType replan,
                                                            const double periodicReplanTime) override;
 
-    std::shared_ptr<vent_planner::PointPathAction> createPointPathAction(const double targetHorizontalVelocity, 
+    std::shared_ptr<vent_planner::PointPathAction> createPointPathAction(underwater_autonomy::OperationRegion operationRegion,
+                                                           const double targetHorizontalVelocity, 
                                                            const double targetRotationalVelocity,
                                                            const double targetSlope,
                                                            const std::vector<Eigen::Vector3d>& points,
