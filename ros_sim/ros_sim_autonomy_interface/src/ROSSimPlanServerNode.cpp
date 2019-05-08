@@ -84,6 +84,8 @@ int main(int argc, char **argv)
         nhPriv.getParam("inital_spacing", parameters.initialSpacing);
         nhPriv.getParam("final_spacing", parameters.finalSpacing);
         nhPriv.getParam("target_data", parameters.targetData);
+        nhPriv.getParam("lawnmower_data_range", parameters.lawnmowerDataRange);
+
         nhPriv.getParam("yoyo_min_depth", parameters.yoyoMinDepth);
         nhPriv.getParam("yoyo_max_depth", parameters.yoyoMaxDepth);
         nhPriv.getParam("target_horizontal_velocity", parameters.targetHorizontalVelocity);
