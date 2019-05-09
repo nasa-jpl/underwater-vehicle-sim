@@ -24,7 +24,12 @@ class PointPathSimActionExecutor : public underwater_autonomy::ActionExecutor<ve
 {
 public:
     PointPathSimActionExecutor(VehicleInfo& info);
-    PointPathSimActionExecutor(const PointPathSimActionExecutor& other);
+    PointPathSimActionExecutor(const PointPathSimActionExecutor&&) = delete;
+	PointPathSimActionExecutor(const PointPathSimActionExecutor&) = delete;
+
+	PointPathSimActionExecutor& operator=(PointPathSimActionExecutor&& ) = delete;
+	PointPathSimActionExecutor& operator=(PointPathSimActionExecutor& ) = delete;
+
     ~PointPathSimActionExecutor() {}
 
     /**
@@ -44,9 +49,6 @@ public:
     bool triggerReplan(std::shared_ptr<vent_planner::PointPathAction> action) override;
 
     void cancel(std::shared_ptr<vent_planner::PointPathAction> action) override;
-
-    std::unique_ptr<ActionExecutor<vent_planner::PointPathAction>> clone() override;
-
 
 private:
     void navigationFilterCallback(const nav_msgs::Odometry odo);

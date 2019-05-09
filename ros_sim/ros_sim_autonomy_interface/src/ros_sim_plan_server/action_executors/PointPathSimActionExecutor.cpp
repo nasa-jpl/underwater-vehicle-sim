@@ -34,22 +34,6 @@ PointPathSimActionExecutor::PointPathSimActionExecutor(VehicleInfo& vehicleInfo)
 
 }
 
-PointPathSimActionExecutor::PointPathSimActionExecutor(const PointPathSimActionExecutor& other) :
-	vehicleInfo(other.vehicleInfo),
-	currentPointOffset(other.currentPointOffset),
-	pointPathClient("point_path", true),
-	replanNextUpdate(false),
-	lastReplan(other.lastReplan),
-	distanceSinceReplan(other.distanceSinceReplan),
-	listener(buffer)
-{}
-
-std::unique_ptr<ActionExecutor<vent_planner::PointPathAction>> PointPathSimActionExecutor::clone()
-{
-	std::unique_ptr<ActionExecutor<PointPathAction>> a(new PointPathSimActionExecutor(*this));
-    return a;
-}
-
 bool PointPathSimActionExecutor::execute(std::shared_ptr<PointPathAction> action)
 {
 	ROS_INFO("Execute point path action");
