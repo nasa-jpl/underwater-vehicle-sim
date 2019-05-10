@@ -86,8 +86,18 @@ int main(int argc, char **argv)
         nhPriv.getParam("target_data", parameters.targetData);
         nhPriv.getParam("lawnmower_data_range", parameters.lawnmowerDataRange);
 
-        nhPriv.getParam("yoyo_min_depth", parameters.yoyoMinDepth);
-        nhPriv.getParam("yoyo_max_depth", parameters.yoyoMaxDepth);
+        if(nhPriv.hasParam("yoyo_min_depth") && nhPriv.hasParam("yoyo_max_depth"))
+        {
+            nhPriv.getParam("yoyo_min_depth", parameters.yoyoMinDepth);
+            nhPriv.getParam("yoyo_max_depth", parameters.yoyoMaxDepth);
+            parameters.yoyoDuringSpiral = true;
+        }
+        else
+        {
+            parameters.yoyoMinDepth = 0;
+            parameters.yoyoMaxDepth = 0;
+            parameters.yoyoDuringSpiral = false;
+        }
         nhPriv.getParam("target_horizontal_velocity", parameters.targetHorizontalVelocity);
 
         double startX, startY, startZ;
