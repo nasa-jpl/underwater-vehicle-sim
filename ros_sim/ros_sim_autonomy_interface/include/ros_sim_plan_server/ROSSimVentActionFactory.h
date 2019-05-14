@@ -24,23 +24,23 @@ public:
     ROSSimVentActionFactory(VehicleInfo vehicleInfo);
     ~ROSSimVentActionFactory() {}
 
-    std::shared_ptr<vent_planner::PointPathAction> createPointPathAction(underwater_autonomy::OperationRegion operationRegion,
-                                                           const double targetHorizontalVelocity, 
-                                                           const double targetRotationalVelocity,
-                                                           const double targetSlope,
-                                                           const double upperDepth,
-                                                           const double lowerDepth,
-                                                           const std::vector<Eigen::Vector3d>& points,
-                                                           const vent_planner::PointPathAction::ReplanType replan,
-                                                           const double periodicReplanTime) override;
+    std::shared_ptr<vent_planner::PointPathAction> createPointPathAction(std::unique_ptr<underwater_autonomy::OperationRegion> operationRegion,
+                                                                         const double targetHorizontalVelocity, 
+                                                                         const double targetRotationalVelocity,
+                                                                         const double targetSlope,
+                                                                         const double upperDepth,
+                                                                         const double lowerDepth,
+                                                                         const std::vector<Eigen::Vector3d>& points,
+                                                                         const vent_planner::PointPathAction::ReplanType replan,
+                                                                         const double periodicReplanTime) override;
 
-    std::shared_ptr<vent_planner::PointPathAction> createPointPathAction(underwater_autonomy::OperationRegion operationRegion,
-                                                           const double targetHorizontalVelocity, 
-                                                           const double targetRotationalVelocity,
-                                                           const double targetSlope,
-                                                           const std::vector<Eigen::Vector3d>& points,
-                                                           const vent_planner::PointPathAction::ReplanType replan,
-                                                           const double periodicReplanTime) override;
+    std::shared_ptr<vent_planner::PointPathAction> createPointPathAction(std::unique_ptr<underwater_autonomy::OperationRegion> operationRegion,
+                                                                         const double targetHorizontalVelocity, 
+                                                                         const double targetRotationalVelocity,
+                                                                         const double targetSlope,
+                                                                         const std::vector<Eigen::Vector3d>& points,
+                                                                         const vent_planner::PointPathAction::ReplanType replan,
+                                                                         const double periodicReplanTime) override;
 private:
     VehicleInfo vehicleInfo;
 };

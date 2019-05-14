@@ -2,6 +2,8 @@
 
 #include "underwater_autonomy/planner/Planner.h"
 #include "underwater_autonomy/planner/PlanDispatcher.h"
+#include "underwater_autonomy/util/BoxOperationRegion.h"
+
 #include "ros_sim_plan_server/ROSSimPlanServer.h"
 #include "ros_sim_plan_server/ROSSimVentActionFactory.h"
 #include "ros_sim_plan_server/ROSSimVehicleInterface.cpp"
@@ -75,7 +77,7 @@ int main(int argc, char **argv)
         nhPriv.getParam("min_follow_distance", parameters.gradientMinFollowDistance);
         nhPriv.getParam("gradient_window", parameters.gradientWindow);
 
-        planner.reset(new SurfaceGradientVentPlanner(factory, interface, std::move(parameters)));
+        planner.reset(new SurfaceGradientVentPlanner(factory, interface, parameters));
     }
     else if(plannerType == "NestedBin")
     {
@@ -84,6 +86,7 @@ int main(int argc, char **argv)
         nhPriv.getParam("inital_spacing", parameters.initialSpacing);
         nhPriv.getParam("final_spacing", parameters.finalSpacing);
         nhPriv.getParam("target_data", parameters.targetData);
+        nhPriv.getParam("detection_threshold", parameters.detectionThreshold);
         nhPriv.getParam("lawnmower_data_range", parameters.lawnmowerDataRange);
 
         if(nhPriv.hasParam("yoyo_min_depth") && nhPriv.hasParam("yoyo_max_depth"))
@@ -127,9 +130,9 @@ int main(int argc, char **argv)
         nhPriv.getParam("operation_region_max_x", maxX);
         nhPriv.getParam("operation_region_max_y", maxY);
           nhPriv.getParam("operation_region_max_z", maxZ);
-        parameters.operationRegion = OperationRegion(minX, minY, minZ, maxX, maxY, maxZ);
+        parameters.operationRegion = std::unique_ptr<OperationRegion>(new BoxOperationRegion(minX, minY, minZ, maxX, maxY, maxZ));
 
-        planner.reset(new NestedBinVentPlanner(factory, interface, std::move(parameters)));
+        planner.reset(new NestedBinVentPlanner(factory, interface, parameters));
     }
     else if(plannerType == "DirectionSet")
     {
@@ -142,7 +145,7 @@ int main(int argc, char **argv)
         nhPriv.getParam("new_max_threshold", parameters.newMaxThreshold);
         nhPriv.getParam("num_sections_threshold", parameters.numSectionsThreshold);
 
-        planner.reset(new DirectionSetVentPlanner(factory, interface, std::move(parameters)));
+        planner.reset(new DirectionSetVentPlanner(factory, interface, parameters));
     }
     else if(plannerType == "Waypoints")
     {
@@ -169,7 +172,7 @@ int main(int argc, char **argv)
             parameters.waypoints.push_back(Eigen::Vector3d(waypointsX[i], waypointsY[i], waypointsZ[i]));
         }
 
-        planner.reset(new WaypointsPlanner(factory, interface, std::move(parameters)));
+        planner.reset(new WaypointsPlanner(factory, interface, parameters));
     }
 
     std::unique_ptr<PointPathController> pointPathController(new PointPathController(info));
