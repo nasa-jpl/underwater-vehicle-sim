@@ -129,7 +129,7 @@ int main(int argc, char **argv)
 
         nhPriv.getParam("operation_region_max_x", maxX);
         nhPriv.getParam("operation_region_max_y", maxY);
-          nhPriv.getParam("operation_region_max_z", maxZ);
+        nhPriv.getParam("operation_region_max_z", maxZ);
         parameters.operationRegion = std::unique_ptr<OperationRegion>(new BoxOperationRegion(minX, minY, minZ, maxX, maxY, maxZ));
 
         planner.reset(new NestedBinVentPlanner(factory, interface, parameters));
@@ -138,12 +138,51 @@ int main(int argc, char **argv)
     {
         DirectionSetVentPlanner::Parameters parameters;
         nhPriv.getParam("spiral_spacing", parameters.spiralSpacing);
+
         nhPriv.getParam("detection_threshold", parameters.detectionThreshold);
+
         nhPriv.getParam("min_leg_length", parameters.minLegLength);
         nhPriv.getParam("max_leg_length", parameters.maxLegLength);
-        nhPriv.getParam("leg_section_length", parameters.legSectionLength);
+
         nhPriv.getParam("new_max_threshold", parameters.newMaxThreshold);
+
+        nhPriv.getParam("leg_section_length", parameters.legSectionLength);
         nhPriv.getParam("num_sections_threshold", parameters.numSectionsThreshold);
+
+        nhPriv.getParam("target_horizontal_velocity", parameters.targetHorizontalVelocity);
+
+        nhPriv.getParam("data_depth_range", parameters.dataDepthRange);
+
+        if(nhPriv.hasParam("yoyo_min_depth") && nhPriv.hasParam("yoyo_max_depth"))
+        {
+            nhPriv.getParam("yoyo_min_depth", parameters.yoyoMinDepth);
+            nhPriv.getParam("yoyo_max_depth", parameters.yoyoMaxDepth);
+            parameters.yoyoDuringSpiral = true;
+        }
+        else
+        {
+            parameters.yoyoMinDepth = 0;
+            parameters.yoyoMaxDepth = 0;
+            parameters.yoyoDuringSpiral = false;
+        }
+
+        double startX, startY, startZ;
+        nhPriv.getParam("spiral_start_x", startX);
+        nhPriv.getParam("spiral_start_y", startY);
+        nhPriv.getParam("spiral_start_z", startZ);
+        parameters.startLocation = Eigen::Vector3d(startX, startY, startZ);
+
+        nhPriv.getParam("target_data", parameters.targetData);
+
+        double minX, minY, minZ, maxX, maxY, maxZ;
+        nhPriv.getParam("operation_region_min_x", minX);
+        nhPriv.getParam("operation_region_min_y", minY);
+        nhPriv.getParam("operation_region_min_z", minZ);
+        nhPriv.getParam("operation_region_max_x", maxX);
+        nhPriv.getParam("operation_region_max_y", maxY);
+        nhPriv.getParam("operation_region_max_z", maxZ);
+        
+        parameters.operationRegion = std::unique_ptr<OperationRegion>(new BoxOperationRegion(minX, minY, minZ, maxX, maxY, maxZ));
 
         planner.reset(new DirectionSetVentPlanner(factory, interface, parameters));
     }
