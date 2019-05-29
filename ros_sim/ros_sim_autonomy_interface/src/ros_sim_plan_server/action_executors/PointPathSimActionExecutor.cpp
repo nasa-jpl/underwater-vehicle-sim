@@ -36,7 +36,7 @@ PointPathSimActionExecutor::PointPathSimActionExecutor(VehicleInfo& vehicleInfo)
 
 bool PointPathSimActionExecutor::execute(std::shared_ptr<PointPathAction> action)
 {
-	ROS_INFO("Execute point path action");
+	ROS_DEBUG("Execute point path action");
 	//targetSlope can only be on the interval (0, 90) degrees
 	if(action->getYoyo() && (action->getTargetSlope() >= M_PI / 2 || action->getTargetSlope() <= 0))
 	{
@@ -84,7 +84,7 @@ bool PointPathSimActionExecutor::execute(std::shared_ptr<PointPathAction> action
 	pointPathGoal.yoyo = action->getYoyo();
 
 	pointPathClient.waitForServer();
-	ROS_INFO("Send goal to point path server");
+	ROS_DEBUG("Send goal to point path server");
 	pointPathClient.sendGoal(pointPathGoal,
 							 boost::bind(&PointPathSimActionExecutor::actionDone, this, action, _1, _2),
 							 boost::bind(&PointPathSimActionExecutor::actionActive, this, action),
@@ -122,18 +122,18 @@ void PointPathSimActionExecutor::actionDone(std::shared_ptr<PointPathAction> act
 	   state == actionlib::SimpleClientGoalState::PREEMPTED)
 	{
 		action->setState(Action::State::INTERRUPTED);
-		ROS_INFO("Point path action interrupted");
+		ROS_DEBUG("Point path action interrupted");
 	}
 	else if(state == actionlib::SimpleClientGoalState::REJECTED ||
 			state == actionlib::SimpleClientGoalState::ABORTED)
 	{
 		action->setState(Action::State::FAILED);
-		ROS_INFO("Point path action failed");
+		ROS_DEBUG("Point path action failed");
 	}
 	else if(state == actionlib::SimpleClientGoalState::SUCCEEDED)
 	{
 		action->setState(Action::State::COMPLETED);
-		ROS_INFO("Point path action completed");
+		ROS_DEBUG("Point path action completed");
 	}
 
 	//Get the current point from the feedback
@@ -166,7 +166,6 @@ void PointPathSimActionExecutor::actionFeedback(std::shared_ptr<PointPathAction>
 	}
 	//Add the currentPointOffset as we did not necessarily start at point 0
 	adjustedCurrentPoint += currentPointOffset;
-	
 	
 	replanNextUpdate = action->doReplan(adjustedCurrentPoint,
 										feedback->goingUp,

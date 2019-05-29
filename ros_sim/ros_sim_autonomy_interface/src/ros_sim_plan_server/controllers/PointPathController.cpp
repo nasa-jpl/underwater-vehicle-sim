@@ -32,7 +32,7 @@ void PointPathController::sendAllGoals(void)
     xyDone = false;
     sendXYGoal(pathPoints[currentPoint].getX(), pathPoints[currentPoint].getY());
 
-    ROS_INFO("send goals: %d %f %f", currentPoint, pathPoints[currentPoint].getX(), pathPoints[currentPoint].getY());   
+    ROS_DEBUG("send goals: %d %f %f", currentPoint, pathPoints[currentPoint].getX(), pathPoints[currentPoint].getY());   
     if(!yoyo)
     {
         zDone = false;
@@ -44,11 +44,11 @@ void PointPathController::pointPathUpdate(void)
 {
     if(xyDone && zDone)
     {
-        ROS_INFO("Point path go to next point");
+        ROS_DEBUG("Point path go to next point");
         currentPoint++;
         if(currentPoint >= pathPoints.size())
         {
-            ROS_INFO("Point path server set to succeeded");
+            ROS_DEBUG("Point path server set to succeeded");
             ros_sim_autonomy_interface::PointPathRosResult result;
             result.totalPoints = currentPoint;
             pointPathServer.setSucceeded(result);
@@ -64,7 +64,7 @@ void PointPathController::yoyoUpdate(void)
 {
     goingUp = !goingUp;
     double targetZ = goingUp ? upperDepth : lowerDepth;
-    ROS_INFO("YoYo Update - goingUp: %d; targetZ: %f", goingUp, targetZ);
+    ROS_DEBUG("YoYo Update - goingUp: %d; targetZ: %f", goingUp, targetZ);
     sendZGoal(targetZ);
 
     sendFeedback();
@@ -80,7 +80,7 @@ void PointPathController::sendFeedback(void)
 
 void PointPathController::goalCB(void)
 {  
-    ROS_INFO("Point path server accept new goal");
+    ROS_DEBUG("Point path server accept new goal");
 
     //Set this to true so we know that a new goal has just been accepted
     newGoalAccepted = true;
@@ -108,7 +108,7 @@ void PointPathController::goalCB(void)
 
 void PointPathController::preemptCB(void)
 {
-    ROS_INFO("Point Path Preempted");
+    ROS_DEBUG("Point Path Preempted");
     goToXYClient.cancelAllGoals();
     goToZClient.cancelAllGoals();
     pointPathServer.setPreempted();
@@ -124,7 +124,7 @@ void PointPathController::goToXYFeedback(const vehicle_auto_control::GoToXYRosFe
 void PointPathController::goToXYDone(const actionlib::SimpleClientGoalState& state,
                        const vehicle_auto_control::GoToXYRosResultConstPtr& result)
 {
-    ROS_INFO("GoToXY goal sent by point path controller is done: %s", state.toString().c_str());
+    ROS_DEBUG("GoToXY goal sent by point path controller is done: %s", state.toString().c_str());
 
     if(state == actionlib::SimpleClientGoalState::StateEnum::SUCCEEDED)
     {
@@ -164,7 +164,7 @@ void PointPathController::sendXYGoal(const double x, const double y)
     xyGoal.x = x;
     xyGoal.y = y;
 
-    ROS_INFO("Waiting for GoToXY server");
+    ROS_DEBUG("Waiting for GoToXY server");
     while(!goToXYClient.waitForServer(ros::Duration(5.0)))
     {
         ros::spinOnce();
@@ -173,7 +173,7 @@ void PointPathController::sendXYGoal(const double x, const double y)
         boost::bind(&PointPathController::goToXYDone, this, _1, _2),
         boost::bind(&PointPathController::goToXYActive, this),
         boost::bind(&PointPathController::goToXYFeedback, this, _1));
-    ROS_INFO("Send goal to GoToXY server from point path controller - x:%f y:%f", x, y);
+    ROS_DEBUG("Send goal to GoToXY server from point path controller - x:%f y:%f", x, y);
 }
 
 void PointPathController::goToZActive(void) {}
@@ -198,7 +198,7 @@ void PointPathController::goToZFeedback(const vehicle_auto_control::GoToZRosFeed
 void PointPathController::goToZDone(const actionlib::SimpleClientGoalState& state,
                        const vehicle_auto_control::GoToZRosResultConstPtr& result)
 {
-    ROS_INFO("GoToZ goal sent by point path controller is done");
+    ROS_DEBUG("GoToZ goal sent by point path controller is done");
     
     if(state == actionlib::SimpleClientGoalState::StateEnum::SUCCEEDED)
     {
@@ -245,7 +245,7 @@ void PointPathController::sendZGoal(const double z)
 
     zGoal.z = z;
 
-    ROS_INFO("Waiting for GoToZ server");
+    ROS_DEBUG("Waiting for GoToZ server");
     while(!goToZClient.waitForServer(ros::Duration(5.0)))
     {
         ros::spinOnce();
@@ -254,5 +254,5 @@ void PointPathController::sendZGoal(const double z)
         boost::bind(&PointPathController::goToZDone, this, _1, _2),
         boost::bind(&PointPathController::goToZActive, this),
         boost::bind(&PointPathController::goToZFeedback, this, _1));
-    ROS_INFO("Send GoToZ goal from point path controller - z:%f", z);
+    ROS_DEBUG("Send GoToZ goal from point path controller - z:%f", z);
 }

@@ -66,7 +66,7 @@ void PropulsionController::goalGoToXYCB(void)
     vehicle_auto_control::GoToXYRosGoalConstPtr goToXYGoal = goToXYServer.acceptNewGoal();
     
 	logicController->setTargetXY(goToXYGoal->x, goToXYGoal->y);
-    ROS_INFO("GoToXY server accepted a new goal - x:%f y:%f", goToXYGoal->x, goToXYGoal->y);
+    ROS_DEBUG("GoToXY server accepted a new goal - x:%f y:%f", goToXYGoal->x, goToXYGoal->y);
 }
 
 void PropulsionController::preemptGoToXYCB(void)
@@ -95,7 +95,7 @@ void PropulsionController::goToXYUpdate(void)
 		result.x = currentPose.getPosition()[0];
 		result.y = currentPose.getPosition()[1];
 		goToXYServer.setSucceeded(result);
-		ROS_INFO("GoToXY Server goal completed: %f %f", result.x, result.y);
+		ROS_DEBUG("GoToXY Server goal completed: %f %f", result.x, result.y);
 	}
 	else
 	{
@@ -118,7 +118,7 @@ void PropulsionController::goalGoToZCB(void)
     vehicle_auto_control::GoToZRosGoalConstPtr goToZGoal = goToZServer.acceptNewGoal();
 
 	logicController->setTargetZ(goToZGoal->z);
-    ROS_INFO("GoToZ server accepted a new goal - z: %f", goToZGoal->z);
+    ROS_DEBUG("GoToZ server accepted a new goal - z: %f", goToZGoal->z);
 }
 
 void PropulsionController::preemptGoToZCB(void)
@@ -140,7 +140,7 @@ void PropulsionController::goToZUpdate(void)
 		vehicle_auto_control::GoToZRosResult result;
         result.z = currentPose.getPosition()[2];
         goToZServer.setSucceeded(result); 
-		ROS_INFO("GoToZ Server goal completeted: %f", result.z);
+		ROS_DEBUG("GoToZ Server goal completeted: %f", result.z);
 	}
 	else
 	{
