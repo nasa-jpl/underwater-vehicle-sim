@@ -12,7 +12,7 @@
 #include "nav_msgs/Odometry.h"
 
 #include "underwater_autonomy/planner/ActionExecutor.h"
-#include "vent_planner/actions/PointPathAction.h"
+#include "underwater_autonomy/planner/actions/PointPathAction.h"
 
 #include "underwater_vehicle_msgs/VehicleInfo.h"
 
@@ -20,7 +20,7 @@
 #include "ros_sim_autonomy_interface/PointPathRosAction.h"
 
 
-class PointPathSimActionExecutor : public underwater_autonomy::ActionExecutor<vent_planner::PointPathAction>
+class PointPathSimActionExecutor : public underwater_autonomy::ActionExecutor<underwater_autonomy::PointPathAction>
 {
 public:
     PointPathSimActionExecutor(VehicleInfo& info);
@@ -35,20 +35,20 @@ public:
     /**
     * Executes the yoyo action in the ros simulation with the given parameters
     */
-    bool execute(std::shared_ptr<vent_planner::PointPathAction> action) override;
+    bool execute(std::shared_ptr<underwater_autonomy::PointPathAction> action) override;
     
     /**
     * Monitors and updates the state of the yoyo action in the ros simulation 
     * All monitoring is done with action callbacks so this method is not used here
     */
-    void monitor(std::shared_ptr<vent_planner::PointPathAction> action) override {}
+    void monitor(std::shared_ptr<underwater_autonomy::PointPathAction> action) override {}
 
     /**
     * Allows the yoyo action to trigger a replan in the ros simulation 
     */
-    bool triggerReplan(std::shared_ptr<vent_planner::PointPathAction> action) override;
+    bool triggerReplan(std::shared_ptr<underwater_autonomy::PointPathAction> action) override;
 
-    void cancel(std::shared_ptr<vent_planner::PointPathAction> action) override;
+    void cancel(std::shared_ptr<underwater_autonomy::PointPathAction> action) override;
 
 private:
     void navigationFilterCallback(const nav_msgs::Odometry odo);
@@ -57,21 +57,21 @@ private:
     * Callback that occurs when the action is finished
     * @param action Action is avalible to update the internal state
     */
-    void actionDone(std::shared_ptr<vent_planner::PointPathAction> action,
+    void actionDone(std::shared_ptr<underwater_autonomy::PointPathAction> action,
                     const actionlib::SimpleClientGoalState& state,
                     const ros_sim_autonomy_interface::PointPathRosResultConstPtr& result);
 
     /**
     * Callback that occurs when the action goes active
     */
-    void actionActive(std::shared_ptr<vent_planner::PointPathAction> action);
+    void actionActive(std::shared_ptr<underwater_autonomy::PointPathAction> action);
 
     /**
      * Callback that occurs when feedback is recieved from the action
      * @param action Action is avalible to update the internal state
      * @param feedback Feedback pointer
      */
-    void actionFeedback(std::shared_ptr<vent_planner::PointPathAction> action,
+    void actionFeedback(std::shared_ptr<underwater_autonomy::PointPathAction> action,
                         const ros_sim_autonomy_interface::PointPathRosFeedbackConstPtr& feedback);
 
 private:

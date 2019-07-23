@@ -3,12 +3,12 @@
 #include "underwater_autonomy/planner/Planner.h"
 #include "underwater_autonomy/planner/PlanDispatcher.h"
 #include "underwater_autonomy/util/BoxOperationRegion.h"
+#include "underwater_autonomy/planner/actions/ActionFactory.h"
 
 #include "ros_sim_plan_server/ROSSimPlanServer.h"
 #include "ros_sim_plan_server/ROSSimVentActionFactory.h"
 #include "ros_sim_plan_server/ROSSimVehicleInterface.cpp"
 
-#include "vent_planner/actions/VentActionFactory.h"
 #include "vent_planner/NestedBinVentPlanner.h"
 #include "vent_planner/SurfaceGradientVentPlanner.h"
 #include "vent_planner/DirectionSetVentPlanner.h"

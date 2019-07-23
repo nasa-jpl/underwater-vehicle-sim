@@ -11,13 +11,12 @@
 #include "underwater_autonomy/planner/Action.h"
 
 #include "ros_sim_plan_server/action_executors/PointPathSimActionExecutor.h"
-#include "vent_planner/actions/PointPathAction.h"
+#include "underwater_autonomy/planner/actions/PointPathAction.h"
 
 #include "actionlib/client/simple_action_client.h"
 #include "ros_sim_autonomy_interface/PointPathRosAction.h"
 
 using namespace underwater_autonomy;
-using namespace vent_planner;
 
 PointPathSimActionExecutor::PointPathSimActionExecutor(VehicleInfo& vehicleInfo) :
 	vehicleInfo(vehicleInfo),
