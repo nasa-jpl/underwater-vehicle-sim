@@ -18,11 +18,11 @@
 
 #include "underwater_vehicle_msgs/VehicleInfo.h"
 
-class ROSSimVentActionFactory : public underwater_autonomy::ActionFactory
+class ROSSimActionFactory : public underwater_autonomy::ActionFactory
 {
 public:
-    ROSSimVentActionFactory(VehicleInfo vehicleInfo);
-    ~ROSSimVentActionFactory() {}
+    ROSSimActionFactory(VehicleInfo vehicleInfo);
+    ~ROSSimActionFactory() {}
 
     std::shared_ptr<underwater_autonomy::PointPathAction> createPointPathAction(std::unique_ptr<underwater_autonomy::OperationRegion> operationRegion,
                                                                          const double targetHorizontalVelocity, 

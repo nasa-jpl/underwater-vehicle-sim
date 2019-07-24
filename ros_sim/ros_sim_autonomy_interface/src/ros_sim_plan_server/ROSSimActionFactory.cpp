@@ -3,18 +3,18 @@
 
 #include "ros/ros.h"
 
-#include "ros_sim_plan_server/ROSSimVentActionFactory.h"
+#include "ros_sim_plan_server/ROSSimActionFactory.h"
 #include "underwater_autonomy/planner/actions/ActionFactory.h"
 
 #include "ros_sim_plan_server/action_executors/PointPathSimActionExecutor.h"
 
 using namespace underwater_autonomy;
 
-ROSSimVentActionFactory::ROSSimVentActionFactory(VehicleInfo vehicleInfo) :
+ROSSimActionFactory::ROSSimActionFactory(VehicleInfo vehicleInfo) :
     vehicleInfo(vehicleInfo)
 {}
 
-std::shared_ptr<PointPathAction> ROSSimVentActionFactory::createPointPathAction(std::unique_ptr<OperationRegion> operationRegion,
+std::shared_ptr<PointPathAction> ROSSimActionFactory::createPointPathAction(std::unique_ptr<OperationRegion> operationRegion,
                                                                              const double targetHorizontalVelocity, 
                                                                              const double targetRotationalVelocity,
                                                                              const double targetSlope,
@@ -39,7 +39,7 @@ std::shared_ptr<PointPathAction> ROSSimVentActionFactory::createPointPathAction(
                                                                 periodicReplanTime));
 }    
 
-std::shared_ptr<PointPathAction> ROSSimVentActionFactory::createPointPathAction(std::unique_ptr<OperationRegion> operationRegion,
+std::shared_ptr<PointPathAction> ROSSimActionFactory::createPointPathAction(std::unique_ptr<OperationRegion> operationRegion,
                                                                              const double targetHorizontalVelocity, 
                                                                              const double targetRotationalVelocity,
                                                                              const double targetSlope,

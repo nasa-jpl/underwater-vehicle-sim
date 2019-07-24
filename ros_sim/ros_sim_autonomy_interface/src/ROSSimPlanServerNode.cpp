@@ -6,7 +6,7 @@
 #include "underwater_autonomy/planner/actions/ActionFactory.h"
 
 #include "ros_sim_plan_server/ROSSimPlanServer.h"
-#include "ros_sim_plan_server/ROSSimVentActionFactory.h"
+#include "ros_sim_plan_server/ROSSimActionFactory.h"
 #include "ros_sim_plan_server/ROSSimVehicleInterface.cpp"
 
 #include "vent_planner/NestedBinVentPlanner.h"
@@ -62,7 +62,7 @@ int main(int argc, char **argv)
     vehicleInfoClient.call(getInfo);
     VehicleInfo info(getInfo);
 
-    ROSSimVentActionFactory factory(info);
+    ROSSimActionFactory factory(info);
     ROSSimVehicleInterface interface(info);
     std::unique_ptr<Planner> planner;
 

@@ -125,7 +125,7 @@ include_directories(
   add_library(${PROJECT_NAME}
     src/ros_sim_navigation/ROSSimNavigationFilter.cpp
     src/ros_sim_plan_server/RosSimPlanServer.cpp  
-    src/ros_sim_plan_server/ROSSimVentActionFactory.cpp
+    src/ros_sim_plan_server/ROSSimActionFactory.cpp
     src/ros_sim_plan_server/ROSSimVehicleInterface.cpp
     src/ros_sim_plan_server/action_executors/PointPathSimActionExecutor.cpp
     src/ros_sim_plan_server/controllers/PointPathController.cpp
