@@ -71,6 +71,7 @@ find_package (Eigen3 3.3 REQUIRED NO_MODULE)
  generate_messages(
    DEPENDENCIES
    geometry_msgs
+   vehicle_auto_control
    actionlib_msgs  # Or other packages containing msgs
  )
 
@@ -128,6 +129,7 @@ include_directories(
     src/ros_sim_plan_server/ROSSimActionFactory.cpp
     src/ros_sim_plan_server/ROSSimVehicleInterface.cpp
     src/ros_sim_plan_server/action_executors/PointPathSimActionExecutor.cpp
+    src/ros_sim_plan_server/action_executors/FollowHeadingSimActionExecutor.cpp
     src/ros_sim_plan_server/controllers/PointPathController.cpp
   )
 target_include_directories(${PROJECT_NAME} PUBLIC /usr/local/include/bfl)

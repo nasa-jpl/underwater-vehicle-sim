@@ -1,0 +1,7 @@
+#goal definition
+float64 heading
+float64 timeout
+---
+#result definition
+---
+#feedback

@@ -121,7 +121,52 @@ const void FourDOFPropulsionLogic::goToXY(VehiclePose& pose)
         angularSetpointMsg.data = 0;
         rudderSetpoint.publish(angularSetpointMsg);
     }
-    
+}
+
+const void FourDOFPropulsionLogic::followHeading(underwater_autonomy::VehiclePose& pose)
+{
+    if(!xyEnabled)
+    {
+        std_msgs::Bool enableMsg;
+        enableMsg.data = true;
+        forwardThrusterEnable.publish(enableMsg);
+        rudderEnable.publish(enableMsg);
+        xyEnabled = true;
+    }
+
+    double currentForwardVelocity = pose.getLinearVelocity()[0];
+    double currentAngle = pose.getOrientation().toRotationMatrix().eulerAngles(0, 1, 2)[2];
+
+    //Get and normalize the angle difference
+    double angle = targetHeading - currentAngle;
+    angle = std::fmod(angle, 2 * M_PI);
+    angle = std::fmod(angle + (2 * M_PI), 2 * M_PI);
+    if(angle > M_PI)
+    {
+        angle -= 2 * M_PI;
+    }
+    ROS_ERROR("angle: %f", angle);
+
+    if(std::isfinite(currentForwardVelocity))
+    {
+        std_msgs::Float64 forwardStateMsg;
+        forwardStateMsg.data = currentForwardVelocity;
+        forwardThrusterState.publish(forwardStateMsg);
+
+        std_msgs::Float64 forwardSetpointMsg;
+        forwardSetpointMsg.data = targetLinearVelocity.x();
+        forwardThrusterSetpoint.publish(forwardSetpointMsg);
+    }
+    if(std::isfinite(angle))
+    {
+        std_msgs::Float64 angularStateMsg;
+        angularStateMsg.data = angle;
+        rudderState.publish(angularStateMsg);
+
+        std_msgs::Float64 angularSetpointMsg;
+        angularSetpointMsg.data = 0;
+        rudderSetpoint.publish(angularSetpointMsg);
+    }
 }
 
 const void FourDOFPropulsionLogic::goToZ(VehiclePose& pose)
@@ -149,6 +194,44 @@ const void FourDOFPropulsionLogic::goToZ(VehiclePose& pose)
         verticalSetpointMsg.data = targetVertVelocity;
         verticalThrusterSetpoint.publish(verticalSetpointMsg);
     }
+}
+
+const void FourDOFPropulsionLogic::avoidSeafloor(underwater_autonomy::VehiclePose& pose)
+{
+    double targetMaxDist = (latestVehicleDepth + latestSonarDepth) - minSeafloorDistance;
+    if(pose.getPosition()[2] > targetMaxDist)
+    {
+        double targetVertVelocity = scaleVerticalVelocity(targetMaxDist - pose.getPosition()[2]);
+        double currentVertVelocity = pose.getLinearVelocity()[2];
+        if(std::isfinite(currentVertVelocity))
+        {
+            if(!zEnabled)
+            {
+                std_msgs::Bool enableMsg;
+                enableMsg.data = true;
+                verticalThrusterEnable.publish(enableMsg);
+                zEnabled = true;
+            }
+
+            std_msgs::Float64 verticalStateMsg;
+            verticalStateMsg.data = currentVertVelocity;
+            verticalThrusterState.publish(verticalStateMsg);
+
+            std_msgs::Float64 verticalSetpointMsg;
+            verticalSetpointMsg.data = targetVertVelocity;
+            verticalThrusterSetpoint.publish(verticalSetpointMsg);
+        }
+    }
+    else
+    {
+        if(zEnabled)
+        {
+            std_msgs::Bool enableMsg;
+            enableMsg.data = false;
+            verticalThrusterEnable.publish(enableMsg);
+            zEnabled = false;
+        }
+    }    
 }
 
 const void FourDOFPropulsionLogic::stopXY(void)
@@ -189,6 +272,11 @@ void FourDOFPropulsionLogic::setTargetZ(double z)
     targetZ = z;
 }
 
+void FourDOFPropulsionLogic::setFollowHeading(double heading)
+{
+    targetHeading = heading;
+}
+
 bool FourDOFPropulsionLogic::isAtXY(VehiclePose& pose)
 {
     tf2::Vector3 point(targetX - pose.getPosition()[0], targetY - pose.getPosition()[1], 0);
@@ -206,8 +294,25 @@ bool FourDOFPropulsionLogic::isAtZ(VehiclePose& pose)
 
 void FourDOFPropulsionLogic::setTargetVelocity(const geometry_msgs::Twist vel)
 {
-    tf2::fromMsg(vel.linear, targetLinearVelocity);
-    tf2::fromMsg(vel.angular, targetAngularVelocity);
+    tf2::Vector3 messageLinearVelocity;
+	tf2::Vector3 messageAngularVelocity;
+
+    tf2::fromMsg(vel.linear, messageLinearVelocity);
+    tf2::fromMsg(vel.angular, messageAngularVelocity);
+
+    for(unsigned int i = 0; i < 3; i++)
+    {
+        if(!std::isnan(messageLinearVelocity[i]))
+        {
+            targetLinearVelocity[i] = messageLinearVelocity[i];
+        }
+
+        if(!std::isnan(messageAngularVelocity[i]))
+        {
+            targetAngularVelocity[i] = messageAngularVelocity[i];
+        }
+    }
+
 }
 
 void FourDOFPropulsionLogic::processNewData(const underwater_vehicle_msgs::VehicleData data)

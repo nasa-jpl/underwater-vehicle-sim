@@ -13,7 +13,9 @@ PropulsionController::PropulsionController(VehicleInfo& info) :
 	listener(buffer),
 	logicController(PropulsionLogicInterface::makePropulsionLogic(info)),
 	goToXYServer(nh, "go_to_xy", false),
-	goToZServer(nh, "go_to_z", false)
+	goToZServer(nh, "go_to_z", false),
+	followHeadingServer(nh, "follow_heading", false),
+	followHeadingTimeout(-1)
 {
 	std::vector<std::string> dataModuleNames = info.getModuleNamesOfType("DataBroadcaster");
 	if(dataModuleNames.size() > 0)
@@ -32,6 +34,10 @@ PropulsionController::PropulsionController(VehicleInfo& info) :
     goToZServer.registerGoalCallback(boost::bind(&PropulsionController::goalGoToZCB, this));
     goToZServer.registerPreemptCallback(boost::bind(&PropulsionController::preemptGoToZCB, this));
 	goToZServer.start();
+
+	followHeadingServer.registerGoalCallback(boost::bind(&PropulsionController::goalFollowHeadingCB, this));
+    followHeadingServer.registerPreemptCallback(boost::bind(&PropulsionController::preemptFollowHeadingCB, this));
+	followHeadingServer.start();
 }
 
 void PropulsionController::getTargetVelocityCommand(const geometry_msgs::Twist vel)
@@ -46,15 +52,24 @@ void PropulsionController::getVehicleData(const underwater_vehicle_msgs::Vehicle
 
 void PropulsionController::update(void)
 {
+	//Only allow one type of XY commanding at a time.
 	if(goToXYServer.isActive())
     {
         goToXYUpdate();
+    }
+	else if(followHeadingServer.isActive())
+    {
+        followHeadingUpdate();
     }
 
     if(goToZServer.isActive())
     {
         goToZUpdate();
     }
+	else
+	{
+		logicController->avoidSeafloor(currentPose);
+	}
 }
 
 /**
@@ -63,6 +78,12 @@ void PropulsionController::update(void)
 void PropulsionController::goalGoToXYCB(void)
 {
 	logicController->stopXY();
+	
+	if(followHeadingServer.isActive())
+	{
+		followHeadingServer.setAborted();
+	}
+
     vehicle_auto_control::GoToXYRosGoalConstPtr goToXYGoal = goToXYServer.acceptNewGoal();
     
 	logicController->setTargetXY(goToXYGoal->x, goToXYGoal->y);
@@ -72,7 +93,7 @@ void PropulsionController::goalGoToXYCB(void)
 void PropulsionController::preemptGoToXYCB(void)
 {
 	logicController->stopXY();
-	
+
     goToXYServer.setPreempted();
 }
 
@@ -86,10 +107,6 @@ void PropulsionController::goToXYUpdate(void)
 	if(logicController->isAtXY(currentPose))
 	{
 		logicController->stopXY();
-		if(!goToZServer.isActive())
-		{
-			logicController->stopZ();
-		}
 
 		vehicle_auto_control::GoToXYRosResult result;
 		result.x = currentPose.getPosition()[0];
@@ -100,12 +117,6 @@ void PropulsionController::goToXYUpdate(void)
 	else
 	{
 		logicController->goToXY(currentPose);
-
-		//Call this if Z is not active to prevent the vehicle from hitting the seafloor
-		if(!goToZServer.isActive())
-		{
-			logicController->goToZ(currentPose);
-		}
 	}
 }
 
@@ -145,6 +156,46 @@ void PropulsionController::goToZUpdate(void)
 	else
 	{
 		logicController->goToZ(currentPose);
+	}
+}
+
+void PropulsionController::goalFollowHeadingCB(void)
+{
+	logicController->stopXY();
+	if(goToXYServer.isActive())
+	{
+		goToXYServer.setAborted();
+	}
+
+	vehicle_auto_control::FollowHeadingRosGoalConstPtr followHeadingGoal = followHeadingServer.acceptNewGoal();
+
+	followHeadingStart = ros::Time::now();
+	logicController->setFollowHeading(followHeadingGoal->heading);
+	followHeadingTimeout = followHeadingGoal->timeout;
+
+    ROS_DEBUG("FollowHeading server accepted a new goal - heading: %f", followHeadingGoal->heading);
+}
+
+void PropulsionController::preemptFollowHeadingCB(void)
+{
+	logicController->stopXY();
+	
+    followHeadingServer.setPreempted();
+}
+
+void PropulsionController::followHeadingUpdate(void)
+{
+	if(followHeadingTimeout > 0 && (ros::Time::now() - followHeadingStart).toSec() >= followHeadingTimeout)
+	{
+		logicController->stopXY();
+
+		vehicle_auto_control::FollowHeadingRosResult result;
+		followHeadingServer.setSucceeded(result);
+		ROS_DEBUG("FollowHeading Server goal completed by timeout");
+	}
+	else
+	{
+		logicController->followHeading(currentPose);
 	}
 }
 

@@ -27,13 +27,16 @@ public:
 	~FourDOFPropulsionLogic() {}
 	
 	const void goToXY(underwater_autonomy::VehiclePose& pose) override;
+	const void followHeading(underwater_autonomy::VehiclePose& pose) override;
 	const void goToZ(underwater_autonomy::VehiclePose& pose) override;
-	
+	const void avoidSeafloor(underwater_autonomy::VehiclePose& pose) override;
+
 	const void stopXY() override;
 	const void stopZ() override;
 
 	void setTargetXY(double x, double y) override;
 	void setTargetZ(double z) override;
+	void setFollowHeading(double heading) override;
 
 	bool isAtXY(underwater_autonomy::VehiclePose& pose) override;
 	bool isAtZ(underwater_autonomy::VehiclePose& pose) override;
@@ -55,6 +58,8 @@ private:
 	double targetX;
 	double targetY;
 	double targetZ;
+	
+	double targetHeading;
 
 	double latestSonarDepth;
 	double latestVehicleDepth;

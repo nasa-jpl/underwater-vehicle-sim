@@ -21,6 +21,7 @@
 
 #include "vehicle_auto_control/GoToXYRosAction.h"
 #include "vehicle_auto_control/GoToZRosAction.h"
+#include "vehicle_auto_control/FollowHeadingRosAction.h"
 
 #include "underwater_autonomy/util/VehiclePose.h"
 
@@ -54,6 +55,13 @@ private:
 	void preemptGoToZCB(void);
 	void goToZUpdate(void);
 
+	/**
+	* Accepts new goals for the FollowHeading SimpleActionServer
+	*/ 
+	void goalFollowHeadingCB(void);
+	void preemptFollowHeadingCB(void);
+	void followHeadingUpdate(void);
+
 private:
 
 	ros::NodeHandle nh;
@@ -65,7 +73,11 @@ private:
 	//Point Path Goal Parameters
 	actionlib::SimpleActionServer<vehicle_auto_control::GoToXYRosAction> goToXYServer;
 	actionlib::SimpleActionServer<vehicle_auto_control::GoToZRosAction> goToZServer;
+	actionlib::SimpleActionServer<vehicle_auto_control::FollowHeadingRosAction> followHeadingServer;
 
+	ros::Time followHeadingStart;
+	double followHeadingTimeout;
+	
 	tf2_ros::Buffer buffer;
  	tf2_ros::TransformListener listener;
 
