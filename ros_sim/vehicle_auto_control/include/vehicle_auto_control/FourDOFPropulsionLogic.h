@@ -62,7 +62,6 @@ private:
 	double targetHeading;
 
 	double latestSonarDepth;
-	double latestVehicleDepth;
 
 	//Error bars for claiming the vehicle is at a point
 	double lateralError;

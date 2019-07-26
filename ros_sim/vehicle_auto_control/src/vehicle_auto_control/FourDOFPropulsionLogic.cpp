@@ -20,7 +20,6 @@ FourDOFPropulsionLogic::FourDOFPropulsionLogic(VehicleInfo& vehicleInfo) :
     lateralError(5.0),
     verticalError(1.0),
     latestSonarDepth(1000),
-    latestVehicleDepth(0),
     minSeafloorDistance(3.0),
     angleErrorScale(M_PI),
     horizontalScaleError(25),
@@ -100,7 +99,8 @@ const void FourDOFPropulsionLogic::goToXY(VehiclePose& pose)
     double currentAngularVelocity =  (pose.getOrientation() * pose.getAngularVelocity())[2];
     double currentForwardVelocity = pose.getLinearVelocity()[0];
 
-    if(std::isfinite(currentForwardVelocity))
+    if(std::isfinite(currentForwardVelocity) &&
+       std::isfinite(targetForwardVelocity))
     {
         std_msgs::Float64 forwardStateMsg;
         forwardStateMsg.data = currentForwardVelocity;
@@ -145,9 +145,9 @@ const void FourDOFPropulsionLogic::followHeading(underwater_autonomy::VehiclePos
     {
         angle -= 2 * M_PI;
     }
-    ROS_ERROR("angle: %f", angle);
 
-    if(std::isfinite(currentForwardVelocity))
+    if(std::isfinite(currentForwardVelocity) &&
+       std::isfinite(targetLinearVelocity.x()))
     {
         std_msgs::Float64 forwardStateMsg;
         forwardStateMsg.data = currentForwardVelocity;
@@ -179,12 +179,13 @@ const void FourDOFPropulsionLogic::goToZ(VehiclePose& pose)
         zEnabled = true;
     }
 
-    double targetVertPosition = std::min(targetZ, (latestVehicleDepth + latestSonarDepth) - minSeafloorDistance);
+    double targetVertPosition = std::min(targetZ, (pose.getPosition()[2] + latestSonarDepth) - minSeafloorDistance);
     double targetVertVelocity = scaleVerticalVelocity(targetVertPosition - pose.getPosition()[2]);
 
     double currentVertVelocity = pose.getLinearVelocity()[2];
 
-    if(std::isfinite(currentVertVelocity))
+    if(std::isfinite(currentVertVelocity) &&
+       std::isfinite(targetVertVelocity))
     {
         std_msgs::Float64 verticalStateMsg;
         verticalStateMsg.data = currentVertVelocity;
@@ -198,12 +199,13 @@ const void FourDOFPropulsionLogic::goToZ(VehiclePose& pose)
 
 const void FourDOFPropulsionLogic::avoidSeafloor(underwater_autonomy::VehiclePose& pose)
 {
-    double targetMaxDist = (latestVehicleDepth + latestSonarDepth) - minSeafloorDistance;
-    if(pose.getPosition()[2] > targetMaxDist)
+    if(minSeafloorDistance > latestSonarDepth)
     {
-        double targetVertVelocity = scaleVerticalVelocity(targetMaxDist - pose.getPosition()[2]);
+        double targetMaxDepth = (pose.getPosition()[2] + latestSonarDepth) - minSeafloorDistance;
+        double targetVertVelocity = scaleVerticalVelocity(targetMaxDepth - pose.getPosition()[2]);
         double currentVertVelocity = pose.getLinearVelocity()[2];
-        if(std::isfinite(currentVertVelocity))
+        if(std::isfinite(currentVertVelocity) &&
+           std::isfinite(targetVertVelocity))
         {
             if(!zEnabled)
             {
@@ -285,7 +287,7 @@ bool FourDOFPropulsionLogic::isAtXY(VehiclePose& pose)
 
 bool FourDOFPropulsionLogic::isAtZ(VehiclePose& pose)
 {
-    double targetVertPosition = std::min(targetZ, (latestVehicleDepth + latestSonarDepth) - minSeafloorDistance);
+    double targetVertPosition = std::min(targetZ, (pose.getPosition()[2] + latestSonarDepth) - minSeafloorDistance);
     tf2::Vector3 point(0, 0, targetVertPosition - pose.getPosition()[2]);
 
     //We only care about z
@@ -318,7 +320,6 @@ void FourDOFPropulsionLogic::setTargetVelocity(const geometry_msgs::Twist vel)
 void FourDOFPropulsionLogic::processNewData(const underwater_vehicle_msgs::VehicleData data)
 {
     latestSonarDepth = data.sonarDepth;
-    latestVehicleDepth = data.h;
 }
 
 double FourDOFPropulsionLogic::scaleHorizontalVelocity(double distance)
