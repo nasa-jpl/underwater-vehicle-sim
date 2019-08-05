@@ -1,6 +1,14 @@
 # pstar-oceanworlds
 Extraterrestrial hydrothermal vent search
 
+## Build
+
+If not using default library instal path
+`catkin_make -DCMAKE_PREFIX_PATH=<install_path>`
+
+If using default library instal path
+`catkin_make`
+
 ## Dependencies
 
 ### ROS Melodic Morenia
