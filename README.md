@@ -9,6 +9,12 @@ If not using default library instal path
 If using default library instal path
 `catkin_make`
 
+## Unit Tests
+
+`catkin_make run_tests`
+
+`catkin_test_results`
+
 ## Dependencies
 
 ### ROS Melodic Morenia
