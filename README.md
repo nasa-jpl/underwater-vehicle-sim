@@ -1,4 +1,14 @@
 # pstar-oceanworlds
 Extraterrestrial hydrothermal vent search
 
-underwater_planner and vent_planner libraries necessary (https://bitbucket.org/abranchjpl/underwater-planner).
+## Dependencies
+
+### ROS Melodic Morenia
+http://wiki.ros.org/melodic
+
+### underwater-autonomy library
+https://github.jpl.nasa.gov/UnderwaterAutonomy/underwater-autonomy
+
+### ocean-models library
+https://github.jpl.nasa.gov/UnderwaterAutonomy/ocean-models
+
