@@ -136,7 +136,7 @@ include_directories(
    src/${PROJECT_NAME}/PropulsionLogicInterface.cpp
    src/${PROJECT_NAME}/FourDOFPropulsionLogic.cpp
  )
- target_include_directories(${PROJECT_NAME} PRIVATE ${UNDERWATER_AUTONOMY_INCLUDE})
+ target_include_directories(${PROJECT_NAME} PUBLIC ${UNDERWATER_AUTONOMY_INCLUDE})
  target_link_libraries(${PROJECT_NAME} ${UNDERWATER_AUTONOMY_LIB} ${catkin_LIBRARIES})
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
