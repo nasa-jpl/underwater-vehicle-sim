@@ -9,7 +9,7 @@
 
 #include "tf2_geometry_msgs/tf2_geometry_msgs.h"
 
-#include "underwater_autonomy/planner/Action.h"
+#include "underwater_autonomy/planner/actions/Action.h"
 
 #include "ros_sim_plan_server/action_executors/FollowHeadingSimActionExecutor.h"
 #include "underwater_autonomy/planner/actions/FollowHeadingAction.h"

@@ -18,6 +18,11 @@ find_package(catkin REQUIRED
              vehicle_auto_control
              nav_msgs)
 
+find_library(UNDERWATER_AUTONOMY_LIB underwater_autonomy)
+find_path(UNDERWATER_AUTONOMY_INCLUDE underwater_autonomy)
+find_library(VENT_PLANNER_LIB vent_planner)
+find_path(VENT_PLANNER_INCLUDE vent_planner)
+
 #find_package(UnderwaterAutonomy REQUIRED)
 #find_package(VentPlanner REQUIRED)
 find_package (Eigen3 3.3 REQUIRED NO_MODULE)
@@ -139,9 +144,10 @@ target_include_directories(${PROJECT_NAME} PUBLIC /usr/local/include/bfl)
 ## either from message generation or dynamic reconfigure
  add_dependencies(${PROJECT_NAME} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
+ target_include_directories(ros_sim_autonomy_interface PRIVATE ${VENT_PLANNER_INCLUDE} ${UNDERWATER_AUTONOMY_INCLUDE})
  target_link_libraries(ros_sim_autonomy_interface
-   underwater_autonomy
-   vent_planner
+   ${UNDERWATER_AUTONOMY_LIB}
+   ${VENT_PLANNER_LIB}
    ${catkin_LIBRARIES}
  )
 
@@ -151,11 +157,11 @@ target_include_directories(${PROJECT_NAME} PUBLIC /usr/local/include/bfl)
 # set_target_properties(ros_sim_plan_server_node PROPERTIES OUTPUT_NAME node PREFIX "")
 
  add_dependencies(ros_sim_plan_server_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-
+ target_include_directories(ros_sim_plan_server_node PRIVATE ${VENT_PLANNER_INCLUDE} ${UNDERWATER_AUTONOMY_INCLUDE})
  target_link_libraries(ros_sim_plan_server_node
    ros_sim_autonomy_interface
-   underwater_autonomy
-   vent_planner
+   ${UNDERWATER_AUTONOMY_LIB}
+   ${VENT_PLANNER_LIB}
    ${catkin_LIBRARIES}
  )
 
@@ -164,11 +170,11 @@ target_include_directories(${PROJECT_NAME} PUBLIC /usr/local/include/bfl)
 # set_target_properties(ros_sim_navigation_node PROPERTIES OUTPUT_NAME node PREFIX "")
 
  add_dependencies(ros_sim_navigation_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-
+ target_include_directories(ros_sim_navigation_node PRIVATE ${VENT_PLANNER_INCLUDE} ${UNDERWATER_AUTONOMY_INCLUDE})
  target_link_libraries(ros_sim_navigation_node
    ros_sim_autonomy_interface
-   underwater_autonomy
-   vent_planner
+   ${UNDERWATER_AUTONOMY_LIB}
+   ${VENT_PLANNER_LIB}
    ${catkin_LIBRARIES}
  )
 

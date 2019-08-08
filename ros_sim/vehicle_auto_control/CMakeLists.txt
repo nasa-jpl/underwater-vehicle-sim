@@ -18,7 +18,8 @@ find_package(catkin REQUIRED COMPONENTS
  nav_msgs
  message_generation)
 
-#find_package(UnderwaterAutonomy REQUIRED)
+find_library(UNDERWATER_AUTONOMY_LIB underwater_autonomy)
+find_path(UNDERWATER_AUTONOMY_INCLUDE underwater_autonomy)
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -135,8 +136,8 @@ include_directories(
    src/${PROJECT_NAME}/PropulsionLogicInterface.cpp
    src/${PROJECT_NAME}/FourDOFPropulsionLogic.cpp
  )
-
- target_link_libraries(${PROJECT_NAME} underwater_autonomy ${catkin_LIBRARIES})
+ target_include_directories(${PROJECT_NAME} PRIVATE ${UNDERWATER_AUTONOMY_INCLUDE})
+ target_link_libraries(${PROJECT_NAME} ${UNDERWATER_AUTONOMY_LIB} ${catkin_LIBRARIES})
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
 ## either from message generation or dynamic reconfigure
@@ -208,6 +209,7 @@ if (CATKIN_ENABLE_TESTING)
  find_package(rostest REQUIRED)
 
  add_rostest_gtest(four_dof_propulsion_logic_test test/vehicle_auto_control/FourDOFPropulsionLogic.test test/vehicle_auto_control/FourDOFPropulsionLogic_test.cpp)
- target_link_libraries(four_dof_propulsion_logic_test underwater_autonomy ${PROJECT_NAME} ${catkin_LIBRARIES})
+ target_include_directories(four_dof_propulsion_logic_test PRIVATE ${UNDERWATER_AUTONOMY_INCLUDE})
+ target_link_libraries(four_dof_propulsion_logic_test ${UNDERWATER_AUTONOMY_LIB} ${PROJECT_NAME} ${catkin_LIBRARIES})
 
 endif()

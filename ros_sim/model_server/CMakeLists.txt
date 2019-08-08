@@ -13,6 +13,9 @@ find_package(catkin REQUIRED COMPONENTS
   message_generation
 )
 
+find_library(OCEAN_MODELS_LIB ocean_models)
+find_path(OCEAN_MODELS_INCLUDE ocean_models)
+
 ## System dependencies are found with CMake's conventions
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/modules)
 
@@ -100,7 +103,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/modules)
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-  INCLUDE_DIRS include
+#  INCLUDE_DIRS include
   LIBRARIES
   CATKIN_DEPENDS roscpp std_msgs message_runtime
 #  DEPENDS system_lib
@@ -138,8 +141,9 @@ include_directories(
  add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
+ target_include_directories(${PROJECT_NAME}_node PRIVATE ${OCEAN_MODELS_INCLUDE})
  target_link_libraries(${PROJECT_NAME}_node
-   ocean_models
+   ${OCEAN_MODELS_LIB}
    ${catkin_LIBRARIES}
  )
 
@@ -186,7 +190,7 @@ if (CATKIN_ENABLE_TESTING)
  find_package(rostest REQUIRED)
 
  add_rostest_gtest(model_server_node_test test/ModelServerNode.test test/ModelServerNode_test.cpp)
- target_link_libraries(model_server_node_test ${catkin_LIBRARIES} ${NETCDF_LIBRARIES} ${Boost_LIBRARIES} netcdf_c++4)
+ target_link_libraries(model_server_node_test ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 
 endif()
 

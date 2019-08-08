@@ -14,6 +14,7 @@
 #include "underwater_autonomy/planner/actions/ActionFactory.h"
 #include "underwater_autonomy/planner/actions/PointPathAction.h"
 #include "underwater_autonomy/planner/actions/FollowHeadingAction.h"
+#include "underwater_autonomy/planner/actions/HoldDepthAction.h"
 
 #include "ros_sim_plan_server/action_executors/PointPathSimActionExecutor.h"
 #include "ros_sim_plan_server/action_executors/FollowHeadingSimActionExecutor.h"
@@ -25,6 +26,13 @@ class ROSSimActionFactory : public underwater_autonomy::ActionFactory
 public:
     ROSSimActionFactory(VehicleInfo vehicleInfo);
     ~ROSSimActionFactory() {}
+
+    std::shared_ptr<underwater_autonomy::HoldDepthAction> createHoldDepthAction(std::unique_ptr<underwater_autonomy::OperationRegion> operationRegion,
+                                                                           const double targetVerticalVelocity, 
+                                                                           const double depth,
+                                                                           const double timeout,
+                                                                           const underwater_autonomy::HoldDepthAction::ReplanType replan,
+                                                                           const double periodicReplanTime) override {return NULL;};
 
     std::shared_ptr<underwater_autonomy::FollowHeadingAction> createFollowHeadingAction(std::unique_ptr<underwater_autonomy::OperationRegion> operationRegion,
                                                                             const double targetHorizontalVelocity, 

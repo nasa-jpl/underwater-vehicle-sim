@@ -18,6 +18,12 @@ find_package(catkin REQUIRED COMPONENTS
   tf2_geometry_msgs
 )
 
+find_library(UNDERWATER_AUTONOMY_LIB underwater_autonomy)
+find_path(UNDERWATER_AUTONOMY_INCLUDE underwater_autonomy)
+find_library(OCEAN_MODELS_LIB ocean_models)
+find_path(OCEAN_MODELS_INCLUDE ocean_models)
+
+
 #find_package(UnderwaterAutonomy REQUIRED)
 
 ## Uncomment this if the package has a setup.py. This macro ensures
@@ -136,9 +142,10 @@ catkin_package(
    src/vehicles/VehicleState.cpp
  )
 
+ target_include_directories(underwater_vehicles PRIVATE ${OCEAN_MODELS_INCLUDE} ${UNDERWATER_AUTONOMY_INCLUDE})
  target_link_libraries(underwater_vehicles 
-    underwater_autonomy 
-    ocean_models
+    ${UNDERWATER_AUTONOMY_LIB} 
+    ${OCEAN_MODELS_LIB}
     ${catkin_LIBRARIES})
 
 ## Add cmake target dependencies of the library
@@ -165,10 +172,11 @@ catkin_package(
  target_link_libraries(clock_server_node
    ${catkin_LIBRARIES}
  )
-
+ 
+ target_include_directories(${PROJECT_NAME}_node PRIVATE ${OCEAN_MODELS_INCLUDE})
  target_link_libraries(${PROJECT_NAME}_node
    underwater_vehicles
-   ocean_models
+   ${OCEAN_MODELS_LIB}
    ${catkin_LIBRARIES}
  )
 
