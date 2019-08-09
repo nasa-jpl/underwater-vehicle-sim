@@ -55,46 +55,39 @@ private:
 	double scaleVerticalVelocity(double zDifference);
 
 private:
+	//Error bars for claiming the vehicle is at a point
+	double lateralError;
+	double verticalError;
+
+	double latestSonarDepth;
+
+	//Minimum distance off seafloor
+	double minSeafloorDistance;
+
+	//Error value for proportional controller
+	double horizontalScaleError;
+	double verticalErrorScale;
+
+	tf2::Vector3 targetLinearVelocity;
+	tf2::Vector3 targetAngularVelocity;
+
+	geometry_msgs::Vector3 lastLinearVelocity;
+    geometry_msgs::Vector3 lastAngularVelocity;
+
+	bool xyEnabled;
+	bool zEnabled;
+
 	double targetX;
 	double targetY;
 	double targetZ;
 	
 	double targetHeading;
 
-	double latestSonarDepth;
-
-	//Error bars for claiming the vehicle is at a point
-	double lateralError;
-	double verticalError;
-
-	//Minimum distance off seafloor
-	double minSeafloorDistance;
-	bool hasVehicleData;
-
-	//Error value for proportional controller
-	double angleErrorScale;
-	double verticalErrorScale;
-	double horizontalScaleError;
-
-	
-	//Last command velocities
-	geometry_msgs::Vector3 lastLinearVelocity;
-    geometry_msgs::Vector3 lastAngularVelocity;
-
-	tf2::Vector3 targetLinearVelocity;
-	tf2::Vector3 targetAngularVelocity;
-
-	double lastForwardThrust;
-	double lastRudder;
-	double lastVertThrust;
-
 	ros::Publisher forwardThrustPub;
 	ros::Publisher lateralThrustPub;
 	ros::Publisher verticalThrustPub;
 	ros::Publisher rudderPub;
 
-	bool xyEnabled;
-	bool zEnabled;
 	//Forward Thruster Pub/Sub
 	ros::Publisher forwardThrusterState;
 	ros::Publisher forwardThrusterSetpoint;

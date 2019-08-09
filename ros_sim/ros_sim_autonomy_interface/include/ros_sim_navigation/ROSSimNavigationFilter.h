@@ -42,11 +42,13 @@ private:
 
     static std::vector<std::vector<double>> get2dArrayParam(ros::NodeHandle nh, std::string name, std::vector<std::vector<double>> defaultVal);
 private:
+    VehicleInfo info;
+    std::string filterName;
+
     tf2_ros::Buffer buffer;
  	tf2_ros::TransformListener listener;
 
-    std::string filterName;
-    VehicleInfo info;
+    
     ros::Publisher posePublisher;
     std::unique_ptr<underwater_autonomy::NavigationFilter> filter;
 

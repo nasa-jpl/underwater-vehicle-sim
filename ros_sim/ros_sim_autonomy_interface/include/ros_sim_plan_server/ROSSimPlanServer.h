@@ -19,13 +19,14 @@ public:
     void update();
 
 private:
-    underwater_autonomy::PlanDispatcher planDispatcher;
     std::unique_ptr<underwater_autonomy::Planner> planner;
+    ROSSimVehicleInterface& vehicleInterface;
+
+    underwater_autonomy::PlanDispatcher planDispatcher;
 
     ros::Publisher clockSpeedPub;
     float speedUpFactor;
 
-    ROSSimVehicleInterface& vehicleInterface;
 };
 
 #endif

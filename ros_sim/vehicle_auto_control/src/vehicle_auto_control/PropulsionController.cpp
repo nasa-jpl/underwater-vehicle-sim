@@ -263,7 +263,7 @@ tf2::Stamped<tf2::Transform> PropulsionController::getCurrentTransform()
 	}
 	catch(tf2::TransformException ex)
 	{
-		throw ex;
+		throw std::move(ex);
 	}
 
 	return transform;

@@ -24,10 +24,9 @@ ROSSimPlanServer::ROSSimPlanServer(std::unique_ptr<Planner> planner,
 }
 
 ROSSimPlanServer::ROSSimPlanServer(ROSSimPlanServer&& other) :
-
-    planDispatcher(other.planDispatcher),
+    planner(std::move(other.planner)),
     vehicleInterface(other.vehicleInterface),
-    planner(std::move(other.planner))
+    planDispatcher(other.planDispatcher)
 {
     planDispatcher.run();
 }

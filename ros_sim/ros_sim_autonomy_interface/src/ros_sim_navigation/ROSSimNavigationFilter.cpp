@@ -11,8 +11,8 @@ using namespace underwater_autonomy;
 
 ROSSimNavigationFilter::ROSSimNavigationFilter(std::string filterName, VehicleInfo info) :
     info(info),
-    listener(buffer),
-    filterName(filterName)
+    filterName(filterName),
+    listener(buffer)
 {
     initializeNavFilter(filterName, info);
 
@@ -25,9 +25,9 @@ ROSSimNavigationFilter::ROSSimNavigationFilter(std::string filterName, VehicleIn
 ROSSimNavigationFilter::ROSSimNavigationFilter(ROSSimNavigationFilter&& other) :
     info(std::move(other.info)),
     filterName(std::move(other.filterName)),
+    listener(buffer),
     posePublisher(std::move(other.posePublisher)),
     filter(std::move(other.filter)),
-    listener(buffer),
     imuData(std::move(other.imuData)),
     usblData(std::move(other.usblData)),
     depthData(std::move(other.depthData)),
@@ -295,7 +295,7 @@ void ROSSimNavigationFilter::sendPoseToFilter()
 	}
 	catch(tf2::TransformException ex)
 	{
-		throw ex;
+		throw std::move(ex);
 	}   
 }
 

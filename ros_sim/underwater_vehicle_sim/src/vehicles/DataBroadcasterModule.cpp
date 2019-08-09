@@ -29,7 +29,6 @@ void DataBroadcasterModule::update(const ros::Time& lastTime, VehicleState& vehi
 	     std::isnan(modelData.depth)))
 	{
 		tf2::Vector3 nedPosition = vehicleState.getPositionNED();
-		tf2::Vector3 enuPosition = vehicleState.getPositionENU();
 
 		underwater_vehicle_msgs::VehicleDataPtr data(new underwater_vehicle_msgs::VehicleData);
 

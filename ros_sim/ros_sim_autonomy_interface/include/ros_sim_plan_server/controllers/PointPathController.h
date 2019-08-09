@@ -53,8 +53,8 @@ private:
     actionlib::SimpleActionServer<ros_sim_autonomy_interface::PointPathRosAction> pointPathServer;
     actionlib::SimpleActionClient<vehicle_auto_control::GoToXYRosAction> goToXYClient;
     actionlib::SimpleActionClient<vehicle_auto_control::GoToZRosAction> goToZClient;
-
     VehicleInfo vehicleInfo;
+    bool newGoalAccepted;
 
     std::vector<tf::Vector3> pathPoints;
     unsigned int currentPoint;
@@ -73,7 +73,6 @@ private:
     double latestSonarDepth;
     double latestVehicleDepth;
 
-    bool newGoalAccepted;
 };
 
 #endif

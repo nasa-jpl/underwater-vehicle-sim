@@ -68,6 +68,9 @@ private:
 
 	VehicleInfo info;
 
+	tf2_ros::Buffer buffer;
+ 	tf2_ros::TransformListener listener;
+
 	std::unique_ptr<PropulsionLogicInterface> logicController;
 
 	//Point Path Goal Parameters
@@ -75,19 +78,16 @@ private:
 	actionlib::SimpleActionServer<vehicle_auto_control::GoToZRosAction> goToZServer;
 	actionlib::SimpleActionServer<vehicle_auto_control::FollowHeadingRosAction> followHeadingServer;
 
-	ros::Time followHeadingStart;
 	double followHeadingTimeout;
-	
-	tf2_ros::Buffer buffer;
- 	tf2_ros::TransformListener listener;
 
+	ros::Time followHeadingStart;
+	
 	ros::Subscriber dataSub;
 
 	ros::Subscriber velSub;
 	ros::Subscriber poseSub;
 
 	underwater_autonomy::VehiclePose currentPose;
-	
 };
 
 #endif

@@ -21,14 +21,10 @@ FourDOFPropulsionLogic::FourDOFPropulsionLogic(VehicleInfo& vehicleInfo) :
     verticalError(1.0),
     latestSonarDepth(1000),
     minSeafloorDistance(3.0),
-    angleErrorScale(M_PI),
     horizontalScaleError(25),
     verticalErrorScale(15),
     targetLinearVelocity(0,0,0),
     targetAngularVelocity(0,0,0),
-    lastForwardThrust(0),
-	lastRudder(0),
-	lastVertThrust(0),
     xyEnabled(false),
     zEnabled(false)
 {
@@ -96,7 +92,6 @@ const void FourDOFPropulsionLogic::goToXY(VehiclePose& pose)
     double targetForwardVelocity = scaleHorizontalVelocity(point.norm());
 
     //rotate angular velocity from body frame into world frame and get angular velocity corresponding to heading
-    double currentAngularVelocity =  (pose.getOrientation() * pose.getAngularVelocity())[2];
     double currentForwardVelocity = pose.getLinearVelocity()[0];
 
     if(std::isfinite(currentForwardVelocity) &&

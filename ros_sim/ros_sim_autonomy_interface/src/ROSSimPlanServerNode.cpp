@@ -242,7 +242,6 @@ int main(int argc, char **argv)
 
     ROS_INFO("Planner Started");
 
-    bool plannerCompleted = false;
     ros::Rate r(loopHertz);
     while(ros::ok())
     {

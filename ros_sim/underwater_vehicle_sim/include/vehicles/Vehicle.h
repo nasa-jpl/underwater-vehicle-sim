@@ -27,7 +27,6 @@ class Vehicle
 public:
 	Vehicle();
 	Vehicle(std::unique_ptr<ocean_models::ModelInterface> model);
-	Vehicle(Vehicle&& other);
 	
 	void update();
 

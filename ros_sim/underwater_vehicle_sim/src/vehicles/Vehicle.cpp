@@ -43,16 +43,6 @@ Vehicle::Vehicle(std::unique_ptr<ModelInterface> model)	:
 	initalizeGeneralModules();
 }
 
-Vehicle::Vehicle(Vehicle&& other)
-	: propulsionModule(std::move(other.propulsionModule)), 
-      modules(std::move(other.modules)),
-      nh(std::move(other.nh)),
-      lastTransformTime(std::move(other.lastTransformTime)),
-	  vehicleState(std::move(other.vehicleState)),
-	  evectByCurrents(other.evectByCurrents),
-	  model(std::move(other.model))
-{}
-
 void Vehicle::initalizeVehicleFrame()
 {
 	ros::NodeHandle nhPriv("~");

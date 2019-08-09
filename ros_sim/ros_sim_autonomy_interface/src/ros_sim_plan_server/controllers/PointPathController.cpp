@@ -3,9 +3,9 @@
 #include "data_server/GetPlumeData.h"
 
 PointPathController::PointPathController(VehicleInfo vehicleInfo) :
+    pointPathServer("point_path", false),
     goToXYClient("go_to_xy", false),
     goToZClient("go_to_z", false),
-    pointPathServer("point_path", false),
     vehicleInfo(vehicleInfo),
     newGoalAccepted(false)
 {

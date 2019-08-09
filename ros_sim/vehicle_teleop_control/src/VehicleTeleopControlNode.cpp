@@ -56,7 +56,7 @@ int main(int argc, char **argv)
 
     signal(SIGINT,quit);
 
-    unsigned int currentVehicle;
+    unsigned int currentVehicle = 0;
 
     double linearX, linearY, linearZ, rotateX, rotateY, rotateZ;
 

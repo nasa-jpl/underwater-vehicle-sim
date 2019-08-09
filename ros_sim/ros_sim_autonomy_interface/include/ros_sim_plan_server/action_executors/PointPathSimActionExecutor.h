@@ -77,25 +77,27 @@ private:
 private:
     VehicleInfo vehicleInfo;
 
-    ros::Publisher velPub;
-    ros::Subscriber poseSub;
-
-    bool replanNextUpdate;
-    ros::Time lastReplan;
-    double distanceSinceReplan;
-    tf2::Vector3 lastLocation;
-
     actionlib::SimpleActionClient<ros_sim_autonomy_interface::PointPathRosAction> pointPathClient;
     ros_sim_autonomy_interface::PointPathRosGoal pointPathGoal;
-
-    tf2_ros::Buffer buffer;
-    tf2_ros::TransformListener listener;
 
     /**
     * Offset to apply to the currentPoint variable in the ActionLib feedback
     */
     unsigned int currentPointOffset;
 
+    bool replanNextUpdate;
+
+    ros::Time lastReplan;
+    double distanceSinceReplan;
+
+    tf2_ros::Buffer buffer;
+    tf2_ros::TransformListener listener;
+
+    ros::Publisher velPub;
+    ros::Subscriber poseSub;
+
+    tf2::Vector3 lastLocation;
+    
     underwater_autonomy::VehiclePose currentPose;
 };
 

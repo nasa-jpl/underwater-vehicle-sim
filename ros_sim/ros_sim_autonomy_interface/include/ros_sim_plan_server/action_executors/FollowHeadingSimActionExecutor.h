@@ -77,20 +77,20 @@ private:
 private:
     VehicleInfo vehicleInfo;
 
-    ros::Publisher velPub;
-    ros::Subscriber poseSub;
+    actionlib::SimpleActionClient<vehicle_auto_control::FollowHeadingRosAction> followHeadingClient;
+    vehicle_auto_control::FollowHeadingRosGoal followHeadingGoal;
+
 
     bool replanNextUpdate;
     ros::Time lastReplan;
     double distanceSinceReplan;
-    tf2::Vector3 lastLocation;
-
-    actionlib::SimpleActionClient<vehicle_auto_control::FollowHeadingRosAction> followHeadingClient;
-    vehicle_auto_control::FollowHeadingRosGoal followHeadingGoal;
-
+    
     tf2_ros::Buffer buffer;
     tf2_ros::TransformListener listener;
 
+    tf2::Vector3 lastLocation;
+    ros::Publisher velPub;
+    ros::Subscriber poseSub;
     underwater_autonomy::VehiclePose currentPose;
 };
 

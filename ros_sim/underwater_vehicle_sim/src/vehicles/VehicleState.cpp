@@ -10,8 +10,8 @@
 using namespace ocean_models;
 
 VehicleState::VehicleState() :
-	angularVelocity(0,0,0),
 	linearVelocity(0,0,0),
+	angularVelocity(0,0,0),
 	powerCapacity(0),
 	dataCapacity(0)
 {

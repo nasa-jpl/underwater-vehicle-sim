@@ -24,12 +24,10 @@ public:
 	std::string& getName();
 	std::string& getType();
 protected:
+	ros::NodeHandle nh;
 
 	std::string name;
 	std::string type;
-    std::string vehicleName;
-
-	ros::NodeHandle nh;
 };
 
 
