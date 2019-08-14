@@ -30,13 +30,13 @@ class PropulsionController
 
 public:
 	PropulsionController(VehicleInfo& info);
+	PropulsionController(ros::NodeHandle nh, VehicleInfo& info, std::unique_ptr<PropulsionLogicInterface> logicController);
+
 	~PropulsionController() {}
 
 	void update(void);
 
 private:
-	tf2::Stamped<tf2::Transform> getCurrentTransform();
-
 	void navigationFilterCallback(const nav_msgs::Odometry odo);
 	void getTargetVelocityCommand(const geometry_msgs::Twist vel);
 	void getVehicleData(const underwater_vehicle_msgs::VehicleData data);
@@ -79,9 +79,12 @@ private:
 	actionlib::SimpleActionServer<vehicle_auto_control::FollowHeadingRosAction> followHeadingServer;
 
 	double followHeadingTimeout;
-
 	ros::Time followHeadingStart;
 	
+	double goToZTimeout;
+	ros::Time goToZStart;
+	bool holdAtZ;
+
 	ros::Subscriber dataSub;
 
 	ros::Subscriber velSub;

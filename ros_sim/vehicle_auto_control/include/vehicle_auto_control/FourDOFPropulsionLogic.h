@@ -6,16 +6,9 @@
 #include "geometry_msgs/Twist.h"
 
 #include "std_msgs/Float64.h"
-#include "tf2/LinearMath/Transform.h"
 #include "tf2/LinearMath/Vector3.h"
-#include "tf2_ros/transform_listener.h"
 
-#include "actionlib/server/simple_action_server.h"
-
-#include "vehicle_auto_control/PropulsionController.h"
-#include "vehicle_auto_control/Velocity.h"
-#include "vehicle_auto_control/GoToXYRosAction.h"
-#include "vehicle_auto_control/GoToZRosAction.h"
+#include "vehicle_auto_control/PropulsionLogicInterface.h"
 
 #include "underwater_vehicle_msgs/VehicleData.h"
 
@@ -26,13 +19,13 @@ public:
 	FourDOFPropulsionLogic(VehicleInfo& vehicleInfo);
 	~FourDOFPropulsionLogic() {}
 	
-	const void goToXY(underwater_autonomy::VehiclePose& pose) override;
-	const void followHeading(underwater_autonomy::VehiclePose& pose) override;
-	const void goToZ(underwater_autonomy::VehiclePose& pose) override;
-	const void avoidSeafloor(underwater_autonomy::VehiclePose& pose) override;
+	void goToXY(underwater_autonomy::VehiclePose& pose) override;
+	void followHeading(underwater_autonomy::VehiclePose& pose) override;
+	void goToZ(underwater_autonomy::VehiclePose& pose) override;
+	void avoidSeafloor(underwater_autonomy::VehiclePose& pose) override;
 
-	const void stopXY() override;
-	const void stopZ() override;
+	void stopXY() override;
+	void stopZ() override;
 
 	void setTargetXY(double x, double y) override;
 	void setTargetZ(double z) override;

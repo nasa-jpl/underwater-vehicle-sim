@@ -204,6 +204,13 @@ include_directories(
 ## Testing ##
 #############
 
+
+add_library(${PROJECT_NAME}_uth
+  test/uth/src/UthPropulsionLogic.cpp)
+target_include_directories(${PROJECT_NAME}_uth PUBLIC test/uth/include ${catkin_INCLUDE_DIRS})
+target_include_directories(${PROJECT_NAME}_uth PUBLIC ${UNDERWATER_AUTONOMY_INCLUDE})
+target_link_libraries(${PROJECT_NAME}_uth ${UNDERWATER_AUTONOMY_LIB} ${PROJECT_NAME} ${catkin_LIBRARIES})
+
 ## Add gtest based cpp test target and link libraries
 # catkin_add_gtest(${PROJECT_NAME}-test test/test_vehicle_auto_control.cpp)
 if (CATKIN_ENABLE_TESTING)
@@ -212,5 +219,10 @@ if (CATKIN_ENABLE_TESTING)
  add_rostest_gtest(four_dof_propulsion_logic_test test/vehicle_auto_control/FourDOFPropulsionLogic.test test/vehicle_auto_control/FourDOFPropulsionLogic_test.cpp)
  target_include_directories(four_dof_propulsion_logic_test PRIVATE ${UNDERWATER_AUTONOMY_INCLUDE})
  target_link_libraries(four_dof_propulsion_logic_test ${UNDERWATER_AUTONOMY_LIB} ${PROJECT_NAME} ${catkin_LIBRARIES})
+
+ add_rostest_gtest(propulsion_controller_test test/vehicle_auto_control/PropulsionController.test test/vehicle_auto_control/PropulsionController_test.cpp)
+ target_include_directories(propulsion_controller_test PRIVATE ${UNDERWATER_AUTONOMY_INCLUDE})
+ target_link_libraries(propulsion_controller_test ${UNDERWATER_AUTONOMY_LIB} ${PROJECT_NAME} ${PROJECT_NAME}_uth ${catkin_LIBRARIES})
+
 
 endif()

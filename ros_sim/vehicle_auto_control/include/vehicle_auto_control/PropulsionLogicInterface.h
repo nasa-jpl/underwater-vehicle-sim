@@ -30,32 +30,32 @@ public:
 	/**
 	* Sends messages to make vehicle go to xy location
 	*/
-	virtual const void goToXY(underwater_autonomy::VehiclePose& pose)=0;
+	virtual void goToXY(underwater_autonomy::VehiclePose& pose)=0;
 
 	/**
 	* Sends messages to make vehicle follow a specified heading
 	*/
-	virtual const void followHeading(underwater_autonomy::VehiclePose& pose)=0;
+	virtual void followHeading(underwater_autonomy::VehiclePose& pose)=0;
 
 	/**
 	* Sends messages to make vehicle go to z location
 	*/
-	virtual const void goToZ(underwater_autonomy::VehiclePose& pose)=0;
+	virtual void goToZ(underwater_autonomy::VehiclePose& pose)=0;
 
 	/**
 	* Sends messages to make vehicle avoid the seafloor
 	*/
-	virtual const void avoidSeafloor(underwater_autonomy::VehiclePose& pose)=0;
+	virtual void avoidSeafloor(underwater_autonomy::VehiclePose& pose)=0;
 
 	/**
 	* Sends messages to stop xy movement
 	*/
-	virtual const void stopXY()=0;
+	virtual void stopXY()=0;
 
 	/**
 	* Sends messages to stop z movement
 	*/
-	virtual const void stopZ()=0;
+	virtual void stopZ()=0;
 
 	/**
 	* Sets the target xy location for goToXY

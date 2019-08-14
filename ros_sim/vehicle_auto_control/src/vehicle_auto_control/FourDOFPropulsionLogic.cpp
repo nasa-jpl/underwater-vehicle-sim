@@ -68,7 +68,7 @@ FourDOFPropulsionLogic::FourDOFPropulsionLogic(VehicleInfo& vehicleInfo) :
                                        this);
 }
 
-const void FourDOFPropulsionLogic::goToXY(VehiclePose& pose)
+void FourDOFPropulsionLogic::goToXY(VehiclePose& pose)
 {
     if(!xyEnabled)
     {
@@ -118,7 +118,7 @@ const void FourDOFPropulsionLogic::goToXY(VehiclePose& pose)
     }
 }
 
-const void FourDOFPropulsionLogic::followHeading(underwater_autonomy::VehiclePose& pose)
+void FourDOFPropulsionLogic::followHeading(underwater_autonomy::VehiclePose& pose)
 {
     if(!xyEnabled)
     {
@@ -164,7 +164,7 @@ const void FourDOFPropulsionLogic::followHeading(underwater_autonomy::VehiclePos
     }
 }
 
-const void FourDOFPropulsionLogic::goToZ(VehiclePose& pose)
+void FourDOFPropulsionLogic::goToZ(VehiclePose& pose)
 {
     if(!zEnabled)
     {
@@ -192,7 +192,7 @@ const void FourDOFPropulsionLogic::goToZ(VehiclePose& pose)
     }
 }
 
-const void FourDOFPropulsionLogic::avoidSeafloor(underwater_autonomy::VehiclePose& pose)
+void FourDOFPropulsionLogic::avoidSeafloor(underwater_autonomy::VehiclePose& pose)
 {
     if(minSeafloorDistance > latestSonarDepth)
     {
@@ -231,7 +231,7 @@ const void FourDOFPropulsionLogic::avoidSeafloor(underwater_autonomy::VehiclePos
     }    
 }
 
-const void FourDOFPropulsionLogic::stopXY(void)
+void FourDOFPropulsionLogic::stopXY(void)
 {
     xyEnabled = false;
     std_msgs::Bool enableMsg;
@@ -246,7 +246,7 @@ const void FourDOFPropulsionLogic::stopXY(void)
     rudderPub.publish(msg);
 }
 
-const void FourDOFPropulsionLogic::stopZ(void)
+void FourDOFPropulsionLogic::stopZ(void)
 {
     zEnabled = false;
     std_msgs::Bool enableMsg;

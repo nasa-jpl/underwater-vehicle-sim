@@ -57,21 +57,21 @@ private:
     * Callback that occurs when the action is finished
     * @param action Action is avalible to update the internal state
     */
-    void actionDone(std::shared_ptr<underwater_autonomy::FollowHeadingAction> action,
+    void rosActionDone(std::shared_ptr<underwater_autonomy::FollowHeadingAction> action,
                     const actionlib::SimpleClientGoalState& state,
                     const vehicle_auto_control::FollowHeadingRosResultConstPtr& result);
 
     /**
     * Callback that occurs when the action goes active
     */
-    void actionActive(std::shared_ptr<underwater_autonomy::FollowHeadingAction> action);
+    void rosActionActive(std::shared_ptr<underwater_autonomy::FollowHeadingAction> action);
 
     /**
      * Callback that occurs when feedback is recieved from the action
      * @param action Action is avalible to update the internal state
      * @param feedback Feedback pointer
      */
-    void actionFeedback(std::shared_ptr<underwater_autonomy::FollowHeadingAction> action,
+    void rosActionFeedback(std::shared_ptr<underwater_autonomy::FollowHeadingAction> action,
                         const vehicle_auto_control::FollowHeadingRosFeedbackConstPtr& feedback);
 
 private:

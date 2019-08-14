@@ -67,9 +67,9 @@ bool FollowHeadingSimActionExecutor::execute(std::shared_ptr<FollowHeadingAction
 	followHeadingClient.waitForServer();
 	ROS_DEBUG("Send goal to point path server");
 	followHeadingClient.sendGoal(followHeadingGoal,
-							     boost::bind(&FollowHeadingSimActionExecutor::actionDone, this, action, _1, _2),
-							     boost::bind(&FollowHeadingSimActionExecutor::actionActive, this, action),
-							     boost::bind(&FollowHeadingSimActionExecutor::actionFeedback, this, action, _1));
+							     boost::bind(&FollowHeadingSimActionExecutor::rosActionDone, this, action, _1, _2),
+							     boost::bind(&FollowHeadingSimActionExecutor::rosActionActive, this, action),
+							     boost::bind(&FollowHeadingSimActionExecutor::rosActionFeedback, this, action, _1));
 	
 	distanceSinceReplan = 0;
 	return true;
@@ -93,7 +93,7 @@ bool FollowHeadingSimActionExecutor::triggerReplan(std::shared_ptr<FollowHeading
 	return false;
 }
 
-void FollowHeadingSimActionExecutor::actionDone(std::shared_ptr<FollowHeadingAction> action,
+void FollowHeadingSimActionExecutor::rosActionDone(std::shared_ptr<FollowHeadingAction> action,
 					const actionlib::SimpleClientGoalState& state,
                 	const vehicle_auto_control::FollowHeadingRosResultConstPtr& result)
 {
@@ -116,12 +116,12 @@ void FollowHeadingSimActionExecutor::actionDone(std::shared_ptr<FollowHeadingAct
 	}
 }
 
-void FollowHeadingSimActionExecutor::actionActive(std::shared_ptr<FollowHeadingAction> action)
+void FollowHeadingSimActionExecutor::rosActionActive(std::shared_ptr<FollowHeadingAction> action)
 {
 	action->setState(Action::State::EXECUTING);
 }
 
-void FollowHeadingSimActionExecutor::actionFeedback(std::shared_ptr<FollowHeadingAction> action,
+void FollowHeadingSimActionExecutor::rosActionFeedback(std::shared_ptr<FollowHeadingAction> action,
 					const vehicle_auto_control::FollowHeadingRosFeedbackConstPtr& feedback)
 {
 	replanNextUpdate = action->doReplan((ros::Time::now() - lastReplan).toSec(),

@@ -8,14 +8,20 @@
 #include "underwater_vehicle_msgs/GetVehicleInfo.h"
 
 PropulsionController::PropulsionController(VehicleInfo& info) :
-	nh(),
+	PropulsionController(ros::NodeHandle(), info, PropulsionLogicInterface::makePropulsionLogic(info))
+{}
+
+PropulsionController::PropulsionController(ros::NodeHandle nh, VehicleInfo& info, std::unique_ptr<PropulsionLogicInterface> logicController) :
+	nh(nh),
 	info(info),
 	listener(buffer),
-	logicController(PropulsionLogicInterface::makePropulsionLogic(info)),
+	logicController(std::move(logicController)),
 	goToXYServer(nh, "go_to_xy", false),
 	goToZServer(nh, "go_to_z", false),
 	followHeadingServer(nh, "follow_heading", false),
-	followHeadingTimeout(-1)
+	followHeadingTimeout(-1),
+	goToZTimeout(-1),
+	holdAtZ(false)
 {
 	std::vector<std::string> dataModuleNames = info.getModuleNamesOfType("DataBroadcaster");
 	if(dataModuleNames.size() > 0)
@@ -78,7 +84,6 @@ void PropulsionController::update(void)
 void PropulsionController::goalGoToXYCB(void)
 {
 	logicController->stopXY();
-	
 	if(followHeadingServer.isActive())
 	{
 		followHeadingServer.setAborted();
@@ -93,7 +98,6 @@ void PropulsionController::goalGoToXYCB(void)
 void PropulsionController::preemptGoToXYCB(void)
 {
 	logicController->stopXY();
-
     goToXYServer.setPreempted();
 }
 
@@ -120,45 +124,6 @@ void PropulsionController::goToXYUpdate(void)
 	}
 }
 
-/**
-* Accepts new goals for the GoToZ SimpleActionServer
-*/ 
-void PropulsionController::goalGoToZCB(void)
-{
-	logicController->stopZ();
-    vehicle_auto_control::GoToZRosGoalConstPtr goToZGoal = goToZServer.acceptNewGoal();
-
-	logicController->setTargetZ(goToZGoal->z);
-    ROS_DEBUG("GoToZ server accepted a new goal - z: %f", goToZGoal->z);
-}
-
-void PropulsionController::preemptGoToZCB(void)
-{
-	logicController->stopZ();
-	
-    goToZServer.setPreempted();
-}
-
-void PropulsionController::goToZUpdate(void)
-{
-	vehicle_auto_control::GoToZRosFeedback feedback;
-    feedback.z = currentPose.getPosition()[2];
-    goToZServer.publishFeedback(feedback);
-
-	if(logicController->isAtZ(currentPose))
-	{
-		logicController->stopZ();
-		vehicle_auto_control::GoToZRosResult result;
-        result.z = currentPose.getPosition()[2];
-        goToZServer.setSucceeded(result); 
-		ROS_DEBUG("GoToZ Server goal completeted: %f", result.z);
-	}
-	else
-	{
-		logicController->goToZ(currentPose);
-	}
-}
-
 void PropulsionController::goalFollowHeadingCB(void)
 {
 	logicController->stopXY();
@@ -180,7 +145,7 @@ void PropulsionController::preemptFollowHeadingCB(void)
 {
 	logicController->stopXY();
 	
-    followHeadingServer.setPreempted();
+	followHeadingServer.setPreempted();
 }
 
 void PropulsionController::followHeadingUpdate(void)
@@ -196,6 +161,50 @@ void PropulsionController::followHeadingUpdate(void)
 	else
 	{
 		logicController->followHeading(currentPose);
+	}
+}
+
+/**
+* Accepts new goals for the GoToZ SimpleActionServer
+*/ 
+void PropulsionController::goalGoToZCB(void)
+{
+	logicController->stopZ();
+    vehicle_auto_control::GoToZRosGoalConstPtr goToZGoal = goToZServer.acceptNewGoal();
+
+	goToZStart = ros::Time::now();
+	logicController->setTargetZ(goToZGoal->z);
+	followHeadingTimeout = goToZGoal->timeout;
+	holdAtZ = goToZGoal->holdDepth;
+
+    ROS_DEBUG("GoToZ server accepted a new goal - z: %f", goToZGoal->z);
+}
+
+void PropulsionController::preemptGoToZCB(void)
+{
+	logicController->stopZ();
+
+    goToZServer.setPreempted();
+}
+
+void PropulsionController::goToZUpdate(void)
+{
+	vehicle_auto_control::GoToZRosFeedback feedback;
+    feedback.z = currentPose.getPosition()[2];
+    goToZServer.publishFeedback(feedback);
+
+	if((goToZTimeout > 0 && (ros::Time::now() - goToZStart).toSec() >= goToZTimeout) ||
+	   (logicController->isAtZ(currentPose) && !holdAtZ))
+	{
+		logicController->stopZ();
+		vehicle_auto_control::GoToZRosResult result;
+        result.z = currentPose.getPosition()[2];
+        goToZServer.setSucceeded(result); 
+		ROS_DEBUG("GoToZ Server goal completeted: %f", result.z);
+	}
+	else
+	{
+		logicController->goToZ(currentPose);
 	}
 }
 
@@ -243,28 +252,4 @@ void PropulsionController::navigationFilterCallback(const nav_msgs::Odometry odo
     currentPose.setLinearVelocity(linearVelocity);
     currentPose.setAngularVelocity(angularVelocity);
     currentPose.setTwistCovariance(twistCovariance);
-}
-
-
-tf2::Stamped<tf2::Transform> PropulsionController::getCurrentTransform()
-{
-	geometry_msgs::TransformStamped transformMsg;
-    tf2::Stamped<tf2::Transform> transform;
-	try
-    {
-		//This gets the transform from the world from to the frame of the vehicle
-		//It is used to take a target point in the world frame to the vehicle frame
-		//for easier control calculations
-        if(buffer.canTransform(info.getName(), "world_ned", ros::Time(0), ros::Duration(10.0)))
-        {
-            transformMsg = buffer.lookupTransform(info.getName(), "world_ned", ros::Time(0));
-        }
-		tf2::fromMsg(transformMsg, transform);
-	}
-	catch(tf2::TransformException ex)
-	{
-		throw std::move(ex);
-	}
-
-	return transform;
 }
