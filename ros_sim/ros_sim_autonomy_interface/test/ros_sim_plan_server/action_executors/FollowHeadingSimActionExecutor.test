@@ -1,0 +1,5 @@
+<launch>
+ 
+ <test test-name="follow_heading_sim_action_executor_test" pkg="ros_sim_autonomy_interface" type="follow_heading_sim_action_executor_test" ns="v1">
+ </test>
+</launch>

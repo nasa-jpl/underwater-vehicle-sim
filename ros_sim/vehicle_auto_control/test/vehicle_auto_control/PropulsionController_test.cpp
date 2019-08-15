@@ -325,7 +325,6 @@ TEST(PropulsionController, goToZTimeout)
 
 TEST(PropulsionController, goToZHoldDepth) 
 {
-    
     bool goToZDoneCalled = false;
     bool goToZActiveCalled = false;
     auto goToZDone = [&] (const actionlib::SimpleClientGoalState& state,

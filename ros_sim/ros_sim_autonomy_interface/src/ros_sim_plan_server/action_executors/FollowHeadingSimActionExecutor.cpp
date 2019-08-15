@@ -20,14 +20,17 @@
 using namespace underwater_autonomy;
 
 FollowHeadingSimActionExecutor::FollowHeadingSimActionExecutor(VehicleInfo& vehicleInfo) :
+	FollowHeadingSimActionExecutor(ros::NodeHandle(), vehicleInfo)
+{}
+
+FollowHeadingSimActionExecutor::FollowHeadingSimActionExecutor(ros::NodeHandle nh, VehicleInfo& vehicleInfo) :
 	vehicleInfo(vehicleInfo),
-	followHeadingClient("follow_heading", true),
+	followHeadingClient(nh, "follow_heading", true),
 	replanNextUpdate(false),
 	lastReplan(ros::Time::now()),
 	distanceSinceReplan(0),
 	listener(buffer)
 {
-	ros::NodeHandle nh;
 	velPub = nh.advertise<geometry_msgs::Twist>("command_target_velocity", 1000, true);
 	poseSub = nh.subscribe("primary_navigation", 1, &FollowHeadingSimActionExecutor::navigationFilterCallback, this);
 }
@@ -122,7 +125,9 @@ void FollowHeadingSimActionExecutor::rosActionActive(std::shared_ptr<FollowHeadi
 }
 
 void FollowHeadingSimActionExecutor::rosActionFeedback(std::shared_ptr<FollowHeadingAction> action,
-					const vehicle_auto_control::FollowHeadingRosFeedbackConstPtr& feedback)
+					const vehicle_auto_control::FollowHeadingRosFeedbackConstPtr& feedback) {}
+
+void FollowHeadingSimActionExecutor::monitor(std::shared_ptr<underwater_autonomy::FollowHeadingAction> action)
 {
 	replanNextUpdate = action->doReplan((ros::Time::now() - lastReplan).toSec(),
 										distanceSinceReplan);
@@ -166,8 +171,11 @@ void FollowHeadingSimActionExecutor::navigationFilterCallback(const nav_msgs::Od
 	}
 
 	//Update the distance since replanning
-	distanceSinceReplan += (position - currentPose.getPosition()).norm();
-
+	Eigen::Vector3d zeroedPosition = position;
+	Eigen::Vector3d zeroedCurrentPosition = currentPose.getPosition();
+	zeroedPosition[2] = 0;
+	zeroedCurrentPosition[2] = 0;
+	distanceSinceReplan += (zeroedPosition - zeroedCurrentPosition).norm();
 
 	currentPose.setPosition(position);
     currentPose.setOrientation(orientation);

@@ -24,6 +24,8 @@ class FollowHeadingSimActionExecutor : public underwater_autonomy::ActionExecuto
 {
 public:
     FollowHeadingSimActionExecutor(VehicleInfo& info);
+    FollowHeadingSimActionExecutor(ros::NodeHandle nh, VehicleInfo& vehicleInfo);
+
     FollowHeadingSimActionExecutor(const FollowHeadingSimActionExecutor&&) = delete;
 	FollowHeadingSimActionExecutor(const FollowHeadingSimActionExecutor&) = delete;
 
@@ -41,7 +43,7 @@ public:
     * Monitors and updates the state of the yoyo action in the ros simulation 
     * All monitoring is done with action callbacks so this method is not used here
     */
-    void monitor(std::shared_ptr<underwater_autonomy::FollowHeadingAction> action) override {}
+    void monitor(std::shared_ptr<underwater_autonomy::FollowHeadingAction> action) override;
 
     /**
     * Allows the yoyo action to trigger a replan in the ros simulation 

@@ -225,6 +225,11 @@ if (CATKIN_ENABLE_TESTING)
  add_rostest_gtest(ros_sim_navigation_filter_test test/ros_sim_navigation/ROSSimNavigationFilter.test test/ros_sim_navigation/ROSSimNavigationFilter_test.cpp)
  target_link_libraries(ros_sim_navigation_filter_test ros_sim_autonomy_interface ${catkin_LIBRARIES} )
  
+ add_rostest_gtest(follow_heading_sim_action_executor_test 
+                   test/ros_sim_plan_server/action_executors/FollowHeadingSimActionExecutor.test 
+                   test/ros_sim_plan_server/action_executors/FollowHeadingSimActionExecutor_test.cpp)
+ target_link_libraries(follow_heading_sim_action_executor_test ros_sim_autonomy_interface ${catkin_LIBRARIES} )
+
 endif()
 
 ## Add folders to be run by python nosetests
