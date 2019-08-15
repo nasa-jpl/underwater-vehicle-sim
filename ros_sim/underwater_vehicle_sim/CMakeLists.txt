@@ -143,7 +143,7 @@ catkin_package(
    src/vehicles/VehicleState.cpp
  )
 
- target_include_directories(underwater_vehicles PRIVATE ${OCEAN_MODELS_INCLUDE} ${UNDERWATER_AUTONOMY_INCLUDE})
+ target_include_directories(underwater_vehicles PUBLIC ${OCEAN_MODELS_INCLUDE} ${UNDERWATER_AUTONOMY_INCLUDE})
  target_link_libraries(underwater_vehicles 
     ${UNDERWATER_AUTONOMY_LIB} 
     ${OCEAN_MODELS_LIB}

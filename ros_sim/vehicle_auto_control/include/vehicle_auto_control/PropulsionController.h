@@ -78,6 +78,9 @@ private:
 	actionlib::SimpleActionServer<vehicle_auto_control::GoToZRosAction> goToZServer;
 	actionlib::SimpleActionServer<vehicle_auto_control::FollowHeadingRosAction> followHeadingServer;
 
+	double goToXYTimeout;
+	ros::Time goToXYStart;
+
 	double followHeadingTimeout;
 	ros::Time followHeadingStart;
 	

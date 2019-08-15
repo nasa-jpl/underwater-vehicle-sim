@@ -1,6 +1,7 @@
 #goal definition
 float64 x
 float64 y
+float64 timeout
 ---
 #result definition
 float64 x

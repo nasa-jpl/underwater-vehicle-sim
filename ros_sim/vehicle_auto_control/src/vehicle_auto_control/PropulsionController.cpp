@@ -19,8 +19,6 @@ PropulsionController::PropulsionController(ros::NodeHandle nh, VehicleInfo& info
 	goToXYServer(nh, "go_to_xy", false),
 	goToZServer(nh, "go_to_z", false),
 	followHeadingServer(nh, "follow_heading", false),
-	followHeadingTimeout(-1),
-	goToZTimeout(-1),
 	holdAtZ(false)
 {
 	std::vector<std::string> dataModuleNames = info.getModuleNamesOfType("DataBroadcaster");
@@ -91,6 +89,8 @@ void PropulsionController::goalGoToXYCB(void)
 
     vehicle_auto_control::GoToXYRosGoalConstPtr goToXYGoal = goToXYServer.acceptNewGoal();
     
+	goToXYTimeout = goToXYGoal->timeout;
+	goToXYStart = ros::Time::now();
 	logicController->setTargetXY(goToXYGoal->x, goToXYGoal->y);
     ROS_DEBUG("GoToXY server accepted a new goal - x:%f y:%f", goToXYGoal->x, goToXYGoal->y);
 }
@@ -108,7 +108,8 @@ void PropulsionController::goToXYUpdate(void)
 	feedback.y = currentPose.getPosition()[1];
 	goToXYServer.publishFeedback(feedback);
 
-	if(logicController->isAtXY(currentPose))
+	if(logicController->isAtXY(currentPose) ||
+	   (goToXYTimeout >= 0 && (ros::Time::now() - goToXYStart).toSec() > goToXYTimeout))
 	{
 		logicController->stopXY();
 
@@ -134,9 +135,9 @@ void PropulsionController::goalFollowHeadingCB(void)
 
 	vehicle_auto_control::FollowHeadingRosGoalConstPtr followHeadingGoal = followHeadingServer.acceptNewGoal();
 
+	followHeadingTimeout = followHeadingGoal->timeout;
 	followHeadingStart = ros::Time::now();
 	logicController->setFollowHeading(followHeadingGoal->heading);
-	followHeadingTimeout = followHeadingGoal->timeout;
 
     ROS_DEBUG("FollowHeading server accepted a new goal - heading: %f", followHeadingGoal->heading);
 }
@@ -150,13 +151,12 @@ void PropulsionController::preemptFollowHeadingCB(void)
 
 void PropulsionController::followHeadingUpdate(void)
 {
-	if(followHeadingTimeout > 0 && (ros::Time::now() - followHeadingStart).toSec() >= followHeadingTimeout)
+	if(followHeadingTimeout >= 0 && (ros::Time::now() - followHeadingStart).toSec() > followHeadingTimeout)
 	{
 		logicController->stopXY();
 
 		vehicle_auto_control::FollowHeadingRosResult result;
 		followHeadingServer.setSucceeded(result);
-		ROS_DEBUG("FollowHeading Server goal completed by timeout");
 	}
 	else
 	{
@@ -172,9 +172,9 @@ void PropulsionController::goalGoToZCB(void)
 	logicController->stopZ();
     vehicle_auto_control::GoToZRosGoalConstPtr goToZGoal = goToZServer.acceptNewGoal();
 
+	goToZTimeout = goToZGoal->timeout;
 	goToZStart = ros::Time::now();
 	logicController->setTargetZ(goToZGoal->z);
-	followHeadingTimeout = goToZGoal->timeout;
 	holdAtZ = goToZGoal->holdDepth;
 
     ROS_DEBUG("GoToZ server accepted a new goal - z: %f", goToZGoal->z);
@@ -193,8 +193,8 @@ void PropulsionController::goToZUpdate(void)
     feedback.z = currentPose.getPosition()[2];
     goToZServer.publishFeedback(feedback);
 
-	if((goToZTimeout > 0 && (ros::Time::now() - goToZStart).toSec() >= goToZTimeout) ||
-	   (logicController->isAtZ(currentPose) && !holdAtZ))
+	if((logicController->isAtZ(currentPose) && !holdAtZ) || 
+	   (goToZTimeout >= 0 && (ros::Time::now() - goToZStart).toSec() > goToZTimeout))
 	{
 		logicController->stopZ();
 		vehicle_auto_control::GoToZRosResult result;
