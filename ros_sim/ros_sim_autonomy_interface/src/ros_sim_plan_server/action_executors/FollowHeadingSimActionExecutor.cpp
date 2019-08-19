@@ -68,7 +68,7 @@ bool FollowHeadingSimActionExecutor::execute(std::shared_ptr<FollowHeadingAction
 	followHeadingGoal.timeout = action->getTimeout();
 
 	followHeadingClient.waitForServer();
-	ROS_DEBUG("Send goal to point path server");
+	ROS_DEBUG("Send goal to FollowHeading server");
 	followHeadingClient.sendGoal(followHeadingGoal,
 							     boost::bind(&FollowHeadingSimActionExecutor::rosActionDone, this, action, _1, _2),
 							     boost::bind(&FollowHeadingSimActionExecutor::rosActionActive, this, action),
@@ -104,18 +104,18 @@ void FollowHeadingSimActionExecutor::rosActionDone(std::shared_ptr<FollowHeading
 	   state == actionlib::SimpleClientGoalState::PREEMPTED)
 	{
 		action->setState(Action::State::INTERRUPTED);
-		ROS_DEBUG("Point path action interrupted");
+		ROS_DEBUG("Follow Heading action interrupted");
 	}
 	else if(state == actionlib::SimpleClientGoalState::REJECTED ||
 			state == actionlib::SimpleClientGoalState::ABORTED)
 	{
 		action->setState(Action::State::FAILED);
-		ROS_DEBUG("Point path action failed");
+		ROS_DEBUG("Follow Heading action failed");
 	}
 	else if(state == actionlib::SimpleClientGoalState::SUCCEEDED)
 	{
 		action->setState(Action::State::COMPLETED);
-		ROS_DEBUG("Point path action completed");
+		ROS_DEBUG("Follow Heading action completed");
 	}
 }
 

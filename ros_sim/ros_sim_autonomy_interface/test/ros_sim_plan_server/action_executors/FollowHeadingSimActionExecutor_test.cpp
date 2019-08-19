@@ -65,7 +65,11 @@ TEST(FollowHeadingSimActionExecutor, ExecuteAndCancel)
     };
 
     bool preemptCalled = false;
-    auto preemptFollowHeadingCB = [&] (void) { preemptCalled = true; };
+    auto preemptFollowHeadingCB = [&] (void) 
+    { 
+        preemptCalled = true; 
+        followHeadingServer.setPreempted();
+    };
 
 
 	followHeadingServer.registerGoalCallback(goalFollowHeadingCB);
@@ -105,6 +109,9 @@ TEST(FollowHeadingSimActionExecutor, ExecuteAndCancel)
     executor.cancel(action);
     while(!preemptCalled);
     EXPECT_TRUE(preemptCalled);
+    while(action->getState() != Action::State::INTERRUPTED);
+    EXPECT_EQ(Action::State::INTERRUPTED, action->getState());
+
     spinner.stop();
 }
 
