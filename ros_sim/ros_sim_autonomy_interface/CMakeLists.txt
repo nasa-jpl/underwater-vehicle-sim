@@ -129,7 +129,7 @@ include_directories(
 )
 
 ## Declare a C++ library
-  add_library(${PROJECT_NAME}
+add_library(${PROJECT_NAME}
     src/ros_sim_navigation/ROSSimNavigationFilter.cpp
     src/ros_sim_plan_server/RosSimPlanServer.cpp  
     src/ros_sim_plan_server/ROSSimActionFactory.cpp
@@ -137,8 +137,9 @@ include_directories(
     src/ros_sim_plan_server/action_executors/PointPathSimActionExecutor.cpp
     src/ros_sim_plan_server/action_executors/FollowHeadingSimActionExecutor.cpp
     src/ros_sim_plan_server/action_executors/HoldDepthSimActionExecutor.cpp
+    src/ros_sim_plan_server/action_executors/YoYoSimActionExecutor.cpp
     src/ros_sim_plan_server/controllers/PointPathController.cpp
-  )
+)
 target_include_directories(${PROJECT_NAME} PUBLIC /usr/local/include/bfl)
 
 ## Add cmake target dependencies of the library
@@ -235,6 +236,11 @@ if (CATKIN_ENABLE_TESTING)
                    test/ros_sim_plan_server/action_executors/HoldDepthSimActionExecutor.test 
                    test/ros_sim_plan_server/action_executors/HoldDepthSimActionExecutor_test.cpp)
  target_link_libraries(hold_depth_sim_action_executor_test ros_sim_autonomy_interface ${catkin_LIBRARIES} )
+
+ add_rostest_gtest(yoyo_sim_action_executor_test 
+                   test/ros_sim_plan_server/action_executors/YoYoSimActionExecutor.test 
+                   test/ros_sim_plan_server/action_executors/YoYoSimActionExecutor_test.cpp)
+ target_link_libraries(yoyo_sim_action_executor_test ros_sim_autonomy_interface ${catkin_LIBRARIES} )
 
 endif()
 
