@@ -136,6 +136,7 @@ include_directories(
     src/ros_sim_plan_server/ROSSimVehicleInterface.cpp
     src/ros_sim_plan_server/action_executors/PointPathSimActionExecutor.cpp
     src/ros_sim_plan_server/action_executors/FollowHeadingSimActionExecutor.cpp
+    src/ros_sim_plan_server/action_executors/HoldDepthSimActionExecutor.cpp
     src/ros_sim_plan_server/controllers/PointPathController.cpp
   )
 target_include_directories(${PROJECT_NAME} PUBLIC /usr/local/include/bfl)
@@ -229,6 +230,11 @@ if (CATKIN_ENABLE_TESTING)
                    test/ros_sim_plan_server/action_executors/FollowHeadingSimActionExecutor.test 
                    test/ros_sim_plan_server/action_executors/FollowHeadingSimActionExecutor_test.cpp)
  target_link_libraries(follow_heading_sim_action_executor_test ros_sim_autonomy_interface ${catkin_LIBRARIES} )
+
+ add_rostest_gtest(hold_depth_sim_action_executor_test 
+                   test/ros_sim_plan_server/action_executors/HoldDepthSimActionExecutor.test 
+                   test/ros_sim_plan_server/action_executors/HoldDepthSimActionExecutor_test.cpp)
+ target_link_libraries(hold_depth_sim_action_executor_test ros_sim_autonomy_interface ${catkin_LIBRARIES} )
 
 endif()
 
