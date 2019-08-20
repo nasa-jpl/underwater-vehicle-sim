@@ -124,6 +124,86 @@ TEST(PointPathSimActionExecutor, ExecuteAndCancel)
     spinner.stop();
 }
 
+TEST(PointPathSimActionExecutor, ExecuteAndTimeout)
+{
+    ros::NodeHandle nh("ExecuteAndTimeout");
+
+    geometry_msgs::Twist::ConstPtr latestVelMsg = NULL;
+    auto velCB = [&] (geometry_msgs::Twist::ConstPtr val)
+    { latestVelMsg = val; };
+    ros::Subscriber velSub = nh.subscribe<geometry_msgs::Twist>("command_target_velocity", 1, velCB);
+
+	actionlib::SimpleActionServer<vehicle_auto_control::GoToXYRosAction> goToXYServer(nh, "go_to_xy", false);
+
+    bool goalCalled = false;
+    double x = 0;
+    double y = 0;
+    double timeout;
+
+    auto goalGoToXYCB = [&] (void) 
+    {
+        vehicle_auto_control::GoToXYRosGoalConstPtr goToXYGoal = goToXYServer.acceptNewGoal();
+        timeout = goToXYGoal->timeout;
+        x = goToXYGoal->x;
+        y = goToXYGoal->y;
+
+        goalCalled = true;
+    };
+
+    bool preemptCalled = false;
+    auto preemptGoToXYCB = [&] (void) 
+    { 
+        preemptCalled = true; 
+        goToXYServer.setPreempted();
+    };
+
+
+	goToXYServer.registerGoalCallback(goalGoToXYCB);
+    goToXYServer.registerPreemptCallback(preemptGoToXYCB);
+	goToXYServer.start();
+
+    ros::AsyncSpinner spinner(1);
+    std::vector<Eigen::Vector3d> points;
+    points.push_back(Eigen::Vector3d(1,2,3));
+    points.push_back(Eigen::Vector3d(2,3,4));
+    std::shared_ptr<PointPathAction> action(new PointPathAction(NULL,
+                                                        NULL,
+                                                        1,
+                                                        2,
+                                                        1,
+                                                        points,
+                                                        PointPathAction::ReplanType::PERIODIC_TIME,
+                                                        3));
+
+    underwater_vehicle_msgs::GetVehicleInfo infoMsg;
+    infoMsg.response.propModuleType = "FourDOFPropulsion";
+    VehicleInfo info(infoMsg);
+    PointPathSimActionExecutor executor(nh, info);
+
+    spinner.start();
+
+    EXPECT_TRUE(executor.execute(action));
+
+    while(latestVelMsg == NULL);
+    EXPECT_EQ(1, latestVelMsg->linear.x);
+    EXPECT_EQ(2, latestVelMsg->angular.z);
+
+    while(!goalCalled);
+
+    while(action->getState() != Action::State::EXECUTING);
+
+    EXPECT_EQ(1, x);
+    EXPECT_EQ(2, y);
+    EXPECT_EQ(-1, timeout);
+    EXPECT_EQ(Action::State::EXECUTING, action->getState());
+
+    ros::Duration(1).sleep();
+    executor.monitor(action);
+    EXPECT_EQ(Action::State::FAILED, action->getState());
+
+    spinner.stop();
+}
+
 TEST(PointPathSimActionExecutor, ExecuteAndSucceed)
 {
     ros::NodeHandle nh("ExecuteAndSucceed");
