@@ -17,13 +17,14 @@
 #include "underwater_vehicle_msgs/VehicleInfo.h"
 
 #include "actionlib/client/simple_action_client.h"
-#include "ros_sim_autonomy_interface/PointPathRosAction.h"
+#include "vehicle_auto_control/GoToXYRosAction.h"
 
 
 class PointPathSimActionExecutor : public underwater_autonomy::ActionExecutor<underwater_autonomy::PointPathAction>
 {
 public:
     PointPathSimActionExecutor(VehicleInfo& info);
+    PointPathSimActionExecutor(ros::NodeHandle nh, VehicleInfo& info);
     PointPathSimActionExecutor(const PointPathSimActionExecutor&&) = delete;
 	PointPathSimActionExecutor(const PointPathSimActionExecutor&) = delete;
 
@@ -41,7 +42,7 @@ public:
     * Monitors and updates the state of the yoyo action in the ros simulation 
     * All monitoring is done with action callbacks so this method is not used here
     */
-    void monitor(std::shared_ptr<underwater_autonomy::PointPathAction> action) override {}
+    void monitor(std::shared_ptr<underwater_autonomy::PointPathAction> action) override;
 
     /**
     * Allows the yoyo action to trigger a replan in the ros simulation 
@@ -59,7 +60,7 @@ private:
     */
     void actionDone(std::shared_ptr<underwater_autonomy::PointPathAction> action,
                     const actionlib::SimpleClientGoalState& state,
-                    const ros_sim_autonomy_interface::PointPathRosResultConstPtr& result);
+                    const vehicle_auto_control::GoToXYRosResultConstPtr& result);
 
     /**
     * Callback that occurs when the action goes active
@@ -72,23 +73,21 @@ private:
      * @param feedback Feedback pointer
      */
     void actionFeedback(std::shared_ptr<underwater_autonomy::PointPathAction> action,
-                        const ros_sim_autonomy_interface::PointPathRosFeedbackConstPtr& feedback);
+                        const vehicle_auto_control::GoToXYRosFeedbackConstPtr& feedback);
 
+    void sendNextGoToXYGoal(std::shared_ptr<underwater_autonomy::PointPathAction> action);
 private:
     VehicleInfo vehicleInfo;
 
-    actionlib::SimpleActionClient<ros_sim_autonomy_interface::PointPathRosAction> pointPathClient;
-    ros_sim_autonomy_interface::PointPathRosGoal pointPathGoal;
-
-    /**
-    * Offset to apply to the currentPoint variable in the ActionLib feedback
-    */
-    unsigned int currentPointOffset;
+    actionlib::SimpleActionClient<vehicle_auto_control::GoToXYRosAction> goToXYClient;
 
     bool replanNextUpdate;
 
     ros::Time lastReplan;
     double distanceSinceReplan;
+
+    ros::Time lastUpdate;
+    ros::Duration currentDuration;
 
     tf2_ros::Buffer buffer;
     tf2_ros::TransformListener listener;

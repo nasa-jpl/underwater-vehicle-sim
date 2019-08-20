@@ -138,7 +138,6 @@ add_library(${PROJECT_NAME}
     src/ros_sim_plan_server/action_executors/FollowHeadingSimActionExecutor.cpp
     src/ros_sim_plan_server/action_executors/HoldDepthSimActionExecutor.cpp
     src/ros_sim_plan_server/action_executors/YoYoSimActionExecutor.cpp
-    src/ros_sim_plan_server/controllers/PointPathController.cpp
 )
 target_include_directories(${PROJECT_NAME} PUBLIC /usr/local/include/bfl)
 
@@ -241,6 +240,11 @@ if (CATKIN_ENABLE_TESTING)
                    test/ros_sim_plan_server/action_executors/YoYoSimActionExecutor.test 
                    test/ros_sim_plan_server/action_executors/YoYoSimActionExecutor_test.cpp)
  target_link_libraries(yoyo_sim_action_executor_test ros_sim_autonomy_interface ${catkin_LIBRARIES} )
+
+ add_rostest_gtest(point_path_sim_action_executor_test 
+                   test/ros_sim_plan_server/action_executors/PointPathSimActionExecutor.test 
+                   test/ros_sim_plan_server/action_executors/PointPathSimActionExecutor_test.cpp)
+ target_link_libraries(point_path_sim_action_executor_test ros_sim_autonomy_interface ${catkin_LIBRARIES} )
 
 endif()
 

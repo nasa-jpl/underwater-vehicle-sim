@@ -14,8 +14,6 @@
 #include "vent_planner/DirectionSetVentPlanner.h"
 #include "vent_planner/WaypointsPlanner.h"
 
-#include "ros_sim_plan_server/controllers/PointPathController.h"
-
 #include "data_server/GetLatestData.h"
 
 using namespace underwater_autonomy;
@@ -213,11 +211,8 @@ int main(int argc, char **argv)
 
         planner.reset(new WaypointsPlanner(factory, interface, parameters));
     }
-
-    std::unique_ptr<PointPathController> pointPathController(new PointPathController(info));
       
     ROSSimPlanServer server(std::move(planner), interface);
-
 
     ROS_INFO("Planner Initalized");
 

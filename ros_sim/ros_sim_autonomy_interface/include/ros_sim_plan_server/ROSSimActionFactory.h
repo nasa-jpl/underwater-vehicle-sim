@@ -54,17 +54,7 @@ public:
     std::shared_ptr<underwater_autonomy::PointPathAction> createPointPathAction(std::unique_ptr<underwater_autonomy::OperationRegion> operationRegion,
                                                                          const double targetHorizontalVelocity, 
                                                                          const double targetRotationalVelocity,
-                                                                         const double targetSlope,
-                                                                         const double upperDepth,
-                                                                         const double lowerDepth,
-                                                                         const std::vector<Eigen::Vector3d>& points,
-                                                                         const underwater_autonomy::PointPathAction::ReplanType replan,
-                                                                         const double periodicReplanTime) override;
-
-    std::shared_ptr<underwater_autonomy::PointPathAction> createPointPathAction(std::unique_ptr<underwater_autonomy::OperationRegion> operationRegion,
-                                                                         const double targetHorizontalVelocity, 
-                                                                         const double targetRotationalVelocity,
-                                                                         const double targetSlope,
+                                                                         const double timeout,
                                                                          const std::vector<Eigen::Vector3d>& points,
                                                                          const underwater_autonomy::PointPathAction::ReplanType replan,
                                                                          const double periodicReplanTime) override;

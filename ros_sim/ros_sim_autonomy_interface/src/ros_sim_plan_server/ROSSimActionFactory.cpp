@@ -37,32 +37,7 @@ std::shared_ptr<FollowHeadingAction> ROSSimActionFactory::createFollowHeadingAct
 std::shared_ptr<PointPathAction> ROSSimActionFactory::createPointPathAction(std::unique_ptr<OperationRegion> operationRegion,
                                                                              const double targetHorizontalVelocity, 
                                                                              const double targetRotationalVelocity,
-                                                                             const double targetSlope,
-                                                                             const double upperDepth,
-                                                                             const double lowerDepth,
-                                                                             const std::vector<Eigen::Vector3d>& points,
-                                                                             const PointPathAction::ReplanType replan,
-                                                                             const double periodicReplanTime)
-{
-
-    std::unique_ptr<ActionExecutor<PointPathAction>> executor(new PointPathSimActionExecutor(vehicleInfo));
-    return std::unique_ptr<PointPathAction>(new PointPathAction(std::move(executor),
-                                                                std::move(operationRegion),
-                                                                targetHorizontalVelocity,
-                                                                targetRotationalVelocity,
-                                                                targetSlope,
-                                                                true,
-                                                                upperDepth,
-                                                                lowerDepth,
-                                                                points,
-                                                                replan,
-                                                                periodicReplanTime));
-}    
-
-std::shared_ptr<PointPathAction> ROSSimActionFactory::createPointPathAction(std::unique_ptr<OperationRegion> operationRegion,
-                                                                             const double targetHorizontalVelocity, 
-                                                                             const double targetRotationalVelocity,
-                                                                             const double targetSlope,
+                                                                             const double timeout,
                                                                              const std::vector<Eigen::Vector3d>& points,
                                                                              const PointPathAction::ReplanType replan,
                                                                              const double periodicReplanTime)
@@ -72,10 +47,7 @@ std::shared_ptr<PointPathAction> ROSSimActionFactory::createPointPathAction(std:
                                                                 std::move(operationRegion),
                                                                 targetHorizontalVelocity,
                                                                 targetRotationalVelocity,
-                                                                targetSlope,
-                                                                false,
-                                                                0,
-                                                                0,
+                                                                timeout,
                                                                 points,
                                                                 replan,
                                                                 periodicReplanTime));
