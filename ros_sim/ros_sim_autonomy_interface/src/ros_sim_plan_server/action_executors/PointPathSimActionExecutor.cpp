@@ -28,6 +28,7 @@ PointPathSimActionExecutor::PointPathSimActionExecutor(ros::NodeHandle nh, Vehic
 	replanNextUpdate(false),
 	lastReplan(ros::Time::now()),
 	distanceSinceReplan(0),
+	stateAfterCancel(Action::State::INTERRUPTED),
 	listener(buffer)
 {
 	velPub = nh.advertise<geometry_msgs::Twist>("command_target_velocity", 1000, true);
@@ -84,8 +85,9 @@ void PointPathSimActionExecutor::monitor(std::shared_ptr<underwater_autonomy::Po
 
 	if(currentDuration.toSec() >= action->getTimeout())
 	{
-		action->setState(Action::State::FAILED);
-		ROS_DEBUG("YoYo action failed from timeout");
+		//We need to cancel the action lib but still what to set the underwater autonomy action as failed
+		stateAfterCancel = Action::State::FAILED;
+		goToXYClient.cancelGoal();
 	}
 
 	if(!replanNextUpdate)
@@ -108,7 +110,7 @@ void PointPathSimActionExecutor::cancel(std::shared_ptr<PointPathAction> action)
 	else
 	{
 		action->setState(Action::State::INTERRUPTED);
-		ROS_DEBUG("YoYo action interrupted");
+		ROS_DEBUG("point path action interrupted");
 	}
 
 }
@@ -133,8 +135,21 @@ void PointPathSimActionExecutor::actionDone(std::shared_ptr<PointPathAction> act
 	if(state == actionlib::SimpleClientGoalState::RECALLED ||
 	   state == actionlib::SimpleClientGoalState::PREEMPTED)
 	{
-		action->setState(Action::State::INTERRUPTED);
-		ROS_DEBUG("Point path action interrupted");
+		if(stateAfterCancel == Action::State::INTERRUPTED)
+		{
+			action->setState(Action::State::INTERRUPTED);
+			ROS_DEBUG("Point Path action interrupted");
+		}
+		else if(stateAfterCancel == Action::State::FAILED)
+		{
+			action->setState(Action::State::FAILED);
+			ROS_DEBUG("Point Path action failed");
+		}
+		else if(stateAfterCancel == Action::State::COMPLETED)
+		{
+			action->setState(Action::State::COMPLETED);
+			ROS_DEBUG("Point Path action completed");
+		}
 	}
 	else if(state == actionlib::SimpleClientGoalState::REJECTED ||
 			state == actionlib::SimpleClientGoalState::ABORTED)
@@ -185,7 +200,7 @@ void PointPathSimActionExecutor::sendNextGoToXYGoal(std::shared_ptr<underwater_a
 	goToXYGoal.timeout = -1;
 
 	goToXYClient.waitForServer();
-	ROS_DEBUG("Send goal to point path server");
+	ROS_DEBUG("Send goal to goToXY server");
 	goToXYClient.sendGoal(goToXYGoal,
 							 boost::bind(&PointPathSimActionExecutor::actionDone, this, action, _1, _2),
 							 boost::bind(&PointPathSimActionExecutor::actionActive, this, action),

@@ -29,6 +29,8 @@ FollowHeadingSimActionExecutor::FollowHeadingSimActionExecutor(ros::NodeHandle n
 	replanNextUpdate(false),
 	lastReplan(ros::Time::now()),
 	distanceSinceReplan(0),
+	currentDuration(0),
+	stateAfterCancel(Action::State::INTERRUPTED),
 	listener(buffer)
 {
 	velPub = nh.advertise<geometry_msgs::Twist>("command_target_velocity", 1000, true);
@@ -65,7 +67,6 @@ bool FollowHeadingSimActionExecutor::execute(std::shared_ptr<FollowHeadingAction
 	followHeadingGoal = vehicle_auto_control::FollowHeadingRosGoal();
 
 	followHeadingGoal.heading = action->getHeading();
-	followHeadingGoal.timeout = action->getTimeout();
 
 	followHeadingClient.waitForServer();
 	ROS_DEBUG("Send goal to FollowHeading server");
@@ -73,14 +74,14 @@ bool FollowHeadingSimActionExecutor::execute(std::shared_ptr<FollowHeadingAction
 							     boost::bind(&FollowHeadingSimActionExecutor::rosActionDone, this, action, _1, _2),
 							     boost::bind(&FollowHeadingSimActionExecutor::rosActionActive, this, action),
 							     boost::bind(&FollowHeadingSimActionExecutor::rosActionFeedback, this, action, _1));
-	
+	lastUpdate = ros::Time::now();
 	distanceSinceReplan = 0;
 	return true;
 }
 
 void FollowHeadingSimActionExecutor::cancel(std::shared_ptr<FollowHeadingAction> action)
 {
-	followHeadingClient.cancelAllGoals();
+	followHeadingClient.cancelGoal();
 }
 
 bool FollowHeadingSimActionExecutor::triggerReplan(std::shared_ptr<FollowHeadingAction> action)
@@ -103,19 +104,32 @@ void FollowHeadingSimActionExecutor::rosActionDone(std::shared_ptr<FollowHeading
 	if(state == actionlib::SimpleClientGoalState::RECALLED ||
 	   state == actionlib::SimpleClientGoalState::PREEMPTED)
 	{
-		action->setState(Action::State::INTERRUPTED);
-		ROS_DEBUG("Follow Heading action interrupted");
+		if(stateAfterCancel == Action::State::INTERRUPTED)
+		{
+			action->setState(Action::State::INTERRUPTED);
+			ROS_DEBUG("Follow heading action interrupted");
+		}
+		else if(stateAfterCancel == Action::State::FAILED)
+		{
+			action->setState(Action::State::FAILED);
+			ROS_DEBUG("Follow heading action failed");
+		}
+		else if(stateAfterCancel == Action::State::COMPLETED)
+		{
+			action->setState(Action::State::COMPLETED);
+			ROS_DEBUG("Follow heading action completed from GoToZ return");
+		}
 	}
 	else if(state == actionlib::SimpleClientGoalState::REJECTED ||
 			state == actionlib::SimpleClientGoalState::ABORTED)
 	{
 		action->setState(Action::State::FAILED);
-		ROS_DEBUG("Follow Heading action failed");
+		ROS_DEBUG("Follow heading action failed");
 	}
 	else if(state == actionlib::SimpleClientGoalState::SUCCEEDED)
 	{
 		action->setState(Action::State::COMPLETED);
-		ROS_DEBUG("Follow Heading action completed");
+		ROS_DEBUG("Follow heading action completed");
 	}
 }
 
@@ -129,6 +143,29 @@ void FollowHeadingSimActionExecutor::rosActionFeedback(std::shared_ptr<FollowHea
 
 void FollowHeadingSimActionExecutor::monitor(std::shared_ptr<underwater_autonomy::FollowHeadingAction> action)
 {
+	ros::Time currentTime = ros::Time::now();
+	currentDuration += currentTime - lastUpdate;
+	lastUpdate = currentTime;
+
+	if(currentDuration.toSec() >= action->getFollowHeadingTime())
+	{
+		//We need to cancel the action lib but still what to set the underwater autonomy action as complete
+		stateAfterCancel = Action::State::COMPLETED;
+		followHeadingClient.cancelGoal();
+	}
+	else if(currentDuration.toSec() >= action->getTimeout())
+	{
+		//We need to cancel the action lib but still what to set the underwater autonomy action as failed
+		stateAfterCancel = Action::State::FAILED;
+		followHeadingClient.cancelGoal();
+	}
+	else if(!action->inXYOperationRegion(currentPose.getPosition()))
+	{
+		//We need to cancel the action lib but still what to set the underwater autonomy action as failed
+		stateAfterCancel = Action::State::FAILED;
+		followHeadingClient.cancelGoal();
+	}
+
 	replanNextUpdate = action->doReplan((ros::Time::now() - lastReplan).toSec(),
 										distanceSinceReplan);
 }

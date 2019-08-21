@@ -7,6 +7,9 @@
 #include "underwater_autonomy/planner/actions/ActionFactory.h"
 
 #include "ros_sim_plan_server/action_executors/PointPathSimActionExecutor.h"
+#include "ros_sim_plan_server/action_executors/FollowHeadingSimActionExecutor.h"
+#include "ros_sim_plan_server/action_executors/HoldDepthSimActionExecutor.h"
+#include "ros_sim_plan_server/action_executors/YoYoSimActionExecutor.h"
 
 using namespace underwater_autonomy;
 
@@ -14,24 +17,48 @@ ROSSimActionFactory::ROSSimActionFactory(VehicleInfo vehicleInfo) :
     vehicleInfo(vehicleInfo)
 {}
 
-std::shared_ptr<FollowHeadingAction> ROSSimActionFactory::createFollowHeadingAction(std::unique_ptr<OperationRegion> operationRegion,
-                                                                           const double targetHorizontalVelocity, 
-                                                                           const double targetRotationalVelocity,
-                                                                           const double heading,
-                                                                           const double timeout,
-                                                                           const FollowHeadingAction::ReplanType replan,
-                                                                           const double periodicReplanTime)
+std::shared_ptr<underwater_autonomy::YoYoAction> ROSSimActionFactory::createYoYoAction(const double upperDepth,
+                                                                                       const double lowerDepth,
+                                                                                       const double targetVerticalVelocity, 
+                                                                                       const double yoyoTime,
+                                                                                       const double timeout,
+                                                                                       std::unique_ptr<underwater_autonomy::OperationRegion> operationRegion,
+                                                                                       const YoYoAction::ReplanType replanType,
+                                                                                       const double periodicReplanValue)
+{
+    std::unique_ptr<ActionExecutor<YoYoAction>> executor(new YoYoSimActionExecutor(vehicleInfo));
+    return std::unique_ptr<YoYoAction>(new YoYoAction(upperDepth,
+                                                      lowerDepth,
+                                                      targetVerticalVelocity,
+                                                      yoyoTime,
+                                                      timeout,
+                                                      std::move(operationRegion),
+                                                      replanType,
+                                                      periodicReplanValue,
+                                                      std::move(executor)));
+
+}
+
+std::shared_ptr<FollowHeadingAction> ROSSimActionFactory::createFollowHeadingAction(const double heading,
+                                                                                    const double targetHorizontalVelocity, 
+                                                                                    const double targetRotationalVelocity,
+                                                                                    const double followHeadingTime,
+                                                                                    const double timeout,
+                                                                                    std::unique_ptr<underwater_autonomy::OperationRegion> operationRegion,
+                                                                                    const FollowHeadingAction::ReplanType replanType,
+                                                                                    const double periodicReplanValue)
 {
 
     std::unique_ptr<ActionExecutor<FollowHeadingAction>> executor(new FollowHeadingSimActionExecutor(vehicleInfo));
-    return std::unique_ptr<FollowHeadingAction>(new FollowHeadingAction(std::move(executor),
-                                                                std::move(operationRegion),
+    return std::unique_ptr<FollowHeadingAction>(new FollowHeadingAction(heading,
                                                                 targetHorizontalVelocity,
                                                                 targetRotationalVelocity,
-                                                                heading,
+                                                                followHeadingTime,
                                                                 timeout,
-                                                                replan,
-                                                                periodicReplanTime));
+                                                                std::move(operationRegion),
+                                                                replanType,
+                                                                periodicReplanValue,
+                                                                std::move(executor)));
 }   
 
 std::shared_ptr<PointPathAction> ROSSimActionFactory::createPointPathAction(std::unique_ptr<OperationRegion> operationRegion,
@@ -51,4 +78,23 @@ std::shared_ptr<PointPathAction> ROSSimActionFactory::createPointPathAction(std:
                                                                 points,
                                                                 replan,
                                                                 periodicReplanTime));
+}
+
+std::shared_ptr<HoldDepthAction> ROSSimActionFactory::createHoldDepthAction(const double depth,
+                                                                            const double targetVerticalVelocity,
+                                                                            const double holdDepthTime,
+                                                                            const double timeout,
+                                                                            std::unique_ptr<OperationRegion> operationRegion,
+                                                                            const HoldDepthAction::ReplanType replanType,
+                                                                            const double periodicReplanValue)
+{
+    std::unique_ptr<ActionExecutor<HoldDepthAction>> executor(new HoldDepthSimActionExecutor(vehicleInfo));
+    return std::unique_ptr<HoldDepthAction>(new HoldDepthAction(depth,
+                                                                targetVerticalVelocity,
+                                                                holdDepthTime,
+                                                                timeout,
+                                                                std::move(operationRegion),
+                                                                replanType,
+                                                                periodicReplanValue,
+                                                                std::move(executor)));
 }

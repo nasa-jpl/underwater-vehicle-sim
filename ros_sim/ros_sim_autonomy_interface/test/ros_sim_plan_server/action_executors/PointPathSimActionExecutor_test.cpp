@@ -199,6 +199,7 @@ TEST(PointPathSimActionExecutor, ExecuteAndTimeout)
 
     ros::Duration(1).sleep();
     executor.monitor(action);
+    while(action->getState() != Action::State::FAILED);
     EXPECT_EQ(Action::State::FAILED, action->getState());
 
     spinner.stop();

@@ -88,6 +88,7 @@ private:
 
     ros::Time lastUpdate;
     ros::Duration currentDuration;
+    underwater_autonomy::Action::State stateAfterCancel;
 
     tf2_ros::Buffer buffer;
     tf2_ros::TransformListener listener;
