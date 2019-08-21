@@ -197,7 +197,6 @@ void PointPathSimActionExecutor::sendNextGoToXYGoal(std::shared_ptr<underwater_a
 	Eigen::Vector3d point = action->getCurrentTargetPoint();
 	goToXYGoal.x = point[0];
 	goToXYGoal.y = point[1];
-	goToXYGoal.timeout = -1;
 
 	goToXYClient.waitForServer();
 	ROS_DEBUG("Send goal to goToXY server");

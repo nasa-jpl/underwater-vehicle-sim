@@ -54,13 +54,11 @@ TEST(HoldDepthSimActionExecutor, ExecuteAndCancel)
 	actionlib::SimpleActionServer<vehicle_auto_control::GoToZRosAction> goToZServer(nh, "go_to_z", false);
 
     bool goalCalled = false;
-    double timeout = 0;
     double z = -1;
     bool holdDepth = false;
     auto goalHoldDepthCB = [&] (void) 
     {
         vehicle_auto_control::GoToZRosGoalConstPtr goToZGoal = goToZServer.acceptNewGoal();
-        timeout = goToZGoal->timeout;
         z = goToZGoal->z;
         holdDepth = goToZGoal->holdDepth;
         goalCalled = true;
@@ -130,13 +128,11 @@ TEST(HoldDepthSimActionExecutor, ExecuteAndSucceed)
 	actionlib::SimpleActionServer<vehicle_auto_control::GoToZRosAction> goToZServer(nh, "go_to_z", false);
 
     bool goalCalled = false;
-    double timeout = 0;
     double z = -1;
     bool holdDepth = false;
     auto goalHoldDepthCB = [&] (void) 
     {
         vehicle_auto_control::GoToZRosGoalConstPtr goToZGoal = goToZServer.acceptNewGoal();
-        timeout = goToZGoal->timeout;
         z = goToZGoal->z;
         holdDepth = goToZGoal->holdDepth;
         goalCalled = true;
@@ -204,13 +200,11 @@ TEST(HoldDepthSimActionExecutor, ExecuteAndTimeout)
 	actionlib::SimpleActionServer<vehicle_auto_control::GoToZRosAction> goToZServer(nh, "go_to_z", false);
 
     bool goalCalled = false;
-    double timeout = 0;
     double z = -1;
     bool holdDepth = false;
     auto goalHoldDepthCB = [&] (void) 
     {
         vehicle_auto_control::GoToZRosGoalConstPtr goToZGoal = goToZServer.acceptNewGoal();
-        timeout = goToZGoal->timeout;
         z = goToZGoal->z;
         holdDepth = goToZGoal->holdDepth;
         goalCalled = true;
@@ -278,13 +272,11 @@ TEST(HoldDepthSimActionExecutor, ExecuteAndAbort)
 	actionlib::SimpleActionServer<vehicle_auto_control::GoToZRosAction> goToZServer(nh, "go_to_z", false);
 
     bool goalCalled = false;
-    double timeout = 0;
     double z = -1;
     bool holdDepth = false;
     auto goalHoldDepthCB = [&] (void) 
     {
         vehicle_auto_control::GoToZRosGoalConstPtr goToZGoal = goToZServer.acceptNewGoal();
-        timeout = goToZGoal->timeout;
         z = goToZGoal->z;
         holdDepth = goToZGoal->holdDepth;
         goalCalled = true;
@@ -347,13 +339,11 @@ TEST(HoldDepthSimActionExecutor, TimeReplan)
 	actionlib::SimpleActionServer<vehicle_auto_control::GoToZRosAction> goToZServer(nh, "go_to_z", false);
 
     bool goalCalled = false;
-    double timeout = 0;
     double z = -1;
     bool holdDepth = false;
     auto goalHoldDepthCB = [&] (void) 
     {
         vehicle_auto_control::GoToZRosGoalConstPtr goToZGoal = goToZServer.acceptNewGoal();
-        timeout = goToZGoal->timeout;
         z = goToZGoal->z;
         holdDepth = goToZGoal->holdDepth;
         goalCalled = true;
@@ -418,13 +408,11 @@ TEST(HoldDepthSimActionExecutor, DistanceReplan)
 	actionlib::SimpleActionServer<vehicle_auto_control::GoToZRosAction> goToZServer(nh, "go_to_z", false);
 
     bool goalCalled = false;
-    double timeout = 0;
     double z = -1;
     bool holdDepth = false;
     auto goalHoldDepthCB = [&] (void) 
     {
         vehicle_auto_control::GoToZRosGoalConstPtr goToZGoal = goToZServer.acceptNewGoal();
-        timeout = goToZGoal->timeout;
         z = goToZGoal->z;
         holdDepth = goToZGoal->holdDepth;
         goalCalled = true;

@@ -43,7 +43,6 @@ TEST(PropulsionController, avoidSeafloor)
     actionlib::SimpleActionClient<vehicle_auto_control::GoToZRosAction> goToZClient(nh, "go_to_z", true);
     vehicle_auto_control::GoToZRosGoal goToZGoal;
     ros::spinOnce();
-    goToZGoal.timeout = -1;
     goToZGoal.z = 100;
 
     rawLogicPtr->setAtZ(false);
@@ -111,7 +110,6 @@ TEST(PropulsionController, goToZNoHoldDepth)
     
     actionlib::SimpleActionClient<vehicle_auto_control::GoToZRosAction> goToZClient(nh, "go_to_z", true);
     vehicle_auto_control::GoToZRosGoal goToZGoal;
-    goToZGoal.timeout = -1;
     goToZGoal.z = 100;
     goToZGoal.holdDepth = false;
     rawLogicPtr->setAtZ(false);
@@ -185,7 +183,6 @@ TEST(PropulsionController, goToZCancel)
     
     actionlib::SimpleActionClient<vehicle_auto_control::GoToZRosAction> goToZClient(nh, "go_to_z", true);
     vehicle_auto_control::GoToZRosGoal goToZGoal;
-    goToZGoal.timeout = -1;
     goToZGoal.z = 100;
     goToZGoal.holdDepth = false;
     rawLogicPtr->setAtZ(false);
@@ -240,89 +237,6 @@ TEST(PropulsionController, goToZCancel)
     EXPECT_TRUE(rawLogicPtr->getZMovement());
 }
 
-TEST(PropulsionController, goToZTimeout) 
-{ 
-    bool goToZDoneCalled = false;
-    bool goToZActiveCalled = false;
-    auto goToZDone = [&] (const actionlib::SimpleClientGoalState& state,
-                         const vehicle_auto_control::GoToZRosResultConstPtr& result)
-    { goToZDoneCalled = true; };
-
-    auto goToZActive = [&] () { goToZActiveCalled = true; };
-    auto goToZFeedback = [&] (const vehicle_auto_control::GoToZRosFeedbackConstPtr& feedback) {};
-
-    ros::NodeHandle nh("goToZTimeout");
-    VehicleInfo info;
-
-    std::unique_ptr<UthPropulsionLogic> uthLogic(new UthPropulsionLogic(info));
-    UthPropulsionLogic* rawLogicPtr = uthLogic.get();
-
-    std::unique_ptr<PropulsionLogicInterface> genLogic(std::move(uthLogic));
-
-
-    PropulsionController controller(nh, info, std::move(genLogic));
-    
-    actionlib::SimpleActionClient<vehicle_auto_control::GoToZRosAction> goToZClient(nh, "go_to_z", true);
-    vehicle_auto_control::GoToZRosGoal goToZGoal;
-    goToZGoal.timeout = 2;
-    rawLogicPtr->setAtXY(false);
-
-    //Before Goal
-    controller.update();
-
-    EXPECT_EQ(1, rawLogicPtr->getAvoidSeafloorCalls());
-    EXPECT_EQ(0, rawLogicPtr->getGoToZCalls());
-    EXPECT_EQ(0, rawLogicPtr->getStopXYCalls());
-    EXPECT_FALSE(rawLogicPtr->getXYMovement());
-    EXPECT_TRUE(rawLogicPtr->getZMovement());
-
-    //Send Goal
-    while(!goToZClient.waitForServer(ros::Duration(1)))
-    {
-        ros::spinOnce();
-    }
-	goToZClient.sendGoal(goToZGoal,
-                        goToZDone,
-                        goToZActive,
-                        goToZFeedback);
-
-    while(!goToZActiveCalled)
-    {
-        ros::spinOnce();
-    }
-
-    //During Goal
-    controller.update();
-    EXPECT_EQ(1, rawLogicPtr->getAvoidSeafloorCalls());
-    EXPECT_EQ(1, rawLogicPtr->getGoToZCalls());
-    EXPECT_EQ(1, rawLogicPtr->getStopZCalls());
-    EXPECT_FALSE(rawLogicPtr->getXYMovement());
-    EXPECT_TRUE(rawLogicPtr->getZMovement());
-
-    //Timeout Goal
-
-    ros::Duration(2).sleep();
-
-    controller.update();
-    while(!goToZDoneCalled)
-    {
-        ros::spinOnce();
-    }
-
-    EXPECT_EQ(1, rawLogicPtr->getAvoidSeafloorCalls());
-    EXPECT_EQ(1, rawLogicPtr->getGoToZCalls());
-    EXPECT_EQ(2, rawLogicPtr->getStopZCalls());
-    EXPECT_FALSE(rawLogicPtr->getXYMovement());
-    EXPECT_FALSE(rawLogicPtr->getZMovement());
-
-    controller.update();
-    EXPECT_EQ(2, rawLogicPtr->getAvoidSeafloorCalls());
-    EXPECT_EQ(1, rawLogicPtr->getGoToZCalls());
-    EXPECT_EQ(2, rawLogicPtr->getStopZCalls());
-    EXPECT_FALSE(rawLogicPtr->getXYMovement());
-    EXPECT_TRUE(rawLogicPtr->getZMovement());
-}
-
 TEST(PropulsionController, goToZHoldDepth) 
 {
     bool goToZDoneCalled = false;
@@ -347,7 +261,6 @@ TEST(PropulsionController, goToZHoldDepth)
     
     actionlib::SimpleActionClient<vehicle_auto_control::GoToZRosAction> goToZClient(nh, "go_to_z", true);
     vehicle_auto_control::GoToZRosGoal goToZGoal;
-    goToZGoal.timeout = -1;
     goToZGoal.z = 100;
     goToZGoal.holdDepth = true;
     rawLogicPtr->setAtZ(false);
@@ -419,7 +332,6 @@ TEST(PropulsionController, goToXY)
     
     actionlib::SimpleActionClient<vehicle_auto_control::GoToXYRosAction> goToXYClient(nh, "go_to_xy", true);
     vehicle_auto_control::GoToXYRosGoal goToXYGoal;
-    goToXYGoal.timeout = -1;
     rawLogicPtr->setAtXY(false);
 
     //Before Goal
@@ -495,7 +407,6 @@ TEST(PropulsionController, goToXYCancel)
     
     actionlib::SimpleActionClient<vehicle_auto_control::GoToXYRosAction> goToXYClient(nh, "go_to_xy", true);
     vehicle_auto_control::GoToXYRosGoal goToXYGoal;
-    goToXYGoal.timeout = -1;
     rawLogicPtr->setAtXY(false);
 
     //Before Goal
@@ -554,90 +465,6 @@ TEST(PropulsionController, goToXYCancel)
     EXPECT_TRUE(rawLogicPtr->getZMovement());
 }
 
-TEST(PropulsionController, goToXYTimeout) 
-{ 
-    bool goToXYDoneCalled = false;
-    bool goToXYActiveCalled = false;
-    auto goToXYDone = [&] (const actionlib::SimpleClientGoalState& state,
-                         const vehicle_auto_control::GoToXYRosResultConstPtr& result)
-    { goToXYDoneCalled = true; };
-
-    auto goToXYActive = [&] () { goToXYActiveCalled = true; };
-    auto goToXYFeedback = [&] (const vehicle_auto_control::GoToXYRosFeedbackConstPtr& feedback) {};
-
-    ros::NodeHandle nh("goToXYTimeout");
-    VehicleInfo info;
-
-    std::unique_ptr<UthPropulsionLogic> uthLogic(new UthPropulsionLogic(info));
-    UthPropulsionLogic* rawLogicPtr = uthLogic.get();
-
-    std::unique_ptr<PropulsionLogicInterface> genLogic(std::move(uthLogic));
-
-
-    PropulsionController controller(nh, info, std::move(genLogic));
-    
-    actionlib::SimpleActionClient<vehicle_auto_control::GoToXYRosAction> goToXYClient(nh, "go_to_xy", true);
-    vehicle_auto_control::GoToXYRosGoal goToXYGoal;
-    goToXYGoal.timeout = 2;
-    rawLogicPtr->setAtXY(false);
-
-    //Before Goal
-    controller.update();
-
-    EXPECT_EQ(1, rawLogicPtr->getAvoidSeafloorCalls());
-    EXPECT_EQ(0, rawLogicPtr->getGoToXYCalls());
-    EXPECT_EQ(0, rawLogicPtr->getStopXYCalls());
-    EXPECT_FALSE(rawLogicPtr->getXYMovement());
-    EXPECT_TRUE(rawLogicPtr->getZMovement());
-
-    //Send Goal
-    while(!goToXYClient.waitForServer(ros::Duration(1)))
-    {
-        ros::spinOnce();
-    }
-	goToXYClient.sendGoal(goToXYGoal,
-                        goToXYDone,
-                        goToXYActive,
-                        goToXYFeedback);
-
-    while(!goToXYActiveCalled)
-    {
-        ros::spinOnce();
-    }
-
-    //During Goal
-    controller.update();
-    EXPECT_EQ(2, rawLogicPtr->getAvoidSeafloorCalls());
-    EXPECT_EQ(1, rawLogicPtr->getGoToXYCalls());
-    EXPECT_EQ(1, rawLogicPtr->getStopXYCalls());
-    EXPECT_TRUE(rawLogicPtr->getXYMovement());
-    EXPECT_TRUE(rawLogicPtr->getZMovement());
-
-    //Timeout Goal
-
-    ros::Duration(2).sleep();
-
-    controller.update();
-    while(!goToXYDoneCalled)
-    {
-        ros::spinOnce();
-    }
-
-    EXPECT_EQ(3, rawLogicPtr->getAvoidSeafloorCalls());
-    EXPECT_EQ(1, rawLogicPtr->getGoToXYCalls());
-    EXPECT_EQ(2, rawLogicPtr->getStopXYCalls());
-    EXPECT_FALSE(rawLogicPtr->getXYMovement());
-    EXPECT_TRUE(rawLogicPtr->getZMovement());
-
-    controller.update();
-    EXPECT_EQ(4, rawLogicPtr->getAvoidSeafloorCalls());
-    EXPECT_EQ(1, rawLogicPtr->getGoToXYCalls());
-    EXPECT_EQ(2, rawLogicPtr->getStopXYCalls());
-    EXPECT_FALSE(rawLogicPtr->getXYMovement());
-    EXPECT_TRUE(rawLogicPtr->getZMovement());
-}
-
-
 TEST(PropulsionController, followHeadingCancel) 
 {
     bool followHeadingDoneCalled = false;
@@ -662,7 +489,6 @@ TEST(PropulsionController, followHeadingCancel)
     
     actionlib::SimpleActionClient<vehicle_auto_control::FollowHeadingRosAction> followHeadingClient(nh, "follow_heading", true);
     vehicle_auto_control::FollowHeadingRosGoal followHeadingGoal;
-    followHeadingGoal.timeout = -1;
     rawLogicPtr->setAtXY(false);
 
     //Before Goal
@@ -720,89 +546,6 @@ TEST(PropulsionController, followHeadingCancel)
     EXPECT_TRUE(rawLogicPtr->getZMovement());
 }
 
-TEST(PropulsionController, followHeadingTimeout) 
-{ 
-    bool followHeadingDoneCalled = false;
-    bool followHeadingActiveCalled = false;
-    auto followHeadingDone = [&] (const actionlib::SimpleClientGoalState& state,
-                         const vehicle_auto_control::FollowHeadingRosResultConstPtr& result)
-    { followHeadingDoneCalled = true; };
-
-    auto followHeadingActive = [&] () { followHeadingActiveCalled = true; };
-    auto followHeadingFeedback = [&] (const vehicle_auto_control::FollowHeadingRosFeedbackConstPtr& feedback) {};
-
-    ros::NodeHandle nh("followHeadingTimeout");
-    VehicleInfo info;
-
-    std::unique_ptr<UthPropulsionLogic> uthLogic(new UthPropulsionLogic(info));
-    UthPropulsionLogic* rawLogicPtr = uthLogic.get();
-
-    std::unique_ptr<PropulsionLogicInterface> genLogic(std::move(uthLogic));
-
-
-    PropulsionController controller(nh, info, std::move(genLogic));
-    
-    actionlib::SimpleActionClient<vehicle_auto_control::FollowHeadingRosAction> followHeadingClient(nh, "follow_heading", true);
-    vehicle_auto_control::FollowHeadingRosGoal followHeadingGoal;
-    followHeadingGoal.timeout = 2;
-    rawLogicPtr->setAtXY(false);
-
-    //Before Goal
-    controller.update();
-
-    EXPECT_EQ(1, rawLogicPtr->getAvoidSeafloorCalls());
-    EXPECT_EQ(0, rawLogicPtr->getFollowHeadingCalls());
-    EXPECT_EQ(0, rawLogicPtr->getStopXYCalls());
-    EXPECT_FALSE(rawLogicPtr->getXYMovement());
-    EXPECT_TRUE(rawLogicPtr->getZMovement());
-
-    //Send Goal
-    while(!followHeadingClient.waitForServer(ros::Duration(1)))
-    {
-        ros::spinOnce();
-    }
-	followHeadingClient.sendGoal(followHeadingGoal,
-                        followHeadingDone,
-                        followHeadingActive,
-                        followHeadingFeedback);
-
-    while(!followHeadingActiveCalled)
-    {
-        ros::spinOnce();
-    }
-
-    //During Goal
-    controller.update();
-    EXPECT_EQ(2, rawLogicPtr->getAvoidSeafloorCalls());
-    EXPECT_EQ(1, rawLogicPtr->getFollowHeadingCalls());
-    EXPECT_EQ(1, rawLogicPtr->getStopXYCalls());
-    EXPECT_TRUE(rawLogicPtr->getXYMovement());
-    EXPECT_TRUE(rawLogicPtr->getZMovement());
-
-    //Timeout Goal
-
-    ros::Duration(2).sleep();
-
-    controller.update();
-    while(!followHeadingDoneCalled)
-    {
-        ros::spinOnce();
-    }
-
-    EXPECT_EQ(3, rawLogicPtr->getAvoidSeafloorCalls());
-    EXPECT_EQ(1, rawLogicPtr->getFollowHeadingCalls());
-    EXPECT_EQ(2, rawLogicPtr->getStopXYCalls());
-    EXPECT_FALSE(rawLogicPtr->getXYMovement());
-    EXPECT_TRUE(rawLogicPtr->getZMovement());
-
-    controller.update();
-    EXPECT_EQ(4, rawLogicPtr->getAvoidSeafloorCalls());
-    EXPECT_EQ(1, rawLogicPtr->getFollowHeadingCalls());
-    EXPECT_EQ(2, rawLogicPtr->getStopXYCalls());
-    EXPECT_FALSE(rawLogicPtr->getXYMovement());
-    EXPECT_TRUE(rawLogicPtr->getZMovement());
-}
-
 TEST(PropulsionController, xyInterruptHeading) 
 {
     bool followHeadingDoneCalled = false;
@@ -838,11 +581,9 @@ TEST(PropulsionController, xyInterruptHeading)
     
     actionlib::SimpleActionClient<vehicle_auto_control::FollowHeadingRosAction> followHeadingClient(nh, "follow_heading", true);
     vehicle_auto_control::FollowHeadingRosGoal followHeadingGoal;
-    followHeadingGoal.timeout = -1;
 
     actionlib::SimpleActionClient<vehicle_auto_control::GoToXYRosAction> goToXYClient(nh, "go_to_xy", true);
     vehicle_auto_control::GoToXYRosGoal goToXYGoal;
-    goToXYGoal.timeout = -1;
     rawLogicPtr->setAtXY(false);
 
 
@@ -940,11 +681,9 @@ TEST(PropulsionController, headingInterruptXY)
     
     actionlib::SimpleActionClient<vehicle_auto_control::FollowHeadingRosAction> followHeadingClient(nh, "follow_heading", true);
     vehicle_auto_control::FollowHeadingRosGoal followHeadingGoal;
-    followHeadingGoal.timeout = -1;
 
     actionlib::SimpleActionClient<vehicle_auto_control::GoToXYRosAction> goToXYClient(nh, "go_to_xy", true);
     vehicle_auto_control::GoToXYRosGoal goToXYGoal;
-    goToXYGoal.timeout = -1;
     rawLogicPtr->setAtXY(false);
 
 

@@ -57,12 +57,10 @@ TEST(FollowHeadingSimActionExecutor, ExecuteAndCancel)
 	actionlib::SimpleActionServer<vehicle_auto_control::FollowHeadingRosAction> followHeadingServer(nh, "follow_heading", false);
 
     bool goalCalled = false;
-    double timeout = 0;
     double heading = -1;
     auto goalFollowHeadingCB = [&] (void) 
     {
         vehicle_auto_control::FollowHeadingRosGoalConstPtr followHeadingGoal = followHeadingServer.acceptNewGoal();
-        timeout = followHeadingGoal->timeout;
         heading = followHeadingGoal->heading;
         goalCalled = true;
     };
@@ -133,12 +131,10 @@ TEST(FollowHeadingSimActionExecutor, ExecuteAndSucceed)
 	actionlib::SimpleActionServer<vehicle_auto_control::FollowHeadingRosAction> followHeadingServer(nh, "follow_heading", false);
 
     bool goalCalled = false;
-    double timeout = 0;
     double heading = -1;
     auto goalFollowHeadingCB = [&] (void) 
     {
         vehicle_auto_control::FollowHeadingRosGoalConstPtr followHeadingGoal = followHeadingServer.acceptNewGoal();
-        timeout = followHeadingGoal->timeout;
         heading = followHeadingGoal->heading;
         goalCalled = true;
     };
@@ -206,12 +202,10 @@ TEST(FollowHeadingSimActionExecutor, ExecuteAndTimeout)
 	actionlib::SimpleActionServer<vehicle_auto_control::FollowHeadingRosAction> followHeadingServer(nh, "follow_heading", false);
 
     bool goalCalled = false;
-    double timeout = 0;
     double heading = -1;
     auto goalFollowHeadingCB = [&] (void) 
     {
         vehicle_auto_control::FollowHeadingRosGoalConstPtr followHeadingGoal = followHeadingServer.acceptNewGoal();
-        timeout = followHeadingGoal->timeout;
         heading = followHeadingGoal->heading;
         goalCalled = true;
     };
@@ -280,12 +274,10 @@ TEST(FollowHeadingSimActionExecutor, ExecuteAndOutOfRegion)
 	actionlib::SimpleActionServer<vehicle_auto_control::FollowHeadingRosAction> followHeadingServer(nh, "follow_heading", false);
 
     bool goalCalled = false;
-    double timeout = 0;
     double heading = -1;
     auto goalFollowHeadingCB = [&] (void) 
     {
         vehicle_auto_control::FollowHeadingRosGoalConstPtr followHeadingGoal = followHeadingServer.acceptNewGoal();
-        timeout = followHeadingGoal->timeout;
         heading = followHeadingGoal->heading;
         goalCalled = true;
     };
@@ -361,12 +353,10 @@ TEST(FollowHeadingSimActionExecutor, ExecuteAndAbort)
 	actionlib::SimpleActionServer<vehicle_auto_control::FollowHeadingRosAction> followHeadingServer(nh, "follow_heading", false);
 
     bool goalCalled = false;
-    double timeout = 0;
     double heading = -1;
     auto goalFollowHeadingCB = [&] (void) 
     {
         vehicle_auto_control::FollowHeadingRosGoalConstPtr followHeadingGoal = followHeadingServer.acceptNewGoal();
-        timeout = followHeadingGoal->timeout;
         heading = followHeadingGoal->heading;
         goalCalled = true;
     };
@@ -428,12 +418,10 @@ TEST(FollowHeadingSimActionExecutor, TimeReplan)
 	actionlib::SimpleActionServer<vehicle_auto_control::FollowHeadingRosAction> followHeadingServer(nh, "follow_heading", false);
 
     bool goalCalled = false;
-    double timeout = 0;
     double heading = -1;
     auto goalFollowHeadingCB = [&] (void) 
     {
         vehicle_auto_control::FollowHeadingRosGoalConstPtr followHeadingGoal = followHeadingServer.acceptNewGoal();
-        timeout = followHeadingGoal->timeout;
         heading = followHeadingGoal->heading;
         goalCalled = true;
     };
@@ -497,12 +485,10 @@ TEST(FollowHeadingSimActionExecutor, DistanceReplan)
 	actionlib::SimpleActionServer<vehicle_auto_control::FollowHeadingRosAction> followHeadingServer(nh, "follow_heading", false);
 
     bool goalCalled = false;
-    double timeout = 0;
     double heading = -1;
     auto goalFollowHeadingCB = [&] (void) 
     {
         vehicle_auto_control::FollowHeadingRosGoalConstPtr followHeadingGoal = followHeadingServer.acceptNewGoal();
-        timeout = followHeadingGoal->timeout;
         heading = followHeadingGoal->heading;
         goalCalled = true;
     };

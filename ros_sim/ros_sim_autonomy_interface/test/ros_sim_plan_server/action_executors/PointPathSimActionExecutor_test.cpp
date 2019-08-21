@@ -56,12 +56,10 @@ TEST(PointPathSimActionExecutor, ExecuteAndCancel)
     bool goalCalled = false;
     double x = 0;
     double y = 0;
-    double timeout;
 
     auto goalGoToXYCB = [&] (void) 
     {
         vehicle_auto_control::GoToXYRosGoalConstPtr goToXYGoal = goToXYServer.acceptNewGoal();
-        timeout = goToXYGoal->timeout;
         x = goToXYGoal->x;
         y = goToXYGoal->y;
 
@@ -112,7 +110,6 @@ TEST(PointPathSimActionExecutor, ExecuteAndCancel)
 
     EXPECT_EQ(1, x);
     EXPECT_EQ(2, y);
-    EXPECT_EQ(-1, timeout);
     EXPECT_EQ(Action::State::EXECUTING, action->getState());
 
     executor.cancel(action);
@@ -138,12 +135,10 @@ TEST(PointPathSimActionExecutor, ExecuteAndTimeout)
     bool goalCalled = false;
     double x = 0;
     double y = 0;
-    double timeout;
 
     auto goalGoToXYCB = [&] (void) 
     {
         vehicle_auto_control::GoToXYRosGoalConstPtr goToXYGoal = goToXYServer.acceptNewGoal();
-        timeout = goToXYGoal->timeout;
         x = goToXYGoal->x;
         y = goToXYGoal->y;
 
@@ -194,7 +189,6 @@ TEST(PointPathSimActionExecutor, ExecuteAndTimeout)
 
     EXPECT_EQ(1, x);
     EXPECT_EQ(2, y);
-    EXPECT_EQ(-1, timeout);
     EXPECT_EQ(Action::State::EXECUTING, action->getState());
 
     ros::Duration(1).sleep();
@@ -220,12 +214,10 @@ TEST(PointPathSimActionExecutor, ExecuteAndSucceed)
     bool goalCalled = false;
     double x = 0;
     double y = 0;
-    double timeout;
 
     auto goalGoToXYCB = [&] (void) 
     {
         vehicle_auto_control::GoToXYRosGoalConstPtr goToXYGoal = goToXYServer.acceptNewGoal();
-        timeout = goToXYGoal->timeout;
         x = goToXYGoal->x;
         y = goToXYGoal->y;
 
@@ -277,7 +269,6 @@ TEST(PointPathSimActionExecutor, ExecuteAndSucceed)
 
     EXPECT_EQ(1, x);
     EXPECT_EQ(2, y);
-    EXPECT_EQ(-1, timeout);
     EXPECT_EQ(Action::State::EXECUTING, action->getState());
     
     nav_msgs::Odometry poseMsg;
@@ -292,7 +283,6 @@ TEST(PointPathSimActionExecutor, ExecuteAndSucceed)
     while(!goalCalled);
     EXPECT_EQ(2, x);
     EXPECT_EQ(3, y);
-    EXPECT_EQ(-1, timeout);
 
     executor.cancel(action);
     while(!preemptCalled);
@@ -305,7 +295,6 @@ TEST(PointPathSimActionExecutor, ExecuteAndSucceed)
     while(action->getState() != Action::State::EXECUTING);
     EXPECT_EQ(100, x);
     EXPECT_EQ(-100, y);
-    EXPECT_EQ(-1, timeout);
     EXPECT_EQ(Action::State::EXECUTING, action->getState());
 
     goalCalled = false;
@@ -313,14 +302,12 @@ TEST(PointPathSimActionExecutor, ExecuteAndSucceed)
     while(!goalCalled);
     EXPECT_EQ(2, x);
     EXPECT_EQ(3, y);
-    EXPECT_EQ(-1, timeout);
 
     goalCalled = false;
     goToXYServer.setSucceeded();
     while(!goalCalled);
     EXPECT_EQ(3, x);
     EXPECT_EQ(4, y);
-    EXPECT_EQ(-1, timeout);
 
     goToXYServer.setSucceeded();
 
@@ -345,12 +332,10 @@ TEST(PointPathSimActionExecutor, ExecuteAndAbort)
     bool goalCalled = false;
     double x = 0;
     double y = 0;
-    double timeout;
 
     auto goalGoToXYCB = [&] (void) 
     {
         vehicle_auto_control::GoToXYRosGoalConstPtr goToXYGoal = goToXYServer.acceptNewGoal();
-        timeout = goToXYGoal->timeout;
         x = goToXYGoal->x;
         y = goToXYGoal->y;
 
@@ -397,7 +382,6 @@ TEST(PointPathSimActionExecutor, ExecuteAndAbort)
 
     EXPECT_EQ(1, x);
     EXPECT_EQ(2, y);
-    EXPECT_EQ(-1, timeout);
     EXPECT_EQ(Action::State::EXECUTING, action->getState());
 
     goToXYServer.setAborted();
@@ -421,12 +405,10 @@ TEST(PointPathSimActionExecutor, TimeReplan)
     bool goalCalled = false;
     double x = 0;
     double y = 0;
-    double timeout;
 
     auto goalGoToXYCB = [&] (void) 
     {
         vehicle_auto_control::GoToXYRosGoalConstPtr goToXYGoal = goToXYServer.acceptNewGoal();
-        timeout = goToXYGoal->timeout;
         x = goToXYGoal->x;
         y = goToXYGoal->y;
 
@@ -474,7 +456,6 @@ TEST(PointPathSimActionExecutor, TimeReplan)
 
     EXPECT_EQ(1, x);
     EXPECT_EQ(2, y);
-    EXPECT_EQ(-1, timeout);
     EXPECT_EQ(Action::State::EXECUTING, action->getState());
 
     goalCalled = false;
@@ -505,12 +486,10 @@ TEST(PointPathSimActionExecutor, DistanceReplan)
     bool goalCalled = false;
     double x = 0;
     double y = 0;
-    double timeout;
 
     auto goalGoToXYCB = [&] (void) 
     {
         vehicle_auto_control::GoToXYRosGoalConstPtr goToXYGoal = goToXYServer.acceptNewGoal();
-        timeout = goToXYGoal->timeout;
         x = goToXYGoal->x;
         y = goToXYGoal->y;
 
@@ -557,7 +536,6 @@ TEST(PointPathSimActionExecutor, DistanceReplan)
 
     EXPECT_EQ(1, x);
     EXPECT_EQ(2, y);
-    EXPECT_EQ(-1, timeout);
     EXPECT_EQ(Action::State::EXECUTING, action->getState());
 
     goalCalled = false;

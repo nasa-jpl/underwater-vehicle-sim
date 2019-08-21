@@ -12,10 +12,9 @@ TEST(ClockServerNode, TestTime){
   	ros::NodeHandle n;
 
   	//wait for the first non-zero time to start
-  	while(ros::Time::now().toSec() < 0.000001);
+  	while(ros::Time::now().toSec() < 0.000001) {};
 
     ros::Duration dur(10);
-  	ros::Time startTime = ros::Time::now();
 
     //loop for 10 seconds in ros time
   	ros::WallTime startWallTime = ros::WallTime::now();
