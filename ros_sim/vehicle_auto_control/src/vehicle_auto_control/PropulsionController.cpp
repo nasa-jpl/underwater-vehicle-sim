@@ -89,7 +89,6 @@ void PropulsionController::goalGoToXYCB(void)
 
     vehicle_auto_control::GoToXYRosGoalConstPtr goToXYGoal = goToXYServer.acceptNewGoal();
     
-	goToXYTimeout = goToXYGoal->timeout;
 	goToXYStart = ros::Time::now();
 	logicController->setTargetXY(goToXYGoal->x, goToXYGoal->y);
     ROS_DEBUG("GoToXY server accepted a new goal - x:%f y:%f", goToXYGoal->x, goToXYGoal->y);
@@ -108,8 +107,7 @@ void PropulsionController::goToXYUpdate(void)
 	feedback.y = currentPose.getPosition()[1];
 	goToXYServer.publishFeedback(feedback);
 
-	if(logicController->isAtXY(currentPose) ||
-	   (goToXYTimeout >= 0 && (ros::Time::now() - goToXYStart).toSec() > goToXYTimeout))
+	if(logicController->isAtXY(currentPose))
 	{
 		logicController->stopXY();
 
@@ -135,7 +133,6 @@ void PropulsionController::goalFollowHeadingCB(void)
 
 	vehicle_auto_control::FollowHeadingRosGoalConstPtr followHeadingGoal = followHeadingServer.acceptNewGoal();
 
-	followHeadingTimeout = followHeadingGoal->timeout;
 	followHeadingStart = ros::Time::now();
 	logicController->setFollowHeading(followHeadingGoal->heading);
 
@@ -151,17 +148,7 @@ void PropulsionController::preemptFollowHeadingCB(void)
 
 void PropulsionController::followHeadingUpdate(void)
 {
-	if(followHeadingTimeout >= 0 && (ros::Time::now() - followHeadingStart).toSec() > followHeadingTimeout)
-	{
-		logicController->stopXY();
-
-		vehicle_auto_control::FollowHeadingRosResult result;
-		followHeadingServer.setSucceeded(result);
-	}
-	else
-	{
-		logicController->followHeading(currentPose);
-	}
+	logicController->followHeading(currentPose);
 }
 
 /**
@@ -172,7 +159,6 @@ void PropulsionController::goalGoToZCB(void)
 	logicController->stopZ();
     vehicle_auto_control::GoToZRosGoalConstPtr goToZGoal = goToZServer.acceptNewGoal();
 
-	goToZTimeout = goToZGoal->timeout;
 	goToZStart = ros::Time::now();
 	logicController->setTargetZ(goToZGoal->z);
 	holdAtZ = goToZGoal->holdDepth;
@@ -193,8 +179,7 @@ void PropulsionController::goToZUpdate(void)
     feedback.z = currentPose.getPosition()[2];
     goToZServer.publishFeedback(feedback);
 
-	if((logicController->isAtZ(currentPose) && !holdAtZ) || 
-	   (goToZTimeout >= 0 && (ros::Time::now() - goToZStart).toSec() > goToZTimeout))
+	if(logicController->isAtZ(currentPose) && !holdAtZ)
 	{
 		logicController->stopZ();
 		vehicle_auto_control::GoToZRosResult result;

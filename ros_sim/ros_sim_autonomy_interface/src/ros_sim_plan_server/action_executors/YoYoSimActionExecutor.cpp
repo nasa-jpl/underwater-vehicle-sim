@@ -30,6 +30,7 @@ YoYoSimActionExecutor::YoYoSimActionExecutor(ros::NodeHandle nh, VehicleInfo& ve
 	lastReplan(ros::Time::now()),
 	distanceSinceReplan(0),
 	currentDuration(0),
+	stateAfterCancel(Action::State::INTERRUPTED),
 	listener(buffer)
 {
 	velPub = nh.advertise<geometry_msgs::Twist>("command_target_velocity", 1000, true);
@@ -74,7 +75,7 @@ void YoYoSimActionExecutor::cancel(std::shared_ptr<YoYoAction> action)
 	if(goToZClient.getState() == actionlib::SimpleClientGoalState::PENDING ||
 	   goToZClient.getState() == actionlib::SimpleClientGoalState::ACTIVE)
 	{
-		goToZClient.cancelAllGoals();
+		goToZClient.cancelGoal();
 	}
 	else
 	{
@@ -103,8 +104,21 @@ void YoYoSimActionExecutor::rosActionDone(std::shared_ptr<YoYoAction> action,
 	if(state == actionlib::SimpleClientGoalState::RECALLED ||
 	   state == actionlib::SimpleClientGoalState::PREEMPTED)
 	{
-		action->setState(Action::State::INTERRUPTED);
-		ROS_DEBUG("YoYo action interrupted");
+		if(stateAfterCancel == Action::State::INTERRUPTED)
+		{
+			action->setState(Action::State::INTERRUPTED);
+			ROS_DEBUG("Yoyo action interrupted");
+		}
+		else if(stateAfterCancel == Action::State::FAILED)
+		{
+			action->setState(Action::State::FAILED);
+			ROS_DEBUG("Yoyo action failed");
+		}
+		else if(stateAfterCancel == Action::State::COMPLETED)
+		{
+			action->setState(Action::State::COMPLETED);
+			ROS_DEBUG("Yoyo action completed");
+		}
 	}
 	else if(state == actionlib::SimpleClientGoalState::REJECTED ||
 			state == actionlib::SimpleClientGoalState::ABORTED)
@@ -143,10 +157,17 @@ void YoYoSimActionExecutor::monitor(std::shared_ptr<underwater_autonomy::YoYoAct
 	currentDuration += currentTime - lastUpdate;
 	lastUpdate = currentTime;
 
-	if(currentDuration.toSec() >= action->getTimeout())
+	if(currentDuration.toSec() >= action->getYoYoTime())
 	{
-		action->setState(Action::State::FAILED);
-		ROS_DEBUG("YoYo action failed from timeout");
+		//We need to cancel the action lib but still what to set the underwater autonomy action as complete
+		stateAfterCancel = Action::State::COMPLETED;
+		goToZClient.cancelGoal();
+	}
+	else if(currentDuration.toSec() >= action->getTimeout())
+	{
+		//We need to cancel the action lib but still what to set the underwater autonomy action as failed
+		stateAfterCancel = Action::State::FAILED;
+		goToZClient.cancelGoal();
 	}
 
 	if(!replanNextUpdate)
@@ -169,7 +190,6 @@ void YoYoSimActionExecutor::sendNewGoToZGoal(std::shared_ptr<underwater_autonomy
 		goToZGoal.z = action->getLowerDepth();
 	}
 
-	goToZGoal.timeout = -1;
 	goToZGoal.holdDepth = false;
 
 	goToZClient.waitForServer();

@@ -18,6 +18,8 @@
 
 #include "ros_sim_plan_server/action_executors/FollowHeadingSimActionExecutor.h"
 
+#include "underwater_autonomy/util/BoxOperationRegion.h"
+
 
 using namespace underwater_autonomy;
 
@@ -25,14 +27,15 @@ TEST(FollowHeadingSimActionExecutor, ExecutePropModuleTypeFail)
 {
     ros::NodeHandle nh("ExecutePropModuleTypeFail");
 
-    std::shared_ptr<FollowHeadingAction> action(new FollowHeadingAction(NULL,
-                                                        NULL,
-                                                        0,
-                                                        0,
-                                                        0,
-                                                        0,
-                                                        FollowHeadingAction::ReplanType::NONE,
-                                                        0)); 
+    std::shared_ptr<FollowHeadingAction> action(new FollowHeadingAction(0,
+                                                                        0,
+                                                                        0,
+                                                                        0,
+                                                                        0,
+                                                                        std::unique_ptr<OperationRegion>(new BoxOperationRegion()),
+                                                                        FollowHeadingAction::ReplanType::NONE,
+                                                                        0,
+                                                                        NULL)); 
 
                                                             
     underwater_vehicle_msgs::GetVehicleInfo infoMsg;
@@ -54,12 +57,10 @@ TEST(FollowHeadingSimActionExecutor, ExecuteAndCancel)
 	actionlib::SimpleActionServer<vehicle_auto_control::FollowHeadingRosAction> followHeadingServer(nh, "follow_heading", false);
 
     bool goalCalled = false;
-    double timeout = 0;
     double heading = -1;
     auto goalFollowHeadingCB = [&] (void) 
     {
         vehicle_auto_control::FollowHeadingRosGoalConstPtr followHeadingGoal = followHeadingServer.acceptNewGoal();
-        timeout = followHeadingGoal->timeout;
         heading = followHeadingGoal->heading;
         goalCalled = true;
     };
@@ -77,15 +78,19 @@ TEST(FollowHeadingSimActionExecutor, ExecuteAndCancel)
 	followHeadingServer.start();
 
     ros::AsyncSpinner spinner(1);
+
+
+
     actionlib::SimpleActionClient<vehicle_auto_control::FollowHeadingRosAction> followHeadingClient(nh, "follow_heading", true);
-    std::shared_ptr<FollowHeadingAction> action(new FollowHeadingAction(NULL,
-                                                        NULL,
-                                                        1,
-                                                        2,
-                                                        3,
-                                                        4,
-                                                        FollowHeadingAction::ReplanType::NONE,
-                                                        5));
+    std::shared_ptr<FollowHeadingAction> action(new FollowHeadingAction(1,
+                                                                        2,
+                                                                        3,
+                                                                        100,
+                                                                        100,
+                                                                        std::unique_ptr<OperationRegion>(new BoxOperationRegion()),
+                                                                        FollowHeadingAction::ReplanType::NONE,
+                                                                        6,
+                                                                        NULL)); 
 
     underwater_vehicle_msgs::GetVehicleInfo infoMsg;
     infoMsg.response.propModuleType = "FourDOFPropulsion";
@@ -96,14 +101,13 @@ TEST(FollowHeadingSimActionExecutor, ExecuteAndCancel)
     EXPECT_TRUE(executor.execute(action));
 
     while(latestVelMsg == NULL);
-    EXPECT_EQ(1, latestVelMsg->linear.x);
-    EXPECT_EQ(2, latestVelMsg->angular.z);
+    EXPECT_EQ(2, latestVelMsg->linear.x);
+    EXPECT_EQ(3, latestVelMsg->angular.z);
 
     while(!goalCalled);
     while(action->getState() != Action::State::EXECUTING);
 
-    EXPECT_EQ(3, heading);
-    EXPECT_EQ(4, timeout);
+    EXPECT_EQ(1, heading);
     EXPECT_EQ(Action::State::EXECUTING, action->getState());
 
     executor.cancel(action);
@@ -127,18 +131,20 @@ TEST(FollowHeadingSimActionExecutor, ExecuteAndSucceed)
 	actionlib::SimpleActionServer<vehicle_auto_control::FollowHeadingRosAction> followHeadingServer(nh, "follow_heading", false);
 
     bool goalCalled = false;
-    double timeout = 0;
     double heading = -1;
     auto goalFollowHeadingCB = [&] (void) 
     {
         vehicle_auto_control::FollowHeadingRosGoalConstPtr followHeadingGoal = followHeadingServer.acceptNewGoal();
-        timeout = followHeadingGoal->timeout;
         heading = followHeadingGoal->heading;
         goalCalled = true;
     };
 
     bool preemptCalled = false;
-    auto preemptFollowHeadingCB = [&] (void) { preemptCalled = true; };
+    auto preemptFollowHeadingCB = [&] (void) 
+    { 
+        preemptCalled = true; 
+        followHeadingServer.setPreempted();
+    };
 
 
 	followHeadingServer.registerGoalCallback(goalFollowHeadingCB);
@@ -147,14 +153,15 @@ TEST(FollowHeadingSimActionExecutor, ExecuteAndSucceed)
 
     ros::AsyncSpinner spinner(1);
     actionlib::SimpleActionClient<vehicle_auto_control::FollowHeadingRosAction> followHeadingClient(nh, "follow_heading", true);
-    std::shared_ptr<FollowHeadingAction> action(new FollowHeadingAction(NULL,
-                                                        NULL,
-                                                        1,
-                                                        2,
-                                                        3,
-                                                        4,
-                                                        FollowHeadingAction::ReplanType::NONE,
-                                                        5));
+    std::shared_ptr<FollowHeadingAction> action(new FollowHeadingAction(1,
+                                                                        2,
+                                                                        3,
+                                                                        2,
+                                                                        2,
+                                                                        std::unique_ptr<OperationRegion>(new BoxOperationRegion()),
+                                                                        FollowHeadingAction::ReplanType::NONE,
+                                                                        6,
+                                                                        NULL)); 
 
     underwater_vehicle_msgs::GetVehicleInfo infoMsg;
     infoMsg.response.propModuleType = "FourDOFPropulsion";
@@ -165,19 +172,171 @@ TEST(FollowHeadingSimActionExecutor, ExecuteAndSucceed)
     EXPECT_TRUE(executor.execute(action));
 
     while(latestVelMsg == NULL);
-    EXPECT_EQ(1, latestVelMsg->linear.x);
-    EXPECT_EQ(2, latestVelMsg->angular.z);
+    EXPECT_EQ(2, latestVelMsg->linear.x);
+    EXPECT_EQ(3, latestVelMsg->angular.z);
 
     while(!goalCalled);
     while(action->getState() != Action::State::EXECUTING);
 
-    EXPECT_EQ(3, heading);
-    EXPECT_EQ(4, timeout);
+    EXPECT_EQ(1, heading);
     EXPECT_EQ(Action::State::EXECUTING, action->getState());
 
-    followHeadingServer.setSucceeded();
+    ros::Duration(2).sleep();
+    executor.monitor(action);
+
     while(action->getState() != Action::State::COMPLETED);
     EXPECT_EQ(Action::State::COMPLETED, action->getState());
+
+    spinner.stop();
+}
+
+TEST(FollowHeadingSimActionExecutor, ExecuteAndTimeout)
+{
+    ros::NodeHandle nh("ExecuteAndTimeout");
+
+    geometry_msgs::Twist::ConstPtr latestVelMsg = NULL;
+    auto velCB = [&] (geometry_msgs::Twist::ConstPtr val)
+    { latestVelMsg = val; };
+    ros::Subscriber velSub = nh.subscribe<geometry_msgs::Twist>("command_target_velocity", 1, velCB);
+
+	actionlib::SimpleActionServer<vehicle_auto_control::FollowHeadingRosAction> followHeadingServer(nh, "follow_heading", false);
+
+    bool goalCalled = false;
+    double heading = -1;
+    auto goalFollowHeadingCB = [&] (void) 
+    {
+        vehicle_auto_control::FollowHeadingRosGoalConstPtr followHeadingGoal = followHeadingServer.acceptNewGoal();
+        heading = followHeadingGoal->heading;
+        goalCalled = true;
+    };
+
+    bool preemptCalled = false;
+    auto preemptFollowHeadingCB = [&] (void) 
+    { 
+        preemptCalled = true; 
+        followHeadingServer.setPreempted();
+    };
+
+
+	followHeadingServer.registerGoalCallback(goalFollowHeadingCB);
+    followHeadingServer.registerPreemptCallback(preemptFollowHeadingCB);
+	followHeadingServer.start();
+
+    ros::AsyncSpinner spinner(1);
+    actionlib::SimpleActionClient<vehicle_auto_control::FollowHeadingRosAction> followHeadingClient(nh, "follow_heading", true);
+    std::shared_ptr<FollowHeadingAction> action(new FollowHeadingAction(1,
+                                                                        2,
+                                                                        3,
+                                                                        100,
+                                                                        2,
+                                                                        std::unique_ptr<OperationRegion>(new BoxOperationRegion()),
+                                                                        FollowHeadingAction::ReplanType::NONE,
+                                                                        6,
+                                                                        NULL)); 
+
+    underwater_vehicle_msgs::GetVehicleInfo infoMsg;
+    infoMsg.response.propModuleType = "FourDOFPropulsion";
+    VehicleInfo info(infoMsg);
+    FollowHeadingSimActionExecutor executor(nh, info);
+
+    spinner.start();
+    EXPECT_TRUE(executor.execute(action));
+
+    while(latestVelMsg == NULL);
+    EXPECT_EQ(2, latestVelMsg->linear.x);
+    EXPECT_EQ(3, latestVelMsg->angular.z);
+
+    while(!goalCalled);
+    while(action->getState() != Action::State::EXECUTING);
+
+    EXPECT_EQ(1, heading);
+    EXPECT_EQ(Action::State::EXECUTING, action->getState());
+
+    ros::Duration(2).sleep();
+    executor.monitor(action);
+    
+    while(action->getState() != Action::State::FAILED);
+    EXPECT_EQ(Action::State::FAILED, action->getState());
+
+    spinner.stop();
+}
+
+TEST(FollowHeadingSimActionExecutor, ExecuteAndOutOfRegion)
+{
+    ros::NodeHandle nh("ExecuteAndOutOfRegion");
+
+    geometry_msgs::Twist::ConstPtr latestVelMsg = NULL;
+    auto velCB = [&] (geometry_msgs::Twist::ConstPtr val)
+    { latestVelMsg = val; };
+    ros::Subscriber velSub = nh.subscribe<geometry_msgs::Twist>("command_target_velocity", 1, velCB);
+    ros::Publisher posePub = nh.advertise<nav_msgs::Odometry>("primary_navigation", 2);
+
+	actionlib::SimpleActionServer<vehicle_auto_control::FollowHeadingRosAction> followHeadingServer(nh, "follow_heading", false);
+
+    bool goalCalled = false;
+    double heading = -1;
+    auto goalFollowHeadingCB = [&] (void) 
+    {
+        vehicle_auto_control::FollowHeadingRosGoalConstPtr followHeadingGoal = followHeadingServer.acceptNewGoal();
+        heading = followHeadingGoal->heading;
+        goalCalled = true;
+    };
+
+    bool preemptCalled = false;
+    auto preemptFollowHeadingCB = [&] (void) 
+    { 
+        preemptCalled = true; 
+        followHeadingServer.setPreempted();
+    };
+
+
+	followHeadingServer.registerGoalCallback(goalFollowHeadingCB);
+    followHeadingServer.registerPreemptCallback(preemptFollowHeadingCB);
+	followHeadingServer.start();
+
+    ros::AsyncSpinner spinner(1);
+    actionlib::SimpleActionClient<vehicle_auto_control::FollowHeadingRosAction> followHeadingClient(nh, "follow_heading", true);
+    std::shared_ptr<FollowHeadingAction> action(new FollowHeadingAction(1,
+                                                                        2,
+                                                                        3,
+                                                                        100,
+                                                                        100,
+                                                                        std::unique_ptr<OperationRegion>(new BoxOperationRegion(0, 0, 0, 100, 100, 100)),
+                                                                        FollowHeadingAction::ReplanType::NONE,
+                                                                        6,
+                                                                        NULL)); 
+
+    underwater_vehicle_msgs::GetVehicleInfo infoMsg;
+    infoMsg.response.propModuleType = "FourDOFPropulsion";
+    VehicleInfo info(infoMsg);
+    FollowHeadingSimActionExecutor executor(nh, info);
+
+    spinner.start();
+    EXPECT_TRUE(executor.execute(action));
+
+    while(latestVelMsg == NULL);
+    EXPECT_EQ(2, latestVelMsg->linear.x);
+    EXPECT_EQ(3, latestVelMsg->angular.z);
+
+    while(!goalCalled);
+    while(action->getState() != Action::State::EXECUTING);
+
+    EXPECT_EQ(1, heading);
+    EXPECT_EQ(Action::State::EXECUTING, action->getState());
+
+    nav_msgs::Odometry poseMsg;
+    poseMsg.pose.pose.position.x = 1000;
+    poseMsg.pose.pose.position.y = 0;
+    poseMsg.pose.pose.position.z = 0;
+
+    posePub.publish(poseMsg);
+
+    
+    while(action->getState() != Action::State::FAILED)
+    {
+        executor.monitor(action);
+    }
+    EXPECT_EQ(Action::State::FAILED, action->getState());
 
     spinner.stop();
 }
@@ -194,12 +353,10 @@ TEST(FollowHeadingSimActionExecutor, ExecuteAndAbort)
 	actionlib::SimpleActionServer<vehicle_auto_control::FollowHeadingRosAction> followHeadingServer(nh, "follow_heading", false);
 
     bool goalCalled = false;
-    double timeout = 0;
     double heading = -1;
     auto goalFollowHeadingCB = [&] (void) 
     {
         vehicle_auto_control::FollowHeadingRosGoalConstPtr followHeadingGoal = followHeadingServer.acceptNewGoal();
-        timeout = followHeadingGoal->timeout;
         heading = followHeadingGoal->heading;
         goalCalled = true;
     };
@@ -214,14 +371,15 @@ TEST(FollowHeadingSimActionExecutor, ExecuteAndAbort)
 
     ros::AsyncSpinner spinner(1);
     actionlib::SimpleActionClient<vehicle_auto_control::FollowHeadingRosAction> followHeadingClient(nh, "follow_heading", true);
-    std::shared_ptr<FollowHeadingAction> action(new FollowHeadingAction(NULL,
-                                                        NULL,
-                                                        1,
-                                                        2,
-                                                        3,
-                                                        4,
-                                                        FollowHeadingAction::ReplanType::NONE,
-                                                        5));
+    std::shared_ptr<FollowHeadingAction> action(new FollowHeadingAction(1,
+                                                                        2,
+                                                                        3,
+                                                                        100,
+                                                                        100,
+                                                                        std::unique_ptr<OperationRegion>(new BoxOperationRegion()),
+                                                                        FollowHeadingAction::ReplanType::NONE,
+                                                                        6,
+                                                                        NULL)); 
 
     underwater_vehicle_msgs::GetVehicleInfo infoMsg;
     infoMsg.response.propModuleType = "FourDOFPropulsion";
@@ -232,14 +390,13 @@ TEST(FollowHeadingSimActionExecutor, ExecuteAndAbort)
     EXPECT_TRUE(executor.execute(action));
 
     while(latestVelMsg == NULL);
-    EXPECT_EQ(1, latestVelMsg->linear.x);
-    EXPECT_EQ(2, latestVelMsg->angular.z);
+    EXPECT_EQ(2, latestVelMsg->linear.x);
+    EXPECT_EQ(3, latestVelMsg->angular.z);
 
     while(!goalCalled);
     while(action->getState() != Action::State::EXECUTING);
 
-    EXPECT_EQ(3, heading);
-    EXPECT_EQ(4, timeout);
+    EXPECT_EQ(1, heading);
     EXPECT_EQ(Action::State::EXECUTING, action->getState());
 
     followHeadingServer.setAborted();
@@ -261,12 +418,10 @@ TEST(FollowHeadingSimActionExecutor, TimeReplan)
 	actionlib::SimpleActionServer<vehicle_auto_control::FollowHeadingRosAction> followHeadingServer(nh, "follow_heading", false);
 
     bool goalCalled = false;
-    double timeout = 0;
     double heading = -1;
     auto goalFollowHeadingCB = [&] (void) 
     {
         vehicle_auto_control::FollowHeadingRosGoalConstPtr followHeadingGoal = followHeadingServer.acceptNewGoal();
-        timeout = followHeadingGoal->timeout;
         heading = followHeadingGoal->heading;
         goalCalled = true;
     };
@@ -281,14 +436,15 @@ TEST(FollowHeadingSimActionExecutor, TimeReplan)
 
     ros::AsyncSpinner spinner(1);
     actionlib::SimpleActionClient<vehicle_auto_control::FollowHeadingRosAction> followHeadingClient(nh, "follow_heading", true);
-    std::shared_ptr<FollowHeadingAction> action(new FollowHeadingAction(NULL,
-                                                        NULL,
-                                                        1,
-                                                        2,
-                                                        3,
-                                                        4,
-                                                        FollowHeadingAction::ReplanType::PERIODIC_TIME,
-                                                        3));
+    std::shared_ptr<FollowHeadingAction> action(new FollowHeadingAction(1,
+                                                                        2,
+                                                                        3,
+                                                                        100,
+                                                                        100,
+                                                                        std::unique_ptr<OperationRegion>(new BoxOperationRegion()),
+                                                                        FollowHeadingAction::ReplanType::PERIODIC_TIME,
+                                                                        3,
+                                                                        NULL)); 
 
     underwater_vehicle_msgs::GetVehicleInfo infoMsg;
     infoMsg.response.propModuleType = "FourDOFPropulsion";
@@ -299,14 +455,13 @@ TEST(FollowHeadingSimActionExecutor, TimeReplan)
     EXPECT_TRUE(executor.execute(action));
 
     while(latestVelMsg == NULL);
-    EXPECT_EQ(1, latestVelMsg->linear.x);
-    EXPECT_EQ(2, latestVelMsg->angular.z);
+    EXPECT_EQ(2, latestVelMsg->linear.x);
+    EXPECT_EQ(3, latestVelMsg->angular.z);
 
     while(!goalCalled);
     while(action->getState() != Action::State::EXECUTING);
 
-    EXPECT_EQ(3, heading);
-    EXPECT_EQ(4, timeout);
+    EXPECT_EQ(1, heading);
     EXPECT_EQ(Action::State::EXECUTING, action->getState());
 
     ros::Duration(3).sleep();
@@ -330,12 +485,10 @@ TEST(FollowHeadingSimActionExecutor, DistanceReplan)
 	actionlib::SimpleActionServer<vehicle_auto_control::FollowHeadingRosAction> followHeadingServer(nh, "follow_heading", false);
 
     bool goalCalled = false;
-    double timeout = 0;
     double heading = -1;
     auto goalFollowHeadingCB = [&] (void) 
     {
         vehicle_auto_control::FollowHeadingRosGoalConstPtr followHeadingGoal = followHeadingServer.acceptNewGoal();
-        timeout = followHeadingGoal->timeout;
         heading = followHeadingGoal->heading;
         goalCalled = true;
     };
@@ -350,14 +503,15 @@ TEST(FollowHeadingSimActionExecutor, DistanceReplan)
 
     ros::AsyncSpinner spinner(1);
     actionlib::SimpleActionClient<vehicle_auto_control::FollowHeadingRosAction> followHeadingClient(nh, "follow_heading", true);
-    std::shared_ptr<FollowHeadingAction> action(new FollowHeadingAction(NULL,
-                                                        NULL,
-                                                        1,
-                                                        2,
-                                                        3,
-                                                        4,
-                                                        FollowHeadingAction::ReplanType::PERIODIC_DISTANCE,
-                                                        3));
+    std::shared_ptr<FollowHeadingAction> action(new FollowHeadingAction(1,
+                                                                        2,
+                                                                        3,
+                                                                        100,
+                                                                        100,
+                                                                        std::unique_ptr<OperationRegion>(new BoxOperationRegion()),
+                                                                        FollowHeadingAction::ReplanType::PERIODIC_DISTANCE,
+                                                                        3,
+                                                                        NULL)); 
 
     underwater_vehicle_msgs::GetVehicleInfo infoMsg;
     infoMsg.response.propModuleType = "FourDOFPropulsion";
@@ -368,14 +522,13 @@ TEST(FollowHeadingSimActionExecutor, DistanceReplan)
     EXPECT_TRUE(executor.execute(action));
 
     while(latestVelMsg == NULL);
-    EXPECT_EQ(1, latestVelMsg->linear.x);
-    EXPECT_EQ(2, latestVelMsg->angular.z);
+    EXPECT_EQ(2, latestVelMsg->linear.x);
+    EXPECT_EQ(3, latestVelMsg->angular.z);
 
     while(!goalCalled);
     while(action->getState() != Action::State::EXECUTING);
 
-    EXPECT_EQ(3, heading);
-    EXPECT_EQ(4, timeout);
+    EXPECT_EQ(1, heading);
     EXPECT_EQ(Action::State::EXECUTING, action->getState());
 
     executor.monitor(action);
@@ -399,7 +552,6 @@ TEST(FollowHeadingSimActionExecutor, DistanceReplan)
 
     spinner.stop();
 }
-
 
 //Had issues doing this in the roslaunch file for this test. Not sure why.
 //Normally this can be included in the roslaunch file with the following

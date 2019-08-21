@@ -29,6 +29,8 @@ HoldDepthSimActionExecutor::HoldDepthSimActionExecutor(ros::NodeHandle nh, Vehic
 	replanNextUpdate(false),
 	lastReplan(ros::Time::now()),
 	distanceSinceReplan(0),
+	currentDuration(0),
+	stateAfterCancel(Action::State::INTERRUPTED),
 	listener(buffer)
 {
 	velPub = nh.advertise<geometry_msgs::Twist>("command_target_velocity", 1000, true);
@@ -65,7 +67,6 @@ bool HoldDepthSimActionExecutor::execute(std::shared_ptr<HoldDepthAction> action
 	goToZGoal = vehicle_auto_control::GoToZRosGoal();
 
 	goToZGoal.z = action->getDepth();
-	goToZGoal.timeout = action->getTimeout();
 	goToZGoal.holdDepth = true;
 
 	goToZClient.waitForServer();
@@ -75,13 +76,14 @@ bool HoldDepthSimActionExecutor::execute(std::shared_ptr<HoldDepthAction> action
 						 boost::bind(&HoldDepthSimActionExecutor::rosActionActive, this, action),
 						 boost::bind(&HoldDepthSimActionExecutor::rosActionFeedback, this, action, _1));
 	
+	lastUpdate = ros::Time::now();
 	distanceSinceReplan = 0;
 	return true;
 }
 
 void HoldDepthSimActionExecutor::cancel(std::shared_ptr<HoldDepthAction> action)
 {
-	goToZClient.cancelAllGoals();
+	goToZClient.cancelGoal();
 }
 
 bool HoldDepthSimActionExecutor::triggerReplan(std::shared_ptr<HoldDepthAction> action)
@@ -104,19 +106,32 @@ void HoldDepthSimActionExecutor::rosActionDone(std::shared_ptr<HoldDepthAction> 
 	if(state == actionlib::SimpleClientGoalState::RECALLED ||
 	   state == actionlib::SimpleClientGoalState::PREEMPTED)
 	{
-		action->setState(Action::State::INTERRUPTED);
-		ROS_DEBUG("Point path action interrupted");
+		if(stateAfterCancel == Action::State::INTERRUPTED)
+		{
+			action->setState(Action::State::INTERRUPTED);
+			ROS_DEBUG("Hold depth action interrupted");
+		}
+		else if(stateAfterCancel == Action::State::FAILED)
+		{
+			action->setState(Action::State::FAILED);
+			ROS_DEBUG("Hold depth action failed");
+		}
+		else if(stateAfterCancel == Action::State::COMPLETED)
+		{
+			action->setState(Action::State::COMPLETED);
+			ROS_DEBUG("Hold depth action completed");
+		}
 	}
 	else if(state == actionlib::SimpleClientGoalState::REJECTED ||
 			state == actionlib::SimpleClientGoalState::ABORTED)
 	{
 		action->setState(Action::State::FAILED);
-		ROS_DEBUG("Point path action failed");
+		ROS_DEBUG("Hold depth action failed");
 	}
 	else if(state == actionlib::SimpleClientGoalState::SUCCEEDED)
 	{
 		action->setState(Action::State::COMPLETED);
-		ROS_DEBUG("Point path action completed");
+		ROS_DEBUG("Hold depth action completed from GoToZ return");
 	}
 }
 
@@ -130,6 +145,23 @@ void HoldDepthSimActionExecutor::rosActionFeedback(std::shared_ptr<HoldDepthActi
 
 void HoldDepthSimActionExecutor::monitor(std::shared_ptr<underwater_autonomy::HoldDepthAction> action)
 {
+	ros::Time currentTime = ros::Time::now();
+	currentDuration += currentTime - lastUpdate;
+	lastUpdate = currentTime;
+
+	if(currentDuration.toSec() >= action->getHoldDepthTime())
+	{
+		//We need to cancel the action lib but still what to set the underwater autonomy action as complete
+		stateAfterCancel = Action::State::COMPLETED;
+		goToZClient.cancelGoal();
+	}
+	else if(currentDuration.toSec() >= action->getTimeout())
+	{
+		//We need to cancel the action lib but still what to set the underwater autonomy action as failed
+		stateAfterCancel = Action::State::FAILED;
+		goToZClient.cancelGoal();
+	}
+
 	replanNextUpdate = action->doReplan((ros::Time::now() - lastReplan).toSec(),
 										distanceSinceReplan);
 }

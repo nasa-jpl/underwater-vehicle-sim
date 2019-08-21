@@ -25,14 +25,15 @@ TEST(YoYoSimActionExecutor, ExecutePropModuleTypeFail)
 {
     ros::NodeHandle nh("ExecutePropModuleTypeFail");
 
-    std::shared_ptr<YoYoAction> action(new YoYoAction(NULL,
-                                                        NULL,
-                                                        0,
-                                                        0,
-                                                        0,
-                                                        0,
-                                                        YoYoAction::ReplanType::NONE,
-                                                        0)); 
+    std::shared_ptr<YoYoAction> action(new YoYoAction(0,
+                                                      0,
+                                                      0,
+                                                      0,
+                                                      0,
+                                                      NULL,
+                                                      YoYoAction::ReplanType::NONE,
+                                                      0,
+                                                      NULL)); 
 
                                                             
     underwater_vehicle_msgs::GetVehicleInfo infoMsg;
@@ -54,13 +55,11 @@ TEST(YoYoSimActionExecutor, ExecuteAndCancel)
 	actionlib::SimpleActionServer<vehicle_auto_control::GoToZRosAction> goToZServer(nh, "go_to_z", false);
 
     bool goalCalled = false;
-    double timeout = 0;
     double z = 0;
     bool holdDepth = false;
     auto goalYoYoCB = [&] (void) 
     {
         vehicle_auto_control::GoToZRosGoalConstPtr goToZGoal = goToZServer.acceptNewGoal();
-        timeout = goToZGoal->timeout;
         z = goToZGoal->z;
         holdDepth = goToZGoal->holdDepth;
         goalCalled = true;
@@ -79,14 +78,16 @@ TEST(YoYoSimActionExecutor, ExecuteAndCancel)
 	goToZServer.start();
 
     ros::AsyncSpinner spinner(1);
-    std::shared_ptr<YoYoAction> action(new YoYoAction(NULL,
-                                                        NULL,
-                                                        5,
-                                                        1,
-                                                        2,
-                                                        10,
-                                                        YoYoAction::ReplanType::NONE,
-                                                        4));
+
+    std::shared_ptr<YoYoAction> action(new YoYoAction(1,
+                                                      2,
+                                                      3,
+                                                      100,
+                                                      200,
+                                                      NULL,
+                                                      YoYoAction::ReplanType::NONE,
+                                                      4,
+                                                      NULL));
 
     underwater_vehicle_msgs::GetVehicleInfo infoMsg;
     infoMsg.response.propModuleType = "FourDOFPropulsion";
@@ -99,13 +100,12 @@ TEST(YoYoSimActionExecutor, ExecuteAndCancel)
     while(latestVelMsg == NULL);
     EXPECT_TRUE(std::isnan(latestVelMsg->linear.x));
     EXPECT_TRUE(std::isnan(latestVelMsg->angular.z));
-    EXPECT_EQ(5, latestVelMsg->linear.z);
+    EXPECT_EQ(3, latestVelMsg->linear.z);
 
     while(!goalCalled);
     while(action->getState() != Action::State::EXECUTING);
 
     EXPECT_EQ(1, z);
-    EXPECT_EQ(-1, timeout);
     EXPECT_FALSE(holdDepth);
 
     EXPECT_EQ(Action::State::EXECUTING, action->getState());
@@ -131,13 +131,11 @@ TEST(YoYoSimActionExecutor, ExecuteAndTimeout)
 	actionlib::SimpleActionServer<vehicle_auto_control::GoToZRosAction> goToZServer(nh, "go_to_z", false);
 
     bool goalCalled = false;
-    double timeout = 0;
     double z = 0;
     bool holdDepth = false;
     auto goalYoYoCB = [&] (void) 
     {
         vehicle_auto_control::GoToZRosGoalConstPtr goToZGoal = goToZServer.acceptNewGoal();
-        timeout = goToZGoal->timeout;
         z = goToZGoal->z;
         holdDepth = goToZGoal->holdDepth;
         goalCalled = true;
@@ -156,14 +154,15 @@ TEST(YoYoSimActionExecutor, ExecuteAndTimeout)
 	goToZServer.start();
 
     ros::AsyncSpinner spinner(1);
-    std::shared_ptr<YoYoAction> action(new YoYoAction(NULL,
-                                                        NULL,
-                                                        5,
-                                                        1,
-                                                        2,
-                                                        1,
-                                                        YoYoAction::ReplanType::NONE,
-                                                        4));
+    std::shared_ptr<YoYoAction> action(new YoYoAction(1,
+                                                      2,
+                                                      3,
+                                                      100,
+                                                      2,
+                                                      NULL,
+                                                      YoYoAction::ReplanType::NONE,
+                                                      4,
+                                                      NULL));
 
     underwater_vehicle_msgs::GetVehicleInfo infoMsg;
     infoMsg.response.propModuleType = "FourDOFPropulsion";
@@ -176,19 +175,19 @@ TEST(YoYoSimActionExecutor, ExecuteAndTimeout)
     while(latestVelMsg == NULL);
     EXPECT_TRUE(std::isnan(latestVelMsg->linear.x));
     EXPECT_TRUE(std::isnan(latestVelMsg->angular.z));
-    EXPECT_EQ(5, latestVelMsg->linear.z);
+    EXPECT_EQ(3, latestVelMsg->linear.z);
 
     while(!goalCalled);
     while(action->getState() != Action::State::EXECUTING);
 
     EXPECT_EQ(1, z);
-    EXPECT_EQ(-1, timeout);
     EXPECT_FALSE(holdDepth);
 
     EXPECT_EQ(Action::State::EXECUTING, action->getState());
 
-    ros::Duration(1).sleep();
+    ros::Duration(2).sleep();
     executor.monitor(action);
+    while(action->getState() != Action::State::FAILED);
     EXPECT_EQ(Action::State::FAILED, action->getState());
 
     spinner.stop();
@@ -207,13 +206,11 @@ TEST(YoYoSimActionExecutor, ExecuteAndSucceed)
 	actionlib::SimpleActionServer<vehicle_auto_control::GoToZRosAction> goToZServer(nh, "go_to_z", false);
 
     bool goalCalled = false;
-    double timeout = 0;
     double z = -1;
     bool holdDepth = false;
     auto goalYoYoCB = [&] (void) 
     {
         vehicle_auto_control::GoToZRosGoalConstPtr goToZGoal = goToZServer.acceptNewGoal();
-        timeout = goToZGoal->timeout;
         z = goToZGoal->z;
         holdDepth = goToZGoal->holdDepth;
         goalCalled = true;
@@ -232,14 +229,15 @@ TEST(YoYoSimActionExecutor, ExecuteAndSucceed)
 	goToZServer.start();
 
     ros::AsyncSpinner spinner(1);
-    std::shared_ptr<YoYoAction> action(new YoYoAction(NULL,
-                                                        NULL,
-                                                        5,
-                                                        1,
-                                                        2,
-                                                        10,
-                                                        YoYoAction::ReplanType::NONE,
-                                                        4));
+    std::shared_ptr<YoYoAction> action(new YoYoAction(1,
+                                                      2,
+                                                      3,
+                                                      2,
+                                                      2,
+                                                      NULL,
+                                                      YoYoAction::ReplanType::NONE,
+                                                      4,
+                                                      NULL));
 
     underwater_vehicle_msgs::GetVehicleInfo infoMsg;
     infoMsg.response.propModuleType = "FourDOFPropulsion";
@@ -252,13 +250,12 @@ TEST(YoYoSimActionExecutor, ExecuteAndSucceed)
     while(latestVelMsg == NULL);
     EXPECT_TRUE(std::isnan(latestVelMsg->linear.x));
     EXPECT_TRUE(std::isnan(latestVelMsg->angular.z));
-    EXPECT_EQ(5, latestVelMsg->linear.z);
+    EXPECT_EQ(3, latestVelMsg->linear.z);
 
     while(!goalCalled);
     while(action->getState() != Action::State::EXECUTING);
 
     EXPECT_EQ(1, z);
-    EXPECT_EQ(-1, timeout);
     EXPECT_FALSE(holdDepth);
     EXPECT_EQ(Action::State::EXECUTING, action->getState());
 
@@ -270,9 +267,13 @@ TEST(YoYoSimActionExecutor, ExecuteAndSucceed)
     while(!goalCalled);
 
     EXPECT_EQ(2, z);
-    EXPECT_EQ(-1, timeout);
     EXPECT_FALSE(holdDepth);
     EXPECT_EQ(Action::State::EXECUTING, action->getState());
+
+    ros::Duration(2).sleep();
+    executor.monitor(action);
+    while(action->getState() != Action::State::COMPLETED);
+    EXPECT_EQ(Action::State::COMPLETED, action->getState());
 
     spinner.stop();
 }
@@ -289,13 +290,11 @@ TEST(YoYoSimActionExecutor, ExecuteAndAbort)
 	actionlib::SimpleActionServer<vehicle_auto_control::GoToZRosAction> goToZServer(nh, "go_to_z", false);
 
     bool goalCalled = false;
-    double timeout = 0;
     double z = -1;
     bool holdDepth = false;
     auto goalYoYoCB = [&] (void) 
     {
         vehicle_auto_control::GoToZRosGoalConstPtr goToZGoal = goToZServer.acceptNewGoal();
-        timeout = goToZGoal->timeout;
         z = goToZGoal->z;
         holdDepth = goToZGoal->holdDepth;
         goalCalled = true;
@@ -310,14 +309,15 @@ TEST(YoYoSimActionExecutor, ExecuteAndAbort)
 	goToZServer.start();
 
     ros::AsyncSpinner spinner(1);
-    std::shared_ptr<YoYoAction> action(new YoYoAction(NULL,
-                                                        NULL,
-                                                        5,
-                                                        1,
-                                                        2,
-                                                        10,
-                                                        YoYoAction::ReplanType::NONE,
-                                                        4));
+    std::shared_ptr<YoYoAction> action(new YoYoAction(1,
+                                                      2,
+                                                      3,
+                                                      100,
+                                                      200,
+                                                      NULL,
+                                                      YoYoAction::ReplanType::NONE,
+                                                      4,
+                                                      NULL));
 
     underwater_vehicle_msgs::GetVehicleInfo infoMsg;
     infoMsg.response.propModuleType = "FourDOFPropulsion";
@@ -330,13 +330,12 @@ TEST(YoYoSimActionExecutor, ExecuteAndAbort)
     while(latestVelMsg == NULL);
     EXPECT_TRUE(std::isnan(latestVelMsg->linear.x));
     EXPECT_TRUE(std::isnan(latestVelMsg->angular.z));
-    EXPECT_EQ(5, latestVelMsg->linear.z);
+    EXPECT_EQ(3, latestVelMsg->linear.z);
 
     while(!goalCalled);
     while(action->getState() != Action::State::EXECUTING);
 
     EXPECT_EQ(1, z);
-    EXPECT_EQ(-1, timeout);
     EXPECT_FALSE(holdDepth);
     EXPECT_EQ(Action::State::EXECUTING, action->getState());
 
@@ -360,13 +359,11 @@ TEST(YoYoSimActionExecutor, TimeReplan)
 	actionlib::SimpleActionServer<vehicle_auto_control::GoToZRosAction> goToZServer(nh, "go_to_z", false);
 
     bool goalCalled = false;
-    double timeout = 0;
     double z = -1;
     bool holdDepth = false;
     auto goalYoYoCB = [&] (void) 
     {
         vehicle_auto_control::GoToZRosGoalConstPtr goToZGoal = goToZServer.acceptNewGoal();
-        timeout = goToZGoal->timeout;
         z = goToZGoal->z;
         holdDepth = goToZGoal->holdDepth;
         goalCalled = true;
@@ -381,14 +378,15 @@ TEST(YoYoSimActionExecutor, TimeReplan)
 	goToZServer.start();
 
     ros::AsyncSpinner spinner(1);
-    std::shared_ptr<YoYoAction> action(new YoYoAction(NULL,
-                                                        NULL,
-                                                        5,
-                                                        1,
-                                                        2,
-                                                        10,
-                                                        YoYoAction::ReplanType::PERIODIC_TIME,
-                                                        3));
+    std::shared_ptr<YoYoAction> action(new YoYoAction(1,
+                                                      2,
+                                                      3,
+                                                      100,
+                                                      200,
+                                                      NULL,
+                                                      YoYoAction::ReplanType::PERIODIC_TIME,
+                                                      3,
+                                                      NULL));
 
     underwater_vehicle_msgs::GetVehicleInfo infoMsg;
     infoMsg.response.propModuleType = "FourDOFPropulsion";
@@ -401,13 +399,12 @@ TEST(YoYoSimActionExecutor, TimeReplan)
     while(latestVelMsg == NULL);
     EXPECT_TRUE(std::isnan(latestVelMsg->linear.x));
     EXPECT_TRUE(std::isnan(latestVelMsg->angular.z));
-    EXPECT_EQ(5, latestVelMsg->linear.z);
+    EXPECT_EQ(3, latestVelMsg->linear.z);
 
     while(!goalCalled);
     while(action->getState() != Action::State::EXECUTING);
 
     EXPECT_EQ(1, z);
-    EXPECT_EQ(-1, timeout);
     EXPECT_FALSE(holdDepth);
     EXPECT_EQ(Action::State::EXECUTING, action->getState());
 
@@ -432,13 +429,11 @@ TEST(YoYoSimActionExecutor, DistanceReplan)
 	actionlib::SimpleActionServer<vehicle_auto_control::GoToZRosAction> goToZServer(nh, "go_to_z", false);
 
     bool goalCalled = false;
-    double timeout = 0;
     double z = -1;
     bool holdDepth = false;
     auto goalYoYoCB = [&] (void) 
     {
         vehicle_auto_control::GoToZRosGoalConstPtr goToZGoal = goToZServer.acceptNewGoal();
-        timeout = goToZGoal->timeout;
         z = goToZGoal->z;
         holdDepth = goToZGoal->holdDepth;
         goalCalled = true;
@@ -453,14 +448,15 @@ TEST(YoYoSimActionExecutor, DistanceReplan)
 	goToZServer.start();
 
     ros::AsyncSpinner spinner(1);
-    std::shared_ptr<YoYoAction> action(new YoYoAction(NULL,
-                                                        NULL,
-                                                        5,
-                                                        1,
-                                                        2,
-                                                        10,
-                                                        YoYoAction::ReplanType::PERIODIC_DISTANCE,
-                                                        3));
+    std::shared_ptr<YoYoAction> action(new YoYoAction(1,
+                                                      2,
+                                                      3,
+                                                      100,
+                                                      200,
+                                                      NULL,
+                                                      YoYoAction::ReplanType::PERIODIC_DISTANCE,
+                                                      3,
+                                                      NULL));
 
     underwater_vehicle_msgs::GetVehicleInfo infoMsg;
     infoMsg.response.propModuleType = "FourDOFPropulsion";
@@ -473,13 +469,12 @@ TEST(YoYoSimActionExecutor, DistanceReplan)
     while(latestVelMsg == NULL);
     EXPECT_TRUE(std::isnan(latestVelMsg->linear.x));
     EXPECT_TRUE(std::isnan(latestVelMsg->angular.z));
-    EXPECT_EQ(5, latestVelMsg->linear.z);
+    EXPECT_EQ(3, latestVelMsg->linear.z);
 
     while(!goalCalled);
     while(action->getState() != Action::State::EXECUTING);
 
     EXPECT_EQ(1, z);
-    EXPECT_EQ(-1, timeout);
     EXPECT_FALSE(holdDepth);
     EXPECT_EQ(Action::State::EXECUTING, action->getState());
 
@@ -517,13 +512,11 @@ TEST(YoYoSimActionExecutor, TurnReplan)
 	actionlib::SimpleActionServer<vehicle_auto_control::GoToZRosAction> goToZServer(nh, "go_to_z", false);
 
     bool goalCalled = false;
-    double timeout = 0;
     double z = -1;
     bool holdDepth = false;
     auto goalYoYoCB = [&] (void) 
     {
         vehicle_auto_control::GoToZRosGoalConstPtr goToZGoal = goToZServer.acceptNewGoal();
-        timeout = goToZGoal->timeout;
         z = goToZGoal->z;
         holdDepth = goToZGoal->holdDepth;
         goalCalled = true;
@@ -542,14 +535,15 @@ TEST(YoYoSimActionExecutor, TurnReplan)
 	goToZServer.start();
 
     ros::AsyncSpinner spinner(1);
-    std::shared_ptr<YoYoAction> action(new YoYoAction(NULL,
-                                                        NULL,
-                                                        5,
-                                                        1,
-                                                        2,
-                                                        10,
-                                                        YoYoAction::ReplanType::ON_YOYO_TURN,
-                                                        4));
+    std::shared_ptr<YoYoAction> action(new YoYoAction(1,
+                                                      2,
+                                                      3,
+                                                      100,
+                                                      200,
+                                                      NULL,
+                                                      YoYoAction::ReplanType::ON_YOYO_TURN,
+                                                      3,
+                                                      NULL));
 
     underwater_vehicle_msgs::GetVehicleInfo infoMsg;
     infoMsg.response.propModuleType = "FourDOFPropulsion";
@@ -562,13 +556,12 @@ TEST(YoYoSimActionExecutor, TurnReplan)
     while(latestVelMsg == NULL);
     EXPECT_TRUE(std::isnan(latestVelMsg->linear.x));
     EXPECT_TRUE(std::isnan(latestVelMsg->angular.z));
-    EXPECT_EQ(5, latestVelMsg->linear.z);
+    EXPECT_EQ(3, latestVelMsg->linear.z);
 
     while(!goalCalled);
     while(action->getState() != Action::State::EXECUTING);
 
     EXPECT_EQ(1, z);
-    EXPECT_EQ(-1, timeout);
     EXPECT_FALSE(holdDepth);
     EXPECT_EQ(Action::State::EXECUTING, action->getState());
 
@@ -580,7 +573,6 @@ TEST(YoYoSimActionExecutor, TurnReplan)
     while(!goalCalled);
 
     EXPECT_EQ(2, z);
-    EXPECT_EQ(-1, timeout);
     EXPECT_FALSE(holdDepth);
     EXPECT_EQ(Action::State::EXECUTING, action->getState());
 

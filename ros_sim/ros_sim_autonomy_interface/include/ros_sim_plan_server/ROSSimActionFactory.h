@@ -17,9 +17,6 @@
 #include "underwater_autonomy/planner/actions/HoldDepthAction.h"
 #include "underwater_autonomy/planner/actions/YoYoAction.h"
 
-#include "ros_sim_plan_server/action_executors/PointPathSimActionExecutor.h"
-#include "ros_sim_plan_server/action_executors/FollowHeadingSimActionExecutor.h"
-
 #include "underwater_vehicle_msgs/VehicleInfo.h"
 
 class ROSSimActionFactory : public underwater_autonomy::ActionFactory
@@ -28,43 +25,36 @@ public:
     ROSSimActionFactory(VehicleInfo vehicleInfo);
     ~ROSSimActionFactory() {}
 
-    std::shared_ptr<underwater_autonomy::YoYoAction> createYoYoAction(std::unique_ptr<underwater_autonomy::OperationRegion> operationRegion,
-                                                                    const double targetVerticalVelocity, 
-                                                                    const double upperDepth,
-                                                                    const double lowerDepth,
-                                                                    const double timeout,
-                                                                    const underwater_autonomy::YoYoAction::ReplanType replan,
-                                                                    const double periodicReplanTime) override {return NULL;};
+    std::shared_ptr<underwater_autonomy::YoYoAction> createYoYoAction(const double upperDepth,
+                                                                      const double lowerDepth,
+                                                                      const double targetVerticalVelocity, 
+                                                                      const double yoyoTime,
+                                                                      const double timeout,
+                                                                      std::unique_ptr<underwater_autonomy::OperationRegion> operationRegion,
+                                                                      const underwater_autonomy::YoYoAction::ReplanType replanType,
+                                                                      const double periodicReplanValue) override;
 
-    std::shared_ptr<underwater_autonomy::HoldDepthAction> createHoldDepthAction(std::unique_ptr<underwater_autonomy::OperationRegion> operationRegion,
-                                                                           const double targetVerticalVelocity, 
-                                                                           const double depth,
-                                                                           const double timeout,
-                                                                           const underwater_autonomy::HoldDepthAction::ReplanType replan,
-                                                                           const double periodicReplanTime) override {return NULL;};
+    std::shared_ptr<underwater_autonomy::HoldDepthAction> createHoldDepthAction(const double depth,
+                                                                                const double targetVerticalVelocity,
+                                                                                const double holdDepthTime,
+                                                                                const double timeout,
+                                                                                std::unique_ptr<underwater_autonomy::OperationRegion> operationRegion,
+                                                                                const underwater_autonomy::HoldDepthAction::ReplanType replanType,
+                                                                                const double periodicReplanValue) override;
 
-    std::shared_ptr<underwater_autonomy::FollowHeadingAction> createFollowHeadingAction(std::unique_ptr<underwater_autonomy::OperationRegion> operationRegion,
-                                                                            const double targetHorizontalVelocity, 
-                                                                            const double targetRotationalVelocity,
-                                                                            const double heading,
-                                                                            const double timeout,
-                                                                            const underwater_autonomy::FollowHeadingAction::ReplanType replan,
-                                                                            const double periodicReplanTime) override;
-
-    std::shared_ptr<underwater_autonomy::PointPathAction> createPointPathAction(std::unique_ptr<underwater_autonomy::OperationRegion> operationRegion,
-                                                                         const double targetHorizontalVelocity, 
-                                                                         const double targetRotationalVelocity,
-                                                                         const double targetSlope,
-                                                                         const double upperDepth,
-                                                                         const double lowerDepth,
-                                                                         const std::vector<Eigen::Vector3d>& points,
-                                                                         const underwater_autonomy::PointPathAction::ReplanType replan,
-                                                                         const double periodicReplanTime) override;
+    std::shared_ptr<underwater_autonomy::FollowHeadingAction> createFollowHeadingAction(const double heading,
+                                                                                        const double targetHorizontalVelocity, 
+                                                                                        const double targetRotationalVelocity,
+                                                                                        const double followHeadingTime,
+                                                                                        const double timeout,
+                                                                                        std::unique_ptr<underwater_autonomy::OperationRegion> operationRegion,
+                                                                                        const underwater_autonomy::FollowHeadingAction::ReplanType replanType,
+                                                                                        const double periodicReplanValue) override;
 
     std::shared_ptr<underwater_autonomy::PointPathAction> createPointPathAction(std::unique_ptr<underwater_autonomy::OperationRegion> operationRegion,
                                                                          const double targetHorizontalVelocity, 
                                                                          const double targetRotationalVelocity,
-                                                                         const double targetSlope,
+                                                                         const double timeout,
                                                                          const std::vector<Eigen::Vector3d>& points,
                                                                          const underwater_autonomy::PointPathAction::ReplanType replan,
                                                                          const double periodicReplanTime) override;

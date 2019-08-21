@@ -25,13 +25,14 @@ TEST(HoldDepthSimActionExecutor, ExecutePropModuleTypeFail)
 {
     ros::NodeHandle nh("ExecutePropModuleTypeFail");
 
-    std::shared_ptr<HoldDepthAction> action(new HoldDepthAction(NULL,
-                                                        NULL,
-                                                        0,
-                                                        0,
-                                                        0,
-                                                        HoldDepthAction::ReplanType::NONE,
-                                                        0)); 
+    std::shared_ptr<HoldDepthAction> action(new HoldDepthAction(0,
+                                                                0,
+                                                                0,
+                                                                0,
+                                                                NULL,
+                                                                HoldDepthAction::ReplanType::NONE,
+                                                                0,
+                                                                NULL)); 
 
                                                             
     underwater_vehicle_msgs::GetVehicleInfo infoMsg;
@@ -53,13 +54,11 @@ TEST(HoldDepthSimActionExecutor, ExecuteAndCancel)
 	actionlib::SimpleActionServer<vehicle_auto_control::GoToZRosAction> goToZServer(nh, "go_to_z", false);
 
     bool goalCalled = false;
-    double timeout = 0;
     double z = -1;
     bool holdDepth = false;
     auto goalHoldDepthCB = [&] (void) 
     {
         vehicle_auto_control::GoToZRosGoalConstPtr goToZGoal = goToZServer.acceptNewGoal();
-        timeout = goToZGoal->timeout;
         z = goToZGoal->z;
         holdDepth = goToZGoal->holdDepth;
         goalCalled = true;
@@ -78,13 +77,14 @@ TEST(HoldDepthSimActionExecutor, ExecuteAndCancel)
 	goToZServer.start();
 
     ros::AsyncSpinner spinner(1);
-    std::shared_ptr<HoldDepthAction> action(new HoldDepthAction(NULL,
-                                                        NULL,
-                                                        1,
-                                                        2,
-                                                        3,
-                                                        HoldDepthAction::ReplanType::NONE,
-                                                        4));
+    std::shared_ptr<HoldDepthAction> action(new HoldDepthAction(5,
+                                                                1,
+                                                                2,
+                                                                3,
+                                                                NULL,
+                                                                HoldDepthAction::ReplanType::NONE,
+                                                                4,
+                                                                NULL));
 
     underwater_vehicle_msgs::GetVehicleInfo infoMsg;
     infoMsg.response.propModuleType = "FourDOFPropulsion";
@@ -102,8 +102,7 @@ TEST(HoldDepthSimActionExecutor, ExecuteAndCancel)
     while(!goalCalled);
     while(action->getState() != Action::State::EXECUTING);
 
-    EXPECT_EQ(2, z);
-    EXPECT_EQ(3, timeout);
+    EXPECT_EQ(5, z);
     EXPECT_TRUE(holdDepth);
 
     EXPECT_EQ(Action::State::EXECUTING, action->getState());
@@ -129,20 +128,22 @@ TEST(HoldDepthSimActionExecutor, ExecuteAndSucceed)
 	actionlib::SimpleActionServer<vehicle_auto_control::GoToZRosAction> goToZServer(nh, "go_to_z", false);
 
     bool goalCalled = false;
-    double timeout = 0;
     double z = -1;
     bool holdDepth = false;
     auto goalHoldDepthCB = [&] (void) 
     {
         vehicle_auto_control::GoToZRosGoalConstPtr goToZGoal = goToZServer.acceptNewGoal();
-        timeout = goToZGoal->timeout;
         z = goToZGoal->z;
         holdDepth = goToZGoal->holdDepth;
         goalCalled = true;
     };
 
     bool preemptCalled = false;
-    auto preemptHoldDepthCB = [&] (void) { preemptCalled = true; };
+    auto preemptHoldDepthCB = [&] (void) 
+    { 
+        preemptCalled = true; 
+        goToZServer.setPreempted();
+    };
 
 
 	goToZServer.registerGoalCallback(goalHoldDepthCB);
@@ -150,13 +151,14 @@ TEST(HoldDepthSimActionExecutor, ExecuteAndSucceed)
 	goToZServer.start();
 
     ros::AsyncSpinner spinner(1);
-    std::shared_ptr<HoldDepthAction> action(new HoldDepthAction(NULL,
-                                                        NULL,
-                                                        1,
-                                                        2,
-                                                        3,
-                                                        HoldDepthAction::ReplanType::NONE,
-                                                        4));
+    std::shared_ptr<HoldDepthAction> action(new HoldDepthAction(5,
+                                                                1,
+                                                                2,
+                                                                2,
+                                                                NULL,
+                                                                HoldDepthAction::ReplanType::NONE,
+                                                                4,
+                                                                NULL));
 
     underwater_vehicle_msgs::GetVehicleInfo infoMsg;
     infoMsg.response.propModuleType = "FourDOFPropulsion";
@@ -174,14 +176,86 @@ TEST(HoldDepthSimActionExecutor, ExecuteAndSucceed)
     while(!goalCalled);
     while(action->getState() != Action::State::EXECUTING);
 
-    EXPECT_EQ(2, z);
-    EXPECT_EQ(3, timeout);
+    EXPECT_EQ(5, z);
     EXPECT_TRUE(holdDepth);
     EXPECT_EQ(Action::State::EXECUTING, action->getState());
 
-    goToZServer.setSucceeded();
+    ros::Duration(2).sleep();
+    executor.monitor(action);
     while(action->getState() != Action::State::COMPLETED);
     EXPECT_EQ(Action::State::COMPLETED, action->getState());
+
+    spinner.stop();
+}
+
+TEST(HoldDepthSimActionExecutor, ExecuteAndTimeout)
+{
+    ros::NodeHandle nh("ExecuteAndTimeout");
+
+    geometry_msgs::Twist::ConstPtr latestVelMsg = NULL;
+    auto velCB = [&] (geometry_msgs::Twist::ConstPtr val)
+    { latestVelMsg = val; };
+    ros::Subscriber velSub = nh.subscribe<geometry_msgs::Twist>("command_target_velocity", 1, velCB);
+
+	actionlib::SimpleActionServer<vehicle_auto_control::GoToZRosAction> goToZServer(nh, "go_to_z", false);
+
+    bool goalCalled = false;
+    double z = -1;
+    bool holdDepth = false;
+    auto goalHoldDepthCB = [&] (void) 
+    {
+        vehicle_auto_control::GoToZRosGoalConstPtr goToZGoal = goToZServer.acceptNewGoal();
+        z = goToZGoal->z;
+        holdDepth = goToZGoal->holdDepth;
+        goalCalled = true;
+    };
+
+    bool preemptCalled = false;
+    auto preemptHoldDepthCB = [&] (void) 
+    { 
+        preemptCalled = true; 
+        goToZServer.setPreempted();
+    };
+
+
+	goToZServer.registerGoalCallback(goalHoldDepthCB);
+    goToZServer.registerPreemptCallback(preemptHoldDepthCB);
+	goToZServer.start();
+
+    ros::AsyncSpinner spinner(1);
+    std::shared_ptr<HoldDepthAction> action(new HoldDepthAction(5,
+                                                                1,
+                                                                100,
+                                                                2,
+                                                                NULL,
+                                                                HoldDepthAction::ReplanType::NONE,
+                                                                4,
+                                                                NULL));
+
+    underwater_vehicle_msgs::GetVehicleInfo infoMsg;
+    infoMsg.response.propModuleType = "FourDOFPropulsion";
+    VehicleInfo info(infoMsg);
+    HoldDepthSimActionExecutor executor(nh, info);
+
+    spinner.start();
+    EXPECT_TRUE(executor.execute(action));
+
+    while(latestVelMsg == NULL);
+    EXPECT_TRUE(std::isnan(latestVelMsg->linear.x));
+    EXPECT_TRUE(std::isnan(latestVelMsg->angular.z));
+    EXPECT_EQ(1, latestVelMsg->linear.z);
+
+    while(!goalCalled);
+    while(action->getState() != Action::State::EXECUTING);
+
+    EXPECT_EQ(5, z);
+    EXPECT_TRUE(holdDepth);
+    EXPECT_EQ(Action::State::EXECUTING, action->getState());
+
+    ros::Duration(2).sleep();
+    executor.monitor(action);
+    while(action->getState() != Action::State::FAILED);
+    EXPECT_EQ(Action::State::FAILED, action->getState());
 
     spinner.stop();
 }
@@ -198,13 +272,11 @@ TEST(HoldDepthSimActionExecutor, ExecuteAndAbort)
 	actionlib::SimpleActionServer<vehicle_auto_control::GoToZRosAction> goToZServer(nh, "go_to_z", false);
 
     bool goalCalled = false;
-    double timeout = 0;
     double z = -1;
     bool holdDepth = false;
     auto goalHoldDepthCB = [&] (void) 
     {
         vehicle_auto_control::GoToZRosGoalConstPtr goToZGoal = goToZServer.acceptNewGoal();
-        timeout = goToZGoal->timeout;
         z = goToZGoal->z;
         holdDepth = goToZGoal->holdDepth;
         goalCalled = true;
@@ -219,13 +291,14 @@ TEST(HoldDepthSimActionExecutor, ExecuteAndAbort)
 	goToZServer.start();
 
     ros::AsyncSpinner spinner(1);
-    std::shared_ptr<HoldDepthAction> action(new HoldDepthAction(NULL,
-                                                        NULL,
-                                                        1,
-                                                        2,
-                                                        3,
-                                                        HoldDepthAction::ReplanType::NONE,
-                                                        4));
+    std::shared_ptr<HoldDepthAction> action(new HoldDepthAction(5,
+                                                                1,
+                                                                2,
+                                                                3,
+                                                                NULL,
+                                                                HoldDepthAction::ReplanType::NONE,
+                                                                4,
+                                                                NULL));
 
     underwater_vehicle_msgs::GetVehicleInfo infoMsg;
     infoMsg.response.propModuleType = "FourDOFPropulsion";
@@ -243,8 +316,7 @@ TEST(HoldDepthSimActionExecutor, ExecuteAndAbort)
     while(!goalCalled);
     while(action->getState() != Action::State::EXECUTING);
 
-    EXPECT_EQ(2, z);
-    EXPECT_EQ(3, timeout);
+    EXPECT_EQ(5, z);
     EXPECT_TRUE(holdDepth);
     EXPECT_EQ(Action::State::EXECUTING, action->getState());
 
@@ -267,13 +339,11 @@ TEST(HoldDepthSimActionExecutor, TimeReplan)
 	actionlib::SimpleActionServer<vehicle_auto_control::GoToZRosAction> goToZServer(nh, "go_to_z", false);
 
     bool goalCalled = false;
-    double timeout = 0;
     double z = -1;
     bool holdDepth = false;
     auto goalHoldDepthCB = [&] (void) 
     {
         vehicle_auto_control::GoToZRosGoalConstPtr goToZGoal = goToZServer.acceptNewGoal();
-        timeout = goToZGoal->timeout;
         z = goToZGoal->z;
         holdDepth = goToZGoal->holdDepth;
         goalCalled = true;
@@ -288,13 +358,14 @@ TEST(HoldDepthSimActionExecutor, TimeReplan)
 	goToZServer.start();
 
     ros::AsyncSpinner spinner(1);
-    std::shared_ptr<HoldDepthAction> action(new HoldDepthAction(NULL,
-                                                        NULL,
-                                                        1,
-                                                        2,
-                                                        3,
-                                                        HoldDepthAction::ReplanType::PERIODIC_TIME,
-                                                        3));
+    std::shared_ptr<HoldDepthAction> action(new HoldDepthAction(5,
+                                                                1,
+                                                                100,
+                                                                100,
+                                                                NULL,
+                                                                HoldDepthAction::ReplanType::PERIODIC_TIME,
+                                                                3,
+                                                                NULL));
 
     underwater_vehicle_msgs::GetVehicleInfo infoMsg;
     infoMsg.response.propModuleType = "FourDOFPropulsion";
@@ -312,8 +383,7 @@ TEST(HoldDepthSimActionExecutor, TimeReplan)
     while(!goalCalled);
     while(action->getState() != Action::State::EXECUTING);
 
-    EXPECT_EQ(2, z);
-    EXPECT_EQ(3, timeout);
+    EXPECT_EQ(5, z);
     EXPECT_TRUE(holdDepth);
     EXPECT_EQ(Action::State::EXECUTING, action->getState());
 
@@ -338,13 +408,11 @@ TEST(HoldDepthSimActionExecutor, DistanceReplan)
 	actionlib::SimpleActionServer<vehicle_auto_control::GoToZRosAction> goToZServer(nh, "go_to_z", false);
 
     bool goalCalled = false;
-    double timeout = 0;
     double z = -1;
     bool holdDepth = false;
     auto goalHoldDepthCB = [&] (void) 
     {
         vehicle_auto_control::GoToZRosGoalConstPtr goToZGoal = goToZServer.acceptNewGoal();
-        timeout = goToZGoal->timeout;
         z = goToZGoal->z;
         holdDepth = goToZGoal->holdDepth;
         goalCalled = true;
@@ -359,13 +427,14 @@ TEST(HoldDepthSimActionExecutor, DistanceReplan)
 	goToZServer.start();
 
     ros::AsyncSpinner spinner(1);
-    std::shared_ptr<HoldDepthAction> action(new HoldDepthAction(NULL,
-                                                        NULL,
-                                                        1,
-                                                        2,
-                                                        3,
-                                                        HoldDepthAction::ReplanType::PERIODIC_DISTANCE,
-                                                        3));
+    std::shared_ptr<HoldDepthAction> action(new HoldDepthAction(5,
+                                                                1,
+                                                                100,
+                                                                100,
+                                                                NULL,
+                                                                HoldDepthAction::ReplanType::PERIODIC_DISTANCE,
+                                                                3,
+                                                                NULL));
 
     underwater_vehicle_msgs::GetVehicleInfo infoMsg;
     infoMsg.response.propModuleType = "FourDOFPropulsion";
@@ -383,8 +452,7 @@ TEST(HoldDepthSimActionExecutor, DistanceReplan)
     while(!goalCalled);
     while(action->getState() != Action::State::EXECUTING);
 
-    EXPECT_EQ(2, z);
-    EXPECT_EQ(3, timeout);
+    EXPECT_EQ(5, z);
     EXPECT_TRUE(holdDepth);
     EXPECT_EQ(Action::State::EXECUTING, action->getState());
 
