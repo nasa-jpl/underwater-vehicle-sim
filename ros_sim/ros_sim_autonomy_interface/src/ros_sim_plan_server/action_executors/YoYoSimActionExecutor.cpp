@@ -157,13 +157,13 @@ void YoYoSimActionExecutor::monitor(std::shared_ptr<underwater_autonomy::YoYoAct
 	currentDuration += currentTime - lastUpdate;
 	lastUpdate = currentTime;
 
-	if(currentDuration.toSec() >= action->getYoYoTime())
+	if(action->getYoYoTime() >= 0 && currentDuration.toSec() >= action->getYoYoTime())
 	{
 		//We need to cancel the action lib but still what to set the underwater autonomy action as complete
 		stateAfterCancel = Action::State::COMPLETED;
 		goToZClient.cancelGoal();
 	}
-	else if(currentDuration.toSec() >= action->getTimeout())
+	else if(action->getTimeout() >= 0 && currentDuration.toSec() >= action->getTimeout())
 	{
 		//We need to cancel the action lib but still what to set the underwater autonomy action as failed
 		stateAfterCancel = Action::State::FAILED;

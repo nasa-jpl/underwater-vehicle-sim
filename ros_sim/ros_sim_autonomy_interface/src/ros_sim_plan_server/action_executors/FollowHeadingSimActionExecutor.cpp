@@ -147,13 +147,13 @@ void FollowHeadingSimActionExecutor::monitor(std::shared_ptr<underwater_autonomy
 	currentDuration += currentTime - lastUpdate;
 	lastUpdate = currentTime;
 
-	if(currentDuration.toSec() >= action->getFollowHeadingTime())
+	if(action->getFollowHeadingTime() >= 0 && currentDuration.toSec() >= action->getFollowHeadingTime())
 	{
 		//We need to cancel the action lib but still what to set the underwater autonomy action as complete
 		stateAfterCancel = Action::State::COMPLETED;
 		followHeadingClient.cancelGoal();
 	}
-	else if(currentDuration.toSec() >= action->getTimeout())
+	else if(action->getTimeout() >= 0 && currentDuration.toSec() >= action->getTimeout())
 	{
 		//We need to cancel the action lib but still what to set the underwater autonomy action as failed
 		stateAfterCancel = Action::State::FAILED;
