@@ -83,7 +83,7 @@ void PointPathSimActionExecutor::monitor(std::shared_ptr<underwater_autonomy::Po
 	currentDuration += currentTime - lastUpdate;
 	lastUpdate = currentTime;
 
-	if(currentDuration.toSec() >= action->getTimeout())
+	if(action->getTimeout() >= 0 && currentDuration.toSec() >= action->getTimeout())
 	{
 		//We need to cancel the action lib but still what to set the underwater autonomy action as failed
 		stateAfterCancel = Action::State::FAILED;
@@ -191,6 +191,7 @@ void PointPathSimActionExecutor::actionFeedback(std::shared_ptr<PointPathAction>
 
 void PointPathSimActionExecutor::sendNextGoToXYGoal(std::shared_ptr<underwater_autonomy::PointPathAction> action)
 {
+
 	//Creates an action goal and sends it to the action server for point path movement
 	vehicle_auto_control::GoToXYRosGoal goToXYGoal;
 
@@ -198,7 +199,12 @@ void PointPathSimActionExecutor::sendNextGoToXYGoal(std::shared_ptr<underwater_a
 	goToXYGoal.x = point[0];
 	goToXYGoal.y = point[1];
 
-	goToXYClient.waitForServer();
+	ROS_DEBUG("Wait for goToXY server");
+	//I'm not sure why we need this but it will just wait forever otherwise...seems like a bug in ros
+	while(!goToXYClient.waitForServer(ros::Duration(1)))
+	{
+		ros::spinOnce();
+	}
 	ROS_DEBUG("Send goal to goToXY server");
 	goToXYClient.sendGoal(goToXYGoal,
 							 boost::bind(&PointPathSimActionExecutor::actionDone, this, action, _1, _2),

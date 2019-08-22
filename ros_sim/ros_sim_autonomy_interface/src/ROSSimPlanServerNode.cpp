@@ -4,6 +4,7 @@
 #include "underwater_autonomy/planner/PlanDispatcher.h"
 #include "underwater_autonomy/util/BoxOperationRegion.h"
 #include "underwater_autonomy/planner/actions/ActionFactory.h"
+#include "underwater_autonomy/planner/SingleActionPlanner.h"
 
 #include "ros_sim_plan_server/ROSSimPlanServer.h"
 #include "ros_sim_plan_server/ROSSimActionFactory.h"
@@ -210,6 +211,10 @@ int main(int argc, char **argv)
         }
 
         planner.reset(new WaypointsPlanner(factory, interface, parameters));
+    }
+    else if(plannerType == "SingleAction")
+    {
+        planner.reset(new SingleActionPlanner(factory, interface));
     }
       
     ROSSimPlanServer server(std::move(planner), interface);
