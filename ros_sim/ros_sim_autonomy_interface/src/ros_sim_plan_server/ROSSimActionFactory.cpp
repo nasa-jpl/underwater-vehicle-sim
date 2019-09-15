@@ -98,3 +98,38 @@ std::shared_ptr<HoldDepthAction> ROSSimActionFactory::createHoldDepthAction(cons
                                                                 periodicReplanValue,
                                                                 std::move(executor)));
 }
+
+std::shared_ptr<TwoConcurrentActionsAction> ROSSimActionFactory::createTwoConcurrentActionsAction(std::shared_ptr<xyAction> xy_action,
+                                                                                                  std::shared_ptr<DepthAction> depth_action,
+                                                                                                  std::unique_ptr<OperationRegion> operationRegion)
+{
+
+    // need to find which type of action the xy and depth actions are in order to use executors
+    
+
+    // if (dynamic_cast<FollowHeadingAction*>(&xy_action) != nullptr) {
+    //   std::unique_ptr<ActionExecutor<FollowHeadingAction>> xy_executor(new FollowHeadingSimActionExecutor(vehicleInfo));
+    // }
+    // if (dynamic_cast<PointPathAction*>(&xy_action) != nullptr) {
+    //   std::unique_ptr<ActionExecutor<FollowHeadingAction>> xy_executor(new PointPathSimActionExecutor(vehicleInfo));
+    // }
+
+    // if (dynamic_cast<YoYoAction*>(depth_action) != nullptr) {
+    //   std::unique_ptr<ActionExecutor<YoYoAction>> depth_executor(new YoYoSimActionExecutor(vehicleInfo));
+    // }
+
+    // else if (dynamic_cast<HoldDepthAction*>(depth_action) != nullptr) {
+    //   std::unique_ptr<ActionExecutor<HoldDepthAction>> depth_executor(new HoldDepthSimActionExecutor(vehicleInfo));
+    // }
+
+    // return std::unique_ptr<TwoConcurrentActionsAction>(new TwoConcurrentActionsAction(std::move(xy_action),
+    //                                                                                   std::move(depth_action),
+    //                                                                                   std::move(xy_executor),
+    //                                                                                   std::move(depth_executor),
+    //                                                                                   std::move(operationRegion)
+    
+        return std::unique_ptr<TwoConcurrentActionsAction>(new TwoConcurrentActionsAction(std::move(xy_action),
+                                                                                          std::move(depth_action),
+                                                                                          std::move(operationRegion)));                                                                                  
+                                                                                               
+}
