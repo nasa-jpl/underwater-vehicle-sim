@@ -47,7 +47,6 @@ PropulsionController::PropulsionController(ros::NodeHandle nh, VehicleInfo& info
 void PropulsionController::getTargetVelocityCommand(const geometry_msgs::Twist vel)
 {
 	logicController->setTargetVelocity(vel);
-	ROS_INFO("velocity x, z in jet propulsion controller %f %f", vel.linear.x, vel.linear.z);
 }
 
 void PropulsionController::getVehicleData(const underwater_vehicle_msgs::VehicleData data)
