@@ -87,8 +87,9 @@ def dye_plot(fvcomData, plotType, siglays, minColor=-1, maxColor=-1):
         ax.invert_zaxis()
     elif plotType == "contour":
         fig = plt.figure()
-        ax = fig.add_subplot(111, axisbg='black')
-        ax.set_title("Dye, siglay " + str(siglays[0]) + " to " + str(siglays[-1]))
+        ax = fig.add_subplot(111, facecolor='black')
+        #ax.set_title("Dye, siglay " + str(siglays[0]) + " to " + str(siglays[-1]))
+
         resX = 10
         resY = 10
         xi = linspace(min(x), max(x), resX)
@@ -105,9 +106,14 @@ def dye_plot(fvcomData, plotType, siglays, minColor=-1, maxColor=-1):
         if maxColor == -1:
             maxColor = max(dye)
 
-        cf = ax.scatter(x, y, c=dye, vmin=minColor, vmax=maxColor, linewidth=0, norm=colors.SymLogNorm(1))
+        cf = ax.scatter(x, y, c=dye, vmin=minColor, vmax=maxColor, cmap="plasma", linewidth=0, norm=colors.SymLogNorm(1))
+        cbar = fig.colorbar(cf, ax=ax)
+        cbar.ax.tick_params(labelsize=16) 
+        cbar.set_label("Neutrally Buoyant Tracer", fontsize=16)
+        ax.set_xlabel('X (m)', fontsize=16)
+        ax.set_ylabel('Y (m)', fontsize=16)
      #   cf = ax.scatter(x, y, c=dye, vmin=minColor, vmax=maxColor, linewidth=0)
-        fig.colorbar(cf, ax=ax)
+       # fig.colorbar(cf, ax=ax)
 
 
 def bathymetry_plot(fvcomData, plotType):
@@ -151,7 +157,7 @@ def main():
     outputDir = sys.argv[3]
 
     fvcomData = loadFVCOM(fvcomFile, 1)
-    fvcomData = filterXY(fvcomData, (-1000, 1000), (-1000, 1000))
+    fvcomData = filterXY(fvcomData, (-1500, 1500), (-1500, 1500))
 
     #bathymetry_plot(fvcomData, plotType)
  #   dye_plot(fvcomData, plotType, range(90, 127, 3), minColor=0, maxColor=100)
@@ -161,8 +167,8 @@ def main():
         print("Output: " + str(i))
         dye_plot(fvcomData, plotType, [i], minColor=0, maxColor=100)
 
-        filename = format(i, '03') + ".png"
-        plt.savefig(os.path.join(outputDir, filename), bbox_inches='tight')
+        filename = format(i, '03') + ".png"        
+        plt.savefig(os.path.join(outputDir, filename), bbox_inches='tight', dpi=500)
         plt.close()
 
    # bathymetry_plot(fvcomData, plotType)

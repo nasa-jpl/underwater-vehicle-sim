@@ -25,6 +25,12 @@ ROSSimVehicleInterface::ROSSimVehicleInterface(VehicleInfo info) :
         ROS_FATAL("No DataBroadcaster module in vehicle");
     }
 
+    std::vector<std::string> usblData = info.getModuleNamesOfType("USBL");
+    if(usblData.size() > 0)
+    {
+        usblDataSub = nh.subscribe(data[0] + "/data", 1, &ROSSimVehicleInterface::receiveUSBLData, this);
+    }
+
     poseSub = nh.subscribe("primary_navigation", 1, &ROSSimVehicleInterface::navigationFilterCallback, this);
     goalPub = nh.advertise<std_msgs::String>("goal", 1, true);
 }
@@ -104,6 +110,28 @@ void ROSSimVehicleInterface::receiveData(const underwater_vehicle_msgs::VehicleD
         cb(plannerData);
     }
 }
+void ROSSimVehicleInterface::receiveUSBLData(const underwater_vehicle_msgs::USBL::ConstPtr& usblData)
+{
+    double time = usblData->header.stamp.toSec();
+    VehiclePose pose(Eigen::Vector3d(std::numeric_limits<double>::quiet_NaN(), 
+                                     std::numeric_limits<double>::quiet_NaN(), 
+                                     std::numeric_limits<double>::quiet_NaN()));
+    std::map<std::string, double> data;
+
+    data["usbl_x"] = usblData->beacon_x;
+    data["usbl_y"] = usblData->beacon_y;
+    data["usbl_z"] = usblData->beacon_z;
+    data["usbl_range"] = usblData->range;
+    data["usbl_bearing"] = usblData->bearing;
+
+    PlannerData plannerData(time, pose, data);
+
+    for(std::function<void(const PlannerData&)> cb : dataCallbacks)
+    {
+        cb(plannerData);
+    }
+}
+
 
 VehiclePose ROSSimVehicleInterface::getPosition() const
 {

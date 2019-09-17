@@ -7,6 +7,7 @@
 
 #include "underwater_vehicle_msgs/VehicleInfo.h"
 #include "underwater_vehicle_msgs/VehicleData.h"
+#include "underwater_vehicle_msgs/USBL.h"
 
 #include "tf2_ros/transform_listener.h"
 
@@ -25,6 +26,7 @@ public:
     underwater_autonomy::VehiclePose getPosition() const override;
 
 private:
+    void receiveUSBLData(const underwater_vehicle_msgs::USBL::ConstPtr& usblData);
     void receiveData(const underwater_vehicle_msgs::VehicleData::ConstPtr& msg);
     void navigationFilterCallback(const nav_msgs::Odometry odo);
     
@@ -38,6 +40,7 @@ private:
 
     ros::Publisher goalPub;
     ros::Subscriber dataSub;
+    ros::Subscriber usblDataSub;
     ros::Subscriber poseSub;
 
     underwater_autonomy::VehiclePose currentPose;
