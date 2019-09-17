@@ -57,6 +57,7 @@ bool FollowHeadingSimActionExecutor::execute(std::shared_ptr<FollowHeadingAction
 		velMsg.angular.z = action->getTargetRotationalVelocity();
 	
 		velPub.publish(velMsg);
+
 	}
 	else //If the prop module is not known then this cannot be completed
 	{

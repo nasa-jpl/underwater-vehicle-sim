@@ -106,7 +106,7 @@
 
 
     <!--Navigation-->
-    <node pkg="ros_sim_autonomy_interface" type="ros_sim_navigation_node" name="ros_sim_navigation" ns="v1" output="screen">
+    <node pkg="ros_sim_autonomy_interface" type="ros_sim_navigation_node" name="ros_sim_navigation" ns="v1">
         <rosparam param="hertz">10</rosparam>
         <rosparam param="filter_names">[true_nav]</rosparam>
         <rosparam param="filter/true_nav/type">TrueNavigation</rosparam>

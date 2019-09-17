@@ -148,6 +148,7 @@ void FourDOFPropulsionLogic::followHeading(underwater_autonomy::VehiclePose& pos
         forwardStateMsg.data = currentForwardVelocity;
         forwardThrusterState.publish(forwardStateMsg);
 
+
         std_msgs::Float64 forwardSetpointMsg;
         forwardSetpointMsg.data = targetLinearVelocity.x();
         forwardThrusterSetpoint.publish(forwardSetpointMsg);
@@ -189,6 +190,7 @@ void FourDOFPropulsionLogic::goToZ(VehiclePose& pose)
         std_msgs::Float64 verticalSetpointMsg;
         verticalSetpointMsg.data = targetVertVelocity;
         verticalThrusterSetpoint.publish(verticalSetpointMsg);
+
     }
 }
 

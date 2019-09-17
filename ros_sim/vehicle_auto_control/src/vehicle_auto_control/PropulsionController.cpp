@@ -28,7 +28,7 @@ PropulsionController::PropulsionController(ros::NodeHandle nh, VehicleInfo& info
         dataSub = nh.subscribe(dataModuleNames[0] + "/data", 1, &PropulsionController::getVehicleData, this);
     }
 
-    velSub = nh.subscribe("command_target_velocity", 1, &PropulsionController::getTargetVelocityCommand, this);
+    velSub = nh.subscribe("command_target_velocity", 10, &PropulsionController::getTargetVelocityCommand, this);
 	poseSub = nh.subscribe("primary_navigation", 1, &PropulsionController::navigationFilterCallback, this);
 
 	goToXYServer.registerGoalCallback(boost::bind(&PropulsionController::goalGoToXYCB, this));
@@ -47,6 +47,7 @@ PropulsionController::PropulsionController(ros::NodeHandle nh, VehicleInfo& info
 void PropulsionController::getTargetVelocityCommand(const geometry_msgs::Twist vel)
 {
 	logicController->setTargetVelocity(vel);
+	ROS_INFO("velocity x, z in jet propulsion controller %f %f", vel.linear.x, vel.linear.z);
 }
 
 void PropulsionController::getVehicleData(const underwater_vehicle_msgs::VehicleData data)
@@ -64,11 +65,13 @@ void PropulsionController::update(void)
 	else if(followHeadingServer.isActive())
     {
         followHeadingUpdate();
+       
     }
 
     if(goToZServer.isActive())
     {
         goToZUpdate();
+
     }
 	else
 	{
@@ -136,7 +139,7 @@ void PropulsionController::goalFollowHeadingCB(void)
 	followHeadingStart = ros::Time::now();
 	logicController->setFollowHeading(followHeadingGoal->heading);
 
-    ROS_DEBUG("FollowHeading server accepted a new goal - heading: %f", followHeadingGoal->heading);
+    ROS_INFO("FollowHeading server accepted a new goal - heading: %f", followHeadingGoal->heading);
 }
 
 void PropulsionController::preemptFollowHeadingCB(void)
@@ -163,7 +166,7 @@ void PropulsionController::goalGoToZCB(void)
 	logicController->setTargetZ(goToZGoal->z);
 	holdAtZ = goToZGoal->holdDepth;
 
-    ROS_DEBUG("GoToZ server accepted a new goal - z: %f", goToZGoal->z);
+    ROS_INFO("GoToZ server accepted a new goal - z: %f", goToZGoal->z);
 }
 
 void PropulsionController::preemptGoToZCB(void)
