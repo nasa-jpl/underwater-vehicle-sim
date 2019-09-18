@@ -16,6 +16,10 @@
 #include "underwater_autonomy/planner/actions/FollowHeadingAction.h"
 #include "underwater_autonomy/planner/actions/HoldDepthAction.h"
 #include "underwater_autonomy/planner/actions/YoYoAction.h"
+#include "underwater_autonomy/planner/actions/TwoConcurrentActionsAction.h"
+#include "underwater_autonomy/planner/actions/xyAction.h"
+#include "underwater_autonomy/planner/actions/DepthAction.h"
+
 
 #include "underwater_vehicle_msgs/VehicleInfo.h"
 
@@ -58,6 +62,10 @@ public:
                                                                          const std::vector<Eigen::Vector3d>& points,
                                                                          const underwater_autonomy::PointPathAction::ReplanType replan,
                                                                          const double periodicReplanTime) override;
+
+    std::shared_ptr<underwater_autonomy::TwoConcurrentActionsAction> createTwoConcurrentActionsAction(std::shared_ptr<underwater_autonomy::xyAction> xy_action,
+                                                                                                      std::shared_ptr<underwater_autonomy::DepthAction> depth_action,
+                                                                                                      std::unique_ptr<underwater_autonomy::OperationRegion> operationRegion) override;
 private:
     VehicleInfo vehicleInfo;
 };
