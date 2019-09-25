@@ -28,7 +28,7 @@ ROSSimVehicleInterface::ROSSimVehicleInterface(VehicleInfo info) :
     std::vector<std::string> usblData = info.getModuleNamesOfType("USBL");
     if(usblData.size() > 0)
     {
-        usblDataSub = nh.subscribe(data[0] + "/data", 1, &ROSSimVehicleInterface::receiveUSBLData, this);
+        usblDataSub = nh.subscribe(usblData[0] + "/data", 1, &ROSSimVehicleInterface::receiveUSBLData, this);
     }
 
     poseSub = nh.subscribe("primary_navigation", 1, &ROSSimVehicleInterface::navigationFilterCallback, this);

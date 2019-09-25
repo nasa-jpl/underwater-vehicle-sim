@@ -29,8 +29,8 @@ def callback(data, args):
     ydata[args[0]].append(data.pose.pose.position.y)
 
 def init():
-    ax.set_xlim(-50000,50000)
-    ax.set_ylim(-50000,50000)
+    ax.set_xlim(-4000,1500)
+    ax.set_ylim(-1500,7000)
     return scatters
 
 def update(frame):
@@ -42,6 +42,17 @@ def update(frame):
 
 def plot():
     ani = FuncAnimation(fig, update, init_func=init, blit=True)
+
+    circle1 = plt.Circle((0, 0), 1000, color='r', fill=False)
+    ax.add_artist(circle1)
+
+    line1, = ax.plot([], [], color='r')
+    line2, = ax.plot([], [], color='b')
+    start = ax.scatter([-2000], [4000], color='g', marker = '^', s=250)
+    beacon = ax.scatter([0], [0], color='r')
+
+    plt.legend((beacon, line1, line2, start), ('Beacon', '1 km From Beacon', 'AUV Path', 'AUV Start Location'))
+
     plt.show()
     rospy.spin()
 
