@@ -86,6 +86,7 @@ int main(int argc, char **argv)
         nhPriv.getParam("final_spacing", parameters.finalSpacing);
         nhPriv.getParam("target_data", parameters.targetData);
         nhPriv.getParam("detection_threshold", parameters.detectionThreshold);
+
         nhPriv.getParam("lawnmower_data_range", parameters.lawnmowerDataRange);
 
         if(nhPriv.hasParam("yoyo_min_depth") && nhPriv.hasParam("yoyo_max_depth"))
@@ -101,6 +102,7 @@ int main(int argc, char **argv)
             parameters.yoyoDuringSpiral = false;
         }
         nhPriv.getParam("target_horizontal_velocity", parameters.targetHorizontalVelocity);
+        nhPriv.getParam("target_vertical_velocity", parameters.targetVerticalVelocity);
 
         double startX, startY, startZ;
         nhPriv.getParam("spiral_start_x", startX);

@@ -5,7 +5,7 @@
         <rosparam param="start_x">-1432.16016854</rosparam>
         <rosparam param="start_y">-1054.18858199</rosparam>
 
-        <rosparam param="start_z">0</rosparam>
+        <rosparam param="start_z">1</rosparam>
         <rosparam param="evect_by_currents">false</rosparam>
         <rosparam param="local_model">true</rosparam>
 
@@ -21,7 +21,6 @@
         <rosparam param="vertical_thruster_velocity">[-1.40625, -1.3125, -1.125, -0.75, 0, 0.75, 1.125, 1.3125, 1.40625]</rosparam>
         <rosparam param="rudder_angle">[-45,0,45]</rosparam>
         <rosparam param="rudder_velocity">[-0.349066,0,0.349066]</rosparam>
-
 
         <rosparam param="moduleNames">[data_broadcaster, imu, usbl, depth]</rosparam>
         <rosparam param="data_broadcaster/type">DataBroadcaster</rosparam>
@@ -153,6 +152,9 @@
         <rosparam param="yoyo_min_depth">100</rosparam>
         <rosparam param="yoyo_max_depth">2000</rosparam>
         <rosparam param="target_horizontal_velocity">1</rosparam>
+        <rosparam param="target_vertical_velocity">1</rosparam>
+
+        <rosparam param="detection_threshold">2.0</rosparam>
 
         <rosparam param="target_data">plume</rosparam>
         <rosparam param="lawnmower_data_range">10</rosparam>
