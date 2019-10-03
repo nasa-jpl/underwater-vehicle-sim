@@ -65,7 +65,8 @@ public:
 
     std::shared_ptr<underwater_autonomy::TwoConcurrentActionsAction> createTwoConcurrentActionsAction(std::shared_ptr<underwater_autonomy::xyAction> xy_action,
                                                                                                       std::shared_ptr<underwater_autonomy::DepthAction> depth_action,
-                                                                                                      std::unique_ptr<underwater_autonomy::OperationRegion> operationRegion) override;
+                                                                                                      std::unique_ptr<underwater_autonomy::OperationRegion> operationRegion,
+                                                                                                      const bool onlyEndAtXY = false) override;
 private:
     VehicleInfo vehicleInfo;
 };

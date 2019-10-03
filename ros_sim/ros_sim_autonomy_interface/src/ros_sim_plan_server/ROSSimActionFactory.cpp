@@ -101,12 +101,14 @@ std::shared_ptr<HoldDepthAction> ROSSimActionFactory::createHoldDepthAction(cons
 
 std::shared_ptr<TwoConcurrentActionsAction> ROSSimActionFactory::createTwoConcurrentActionsAction(std::shared_ptr<xyAction> xy_action,
                                                                                                   std::shared_ptr<DepthAction> depth_action,
-                                                                                                  std::unique_ptr<OperationRegion> operationRegion)
+                                                                                                  std::unique_ptr<OperationRegion> operationRegion,
+                                                                                                  const bool onlyEndAtXY)
 {
 
     
         return std::unique_ptr<TwoConcurrentActionsAction>(new TwoConcurrentActionsAction(std::move(xy_action),
                                                                                           std::move(depth_action),
-                                                                                          std::move(operationRegion)));                                                                                  
+                                                                                          std::move(operationRegion),
+                                                                                          onlyEndAtXY));                                                                                  
                                                                                                
 }
