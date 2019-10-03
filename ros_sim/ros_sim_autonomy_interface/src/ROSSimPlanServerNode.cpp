@@ -133,6 +133,9 @@ int main(int argc, char **argv)
         nhPriv.getParam("operation_region_max_z", maxZ);
         parameters.operationRegion = std::unique_ptr<OperationRegion>(new BoxOperationRegion(minX, minY, minZ, maxX, maxY, maxZ));
 
+        nhPriv.getParam("sonar_data", parameters.sonarData);
+        nhPriv.getParam("sonar_depth_enabled", parameters.sonarDepthEnabled);
+
         planner.reset(new NestedBinVentPlanner(factory, interface, parameters));
     }
     else if(plannerType == "DirectionSet")
