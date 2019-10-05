@@ -31,6 +31,11 @@ ROSSimPlanServer::ROSSimPlanServer(ROSSimPlanServer&& other) :
     planDispatcher.run();
 }
 
+std::string ROSSimPlanServer::getPlannerStatus()
+{
+    return plannerStatus;
+}
+
 void ROSSimPlanServer::update()
 {
     planDispatcher.update();
@@ -49,4 +54,6 @@ void ROSSimPlanServer::update()
 
         planDispatcher.setPlan(newPlan);
     }
+
+    plannerStatus = planner->getPlannerStatus();
 }

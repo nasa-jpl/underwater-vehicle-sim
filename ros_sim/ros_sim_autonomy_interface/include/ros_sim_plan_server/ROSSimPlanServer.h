@@ -16,6 +16,8 @@ public:
     ROSSimPlanServer(ROSSimPlanServer&& other);
     ~ROSSimPlanServer() {}
 
+    std::string getPlannerStatus();
+
     void update();
 
 private:
@@ -27,6 +29,7 @@ private:
     ros::Publisher clockSpeedPub;
     float speedUpFactor;
 
+    std::string plannerStatus;
 };
 
 #endif
