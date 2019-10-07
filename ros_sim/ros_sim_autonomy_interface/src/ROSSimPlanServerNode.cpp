@@ -15,10 +15,14 @@
 #include "vent_planner/DirectionSetVentPlanner.h"
 #include "vent_planner/WaypointsPlanner.h"
 
+#include "navigation_planner/GoldenSelectionHomingPlanner.h"
+
+
 #include "data_server/GetLatestData.h"
 
 using namespace underwater_autonomy;
 using namespace vent_planner;
+using namespace navigation_planner;
 
 bool dataStarted = false;
 bool navStarted = false;
@@ -220,6 +224,29 @@ int main(int argc, char **argv)
     else if(plannerType == "SingleAction")
     {
         planner.reset(new SingleActionPlanner(factory, interface));
+    }
+    else if(plannerType == "GoldenSelectionHoming")
+    {
+        GoldenSelectionHomingPlanner::Parameters parameters;
+
+        nhPriv.getParam("target_horizontal_velocity", parameters.targetHorizontalVelocity);
+
+        nhPriv.getParam("start_interval", parameters.startInterval);
+        nhPriv.getParam("end_interval", parameters.endInterval);
+        nhPriv.getParam("time_on_bearing", parameters.timeOnBearing);
+        nhPriv.getParam("restart_percent", parameters.restartPercent);
+
+        double minX, minY, minZ, maxX, maxY, maxZ;
+        nhPriv.getParam("operation_region_min_x", minX);
+        nhPriv.getParam("operation_region_min_y", minY);
+        nhPriv.getParam("operation_region_min_z", minZ);
+
+        nhPriv.getParam("operation_region_max_x", maxX);
+        nhPriv.getParam("operation_region_max_y", maxY);
+        nhPriv.getParam("operation_region_max_z", maxZ);
+        parameters.operationRegion = std::unique_ptr<OperationRegion>(new BoxOperationRegion(minX, minY, minZ, maxX, maxY, maxZ));
+
+        planner.reset(new GoldenSelectionHomingPlanner(factory, interface, parameters));
     }
       
     ROSSimPlanServer server(std::move(planner), interface);

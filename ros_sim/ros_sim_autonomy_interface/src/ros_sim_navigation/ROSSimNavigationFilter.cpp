@@ -59,7 +59,6 @@ void ROSSimNavigationFilter::initializeCallbacks(std::string& filterName, Vehicl
                                         100, 
                                         &ROSSimNavigationFilter::sendUSBLToFilter, 
                                         this);
-            //usblData
         }
         else if(moduleTypes[i] == "Depth")
         {

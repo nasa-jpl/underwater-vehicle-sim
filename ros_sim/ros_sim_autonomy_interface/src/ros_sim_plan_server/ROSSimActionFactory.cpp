@@ -1,6 +1,6 @@
 #include <unordered_map>
 #include <memory>
-
+#include <iostream>
 #include "ros/ros.h"
 
 #include "ros_sim_plan_server/ROSSimActionFactory.h"
@@ -48,7 +48,6 @@ std::shared_ptr<FollowHeadingAction> ROSSimActionFactory::createFollowHeadingAct
                                                                                     const FollowHeadingAction::ReplanType replanType,
                                                                                     const double periodicReplanValue)
 {
-
     std::unique_ptr<ActionExecutor<FollowHeadingAction>> executor(new FollowHeadingSimActionExecutor(vehicleInfo));
     return std::unique_ptr<FollowHeadingAction>(new FollowHeadingAction(heading,
                                                                 targetHorizontalVelocity,
