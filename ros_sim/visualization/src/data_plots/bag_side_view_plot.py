@@ -35,9 +35,16 @@ def main(bagName, phase = "None"):
 if __name__ == "__main__":
 	if len(sys.argv) > 2:
 		phase = sys.argv[2]
-		if phase != "SPIRAL" and phase != "LAWNMOWER" and phase != "DYNAMIC_LAWNMOWER" and phase != "OTHER" and phase != "UNSET":
-			print(phase " is not a valid phase. Targets include: SPIRAL, LAWNMOWER, DYNAMIC_LAWNMOWER, OTHER, and UNSET")
-			return 1
-		main(sys.argv[1], sys.argv[2])
+		if (phase != "SPIRAL" and phase != "LAWNMOWER" and 
+			phase != "DYNAMIC_LAWNMOWER" and 
+			phase != "GRADIENT" and
+			phase != "WAYPOINTS" and
+			phase != "LINE0" and phase != "LINE1" and
+			phase != "LINE2" and phase != "LINE3" and
+			phase != "OTHER" and phase != "UNSET"):
+
+			print(phase + " is not a valid phase. Targets include: SPIRAL, LAWNMOWER, DYNAMIC_LAWNMOWER, OTHER, and UNSET")
+		else:
+			main(sys.argv[1], sys.argv[2])
 	else:
 		main(sys.argv[1])
