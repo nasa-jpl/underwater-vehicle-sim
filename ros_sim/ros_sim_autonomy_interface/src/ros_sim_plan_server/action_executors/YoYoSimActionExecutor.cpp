@@ -39,7 +39,7 @@ YoYoSimActionExecutor::YoYoSimActionExecutor(ros::NodeHandle nh, VehicleInfo& ve
 
 bool YoYoSimActionExecutor::execute(std::shared_ptr<YoYoAction> action)
 {
-	ROS_DEBUG("Execute yoyo action");
+	ROS_INFO("Execute yoyo action");
 
 	if(vehicleInfo.getPropModuleType() == "FourDOFPropulsion")
 	{
@@ -80,7 +80,7 @@ void YoYoSimActionExecutor::cancel(std::shared_ptr<YoYoAction> action)
 	else
 	{
 		action->setState(Action::State::INTERRUPTED);
-		ROS_DEBUG("YoYo action interrupted");
+		ROS_INFO("YoYo action interrupted");
 	}
 }
 
@@ -107,24 +107,24 @@ void YoYoSimActionExecutor::rosActionDone(std::shared_ptr<YoYoAction> action,
 		if(stateAfterCancel == Action::State::INTERRUPTED)
 		{
 			action->setState(Action::State::INTERRUPTED);
-			ROS_DEBUG("Yoyo action interrupted");
+			ROS_INFO("Yoyo action interrupted");
 		}
 		else if(stateAfterCancel == Action::State::FAILED)
 		{
 			action->setState(Action::State::FAILED);
-			ROS_DEBUG("Yoyo action failed");
+			ROS_INFO("Yoyo action failed");
 		}
 		else if(stateAfterCancel == Action::State::COMPLETED)
 		{
 			action->setState(Action::State::COMPLETED);
-			ROS_DEBUG("Yoyo action completed");
+			ROS_INFO("Yoyo action completed");
 		}
 	}
 	else if(state == actionlib::SimpleClientGoalState::REJECTED ||
 			state == actionlib::SimpleClientGoalState::ABORTED)
 	{
 		action->setState(Action::State::FAILED);
-		ROS_DEBUG("YoYo action failed");
+		ROS_INFO("YoYo action failed");
 	}
 	else if(state == actionlib::SimpleClientGoalState::SUCCEEDED)
 	{
@@ -193,7 +193,7 @@ void YoYoSimActionExecutor::sendNewGoToZGoal(std::shared_ptr<underwater_autonomy
 	goToZGoal.holdDepth = false;
 
 	goToZClient.waitForServer();
-	ROS_DEBUG("Send goal to GoToZ Server");
+	ROS_INFO("Send goal to GoToZ Server");
 	goToZClient.sendGoal(goToZGoal,
 						 boost::bind(&YoYoSimActionExecutor::rosActionDone, this, action, _1, _2),
 						 boost::bind(&YoYoSimActionExecutor::rosActionActive, this, action),

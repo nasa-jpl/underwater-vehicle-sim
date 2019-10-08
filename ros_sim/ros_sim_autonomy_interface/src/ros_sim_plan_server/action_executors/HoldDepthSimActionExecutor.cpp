@@ -39,7 +39,7 @@ HoldDepthSimActionExecutor::HoldDepthSimActionExecutor(ros::NodeHandle nh, Vehic
 
 bool HoldDepthSimActionExecutor::execute(std::shared_ptr<HoldDepthAction> action)
 {
-	ROS_DEBUG("Execute hold depth action");
+	ROS_INFO("Execute hold depth action");
 
 	if(vehicleInfo.getPropModuleType() == "FourDOFPropulsion")
 	{
@@ -70,7 +70,7 @@ bool HoldDepthSimActionExecutor::execute(std::shared_ptr<HoldDepthAction> action
 	goToZGoal.holdDepth = true;
 
 	goToZClient.waitForServer();
-	ROS_DEBUG("Send goal to GoToZ Server");
+	ROS_INFO("Send goal to GoToZ Server");
 	goToZClient.sendGoal(goToZGoal,
 						 boost::bind(&HoldDepthSimActionExecutor::rosActionDone, this, action, _1, _2),
 						 boost::bind(&HoldDepthSimActionExecutor::rosActionActive, this, action),
@@ -109,29 +109,29 @@ void HoldDepthSimActionExecutor::rosActionDone(std::shared_ptr<HoldDepthAction> 
 		if(stateAfterCancel == Action::State::INTERRUPTED)
 		{
 			action->setState(Action::State::INTERRUPTED);
-			ROS_DEBUG("Hold depth action interrupted");
+			ROS_INFO("Hold depth action interrupted");
 		}
 		else if(stateAfterCancel == Action::State::FAILED)
 		{
 			action->setState(Action::State::FAILED);
-			ROS_DEBUG("Hold depth action failed");
+			ROS_INFO("Hold depth action failed");
 		}
 		else if(stateAfterCancel == Action::State::COMPLETED)
 		{
 			action->setState(Action::State::COMPLETED);
-			ROS_DEBUG("Hold depth action completed");
+			ROS_INFO("Hold depth action completed");
 		}
 	}
 	else if(state == actionlib::SimpleClientGoalState::REJECTED ||
 			state == actionlib::SimpleClientGoalState::ABORTED)
 	{
 		action->setState(Action::State::FAILED);
-		ROS_DEBUG("Hold depth action failed");
+		ROS_INFO("Hold depth action failed");
 	}
 	else if(state == actionlib::SimpleClientGoalState::SUCCEEDED)
 	{
 		action->setState(Action::State::COMPLETED);
-		ROS_DEBUG("Hold depth action completed from GoToZ return");
+		ROS_INFO("Hold depth action completed from GoToZ return");
 	}
 }
 

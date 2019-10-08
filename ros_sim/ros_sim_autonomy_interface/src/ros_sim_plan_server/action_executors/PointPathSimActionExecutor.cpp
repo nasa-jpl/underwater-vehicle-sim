@@ -37,7 +37,7 @@ PointPathSimActionExecutor::PointPathSimActionExecutor(ros::NodeHandle nh, Vehic
 
 bool PointPathSimActionExecutor::execute(std::shared_ptr<PointPathAction> action)
 {
-	ROS_DEBUG("Execute point path action");
+	ROS_INFO("Execute point path action");
 
 	if(vehicleInfo.getPropModuleType() == "FourDOFPropulsion")
 	{
@@ -69,7 +69,7 @@ bool PointPathSimActionExecutor::execute(std::shared_ptr<PointPathAction> action
 	else
 	{
 		action->setState(Action::State::COMPLETED);
-		ROS_DEBUG("Point path action completed");
+		ROS_INFO("Point path action completed");
 	}
 	
 	lastUpdate = ros::Time::now();
@@ -110,7 +110,7 @@ void PointPathSimActionExecutor::cancel(std::shared_ptr<PointPathAction> action)
 	else
 	{
 		action->setState(Action::State::INTERRUPTED);
-		ROS_DEBUG("point path action interrupted");
+		ROS_INFO("point path action interrupted");
 	}
 
 }
@@ -138,24 +138,24 @@ void PointPathSimActionExecutor::actionDone(std::shared_ptr<PointPathAction> act
 		if(stateAfterCancel == Action::State::INTERRUPTED)
 		{
 			action->setState(Action::State::INTERRUPTED);
-			ROS_DEBUG("Point Path action interrupted");
+			ROS_INFO("Point Path action interrupted");
 		}
 		else if(stateAfterCancel == Action::State::FAILED)
 		{
 			action->setState(Action::State::FAILED);
-			ROS_DEBUG("Point Path action failed");
+			ROS_INFO("Point Path action failed");
 		}
 		else if(stateAfterCancel == Action::State::COMPLETED)
 		{
 			action->setState(Action::State::COMPLETED);
-			ROS_DEBUG("Point Path action completed");
+			ROS_INFO("Point Path action completed");
 		}
 	}
 	else if(state == actionlib::SimpleClientGoalState::REJECTED ||
 			state == actionlib::SimpleClientGoalState::ABORTED)
 	{
 		action->setState(Action::State::FAILED);
-		ROS_DEBUG("Point path action failed");
+		ROS_INFO("Point path action failed");
 	}
 	else if(state == actionlib::SimpleClientGoalState::SUCCEEDED)
 	{
@@ -164,7 +164,7 @@ void PointPathSimActionExecutor::actionDone(std::shared_ptr<PointPathAction> act
 		if(action->isDone())
 		{
 			action->setState(Action::State::COMPLETED);
-			ROS_DEBUG("Point path action completed");
+			ROS_INFO("Point path action completed");
 		}
 		else
 		{
@@ -199,13 +199,13 @@ void PointPathSimActionExecutor::sendNextGoToXYGoal(std::shared_ptr<underwater_a
 	goToXYGoal.x = point[0];
 	goToXYGoal.y = point[1];
 
-	ROS_DEBUG("Wait for goToXY server");
+	ROS_INFO("Wait for goToXY server");
 	//I'm not sure why we need this but it will just wait forever otherwise...seems like a bug in ros
 	while(!goToXYClient.waitForServer(ros::Duration(1)))
 	{
 		ros::spinOnce();
 	}
-	ROS_DEBUG("Send goal to goToXY server");
+	ROS_INFO("Send goal to goToXY server");
 	goToXYClient.sendGoal(goToXYGoal,
 							 boost::bind(&PointPathSimActionExecutor::actionDone, this, action, _1, _2),
 							 boost::bind(&PointPathSimActionExecutor::actionActive, this, action),
