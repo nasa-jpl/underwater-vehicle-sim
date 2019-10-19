@@ -12,7 +12,8 @@ class ROSSimPlanServer
 {
 public:
     ROSSimPlanServer(std::unique_ptr<underwater_autonomy::Planner> planner,
-                     ROSSimVehicleInterface& vehicleInterface);
+                     ROSSimVehicleInterface& vehicleInterface,
+                     int cancelTimeout);
     ROSSimPlanServer(ROSSimPlanServer&& other);
     ~ROSSimPlanServer() {}
 

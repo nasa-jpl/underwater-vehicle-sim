@@ -24,6 +24,7 @@ public:
     void registerDataCallback(std::function<void(const underwater_autonomy::PlannerData&)> cb) override;
 
     underwater_autonomy::VehiclePose getPosition() const override;
+    double getTime() const override;
 
 private:
     void receiveUSBLData(const underwater_vehicle_msgs::USBL::ConstPtr& usblData);

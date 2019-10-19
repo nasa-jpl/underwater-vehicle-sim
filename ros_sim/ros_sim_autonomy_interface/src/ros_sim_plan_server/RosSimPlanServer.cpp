@@ -10,10 +10,11 @@
 using namespace underwater_autonomy;
 
 ROSSimPlanServer::ROSSimPlanServer(std::unique_ptr<Planner> planner,
-                                   ROSSimVehicleInterface& vehicleInterface) :
+                                   ROSSimVehicleInterface& vehicleInterface,
+                                   int cancelTimeout) :
     planner(std::move(planner)),
     vehicleInterface(vehicleInterface),
-    planDispatcher(vehicleInterface)
+    planDispatcher(vehicleInterface, cancelTimeout)
 {
     ros::NodeHandle nh;
 

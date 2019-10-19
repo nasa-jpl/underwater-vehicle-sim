@@ -91,6 +91,11 @@ void ROSSimVehicleInterface::registerDataCallback(std::function<void(const Plann
     dataCallbacks.push_back(cb);
 }
 
+double ROSSimVehicleInterface::getTime() const
+{
+    return ros::Time::now().toSec();
+}
+
 void ROSSimVehicleInterface::receiveData(const underwater_vehicle_msgs::VehicleData::ConstPtr& msg)
 {
     double time = msg->time.toSec();
