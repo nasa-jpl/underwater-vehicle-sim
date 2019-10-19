@@ -69,6 +69,9 @@ int main(int argc, char **argv)
     ROSSimVehicleInterface interface(info);
     std::unique_ptr<Planner> planner;
 
+    int cancelTimeout = 60; //Default to one minute
+    nhPriv.getParam("cancel_timeout", cancelTimeout);
+
     if(plannerType == "SurfaceGradient")
     {
         SurfaceGradientVentPlanner::Parameters parameters;
@@ -249,7 +252,7 @@ int main(int argc, char **argv)
         planner.reset(new GoldenSelectionHomingPlanner(factory, interface, parameters));
     }
       
-    ROSSimPlanServer server(std::move(planner), interface);
+    ROSSimPlanServer server(std::move(planner), interface, cancelTimeout);
 
     // make a publisher to send planner status messages
     ros::Publisher plannerStatus_pub = nh.advertise<std_msgs::String>("plannerStatus", 1000);
