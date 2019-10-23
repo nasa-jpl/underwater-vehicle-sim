@@ -182,11 +182,11 @@ std::vector<std::vector<double>> ROSSimNavigationFilter::get2dArrayParam(ros::No
     {
         ROS_ASSERT(list.getType() == XmlRpc::XmlRpcValue::TypeArray);
 
-        for(unsigned int i = 0; i < list.size(); i++)
+        for(int i = 0; i < list.size(); i++)
         {
             ROS_ASSERT(list[i].getType() == XmlRpc::XmlRpcValue::TypeArray);
             returnList.push_back({});
-            for(unsigned int j = 0; j < list[i].size(); j++)
+            for(int j = 0; j < list[i].size(); j++)
             {
                 ROS_ASSERT(list[i][j].getType() == XmlRpc::XmlRpcValue::TypeDouble ||
                            list[i][j].getType() == XmlRpc::XmlRpcValue::TypeInt);
