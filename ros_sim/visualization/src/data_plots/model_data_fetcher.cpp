@@ -4,8 +4,6 @@
 #include "ocean_models/fvcom/FVCOM.h"
 
 #include "underwater_vehicle_msgs/VehicleData.h"
-//#include "underwater_vehicle_msgs/GetVehicleInfo.h"
-//#include "underwater_vehicle_msgs/msg/VehicleData.msg"
 
 #include <rosbag/bag.h>
 #include <rosbag/view.h>
@@ -15,6 +13,23 @@
 #include <fstream>
 #include <vector>
 #include <ctime>
+
+
+void startModelLoad()
+{
+    ;
+    //std_msgs::Float64 slowSim;
+    //slowSim.data = 1;
+    //clockSpeedPub.publish(slowSim);
+}
+
+void endModelLoad()
+{
+    ;
+    //std_msgs::Float64 startSim;
+    //startSim.data = speedUpFactor;
+    //clockSpeedPub.publish(startSim);
+}
 
 
 int main()
@@ -52,6 +67,15 @@ int main()
 
     ocean_models::FVCOM interface ("/home/dev/Documents/model-data/axial/");
 
+    std::unique_ptr<ocean_models::ModelInterface> model;
+
+    double modelTimeOffset = 0;
+    double modelXOffset = 0;
+    double modelYOffset = 0;
+
+    std::string fvcom_directory = "/home/dev/Documents/model-data/axial/";
+    model.reset(new ocean_models::FVCOM(fvcom_directory, &startModelLoad, &endModelLoad, 500, 500, 15, 10, 100));
+
     std::vector<double> zs;
 
     // make a vector of all valid depths
@@ -73,7 +97,9 @@ int main()
     {
         for(int j = 0; j<zs.size(); j++)
         {
-            dyeMatrix[i][j] = interface.getDataOutOfRange(xs[i], ys[i], zs[j], times[i].toSec()).dye;
+            //std::cout << interface.getDataOutOfRange(xs[i], ys[i], zs[j], times[i].toSec()) << "\n";
+            //dyeMatrix[i][j] = interface.getDataOutOfRange(xs[i], ys[i], zs[j], times[i].toSec()).dye;
+            dyeMatrix[i][j] = model->getDataOutOfRange(xs[i], ys[i], zs[j], times[i].toSec()).dye;
         }
     }
 
