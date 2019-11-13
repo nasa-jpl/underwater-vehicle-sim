@@ -168,18 +168,20 @@
 
         <rosparam param="operation_region_min_x">-11000</rosparam>
         <rosparam param="operation_region_min_y">-11000</rosparam>
-        <rosparam param="operation_region_min_z">0</rosparam>        
+        <rosparam param="operation_region_min_z">0</rosparam>
         <rosparam param="operation_region_max_x">11000</rosparam>
         <rosparam param="operation_region_max_y">11000</rosparam>
         <rosparam param="operation_region_max_z">4000</rosparam>
 
         <rosparam param="sonar_depth_enabled">true</rosparam>
         <rosparam param="sonar_data">sonar_depth</rosparam>
+        <rosparam param="gradient_descent_time">60.0</rosparam>
+
         <remap from="primary_navigation" to="nav_filters/true_nav" />
     </node>
 
     <param name="use_sim_time" value="true" />
-    <rosparam param="speed_up_factor">150</rosparam>
+    <rosparam param="speed_up_factor">50</rosparam>
     <rosparam param="sim_start_time">2592000</rosparam>
 
 <!--
@@ -187,7 +189,7 @@
     <rosparam param="model/depth">200</rosparam>
 -->
     <rosparam param="model_type">fvcom</rosparam>
-    <rosparam param="model/fvcom_directory" subst_value="True">/media/sf_underwater_ros_models/axial/</rosparam>
+    <rosparam param="model/fvcom_directory" subst_value="True">/home/dev/Documents/model-data/axial</rosparam>
 
 
     <node pkg="tf2_ros" type="static_transform_publisher" name="ned_publisher" args="0 0 0 1.57079632679 0 3.14159265359 world world_ned"/>

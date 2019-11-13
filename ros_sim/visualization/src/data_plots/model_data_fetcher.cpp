@@ -32,14 +32,20 @@ void endModelLoad()
 }
 
 
-int main()
+int main(int argc,      // Number of strings in array argv
+         char *argv[])   // Array of command-line argument strings)
 {
     // need to read in bag given by user
     rosbag::Bag bag;
-    bag.open("/home/dev/Desktop/Parallels\ Shared\ Folders/Home/Documents/ocean_worlds/ros_workspace/vehicleData_2019-11-01-12-49-44.bag");  // BagMode is Read by default
+    if(argc < 2)
+    {
+        std::cout << "Not enough args: provide bag path\n";
+        return 1;
+    }
+    bag.open(argv[1]);  // BagMode is Read by default
 
     int lower_limit = 2000;
-    lower_limit = 200;
+    
     int upper_limit = 100;
     std::string fileName = "out.csv";
 
@@ -47,11 +53,15 @@ int main()
     std::vector<double> ys;
     std::vector<ros::Time> times;
 
+    // take a sample, 1 out of every 10
+    int progress = 0;
+    std::cout << "Reading from bag\n";
     for(rosbag::MessageInstance const m: rosbag::View(bag))
     {
         underwater_vehicle_msgs::VehicleData::ConstPtr i = m.instantiate<underwater_vehicle_msgs::VehicleData>();
-        if (i != nullptr)
+        if (i != nullptr && (progress += 1) % 10 == 0)
         {
+            progress = 0;
             xs.push_back(i->x);
             ys.push_back(i->y);
             times.push_back(i->time);
@@ -79,7 +89,7 @@ int main()
     std::vector<double> zs;
 
     // make a vector of all valid depths
-    for(int i = upper_limit; i<=lower_limit; i++)
+    for(int i = upper_limit; i<=lower_limit; i += 10)
     {
         zs.push_back(double(i));
     }
@@ -97,24 +107,44 @@ int main()
     {
         for(int j = 0; j<zs.size(); j++)
         {
-            //std::cout << interface.getDataOutOfRange(xs[i], ys[i], zs[j], times[i].toSec()) << "\n";
-            //dyeMatrix[i][j] = interface.getDataOutOfRange(xs[i], ys[i], zs[j], times[i].toSec()).dye;
-            dyeMatrix[i][j] = model->getDataOutOfRange(xs[i], ys[i], zs[j], times[i].toSec()).dye;
+            try{
+                dyeMatrix[i][j] = model->getData(ys[i] + modelXOffset, xs[i] + modelYOffset,
+                                                -1*zs[j], times[i].toSec() + modelTimeOffset).dye;
+            }
+            catch(const std::out_of_range& e)
+            {
+                dyeMatrix[i][j] = model->getDataOutOfRange(ys[i] + modelXOffset, xs[i] + modelYOffset,
+                                                -1*zs[j], times[i].toSec() + modelTimeOffset).dye;
+            }
         }
     }
+
+    // the matrix is a mapping from (ZYT \cross Z) -> dye
+
+    std::cout << "Printing values to file\n" << std::flush;
 
     // output the contents of matrix as csv
     // open file
     std::ofstream outfile;
     outfile.open(fileName);
 
-    for(auto row: dyeMatrix)
+    // for(auto row: dyeMatrix)
+    // {
+    //     for(auto& dye: row)
+    //     {
+    //         outfile << dye << ",";
+    //     }
+    //     outfile << "\n";
+    // }
+
+    outfile << "x,y,z,time,dye\n";
+
+    for(int i = 0; i<xs.size(); i++)
     {
-        for(auto& dye: row)
+        for(int j = 0; j<zs.size(); j++)
         {
-            outfile << dye << ",";
+            outfile << xs[i] << "," << ys[i] << "," << zs[j] << "," << times[i] << "," << dyeMatrix[i][j] << "\n";
         }
-        outfile << "\n";
     }
 
     outfile.close();

@@ -143,6 +143,8 @@ int main(int argc, char **argv)
         nhPriv.getParam("sonar_data", parameters.sonarData);
         nhPriv.getParam("sonar_depth_enabled", parameters.sonarDepthEnabled);
 
+        nhPriv.getParam("gradient_descent_time", parameters.gradientDescentTime);
+
         planner.reset(new NestedBinVentPlanner(factory, interface, parameters));
     }
     else if(plannerType == "DirectionSet")
@@ -192,7 +194,7 @@ int main(int argc, char **argv)
         nhPriv.getParam("operation_region_max_x", maxX);
         nhPriv.getParam("operation_region_max_y", maxY);
         nhPriv.getParam("operation_region_max_z", maxZ);
-        
+
         parameters.operationRegion = std::unique_ptr<OperationRegion>(new BoxOperationRegion(minX, minY, minZ, maxX, maxY, maxZ));
 
         planner.reset(new DirectionSetVentPlanner(factory, interface, parameters));
@@ -208,15 +210,15 @@ int main(int argc, char **argv)
         nhPriv.getParam("waypoints_y", waypointsY);
         nhPriv.getParam("waypoints_z", waypointsZ);
 
-        if(waypointsX.size() != waypointsY.size() || 
+        if(waypointsX.size() != waypointsY.size() ||
           waypointsX.size() != waypointsZ.size())
         {
-            ROS_FATAL("Parameters \"%s/waypoints_x\", \"%s/waypoints_y\", and \"%s/waypoints_z\" must have the same size.", nhPriv.getNamespace().c_str(), 
-                                                                                                                            nhPriv.getNamespace().c_str(), 
+            ROS_FATAL("Parameters \"%s/waypoints_x\", \"%s/waypoints_y\", and \"%s/waypoints_z\" must have the same size.", nhPriv.getNamespace().c_str(),
+                                                                                                                            nhPriv.getNamespace().c_str(),
                                                                                                                             nhPriv.getNamespace().c_str());
             exit(1);
         }
-        
+
         for(unsigned int i = 0; i < waypointsX.size(); i++)
         {
             parameters.waypoints.push_back(Eigen::Vector3d(waypointsX[i], waypointsY[i], waypointsZ[i]));
@@ -251,7 +253,7 @@ int main(int argc, char **argv)
 
         planner.reset(new GoldenSelectionHomingPlanner(factory, interface, parameters));
     }
-      
+
     ROSSimPlanServer server(std::move(planner), interface, cancelTimeout);
 
     // make a publisher to send planner status messages
