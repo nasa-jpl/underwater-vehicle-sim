@@ -38,8 +38,10 @@ def main(bagName, phase = "None", model = False):
 
 	if model:
 		# in python3, this is subprocess.run()
-		subprocess.call(["./devel/lib/visualization/visualization_MODEL_FETCHER", bagName])
+		#subprocess.call(["./devel/lib/visualization/visualization_MODEL_FETCHER", bagName])
 		df = pd.read_csv("out.csv")
+
+		print("Read data, analyzing")
 
 		maximum = df.loc[df.groupby(['time'])['dye'].idxmax()]
 		modelTimes = maximum['time']
@@ -47,6 +49,18 @@ def main(bagName, phase = "None", model = False):
 		modelDyeMax = maximum['dye']
 
 		plt.plot(modelTimes, modelHeight, c='y')
+
+		maxPlumeHeights = df.loc[df[df['dye'] >= 0.2].groupby('time')['z'].idxmax()]
+		modelTimes = maxPlumeHeights['time']
+		modelHeight = maxPlumeHeights['z']
+
+		plt.plot(modelTimes, modelHeight, c='r')
+
+		maxPlumeHeights = df.loc[df[df['dye'] >= 0.2].groupby('time')['z'].idxmin()]
+		modelTimes = maxPlumeHeights['time']
+		modelHeight = maxPlumeHeights['z']
+
+		plt.plot(modelTimes, modelHeight, c='k')
 
 	plt.scatter(time, z, c=np.log2(dye), linewidth=0, cmap="plasma")
 	plt.scatter(time, seaFloor, linewidth=0, cmap="plasma")
