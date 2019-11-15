@@ -38,7 +38,7 @@ def main(bagName, phase = "None", model = False):
 
 	if model:
 		# in python3, this is subprocess.run()
-		#subprocess.call(["./devel/lib/visualization/visualization_MODEL_FETCHER", bagName])
+		subprocess.call(["./devel/lib/visualization/visualization_MODEL_FETCHER", bagName])
 		df = pd.read_csv("out.csv")
 
 		print("Read data, analyzing")
