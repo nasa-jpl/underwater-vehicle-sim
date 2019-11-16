@@ -50,13 +50,13 @@ def main(bagName, phase = "None", model = False):
 
 		plt.plot(modelTimes, modelHeight, c='y')
 
-		maxPlumeHeights = df.loc[df[df['dye'] >= 0.2].groupby('time')['z'].idxmax()]
+		maxPlumeHeights = df.loc[df[df['dye'] >= 2].groupby('time')['z'].idxmax()]
 		modelTimes = maxPlumeHeights['time']
 		modelHeight = maxPlumeHeights['z']
 
 		plt.plot(modelTimes, modelHeight, c='r')
 
-		maxPlumeHeights = df.loc[df[df['dye'] >= 0.2].groupby('time')['z'].idxmin()]
+		maxPlumeHeights = df.loc[df[df['dye'] >= 2].groupby('time')['z'].idxmin()]
 		modelTimes = maxPlumeHeights['time']
 		modelHeight = maxPlumeHeights['z']
 
