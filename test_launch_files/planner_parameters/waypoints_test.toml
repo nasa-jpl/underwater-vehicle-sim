@@ -1,0 +1,9 @@
+planner_type = "Waypoints"
+
+waypoints_x = [1000, 1000, 0, 0]
+waypoints_y = [0, 1000, 1000, 0]
+waypoints_z = [200, 200, 200, 200]
+
+yoyo = true
+upper_depth = 10
+lower_depth = 100

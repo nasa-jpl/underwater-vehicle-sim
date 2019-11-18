@@ -1,14 +1,14 @@
 import rosbag
 import sys
 import matplotlib.pyplot as plt
-import matplotlib.colors
+import math
 
 # phase should be "SPIRAL", "LAWNMOWER", "DYNAMIC_LAWNMOWER", "OTHER", or "UNSET" (if unimplemented)
 def main(bagName, phase = "None"):
 	bag = rosbag.Bag(bagName)
+	x = []
 	time = []
-	dye = []
-	z = []
+	y = []
 	inPhase = False
 	takeAll = False
 
@@ -23,15 +23,14 @@ def main(bagName, phase = "None"):
 				inPhase = False
 		else:
 			if takeAll or inPhase:
+				x.append(msg.y)
+				y.append(msg.x)
 				time.append(msg.time.to_sec())
-				dye.append(msg.dye)
-				z.append(msg.h)
 
 	bag.close()
-
-	dye = [max(d, 0.1) for d in dye]
-	plt.scatter(time, z, c=dye, linewidth=0, cmap="plasma", norm=matplotlib.colors.LogNorm(vmin=min(dye), vmax=max(dye)))
-	plt.gca().invert_yaxis()
+	
+#	plt.scatter(x, y, linewidth=0)
+	plt.scatter(x, y, c=time, linewidth=0, cmap="plasma")
 	plt.show()
 
 if __name__ == "__main__":

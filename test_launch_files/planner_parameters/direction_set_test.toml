@@ -1,0 +1,32 @@
+planner_type = "DirectionSet"
+
+spiral_spacing = 5000
+
+detection_threshold = 2.0
+target_horizontal_velocity = 1
+
+data_depth_range = 100
+
+yoyo_during_sprial = true
+yoyo_min_depth = 100
+yoyo_max_depth = 2000
+
+spiral_start_x = -1432.16016854
+spiral_start_y = -1054.18858199
+spiral_start_z = 0
+
+min_leg_length = 100
+max_leg_length = 1500
+
+new_max_threshold = 100
+leg_section_length = 50
+num_sections_threshold = 3
+
+target_data = "plume"
+
+operation_region.min.x = -11000
+operation_region.min.y = -11000
+operation_region.min.z = 0        
+operation_region.max.x = 11000
+operation_region.max.y = 11000
+operation_region.max.z = 4000
