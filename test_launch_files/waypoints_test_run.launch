@@ -165,13 +165,9 @@
 
     <!--Autonomy-->
     <node pkg="ros_sim_autonomy_interface" type="ros_sim_plan_server_node" name="ros_sim_plan_server" ns="v1" output="screen" >
-        <rosparam param="type">Waypoints</rosparam>
+        <param name="planner_config_file" value="$(dirname)/planner_parameters/waypoints_test.toml"/>
+
         <rosparam param="hertz">1</rosparam>
-
-        <rosparam param="waypoints_x">[1000, 1000, 0, 0]</rosparam>
-        <rosparam param="waypoints_y">[0, 1000, 1000, 0]</rosparam>
-        <rosparam param="waypoints_z">[200, 200, 200, 200]</rosparam>
-
         <remap from="primary_navigation" to="nav_filters/true_nav" />
     </node>
 
