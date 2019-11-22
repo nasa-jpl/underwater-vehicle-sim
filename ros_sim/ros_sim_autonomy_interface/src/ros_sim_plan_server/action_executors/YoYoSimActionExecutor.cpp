@@ -121,7 +121,7 @@ void YoYoSimActionExecutor::monitor(std::shared_ptr<underwater_autonomy::YoYoAct
 	currentDuration += currentTime - lastUpdate;
 	lastUpdate = currentTime;
 
-	if(gotCompleteCallback)
+	if(gotCompleteCallback && action->getState() == Action::State::EXECUTING)
 	{
 		gotCompleteCallback = false;
 
@@ -162,7 +162,8 @@ void YoYoSimActionExecutor::monitor(std::shared_ptr<underwater_autonomy::YoYoAct
 
 void YoYoSimActionExecutor::sendNewGoToZGoal(std::shared_ptr<underwater_autonomy::YoYoAction> action)
 {
-	//ROS_INFO("SEND_Z");
+	//Reset got complete callback
+	gotCompleteCallback = false;
 	underwater_vehicle_msgs::GoToZ goToZMsg;
 	if(action->getGoingUp())
 	{

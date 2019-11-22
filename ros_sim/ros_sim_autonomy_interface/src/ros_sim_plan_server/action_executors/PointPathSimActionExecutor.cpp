@@ -14,9 +14,6 @@
 #include "ros_sim_plan_server/action_executors/PointPathSimActionExecutor.h"
 #include "underwater_autonomy/planner/actions/PointPathAction.h"
 
-#include "actionlib/client/simple_action_client.h"
-#include "vehicle_auto_control/GoToXYRosAction.h"
-
 using namespace underwater_autonomy;
 
 PointPathSimActionExecutor::PointPathSimActionExecutor(VehicleInfo& vehicleInfo) :
@@ -96,7 +93,7 @@ void PointPathSimActionExecutor::monitor(std::shared_ptr<underwater_autonomy::Po
 	currentDuration += currentTime - lastUpdate;
 	lastUpdate = currentTime;
 
-	if(gotCompleteCallback)
+	if(gotCompleteCallback && action->getState() == Action::State::EXECUTING)
 	{
 		gotCompleteCallback = false;
 		action->reachedTargetPoint();
@@ -129,12 +126,13 @@ void PointPathSimActionExecutor::monitor(std::shared_ptr<underwater_autonomy::Po
 
 void PointPathSimActionExecutor::cancel(std::shared_ptr<PointPathAction> action)
 {
+	action->setState(Action::State::INTERRUPTED);
+	action->setInterruptPoint(currentPose.getPosition());
+
 	std_msgs::Bool enableMsg;
 	enableMsg.data = false;
 	goToXYEnablePub.publish(enableMsg);
 
-	action->setState(Action::State::INTERRUPTED);
-	action->setInterruptPoint(currentPose.getPosition());
 	ROS_INFO("point path action interrupted");
 }
 
@@ -161,6 +159,9 @@ void PointPathSimActionExecutor::goToXYCompleteCallback(const std_msgs::Bool com
 
 void PointPathSimActionExecutor::sendNextGoToXYGoal(std::shared_ptr<underwater_autonomy::PointPathAction> action)
 {
+	//Reset the gotCompleteCallback as this might have tripped on previous actions
+	gotCompleteCallback = false;
+
 	Eigen::Vector3d point = action->getCurrentTargetPoint();
 	underwater_vehicle_msgs::GoToXY goToXYMsg;
 	goToXYMsg.x = point[0];

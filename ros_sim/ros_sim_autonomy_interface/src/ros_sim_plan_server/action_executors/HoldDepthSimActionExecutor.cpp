@@ -74,6 +74,8 @@ bool HoldDepthSimActionExecutor::execute(std::shared_ptr<HoldDepthAction> action
 	}
 
 	//Send message to Go To Z Controller
+	//Reset complete callback
+	gotCompleteCallback = false;
 	underwater_vehicle_msgs::GoToZ goToZMsg;
 	goToZMsg.depth = action->getDepth();
 	goToZMsg.enable = true;
@@ -122,7 +124,7 @@ void HoldDepthSimActionExecutor::monitor(std::shared_ptr<underwater_autonomy::Ho
 	currentDuration += currentTime - lastUpdate;
 	lastUpdate = currentTime;
 
-	if(gotCompleteCallback)
+	if(gotCompleteCallback && action->getState() == Action::State::EXECUTING)
 	{
 		gotCompleteCallback = false;
 

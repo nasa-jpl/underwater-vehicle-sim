@@ -142,7 +142,7 @@
     </node>
 
     <!--Autonomy-->
-    <node pkg="ros_sim_autonomy_interface" type="ros_sim_plan_server_node" name="ros_sim_plan_server" ns="v1" output="screen" >
+    <node pkg="ros_sim_autonomy_interface" type="ros_sim_plan_server_node" name="ros_sim_plan_server" ns="v1"  output="screen">
         <rosparam param="type">NestedBin</rosparam>
         <rosparam param="hertz">1</rosparam>
         <rosparam param="spiral_spacing">5000</rosparam>
@@ -181,7 +181,7 @@
     </node>
 
     <param name="use_sim_time" value="true" />
-    <rosparam param="speed_up_factor">10</rosparam>
+    <rosparam param="speed_up_factor">50</rosparam>
     <rosparam param="sim_start_time">2592000</rosparam>
 
 <!--
@@ -189,8 +189,8 @@
     <rosparam param="model/depth">200</rosparam>
 -->
     <rosparam param="model_type">fvcom</rosparam>
-    <rosparam param="model/fvcom_directory" subst_value="True">/home/dev/Documents/model-data/axial</rosparam>
-
+   <!-- <rosparam param="model/fvcom_directory" subst_value="True">/home/dev/proj/axial/</rosparam>-->
+    <rosparam param="model/fvcom_directory" subst_value="True">/home/dev/proj/axial/</rosparam>
 
     <node pkg="tf2_ros" type="static_transform_publisher" name="ned_publisher" args="0 0 0 1.57079632679 0 3.14159265359 world world_ned"/>
     <node pkg="underwater_vehicle_sim" type="clock_server_node" name="clock_server" output="screen"/>

@@ -72,7 +72,9 @@ bool FollowHeadingSimActionExecutor::execute(std::shared_ptr<FollowHeadingAction
 		return false;
 	}
 
-	//Send message to Go To Z Controller
+	//Send message to Follow Heading Controller
+	//Reset complete callback
+	gotCompleteCallback = false;
 	underwater_vehicle_msgs::FollowHeading followHeadingMsg;
 	followHeadingMsg.heading = action->getHeading();
 	followHeadingMsg.enable = true;
@@ -120,7 +122,7 @@ void FollowHeadingSimActionExecutor::monitor(std::shared_ptr<underwater_autonomy
 	currentDuration += currentTime - lastUpdate;
 	lastUpdate = currentTime;
 
-	if(gotCompleteCallback)
+	if(gotCompleteCallback && action->getState() == Action::State::EXECUTING)
 	{
 		gotCompleteCallback = false;
 

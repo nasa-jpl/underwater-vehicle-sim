@@ -17,10 +17,6 @@
 
 #include "underwater_vehicle_msgs/VehicleInfo.h"
 
-#include "actionlib/client/simple_action_client.h"
-#include "vehicle_auto_control/GoToXYRosAction.h"
-
-
 class PointPathSimActionExecutor : public underwater_autonomy::ActionExecutor<underwater_autonomy::PointPathAction>
 {
 public:

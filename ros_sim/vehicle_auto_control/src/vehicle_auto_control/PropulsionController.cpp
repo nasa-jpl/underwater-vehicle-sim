@@ -79,12 +79,12 @@ void PropulsionController::update(void)
 
 void PropulsionController::goToXYCallback(const underwater_vehicle_msgs::GoToXY parameters)
 {
+	logicController->setTargetXY(parameters.x, parameters.y);
 	goToXYEnable = parameters.enable;
 	if(goToXYEnable)
 	{
 		followHeadingEnable = false;
 	}
-	logicController->setTargetXY(parameters.x, parameters.y);
 }
 
 void PropulsionController::goToXYEnableCallback(const std_msgs::Bool enable)

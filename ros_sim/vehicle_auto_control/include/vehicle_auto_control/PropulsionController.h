@@ -5,7 +5,6 @@
 #include <vector>
 
 #include "ros/ros.h"
-#include "actionlib/server/simple_action_server.h"
 
 #include "nav_msgs/Odometry.h"
 #include "geometry_msgs/Twist.h"
@@ -22,8 +21,6 @@
 #include "underwater_vehicle_msgs/GoToZ.h"
 #include "underwater_vehicle_msgs/GoToXY.h"
 #include "underwater_vehicle_msgs/FollowHeading.h"
-
-#include "vehicle_auto_control/FollowHeadingRosAction.h"
 
 #include "underwater_autonomy/util/VehiclePose.h"
 
