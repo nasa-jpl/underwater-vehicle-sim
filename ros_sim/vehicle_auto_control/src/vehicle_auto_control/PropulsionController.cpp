@@ -2,7 +2,6 @@
 
 #include "tf2_geometry_msgs/tf2_geometry_msgs.h"
 
-#include "vehicle_auto_control/VehicleController.h"
 #include "vehicle_auto_control/FourDOFPropulsionLogic.h"
 
 #include "underwater_vehicle_msgs/GetVehicleInfo.h"
@@ -14,12 +13,11 @@ PropulsionController::PropulsionController(VehicleInfo& info) :
 PropulsionController::PropulsionController(ros::NodeHandle nh, VehicleInfo& info, std::unique_ptr<PropulsionLogicInterface> logicController) :
 	nh(nh),
 	info(info),
-	listener(buffer),
 	logicController(std::move(logicController)),
-	goToXYServer(nh, "go_to_xy", false),
-	goToZServer(nh, "go_to_z", false),
-	followHeadingServer(nh, "follow_heading", false),
-	holdAtZ(false)
+	goToZEnable(false),
+	goToZHoldDepth(false),
+	goToXYEnable(false),
+	followHeadingEnable(false)
 {
 	std::vector<std::string> dataModuleNames = info.getModuleNamesOfType("DataBroadcaster");
 	if(dataModuleNames.size() > 0)
@@ -27,21 +25,24 @@ PropulsionController::PropulsionController(ros::NodeHandle nh, VehicleInfo& info
 		//default to using first module of type DataBroadcaster if more than 1 exists
         dataSub = nh.subscribe(dataModuleNames[0] + "/data", 1, &PropulsionController::getVehicleData, this);
     }
-
+	
     velSub = nh.subscribe("command_target_velocity", 10, &PropulsionController::getTargetVelocityCommand, this);
 	poseSub = nh.subscribe("primary_navigation", 1, &PropulsionController::navigationFilterCallback, this);
 
-	goToXYServer.registerGoalCallback(boost::bind(&PropulsionController::goalGoToXYCB, this));
-    goToXYServer.registerPreemptCallback(boost::bind(&PropulsionController::preemptGoToXYCB, this));
- 	goToXYServer.start();
+	//Go To Z Topics
+	goToZSub = nh.subscribe("go_to_z", 10, &PropulsionController::goToZCallback, this);
+	goToZEnableSub = nh.subscribe("go_to_z_enable", 10, &PropulsionController::goToZEnableCallback, this);
+	goToZComplete = nh.advertise<std_msgs::Bool>("go_to_z_complete", 1000);
 
-    goToZServer.registerGoalCallback(boost::bind(&PropulsionController::goalGoToZCB, this));
-    goToZServer.registerPreemptCallback(boost::bind(&PropulsionController::preemptGoToZCB, this));
-	goToZServer.start();
+	//Go To XY Topics
+	goToXYSub = nh.subscribe("go_to_xy", 10, &PropulsionController::goToXYCallback, this);
+	goToXYEnableSub = nh.subscribe("go_to_xy_enable", 10, &PropulsionController::goToXYEnableCallback, this);
+	goToXYComplete = nh.advertise<std_msgs::Bool>("go_to_xy_complete", 1000);
 
-	followHeadingServer.registerGoalCallback(boost::bind(&PropulsionController::goalFollowHeadingCB, this));
-    followHeadingServer.registerPreemptCallback(boost::bind(&PropulsionController::preemptFollowHeadingCB, this));
-	followHeadingServer.start();
+	//Go To XY Topics
+	followHeadingSub = nh.subscribe("follow_heading", 10, &PropulsionController::followHeadingCallback, this);
+	followHeadingEnableSub = nh.subscribe("follow_heading_enable", 10, &PropulsionController::followHeadingEnableCallback, this);
+	followHeadingComplete = nh.advertise<std_msgs::Bool>("follow_heading_complete", 1000);
 }
 
 void PropulsionController::getTargetVelocityCommand(const geometry_msgs::Twist vel)
@@ -57,20 +58,18 @@ void PropulsionController::getVehicleData(const underwater_vehicle_msgs::Vehicle
 void PropulsionController::update(void)
 {
 	//Only allow one type of XY commanding at a time.
-	if(goToXYServer.isActive())
+	if(goToXYEnable)
     {
         goToXYUpdate();
     }
-	else if(followHeadingServer.isActive())
+	else if(followHeadingEnable)
     {
         followHeadingUpdate();
-       
     }
 
-    if(goToZServer.isActive())
+    if(goToZEnable)
     {
         goToZUpdate();
-
     }
 	else
 	{
@@ -78,46 +77,41 @@ void PropulsionController::update(void)
 	}
 }
 
-/**
-* Accepts new goals for the GoToXY SimpleActionServer
-*/ 
-void PropulsionController::goalGoToXYCB(void)
+void PropulsionController::goToXYCallback(const underwater_vehicle_msgs::GoToXY parameters)
 {
-	logicController->stopXY();
-	if(followHeadingServer.isActive())
+	goToXYEnable = parameters.enable;
+	if(goToXYEnable)
 	{
-		followHeadingServer.setAborted();
+		followHeadingEnable = false;
 	}
-
-    vehicle_auto_control::GoToXYRosGoalConstPtr goToXYGoal = goToXYServer.acceptNewGoal();
-    
-	goToXYStart = ros::Time::now();
-	logicController->setTargetXY(goToXYGoal->x, goToXYGoal->y);
-    ROS_DEBUG("GoToXY server accepted a new goal - x:%f y:%f", goToXYGoal->x, goToXYGoal->y);
+	logicController->setTargetXY(parameters.x, parameters.y);
 }
 
-void PropulsionController::preemptGoToXYCB(void)
+void PropulsionController::goToXYEnableCallback(const std_msgs::Bool enable)
 {
-	logicController->stopXY();
-    goToXYServer.setPreempted();
+	if(enable.data)
+	{
+		goToXYEnable = true;
+		followHeadingEnable = false;
+	}
+	else
+	{
+		logicController->stopXY();
+		goToXYEnable = false;
+	}
 }
 
 void PropulsionController::goToXYUpdate(void)
 {	
-	vehicle_auto_control::GoToXYRosFeedback feedback;
-	feedback.x = currentPose.getPosition()[0];
-	feedback.y = currentPose.getPosition()[1];
-	goToXYServer.publishFeedback(feedback);
-
 	if(logicController->isAtXY(currentPose))
 	{
 		logicController->stopXY();
+		goToXYEnable = false;
 
-		vehicle_auto_control::GoToXYRosResult result;
-		result.x = currentPose.getPosition()[0];
-		result.y = currentPose.getPosition()[1];
-		goToXYServer.setSucceeded(result);
-		ROS_DEBUG("GoToXY Server goal completed: %f %f", result.x, result.y);
+		std_msgs::Bool completeMsg;
+		completeMsg.data = true;
+		goToXYComplete.publish(completeMsg);
+		ROS_DEBUG("GoToXY goal completed");
 	}
 	else
 	{
@@ -125,69 +119,66 @@ void PropulsionController::goToXYUpdate(void)
 	}
 }
 
-void PropulsionController::goalFollowHeadingCB(void)
+void PropulsionController::followHeadingCallback(const underwater_vehicle_msgs::FollowHeading parameters)
 {
-	logicController->stopXY();
-	if(goToXYServer.isActive())
+	followHeadingEnable = parameters.enable;
+	if(followHeadingEnable)
 	{
-		goToXYServer.setAborted();
+		goToXYEnable = false;
 	}
-
-	vehicle_auto_control::FollowHeadingRosGoalConstPtr followHeadingGoal = followHeadingServer.acceptNewGoal();
-
-	followHeadingStart = ros::Time::now();
-	logicController->setFollowHeading(followHeadingGoal->heading);
-
-    ROS_INFO("FollowHeading server accepted a new goal - heading: %f", followHeadingGoal->heading);
+	logicController->setFollowHeading(parameters.heading);
 }
 
-void PropulsionController::preemptFollowHeadingCB(void)
+void PropulsionController::followHeadingEnableCallback(const std_msgs::Bool enable)
 {
-	logicController->stopXY();
-	
-	followHeadingServer.setPreempted();
+	if(enable.data)
+	{
+		followHeadingEnable = true;
+		goToXYEnable = false;
+	}
+	else
+	{
+		logicController->stopXY();
+		followHeadingEnable = false;
+	}
 }
 
 void PropulsionController::followHeadingUpdate(void)
-{
+{	
 	logicController->followHeading(currentPose);
 }
 
-/**
-* Accepts new goals for the GoToZ SimpleActionServer
-*/ 
-void PropulsionController::goalGoToZCB(void)
+void PropulsionController::goToZCallback(const underwater_vehicle_msgs::GoToZ parameters)
 {
-	logicController->stopZ();
-    vehicle_auto_control::GoToZRosGoalConstPtr goToZGoal = goToZServer.acceptNewGoal();
-
-	goToZStart = ros::Time::now();
-	logicController->setTargetZ(goToZGoal->z);
-	holdAtZ = goToZGoal->holdDepth;
-
-    ROS_INFO("GoToZ server accepted a new goal - z: %f", goToZGoal->z);
+	goToZHoldDepth = parameters.holdDepth;
+	goToZEnable = parameters.enable;
+	logicController->setTargetZ(parameters.depth);
 }
 
-void PropulsionController::preemptGoToZCB(void)
+void PropulsionController::goToZEnableCallback(const std_msgs::Bool enable)
 {
-	logicController->stopZ();
-
-    goToZServer.setPreempted();
+	if(enable.data)
+	{
+		goToZEnable = true;
+	}
+	else
+	{
+		logicController->stopZ();
+		goToZEnable = false;
+	}
 }
 
 void PropulsionController::goToZUpdate(void)
 {
-	vehicle_auto_control::GoToZRosFeedback feedback;
-    feedback.z = currentPose.getPosition()[2];
-    goToZServer.publishFeedback(feedback);
-
-	if(logicController->isAtZ(currentPose) && !holdAtZ)
+	if(logicController->isAtZ(currentPose) && !goToZHoldDepth)
 	{
 		logicController->stopZ();
-		vehicle_auto_control::GoToZRosResult result;
-        result.z = currentPose.getPosition()[2];
-        goToZServer.setSucceeded(result); 
-		ROS_DEBUG("GoToZ Server goal completeted: %f", result.z);
+		goToZEnable = false;
+
+		std_msgs::Bool completeMsg;
+		completeMsg.data = true;
+		goToZComplete.publish(completeMsg);
+		ROS_DEBUG("GoToZ goal completed");
 	}
 	else
 	{

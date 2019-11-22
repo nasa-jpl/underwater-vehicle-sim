@@ -4,7 +4,7 @@ set(CMAKE_BUILD_TYPE Debug)
 set(CMAKE_VERBOSE_MAKEFILE ON)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
-# add_compile_options(-std=c++11)
+add_compile_options(-std=c++11)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
@@ -153,9 +153,10 @@ add_executable(${PROJECT_NAME}_MODEL_FETCHER src/data_plots/model_data_fetcher.c
 add_dependencies(${PROJECT_NAME}_MODEL_FETCHER ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
+target_include_directories(${PROJECT_NAME}_MODEL_FETCHER PRIVATE ${OCEAN_MODELS_INCLUDE})
 target_link_libraries(${PROJECT_NAME}_MODEL_FETCHER
   ${catkin_LIBRARIES}
-  ocean_models
+  ${OCEAN_MODELS_LIB}
   underwater_vehicle_msgs
 )
 

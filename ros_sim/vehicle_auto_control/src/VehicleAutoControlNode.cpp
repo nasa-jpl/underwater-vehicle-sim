@@ -1,6 +1,6 @@
 #include "ros/ros.h"
 
-#include "vehicle_auto_control/VehicleController.h"
+#include "vehicle_auto_control/PropulsionController.h"
 
 int main(int argc, char **argv)
 {
@@ -15,12 +15,24 @@ int main(int argc, char **argv)
         exit(1);
     }
 
-    VehicleController controller;
+    std::unique_ptr<PropulsionController> controller;
+
+    ros::ServiceClient infoClient = nh.serviceClient<underwater_vehicle_msgs::GetVehicleInfo>("get_info");
+	infoClient.waitForExistence();
+
+	underwater_vehicle_msgs::GetVehicleInfo info;
+	infoClient.call(info);
+	VehicleInfo vehicleInfo(info);
+
+	if(vehicleInfo.getPropModuleType() != "")
+	{
+		controller.reset(new PropulsionController(vehicleInfo));
+	}
 
     ros::Rate loop(loopHertz);
     while(ros::ok())
     {
-        controller.update();
+        controller->update();
         ros::spinOnce();
         loop.sleep();
     }

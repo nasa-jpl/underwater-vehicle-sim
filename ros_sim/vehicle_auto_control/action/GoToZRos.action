@@ -1,9 +1,0 @@
-#goal definition
-float64 z
-bool holdDepth #hold this depth until the timeout or until cancelled
----
-#result definition
-float64 z
----
-#feedback
-float64 z

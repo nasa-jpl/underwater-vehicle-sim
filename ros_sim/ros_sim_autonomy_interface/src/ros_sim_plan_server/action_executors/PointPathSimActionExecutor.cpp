@@ -5,6 +5,7 @@
 
 #include "geometry_msgs/Point.h"
 #include "geometry_msgs/Twist.h"
+#include "underwater_vehicle_msgs/GoToXY.h"
 
 #include "tf2_geometry_msgs/tf2_geometry_msgs.h"
 
@@ -24,15 +25,16 @@ PointPathSimActionExecutor::PointPathSimActionExecutor(VehicleInfo& vehicleInfo)
 
 PointPathSimActionExecutor::PointPathSimActionExecutor(ros::NodeHandle nh, VehicleInfo& vehicleInfo) :
 	vehicleInfo(vehicleInfo),
-	goToXYClient(nh, "go_to_xy", false),
 	replanNextUpdate(false),
 	lastReplan(ros::Time::now()),
-	distanceSinceReplan(0),
-	stateAfterCancel(Action::State::INTERRUPTED),
-	listener(buffer)
+	distanceSinceReplan(0)
 {
 	velPub = nh.advertise<geometry_msgs::Twist>("command_target_velocity", 1000, true);
 	poseSub = nh.subscribe("primary_navigation", 1, &PointPathSimActionExecutor::navigationFilterCallback, this);
+
+	goToXYPub = nh.advertise<underwater_vehicle_msgs::GoToXY>("go_to_xy", 1000);
+	goToXYEnablePub = nh.advertise<std_msgs::Bool>("go_to_xy_enable", 1000);
+	goToXYComplete = nh.subscribe("go_to_xy_complete", 1, &PointPathSimActionExecutor::goToXYCompleteCallback, this);
 }
 
 bool PointPathSimActionExecutor::execute(std::shared_ptr<PointPathAction> action)
@@ -61,10 +63,21 @@ bool PointPathSimActionExecutor::execute(std::shared_ptr<PointPathAction> action
 		return false;
 	}
 
+	//Check that we have someone listening to us
+	ros::WallTime time = ros::WallTime::now();
+	while(goToXYPub.getNumSubscribers() == 0 &&
+		  ros::WallTime::now() - time < ros::WallDuration(5)) {ros::WallDuration(1).sleep();}
+	if(goToXYPub.getNumSubscribers() == 0)
+	{
+		return false;
+	}
+
+
 	//Creates an action goal and sends it to the action server for point path movement
 	if(!action->isDone())
 	{
 		sendNextGoToXYGoal(action);
+		action->setState(Action::State::EXECUTING);
 	}
 	else
 	{
@@ -83,16 +96,32 @@ void PointPathSimActionExecutor::monitor(std::shared_ptr<underwater_autonomy::Po
 	currentDuration += currentTime - lastUpdate;
 	lastUpdate = currentTime;
 
-	if(action->getTimeout() >= 0 && currentDuration.toSec() >= action->getTimeout())
+	if(gotCompleteCallback)
 	{
-		//We need to cancel the action lib but still what to set the underwater autonomy action as failed
-		stateAfterCancel = Action::State::FAILED;
-		goToXYClient.cancelGoal();
+		gotCompleteCallback = false;
+		action->reachedTargetPoint();
+		if(action->isDone())
+		{
+			action->setState(Action::State::COMPLETED);
+			ROS_INFO("Point path action completed");
+		}
+		else
+		{
+			sendNextGoToXYGoal(action);
+		}
+	}
+	else if(action->getTimeout() >= 0 && currentDuration.toSec() >= action->getTimeout())
+	{
+		action->setState(Action::State::FAILED);
+		std_msgs::Bool enableMsg;
+		enableMsg.data = false;
+		goToXYEnablePub.publish(enableMsg);
 	}
 
 	if(!replanNextUpdate)
 	{
-		replanNextUpdate = action->doReplan(false,
+		bool replan = !action->getDoInterruptPoint();
+		replanNextUpdate = action->doReplan(replan,
 											(ros::Time::now() - lastReplan).toSec(),
 											distanceSinceReplan);
 	}
@@ -100,19 +129,13 @@ void PointPathSimActionExecutor::monitor(std::shared_ptr<underwater_autonomy::Po
 
 void PointPathSimActionExecutor::cancel(std::shared_ptr<PointPathAction> action)
 {
+	std_msgs::Bool enableMsg;
+	enableMsg.data = false;
+	goToXYEnablePub.publish(enableMsg);
+
+	action->setState(Action::State::INTERRUPTED);
 	action->setInterruptPoint(currentPose.getPosition());
-
-	if(goToXYClient.getState() == actionlib::SimpleClientGoalState::PENDING ||
-	   goToXYClient.getState() == actionlib::SimpleClientGoalState::ACTIVE)
-	{
-		goToXYClient.cancelAllGoals();
-	}
-	else
-	{
-		action->setState(Action::State::INTERRUPTED);
-		ROS_INFO("point path action interrupted");
-	}
-
+	ROS_INFO("point path action interrupted");
 }
 
 bool PointPathSimActionExecutor::triggerReplan(std::shared_ptr<PointPathAction> action)
@@ -128,88 +151,23 @@ bool PointPathSimActionExecutor::triggerReplan(std::shared_ptr<PointPathAction> 
 	return false;
 }
 
-void PointPathSimActionExecutor::actionDone(std::shared_ptr<PointPathAction> action,
-					const actionlib::SimpleClientGoalState& state,
-                	const vehicle_auto_control::GoToXYRosResultConstPtr& result)
+void PointPathSimActionExecutor::goToXYCompleteCallback(const std_msgs::Bool complete)
 {
-	if(state == actionlib::SimpleClientGoalState::RECALLED ||
-	   state == actionlib::SimpleClientGoalState::PREEMPTED)
+	if(complete.data)
 	{
-		if(stateAfterCancel == Action::State::INTERRUPTED)
-		{
-			action->setState(Action::State::INTERRUPTED);
-			ROS_INFO("Point Path action interrupted");
-		}
-		else if(stateAfterCancel == Action::State::FAILED)
-		{
-			action->setState(Action::State::FAILED);
-			ROS_INFO("Point Path action failed");
-		}
-		else if(stateAfterCancel == Action::State::COMPLETED)
-		{
-			action->setState(Action::State::COMPLETED);
-			ROS_INFO("Point Path action completed");
-		}
-	}
-	else if(state == actionlib::SimpleClientGoalState::REJECTED ||
-			state == actionlib::SimpleClientGoalState::ABORTED)
-	{
-		action->setState(Action::State::FAILED);
-		ROS_INFO("Point path action failed");
-	}
-	else if(state == actionlib::SimpleClientGoalState::SUCCEEDED)
-	{
-		bool replan = !action->getDoInterruptPoint();
-		action->reachedTargetPoint();
-		if(action->isDone())
-		{
-			action->setState(Action::State::COMPLETED);
-			ROS_INFO("Point path action completed");
-		}
-		else
-		{
-			sendNextGoToXYGoal(action);
-		}
-
-		if(!replanNextUpdate)
-		{
-			replanNextUpdate = action->doReplan(replan,
-												(ros::Time::now() - lastReplan).toSec(),
-												distanceSinceReplan);
-		}
+		gotCompleteCallback = true;
 	}
 }
-
-void PointPathSimActionExecutor::actionActive(std::shared_ptr<PointPathAction> action)
-{
-	action->setState(Action::State::EXECUTING);
-}
-
-void PointPathSimActionExecutor::actionFeedback(std::shared_ptr<PointPathAction> action,
-					const vehicle_auto_control::GoToXYRosFeedbackConstPtr& feedback)
-{}
 
 void PointPathSimActionExecutor::sendNextGoToXYGoal(std::shared_ptr<underwater_autonomy::PointPathAction> action)
 {
-
-	//Creates an action goal and sends it to the action server for point path movement
-	vehicle_auto_control::GoToXYRosGoal goToXYGoal;
-
 	Eigen::Vector3d point = action->getCurrentTargetPoint();
-	goToXYGoal.x = point[0];
-	goToXYGoal.y = point[1];
-
-	ROS_INFO("Wait for goToXY server");
-	//I'm not sure why we need this but it will just wait forever otherwise...seems like a bug in ros
-	while(!goToXYClient.waitForServer(ros::Duration(1)))
-	{
-		ros::spinOnce();
-	}
-	ROS_INFO("Send goal to goToXY server");
-	goToXYClient.sendGoal(goToXYGoal,
-							 boost::bind(&PointPathSimActionExecutor::actionDone, this, action, _1, _2),
-							 boost::bind(&PointPathSimActionExecutor::actionActive, this, action),
-							 boost::bind(&PointPathSimActionExecutor::actionFeedback, this, action, _1));
+	underwater_vehicle_msgs::GoToXY goToXYMsg;
+	goToXYMsg.x = point[0];
+	goToXYMsg.y = point[1];
+	goToXYMsg.enable = true;
+	
+	goToXYPub.publish(goToXYMsg);
 }
 
 void PointPathSimActionExecutor::navigationFilterCallback(const nav_msgs::Odometry odo)

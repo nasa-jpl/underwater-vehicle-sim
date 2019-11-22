@@ -15,6 +15,7 @@
 
 #include "underwater_vehicle_msgs/GetVehicleInfo.h"
 #include "underwater_vehicle_msgs/VehicleInfo.h"
+#include "underwater_vehicle_msgs/GoToXY.h"
 
 #include "ros_sim_plan_server/action_executors/PointPathSimActionExecutor.h"
 
@@ -50,35 +51,22 @@ TEST(PointPathSimActionExecutor, ExecuteAndCancel)
     auto velCB = [&] (geometry_msgs::Twist::ConstPtr val)
     { latestVelMsg = val; };
     ros::Subscriber velSub = nh.subscribe<geometry_msgs::Twist>("command_target_velocity", 1, velCB);
+    ros::Publisher posePub = nh.advertise<nav_msgs::Odometry>("primary_navigation", 2);
 
-	actionlib::SimpleActionServer<vehicle_auto_control::GoToXYRosAction> goToXYServer(nh, "go_to_xy", false);
-
-    bool goalCalled = false;
     double x = 0;
     double y = 0;
+    unsigned int goToXYCalls = 0;
+    auto goToXY = [&] (const ros::MessageEvent< underwater_vehicle_msgs::GoToXY const >& goToXY) 
+    {x = goToXY.getConstMessage().get()->x;
+     y = goToXY.getConstMessage().get()->y;
+     goToXYCalls++;};
 
-    auto goalGoToXYCB = [&] (void) 
-    {
-        vehicle_auto_control::GoToXYRosGoalConstPtr goToXYGoal = goToXYServer.acceptNewGoal();
-        x = goToXYGoal->x;
-        y = goToXYGoal->y;
+	ros::Subscriber goToXYSub = nh.subscribe<underwater_vehicle_msgs::GoToXY>("go_to_xy", 10, goToXY);
 
-        goalCalled = true;
-    };
+    unsigned int goToXYEnableCalls = 0;
+    auto goToXYEnable = [&] (const ros::MessageEvent< std_msgs::Bool const >& enable) {goToXYEnableCalls++;};
+	ros::Subscriber goToXYEnableSub = nh.subscribe<std_msgs::Bool>("go_to_xy_enable", 10, goToXYEnable);
 
-    bool preemptCalled = false;
-    auto preemptGoToXYCB = [&] (void) 
-    { 
-        preemptCalled = true; 
-        goToXYServer.setPreempted();
-    };
-
-
-	goToXYServer.registerGoalCallback(goalGoToXYCB);
-    goToXYServer.registerPreemptCallback(preemptGoToXYCB);
-	goToXYServer.start();
-
-    ros::AsyncSpinner spinner(1);
     std::vector<Eigen::Vector3d> points;
     points.push_back(Eigen::Vector3d(1,2,3));
     points.push_back(Eigen::Vector3d(2,3,4));
@@ -96,29 +84,41 @@ TEST(PointPathSimActionExecutor, ExecuteAndCancel)
     VehicleInfo info(infoMsg);
     PointPathSimActionExecutor executor(nh, info);
 
-    spinner.start();
-
     EXPECT_TRUE(executor.execute(action));
 
-    while(latestVelMsg == NULL);
+    while(latestVelMsg == NULL)
+    {
+        ros::spinOnce();
+    }
     EXPECT_EQ(1, latestVelMsg->linear.x);
     EXPECT_EQ(2, latestVelMsg->angular.z);
 
-    while(!goalCalled);
+    while(goToXYCalls != 1)
+    {
+        ros::spinOnce();
+    }
+    EXPECT_EQ(1, goToXYCalls);
 
-    while(action->getState() != Action::State::EXECUTING);
-
+    while(action->getState() != Action::State::EXECUTING)
+    {
+        ros::spinOnce();
+    }
+    EXPECT_EQ(Action::State::EXECUTING, action->getState());
     EXPECT_EQ(1, x);
     EXPECT_EQ(2, y);
-    EXPECT_EQ(Action::State::EXECUTING, action->getState());
 
     executor.cancel(action);
-    while(!preemptCalled);
-    EXPECT_TRUE(preemptCalled);
-    while(action->getState() != Action::State::INTERRUPTED);
-    EXPECT_EQ(Action::State::INTERRUPTED, action->getState());
+    while(goToXYEnableCalls != 1)
+    {
+        ros::spinOnce();
+    }
+    EXPECT_EQ(1, goToXYEnableCalls);
 
-    spinner.stop();
+    while(action->getState() != Action::State::INTERRUPTED)
+    {
+        ros::spinOnce();
+    }
+    EXPECT_EQ(Action::State::INTERRUPTED, action->getState());
 }
 
 TEST(PointPathSimActionExecutor, ExecuteAndTimeout)
@@ -129,35 +129,22 @@ TEST(PointPathSimActionExecutor, ExecuteAndTimeout)
     auto velCB = [&] (geometry_msgs::Twist::ConstPtr val)
     { latestVelMsg = val; };
     ros::Subscriber velSub = nh.subscribe<geometry_msgs::Twist>("command_target_velocity", 1, velCB);
+    ros::Publisher posePub = nh.advertise<nav_msgs::Odometry>("primary_navigation", 2);
 
-	actionlib::SimpleActionServer<vehicle_auto_control::GoToXYRosAction> goToXYServer(nh, "go_to_xy", false);
-
-    bool goalCalled = false;
     double x = 0;
     double y = 0;
+    unsigned int goToXYCalls = 0;
+    auto goToXY = [&] (const ros::MessageEvent< underwater_vehicle_msgs::GoToXY const >& goToXY) 
+    {x = goToXY.getConstMessage().get()->x;
+     y = goToXY.getConstMessage().get()->y;
+     goToXYCalls++;};
 
-    auto goalGoToXYCB = [&] (void) 
-    {
-        vehicle_auto_control::GoToXYRosGoalConstPtr goToXYGoal = goToXYServer.acceptNewGoal();
-        x = goToXYGoal->x;
-        y = goToXYGoal->y;
+	ros::Subscriber goToXYSub = nh.subscribe<underwater_vehicle_msgs::GoToXY>("go_to_xy", 10, goToXY);
 
-        goalCalled = true;
-    };
+    unsigned int goToXYEnableCalls = 0;
+    auto goToXYEnable = [&] (const ros::MessageEvent< std_msgs::Bool const >& enable) {goToXYEnableCalls++;};
+	ros::Subscriber goToXYEnableSub = nh.subscribe<std_msgs::Bool>("go_to_xy_enable", 10, goToXYEnable);
 
-    bool preemptCalled = false;
-    auto preemptGoToXYCB = [&] (void) 
-    { 
-        preemptCalled = true; 
-        goToXYServer.setPreempted();
-    };
-
-
-	goToXYServer.registerGoalCallback(goalGoToXYCB);
-    goToXYServer.registerPreemptCallback(preemptGoToXYCB);
-	goToXYServer.start();
-
-    ros::AsyncSpinner spinner(1);
     std::vector<Eigen::Vector3d> points;
     points.push_back(Eigen::Vector3d(1,2,3));
     points.push_back(Eigen::Vector3d(2,3,4));
@@ -175,28 +162,36 @@ TEST(PointPathSimActionExecutor, ExecuteAndTimeout)
     VehicleInfo info(infoMsg);
     PointPathSimActionExecutor executor(nh, info);
 
-    spinner.start();
-
     EXPECT_TRUE(executor.execute(action));
 
-    while(latestVelMsg == NULL);
+    while(latestVelMsg == NULL)
+    {
+        ros::spinOnce();
+    }
     EXPECT_EQ(1, latestVelMsg->linear.x);
     EXPECT_EQ(2, latestVelMsg->angular.z);
 
-    while(!goalCalled);
+    while(goToXYCalls != 1)
+    {
+        ros::spinOnce();
+    }
+    EXPECT_EQ(1, goToXYCalls);
 
-    while(action->getState() != Action::State::EXECUTING);
-
+    while(action->getState() != Action::State::EXECUTING)
+    {
+        ros::spinOnce();
+    }
+    EXPECT_EQ(Action::State::EXECUTING, action->getState());
     EXPECT_EQ(1, x);
     EXPECT_EQ(2, y);
-    EXPECT_EQ(Action::State::EXECUTING, action->getState());
 
     ros::Duration(1).sleep();
     executor.monitor(action);
-    while(action->getState() != Action::State::FAILED);
+    while(action->getState() != Action::State::FAILED)
+    {
+        ros::spinOnce();
+    }
     EXPECT_EQ(Action::State::FAILED, action->getState());
-
-    spinner.stop();
 }
 
 TEST(PointPathSimActionExecutor, ExecuteAndSucceed)
@@ -209,34 +204,22 @@ TEST(PointPathSimActionExecutor, ExecuteAndSucceed)
     ros::Subscriber velSub = nh.subscribe<geometry_msgs::Twist>("command_target_velocity", 1, velCB);
     ros::Publisher posePub = nh.advertise<nav_msgs::Odometry>("primary_navigation", 2);
 
-	actionlib::SimpleActionServer<vehicle_auto_control::GoToXYRosAction> goToXYServer(nh, "go_to_xy", false);
-
-    bool goalCalled = false;
     double x = 0;
     double y = 0;
+    unsigned int goToXYCalls = 0;
+    auto goToXY = [&] (const ros::MessageEvent< underwater_vehicle_msgs::GoToXY const >& goToXY) 
+    {x = goToXY.getConstMessage().get()->x;
+     y = goToXY.getConstMessage().get()->y;
+     goToXYCalls++;};
 
-    auto goalGoToXYCB = [&] (void) 
-    {
-        vehicle_auto_control::GoToXYRosGoalConstPtr goToXYGoal = goToXYServer.acceptNewGoal();
-        x = goToXYGoal->x;
-        y = goToXYGoal->y;
+	ros::Subscriber goToXYSub = nh.subscribe<underwater_vehicle_msgs::GoToXY>("go_to_xy", 10, goToXY);
 
-        goalCalled = true;
-    };
+    unsigned int goToXYEnableCalls = 0;
+    auto goToXYEnable = [&] (const ros::MessageEvent< std_msgs::Bool const >& enable) {goToXYEnableCalls++;};
+	ros::Subscriber goToXYEnableSub = nh.subscribe<std_msgs::Bool>("go_to_xy_enable", 10, goToXYEnable);
 
-    bool preemptCalled = false;
-    auto preemptGoToXYCB = [&] (void) 
-    { 
-        preemptCalled = true; 
-        goToXYServer.setPreempted();
-    };
+    ros::Publisher goToXYCompletePub = nh.advertise<std_msgs::Bool>("go_to_xy_complete", 2);
 
-
-	goToXYServer.registerGoalCallback(goalGoToXYCB);
-    goToXYServer.registerPreemptCallback(preemptGoToXYCB);
-	goToXYServer.start();
-
-    ros::AsyncSpinner spinner(1);
     std::vector<Eigen::Vector3d> points;
     points.push_back(Eigen::Vector3d(1,2,3));
     points.push_back(Eigen::Vector3d(2,3,4));
@@ -255,140 +238,132 @@ TEST(PointPathSimActionExecutor, ExecuteAndSucceed)
     VehicleInfo info(infoMsg);
     PointPathSimActionExecutor executor(nh, info);
 
-    spinner.start();
-
+    //Execute Action
     EXPECT_TRUE(executor.execute(action));
 
-    while(latestVelMsg == NULL);
+    while(latestVelMsg == NULL)
+    {
+        ros::spinOnce();
+    }
     EXPECT_EQ(1, latestVelMsg->linear.x);
     EXPECT_EQ(2, latestVelMsg->angular.z);
 
-    while(!goalCalled);
+    while(goToXYCalls != 1)
+    {
+        ros::spinOnce();
+    }
+    EXPECT_EQ(1, goToXYCalls);
 
-    while(action->getState() != Action::State::EXECUTING);
-
+    while(action->getState() != Action::State::EXECUTING)
+    {
+        ros::spinOnce();
+    }
+    EXPECT_EQ(Action::State::EXECUTING, action->getState());
     EXPECT_EQ(1, x);
     EXPECT_EQ(2, y);
-    EXPECT_EQ(Action::State::EXECUTING, action->getState());
-    
+
     nav_msgs::Odometry poseMsg;
     poseMsg.pose.pose.position.x = 100;
     poseMsg.pose.pose.position.y = -100;
     poseMsg.pose.pose.position.z = 0;
     posePub.publish(poseMsg);
+    ros::WallDuration(0.5).sleep();
+    ros::spinOnce();
 
+    std_msgs::Bool completeMsg;
+    completeMsg.data = true;
+    goToXYCompletePub.publish(completeMsg);
+    ros::WallDuration(0.5).sleep();
+    ros::spinOnce();
+    executor.monitor(action);
 
-    goalCalled = false;
-    goToXYServer.setSucceeded();
-    while(!goalCalled);
+    while(goToXYCalls != 2)
+    {
+        ros::spinOnce();
+    }
+    EXPECT_EQ(2, goToXYCalls);
     EXPECT_EQ(2, x);
     EXPECT_EQ(3, y);
 
+    //Cancel Action
     executor.cancel(action);
-    while(!preemptCalled);
-    while(action->getState() != Action::State::INTERRUPTED);
+    while(goToXYEnableCalls != 1)
+    {
+        ros::spinOnce();
+    }
+    EXPECT_EQ(1, goToXYEnableCalls);
+
+    while(action->getState() != Action::State::INTERRUPTED)
+    {
+        ros::spinOnce();
+    }
     EXPECT_EQ(Action::State::INTERRUPTED, action->getState());
 
-    goalCalled = false;
+
+    //Restart Action
     executor.execute(action);
-    while(!goalCalled);
-    while(action->getState() != Action::State::EXECUTING);
+    while(goToXYCalls != 3)
+    {
+        ros::spinOnce();
+    }
+    EXPECT_EQ(3, goToXYCalls);
+
+    while(action->getState() != Action::State::EXECUTING)
+    {
+        ros::spinOnce();
+    }
+    EXPECT_EQ(Action::State::EXECUTING, action->getState());
     EXPECT_EQ(100, x);
     EXPECT_EQ(-100, y);
-    EXPECT_EQ(Action::State::EXECUTING, action->getState());
 
-    goalCalled = false;
-    goToXYServer.setSucceeded();
-    while(!goalCalled);
+    goToXYCompletePub.publish(completeMsg);
+    ros::WallDuration(0.5).sleep();
+    ros::spinOnce();
+    executor.monitor(action);
+
+    while(goToXYCalls != 4)
+    {
+        ros::spinOnce();
+    }
+    EXPECT_EQ(4, goToXYCalls);
+
+    while(action->getState() != Action::State::EXECUTING)
+    {
+        ros::spinOnce();
+    }
+    EXPECT_EQ(Action::State::EXECUTING, action->getState());
     EXPECT_EQ(2, x);
     EXPECT_EQ(3, y);
 
-    goalCalled = false;
-    goToXYServer.setSucceeded();
-    while(!goalCalled);
+    goToXYCompletePub.publish(completeMsg);
+    ros::WallDuration(0.5).sleep();
+    ros::spinOnce();
+    executor.monitor(action);
+
+    while(goToXYCalls != 5)
+    {
+        ros::spinOnce();
+    }
+    EXPECT_EQ(5, goToXYCalls);
+
+    while(action->getState() != Action::State::EXECUTING)
+    {
+        ros::spinOnce();
+    }
+    EXPECT_EQ(Action::State::EXECUTING, action->getState());
     EXPECT_EQ(3, x);
     EXPECT_EQ(4, y);
 
-    goToXYServer.setSucceeded();
+    goToXYCompletePub.publish(completeMsg);
+    ros::WallDuration(0.5).sleep();
+    ros::spinOnce();
+    executor.monitor(action);
 
-    while(action->getState() != Action::State::COMPLETED);
-    EXPECT_EQ(Action::State::COMPLETED, action->getState());
-
-    spinner.stop();
-}
-
-
-TEST(PointPathSimActionExecutor, ExecuteAndAbort)
-{
-    ros::NodeHandle nh("ExecuteAndAbort");
-
-    geometry_msgs::Twist::ConstPtr latestVelMsg = NULL;
-    auto velCB = [&] (geometry_msgs::Twist::ConstPtr val)
-    { latestVelMsg = val; };
-    ros::Subscriber velSub = nh.subscribe<geometry_msgs::Twist>("command_target_velocity", 1, velCB);
-
-	actionlib::SimpleActionServer<vehicle_auto_control::GoToXYRosAction> goToXYServer(nh, "go_to_xy", false);
-
-    bool goalCalled = false;
-    double x = 0;
-    double y = 0;
-
-    auto goalGoToXYCB = [&] (void) 
+    while(action->getState() != Action::State::COMPLETED)
     {
-        vehicle_auto_control::GoToXYRosGoalConstPtr goToXYGoal = goToXYServer.acceptNewGoal();
-        x = goToXYGoal->x;
-        y = goToXYGoal->y;
-
-        goalCalled = true;
-    };
-
-    bool preemptCalled = false;
-    auto preemptGoToXYCB = [&] (void) { preemptCalled = true; };
-
-
-	goToXYServer.registerGoalCallback(goalGoToXYCB);
-    goToXYServer.registerPreemptCallback(preemptGoToXYCB);
-	goToXYServer.start();
-
-    ros::AsyncSpinner spinner(1);
-    std::vector<Eigen::Vector3d> points;
-    points.push_back(Eigen::Vector3d(1,2,3));
-    points.push_back(Eigen::Vector3d(2,3,4));
-    std::shared_ptr<PointPathAction> action(new PointPathAction(NULL,
-                                                        NULL,
-                                                        1,
-                                                        2,
-                                                        3,
-                                                        points,
-                                                        PointPathAction::ReplanType::PERIODIC_TIME,
-                                                        3));
-
-    underwater_vehicle_msgs::GetVehicleInfo infoMsg;
-    infoMsg.response.propModuleType = "FourDOFPropulsion";
-    VehicleInfo info(infoMsg);
-    PointPathSimActionExecutor executor(nh, info);
-
-    spinner.start();
-
-    EXPECT_TRUE(executor.execute(action));
-
-    while(latestVelMsg == NULL);
-    EXPECT_EQ(1, latestVelMsg->linear.x);
-    EXPECT_EQ(2, latestVelMsg->angular.z);
-
-    while(!goalCalled);
-
-    while(action->getState() != Action::State::EXECUTING);
-
-    EXPECT_EQ(1, x);
-    EXPECT_EQ(2, y);
-    EXPECT_EQ(Action::State::EXECUTING, action->getState());
-
-    goToXYServer.setAborted();
-    while(action->getState() != Action::State::FAILED);
-    EXPECT_EQ(Action::State::FAILED, action->getState());
-
-    spinner.stop();
+        ros::spinOnce();
+    }
+    EXPECT_EQ(Action::State::COMPLETED, action->getState());
 }
 
 TEST(PointPathSimActionExecutor, TimeReplan)
@@ -399,31 +374,23 @@ TEST(PointPathSimActionExecutor, TimeReplan)
     auto velCB = [&] (geometry_msgs::Twist::ConstPtr val)
     { latestVelMsg = val; };
     ros::Subscriber velSub = nh.subscribe<geometry_msgs::Twist>("command_target_velocity", 1, velCB);
+    ros::Publisher posePub = nh.advertise<nav_msgs::Odometry>("primary_navigation", 2);
 
-	actionlib::SimpleActionServer<vehicle_auto_control::GoToXYRosAction> goToXYServer(nh, "go_to_xy", false);
-
-    bool goalCalled = false;
     double x = 0;
     double y = 0;
+    unsigned int goToXYCalls = 0;
+    auto goToXY = [&] (const ros::MessageEvent< underwater_vehicle_msgs::GoToXY const >& goToXY) 
+    {x = goToXY.getConstMessage().get()->x;
+     y = goToXY.getConstMessage().get()->y;
+     goToXYCalls++;};
 
-    auto goalGoToXYCB = [&] (void) 
-    {
-        vehicle_auto_control::GoToXYRosGoalConstPtr goToXYGoal = goToXYServer.acceptNewGoal();
-        x = goToXYGoal->x;
-        y = goToXYGoal->y;
+	ros::Subscriber goToXYSub = nh.subscribe<underwater_vehicle_msgs::GoToXY>("go_to_xy", 10, goToXY);
 
-        goalCalled = true;
-    };
+    unsigned int goToXYEnableCalls = 0;
+    auto goToXYEnable = [&] (const ros::MessageEvent< std_msgs::Bool const >& enable) {goToXYEnableCalls++;};
+	ros::Subscriber goToXYEnableSub = nh.subscribe<std_msgs::Bool>("go_to_xy_enable", 10, goToXYEnable);
 
-    bool preemptCalled = false;
-    auto preemptGoToXYCB = [&] (void) { preemptCalled = true; };
-
-
-	goToXYServer.registerGoalCallback(goalGoToXYCB);
-    goToXYServer.registerPreemptCallback(preemptGoToXYCB);
-	goToXYServer.start();
-
-    ros::AsyncSpinner spinner(1);
+    ros::Publisher goToXYCompletePub = nh.advertise<std_msgs::Bool>("go_to_xy_complete", 2);
 
     std::vector<Eigen::Vector3d> points;
     points.push_back(Eigen::Vector3d(1,2,3));
@@ -442,32 +409,38 @@ TEST(PointPathSimActionExecutor, TimeReplan)
     VehicleInfo info(infoMsg);
     PointPathSimActionExecutor executor(nh, info);
 
-    spinner.start();
 
     EXPECT_TRUE(executor.execute(action));
 
-    while(latestVelMsg == NULL);
+    while(latestVelMsg == NULL)
+    {
+        ros::spinOnce();
+    }
     EXPECT_EQ(1, latestVelMsg->linear.x);
     EXPECT_EQ(2, latestVelMsg->angular.z);
 
-    while(!goalCalled);
+    while(goToXYCalls != 1)
+    {
+        ros::spinOnce();
+    }
+    EXPECT_EQ(1, goToXYCalls);
 
-    while(action->getState() != Action::State::EXECUTING);
-
+    while(action->getState() != Action::State::EXECUTING)
+    {
+        ros::spinOnce();
+    }
+    EXPECT_EQ(Action::State::EXECUTING, action->getState());
     EXPECT_EQ(1, x);
     EXPECT_EQ(2, y);
-    EXPECT_EQ(Action::State::EXECUTING, action->getState());
 
-    goalCalled = false;
-    goToXYServer.setSucceeded();
-    while(!goalCalled);
-
-    ros::Duration(3).sleep();
+    std_msgs::Bool completeMsg;
+    completeMsg.data = true;
+    goToXYCompletePub.publish(completeMsg);
+    ros::WallDuration(3).sleep();
+    ros::spinOnce();
     executor.monitor(action);
     EXPECT_TRUE(executor.triggerReplan(action));
     EXPECT_FALSE(executor.triggerReplan(action));
-
-    spinner.stop();
 }
 
 
@@ -479,31 +452,23 @@ TEST(PointPathSimActionExecutor, DistanceReplan)
     auto velCB = [&] (geometry_msgs::Twist::ConstPtr val)
     { latestVelMsg = val; };
     ros::Subscriber velSub = nh.subscribe<geometry_msgs::Twist>("command_target_velocity", 1, velCB);
-
     ros::Publisher posePub = nh.advertise<nav_msgs::Odometry>("primary_navigation", 2);
-	actionlib::SimpleActionServer<vehicle_auto_control::GoToXYRosAction> goToXYServer(nh, "go_to_xy", false);
 
-    bool goalCalled = false;
     double x = 0;
     double y = 0;
+    unsigned int goToXYCalls = 0;
+    auto goToXY = [&] (const ros::MessageEvent< underwater_vehicle_msgs::GoToXY const >& goToXY) 
+    {x = goToXY.getConstMessage().get()->x;
+     y = goToXY.getConstMessage().get()->y;
+     goToXYCalls++;};
 
-    auto goalGoToXYCB = [&] (void) 
-    {
-        vehicle_auto_control::GoToXYRosGoalConstPtr goToXYGoal = goToXYServer.acceptNewGoal();
-        x = goToXYGoal->x;
-        y = goToXYGoal->y;
+	ros::Subscriber goToXYSub = nh.subscribe<underwater_vehicle_msgs::GoToXY>("go_to_xy", 10, goToXY);
 
-        goalCalled = true;
-    };
+    unsigned int goToXYEnableCalls = 0;
+    auto goToXYEnable = [&] (const ros::MessageEvent< std_msgs::Bool const >& enable) {goToXYEnableCalls++;};
+	ros::Subscriber goToXYEnableSub = nh.subscribe<std_msgs::Bool>("go_to_xy_enable", 10, goToXYEnable);
 
-    bool preemptCalled = false;
-    auto preemptGoToXYCB = [&] (void) { preemptCalled = true; };
-
-	goToXYServer.registerGoalCallback(goalGoToXYCB);
-    goToXYServer.registerPreemptCallback(preemptGoToXYCB);
-	goToXYServer.start();
-
-    ros::AsyncSpinner spinner(1);
+    ros::Publisher goToXYCompletePub = nh.advertise<std_msgs::Bool>("go_to_xy_complete", 2);
 
     std::vector<Eigen::Vector3d> points;
     points.push_back(Eigen::Vector3d(1,2,3));
@@ -522,25 +487,34 @@ TEST(PointPathSimActionExecutor, DistanceReplan)
     VehicleInfo info(infoMsg);
     PointPathSimActionExecutor executor(nh, info);
 
-    spinner.start();
-
     EXPECT_TRUE(executor.execute(action));
 
-    while(latestVelMsg == NULL);
+    while(latestVelMsg == NULL)
+    {
+        ros::spinOnce();
+    }
     EXPECT_EQ(1, latestVelMsg->linear.x);
     EXPECT_EQ(2, latestVelMsg->angular.z);
 
-    while(!goalCalled);
+    while(goToXYCalls != 1)
+    {
+        ros::spinOnce();
+    }
+    EXPECT_EQ(1, goToXYCalls);
 
-    while(action->getState() != Action::State::EXECUTING);
-
+    while(action->getState() != Action::State::EXECUTING)
+    {
+        ros::spinOnce();
+    }
+    EXPECT_EQ(Action::State::EXECUTING, action->getState());
     EXPECT_EQ(1, x);
     EXPECT_EQ(2, y);
-    EXPECT_EQ(Action::State::EXECUTING, action->getState());
 
-    goalCalled = false;
-    goToXYServer.setSucceeded();
-    while(!goalCalled);
+    std_msgs::Bool completeMsg;
+    completeMsg.data = true;
+    goToXYCompletePub.publish(completeMsg);
+    ros::WallDuration(3).sleep();
+    ros::spinOnce();
 
     executor.monitor(action);
     EXPECT_FALSE(executor.triggerReplan(action));
@@ -558,11 +532,10 @@ TEST(PointPathSimActionExecutor, DistanceReplan)
     {
         executor.monitor(action);
         replan = executor.triggerReplan(action);
+        ros::spinOnce();
     }
     EXPECT_TRUE(replan);
     EXPECT_FALSE(executor.triggerReplan(action));
-
-    spinner.stop();
 }
 
 

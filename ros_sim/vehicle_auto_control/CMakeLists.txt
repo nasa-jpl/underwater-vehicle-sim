@@ -68,14 +68,6 @@ find_path(UNDERWATER_AUTONOMY_INCLUDE underwater_autonomy)
 #   Service2.srv
 # )
 
-## Generate actions in the 'action' folder
- add_action_files(
-   FILES
-   GoToXYRos.action
-   GoToZRos.action
-   FollowHeadingRos.action
- )
-
 ## Generate added messages and services with any dependencies listed here
  generate_messages(
    DEPENDENCIES
@@ -132,7 +124,6 @@ include_directories(
 
 ## Declare a C++ library
  add_library(${PROJECT_NAME}
-   src/${PROJECT_NAME}/VehicleController.cpp
    src/${PROJECT_NAME}/PropulsionController.cpp
    src/${PROJECT_NAME}/PropulsionLogicInterface.cpp
    src/${PROJECT_NAME}/FourDOFPropulsionLogic.cpp

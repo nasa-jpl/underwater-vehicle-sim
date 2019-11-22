@@ -3,8 +3,6 @@
 #include <iostream>
 
 #include "ros/ros.h"
-#include "actionlib/server/simple_action_server.h"
-#include "vehicle_auto_control/GoToZRosAction.h"
 
 #include <tf2_ros/static_transform_broadcaster.h>
 #include "tf2_ros/transform_broadcaster.h"
@@ -15,6 +13,7 @@
 
 #include "underwater_vehicle_msgs/GetVehicleInfo.h"
 #include "underwater_vehicle_msgs/VehicleInfo.h"
+#include "underwater_vehicle_msgs/GoToZ.h"
 
 #include "ros_sim_plan_server/action_executors/HoldDepthSimActionExecutor.h"
 
@@ -41,7 +40,7 @@ TEST(HoldDepthSimActionExecutor, ExecutePropModuleTypeFail)
     HoldDepthSimActionExecutor executor(nh, info);
     EXPECT_FALSE(executor.execute(action));
 }
- 
+
 TEST(HoldDepthSimActionExecutor, ExecuteAndCancel)
 {
     ros::NodeHandle nh("ExecuteAndCancel");
@@ -50,33 +49,20 @@ TEST(HoldDepthSimActionExecutor, ExecuteAndCancel)
     auto velCB = [&] (geometry_msgs::Twist::ConstPtr val)
     { latestVelMsg = val; };
     ros::Subscriber velSub = nh.subscribe<geometry_msgs::Twist>("command_target_velocity", 1, velCB);
+    ros::Publisher posePub = nh.advertise<nav_msgs::Odometry>("primary_navigation", 2);
 
-	actionlib::SimpleActionServer<vehicle_auto_control::GoToZRosAction> goToZServer(nh, "go_to_z", false);
+    double depth = 0;
+    unsigned int holdDepthCalls = 0;
+    auto holdDepth = [&] (const ros::MessageEvent< underwater_vehicle_msgs::GoToZ const >& holdDepth) 
+    {depth = holdDepth.getConstMessage().get()->depth;
+     holdDepthCalls++;};
 
-    bool goalCalled = false;
-    double z = -1;
-    bool holdDepth = false;
-    auto goalHoldDepthCB = [&] (void) 
-    {
-        vehicle_auto_control::GoToZRosGoalConstPtr goToZGoal = goToZServer.acceptNewGoal();
-        z = goToZGoal->z;
-        holdDepth = goToZGoal->holdDepth;
-        goalCalled = true;
-    };
+	ros::Subscriber holdDepthSub = nh.subscribe<underwater_vehicle_msgs::GoToZ>("go_to_z", 10, holdDepth);
 
-    bool preemptCalled = false;
-    auto preemptHoldDepthCB = [&] (void) 
-    { 
-        preemptCalled = true; 
-        goToZServer.setPreempted();
-    };
+    unsigned int holdDepthEnableCalls = 0;
+    auto holdDepthEnable = [&] (const ros::MessageEvent< std_msgs::Bool const >& enable) {holdDepthEnableCalls++;};
+	ros::Subscriber holdDepthEnableSub = nh.subscribe<std_msgs::Bool>("go_to_z_enable", 10, holdDepthEnable);
 
-
-	goToZServer.registerGoalCallback(goalHoldDepthCB);
-    goToZServer.registerPreemptCallback(preemptHoldDepthCB);
-	goToZServer.start();
-
-    ros::AsyncSpinner spinner(1);
     std::shared_ptr<HoldDepthAction> action(new HoldDepthAction(5,
                                                                 1,
                                                                 2,
@@ -91,30 +77,41 @@ TEST(HoldDepthSimActionExecutor, ExecuteAndCancel)
     VehicleInfo info(infoMsg);
     HoldDepthSimActionExecutor executor(nh, info);
 
-    spinner.start();
     EXPECT_TRUE(executor.execute(action));
 
-    while(latestVelMsg == NULL);
-    EXPECT_TRUE(std::isnan(latestVelMsg->linear.x));
-    EXPECT_TRUE(std::isnan(latestVelMsg->angular.z));
+    while(latestVelMsg == NULL)
+    {
+        ros::spinOnce();
+    }
     EXPECT_EQ(1, latestVelMsg->linear.z);
 
-    while(!goalCalled);
-    while(action->getState() != Action::State::EXECUTING);
+    while(holdDepthCalls != 1)
+    {
+        ros::spinOnce();
+    }
+    EXPECT_EQ(1, holdDepthCalls);
 
-    EXPECT_EQ(5, z);
-    EXPECT_TRUE(holdDepth);
-
+    while(action->getState() != Action::State::EXECUTING)
+    {
+        ros::spinOnce();
+    }
     EXPECT_EQ(Action::State::EXECUTING, action->getState());
+    EXPECT_EQ(5, depth);
 
     executor.cancel(action);
-    while(!preemptCalled);
-    EXPECT_TRUE(preemptCalled);
-    while(action->getState() != Action::State::INTERRUPTED);
-    EXPECT_EQ(Action::State::INTERRUPTED, action->getState());
+    while(holdDepthEnableCalls != 1)
+    {
+        ros::spinOnce();
+    }
+    EXPECT_EQ(1, holdDepthEnableCalls);
 
-    spinner.stop();
+    while(action->getState() != Action::State::INTERRUPTED)
+    {
+        ros::spinOnce();
+    }
+    EXPECT_EQ(Action::State::INTERRUPTED, action->getState());
 }
+
 
 TEST(HoldDepthSimActionExecutor, ExecuteAndSucceed)
 {
@@ -124,33 +121,20 @@ TEST(HoldDepthSimActionExecutor, ExecuteAndSucceed)
     auto velCB = [&] (geometry_msgs::Twist::ConstPtr val)
     { latestVelMsg = val; };
     ros::Subscriber velSub = nh.subscribe<geometry_msgs::Twist>("command_target_velocity", 1, velCB);
+    ros::Publisher posePub = nh.advertise<nav_msgs::Odometry>("primary_navigation", 2);
 
-	actionlib::SimpleActionServer<vehicle_auto_control::GoToZRosAction> goToZServer(nh, "go_to_z", false);
+    double depth = 0;
+    unsigned int holdDepthCalls = 0;
+    auto holdDepth = [&] (const ros::MessageEvent< underwater_vehicle_msgs::GoToZ const >& holdDepth) 
+    {depth = holdDepth.getConstMessage().get()->depth;
+     holdDepthCalls++;};
 
-    bool goalCalled = false;
-    double z = -1;
-    bool holdDepth = false;
-    auto goalHoldDepthCB = [&] (void) 
-    {
-        vehicle_auto_control::GoToZRosGoalConstPtr goToZGoal = goToZServer.acceptNewGoal();
-        z = goToZGoal->z;
-        holdDepth = goToZGoal->holdDepth;
-        goalCalled = true;
-    };
+	ros::Subscriber holdDepthSub = nh.subscribe<underwater_vehicle_msgs::GoToZ>("go_to_z", 10, holdDepth);
 
-    bool preemptCalled = false;
-    auto preemptHoldDepthCB = [&] (void) 
-    { 
-        preemptCalled = true; 
-        goToZServer.setPreempted();
-    };
+    unsigned int holdDepthEnableCalls = 0;
+    auto holdDepthEnable = [&] (const ros::MessageEvent< std_msgs::Bool const >& enable) {holdDepthEnableCalls++;};
+	ros::Subscriber holdDepthEnableSub = nh.subscribe<std_msgs::Bool>("go_to_z_enable", 10, holdDepthEnable);
 
-
-	goToZServer.registerGoalCallback(goalHoldDepthCB);
-    goToZServer.registerPreemptCallback(preemptHoldDepthCB);
-	goToZServer.start();
-
-    ros::AsyncSpinner spinner(1);
     std::shared_ptr<HoldDepthAction> action(new HoldDepthAction(5,
                                                                 1,
                                                                 2,
@@ -165,27 +149,36 @@ TEST(HoldDepthSimActionExecutor, ExecuteAndSucceed)
     VehicleInfo info(infoMsg);
     HoldDepthSimActionExecutor executor(nh, info);
 
-    spinner.start();
     EXPECT_TRUE(executor.execute(action));
 
-    while(latestVelMsg == NULL);
-    EXPECT_TRUE(std::isnan(latestVelMsg->linear.x));
-    EXPECT_TRUE(std::isnan(latestVelMsg->angular.z));
+    while(latestVelMsg == NULL)
+    {
+        ros::spinOnce();
+    }
     EXPECT_EQ(1, latestVelMsg->linear.z);
 
-    while(!goalCalled);
-    while(action->getState() != Action::State::EXECUTING);
+    while(holdDepthCalls != 1)
+    {
+        ros::spinOnce();
+    }
+    EXPECT_EQ(1, holdDepthCalls);
 
-    EXPECT_EQ(5, z);
-    EXPECT_TRUE(holdDepth);
+    while(action->getState() != Action::State::EXECUTING)
+    {
+        ros::spinOnce();
+    }
     EXPECT_EQ(Action::State::EXECUTING, action->getState());
+    EXPECT_EQ(5, depth);
+
 
     ros::Duration(2).sleep();
     executor.monitor(action);
-    while(action->getState() != Action::State::COMPLETED);
+    while(action->getState() != Action::State::COMPLETED)
+    {
+        ros::spinOnce();
+    }
     EXPECT_EQ(Action::State::COMPLETED, action->getState());
 
-    spinner.stop();
 }
 
 TEST(HoldDepthSimActionExecutor, ExecuteAndTimeout)
@@ -196,33 +189,20 @@ TEST(HoldDepthSimActionExecutor, ExecuteAndTimeout)
     auto velCB = [&] (geometry_msgs::Twist::ConstPtr val)
     { latestVelMsg = val; };
     ros::Subscriber velSub = nh.subscribe<geometry_msgs::Twist>("command_target_velocity", 1, velCB);
+    ros::Publisher posePub = nh.advertise<nav_msgs::Odometry>("primary_navigation", 2);
 
-	actionlib::SimpleActionServer<vehicle_auto_control::GoToZRosAction> goToZServer(nh, "go_to_z", false);
+    double depth = 0;
+    unsigned int holdDepthCalls = 0;
+    auto holdDepth = [&] (const ros::MessageEvent< underwater_vehicle_msgs::GoToZ const >& holdDepth) 
+    {depth = holdDepth.getConstMessage().get()->depth;
+     holdDepthCalls++;};
 
-    bool goalCalled = false;
-    double z = -1;
-    bool holdDepth = false;
-    auto goalHoldDepthCB = [&] (void) 
-    {
-        vehicle_auto_control::GoToZRosGoalConstPtr goToZGoal = goToZServer.acceptNewGoal();
-        z = goToZGoal->z;
-        holdDepth = goToZGoal->holdDepth;
-        goalCalled = true;
-    };
+	ros::Subscriber holdDepthSub = nh.subscribe<underwater_vehicle_msgs::GoToZ>("go_to_z", 10, holdDepth);
 
-    bool preemptCalled = false;
-    auto preemptHoldDepthCB = [&] (void) 
-    { 
-        preemptCalled = true; 
-        goToZServer.setPreempted();
-    };
+    unsigned int holdDepthEnableCalls = 0;
+    auto holdDepthEnable = [&] (const ros::MessageEvent< std_msgs::Bool const >& enable) {holdDepthEnableCalls++;};
+	ros::Subscriber holdDepthEnableSub = nh.subscribe<std_msgs::Bool>("go_to_z_enable", 10, holdDepthEnable);
 
-
-	goToZServer.registerGoalCallback(goalHoldDepthCB);
-    goToZServer.registerPreemptCallback(preemptHoldDepthCB);
-	goToZServer.start();
-
-    ros::AsyncSpinner spinner(1);
     std::shared_ptr<HoldDepthAction> action(new HoldDepthAction(5,
                                                                 1,
                                                                 100,
@@ -237,94 +217,34 @@ TEST(HoldDepthSimActionExecutor, ExecuteAndTimeout)
     VehicleInfo info(infoMsg);
     HoldDepthSimActionExecutor executor(nh, info);
 
-    spinner.start();
     EXPECT_TRUE(executor.execute(action));
 
-    while(latestVelMsg == NULL);
-    EXPECT_TRUE(std::isnan(latestVelMsg->linear.x));
-    EXPECT_TRUE(std::isnan(latestVelMsg->angular.z));
+    while(latestVelMsg == NULL)
+    {
+        ros::spinOnce();
+    }
     EXPECT_EQ(1, latestVelMsg->linear.z);
 
-    while(!goalCalled);
-    while(action->getState() != Action::State::EXECUTING);
+    while(holdDepthCalls != 1)
+    {
+        ros::spinOnce();
+    }
+    EXPECT_EQ(1, holdDepthCalls);
 
-    EXPECT_EQ(5, z);
-    EXPECT_TRUE(holdDepth);
+    while(action->getState() != Action::State::EXECUTING)
+    {
+        ros::spinOnce();
+    }
     EXPECT_EQ(Action::State::EXECUTING, action->getState());
+    EXPECT_EQ(5, depth);
 
     ros::Duration(2).sleep();
     executor.monitor(action);
-    while(action->getState() != Action::State::FAILED);
-    EXPECT_EQ(Action::State::FAILED, action->getState());
-
-    spinner.stop();
-}
-
-TEST(HoldDepthSimActionExecutor, ExecuteAndAbort)
-{
-    ros::NodeHandle nh("ExecuteAndAbort");
-
-    geometry_msgs::Twist::ConstPtr latestVelMsg = NULL;
-    auto velCB = [&] (geometry_msgs::Twist::ConstPtr val)
-    { latestVelMsg = val; };
-    ros::Subscriber velSub = nh.subscribe<geometry_msgs::Twist>("command_target_velocity", 1, velCB);
-
-	actionlib::SimpleActionServer<vehicle_auto_control::GoToZRosAction> goToZServer(nh, "go_to_z", false);
-
-    bool goalCalled = false;
-    double z = -1;
-    bool holdDepth = false;
-    auto goalHoldDepthCB = [&] (void) 
+    while(action->getState() != Action::State::FAILED)
     {
-        vehicle_auto_control::GoToZRosGoalConstPtr goToZGoal = goToZServer.acceptNewGoal();
-        z = goToZGoal->z;
-        holdDepth = goToZGoal->holdDepth;
-        goalCalled = true;
-    };
-
-    bool preemptCalled = false;
-    auto preemptHoldDepthCB = [&] (void) { preemptCalled = true; };
-
-
-	goToZServer.registerGoalCallback(goalHoldDepthCB);
-    goToZServer.registerPreemptCallback(preemptHoldDepthCB);
-	goToZServer.start();
-
-    ros::AsyncSpinner spinner(1);
-    std::shared_ptr<HoldDepthAction> action(new HoldDepthAction(5,
-                                                                1,
-                                                                2,
-                                                                3,
-                                                                NULL,
-                                                                HoldDepthAction::ReplanType::NONE,
-                                                                4,
-                                                                NULL));
-
-    underwater_vehicle_msgs::GetVehicleInfo infoMsg;
-    infoMsg.response.propModuleType = "FourDOFPropulsion";
-    VehicleInfo info(infoMsg);
-    HoldDepthSimActionExecutor executor(nh, info);
-
-    spinner.start();
-    EXPECT_TRUE(executor.execute(action));
-
-    while(latestVelMsg == NULL);
-    EXPECT_TRUE(std::isnan(latestVelMsg->linear.x));
-    EXPECT_TRUE(std::isnan(latestVelMsg->angular.z));
-    EXPECT_EQ(1, latestVelMsg->linear.z);
-
-    while(!goalCalled);
-    while(action->getState() != Action::State::EXECUTING);
-
-    EXPECT_EQ(5, z);
-    EXPECT_TRUE(holdDepth);
-    EXPECT_EQ(Action::State::EXECUTING, action->getState());
-
-    goToZServer.setAborted();
-    while(action->getState() != Action::State::FAILED);
+        ros::spinOnce();
+    }
     EXPECT_EQ(Action::State::FAILED, action->getState());
-
-    spinner.stop();
 }
 
 TEST(HoldDepthSimActionExecutor, TimeReplan)
@@ -335,29 +255,20 @@ TEST(HoldDepthSimActionExecutor, TimeReplan)
     auto velCB = [&] (geometry_msgs::Twist::ConstPtr val)
     { latestVelMsg = val; };
     ros::Subscriber velSub = nh.subscribe<geometry_msgs::Twist>("command_target_velocity", 1, velCB);
+    ros::Publisher posePub = nh.advertise<nav_msgs::Odometry>("primary_navigation", 2);
 
-	actionlib::SimpleActionServer<vehicle_auto_control::GoToZRosAction> goToZServer(nh, "go_to_z", false);
+    double depth = 0;
+    unsigned int holdDepthCalls = 0;
+    auto holdDepth = [&] (const ros::MessageEvent< underwater_vehicle_msgs::GoToZ const >& holdDepth) 
+    {depth = holdDepth.getConstMessage().get()->depth;
+     holdDepthCalls++;};
 
-    bool goalCalled = false;
-    double z = -1;
-    bool holdDepth = false;
-    auto goalHoldDepthCB = [&] (void) 
-    {
-        vehicle_auto_control::GoToZRosGoalConstPtr goToZGoal = goToZServer.acceptNewGoal();
-        z = goToZGoal->z;
-        holdDepth = goToZGoal->holdDepth;
-        goalCalled = true;
-    };
+	ros::Subscriber holdDepthSub = nh.subscribe<underwater_vehicle_msgs::GoToZ>("go_to_z", 10, holdDepth);
 
-    bool preemptCalled = false;
-    auto preemptHoldDepthCB = [&] (void) { preemptCalled = true; };
+    unsigned int holdDepthEnableCalls = 0;
+    auto holdDepthEnable = [&] (const ros::MessageEvent< std_msgs::Bool const >& enable) {holdDepthEnableCalls++;};
+	ros::Subscriber holdDepthEnableSub = nh.subscribe<std_msgs::Bool>("go_to_z_enable", 10, holdDepthEnable);
 
-
-	goToZServer.registerGoalCallback(goalHoldDepthCB);
-    goToZServer.registerPreemptCallback(preemptHoldDepthCB);
-	goToZServer.start();
-
-    ros::AsyncSpinner spinner(1);
     std::shared_ptr<HoldDepthAction> action(new HoldDepthAction(5,
                                                                 1,
                                                                 100,
@@ -372,27 +283,32 @@ TEST(HoldDepthSimActionExecutor, TimeReplan)
     VehicleInfo info(infoMsg);
     HoldDepthSimActionExecutor executor(nh, info);
 
-    spinner.start();
     EXPECT_TRUE(executor.execute(action));
 
-    while(latestVelMsg == NULL);
-    EXPECT_TRUE(std::isnan(latestVelMsg->linear.x));
-    EXPECT_TRUE(std::isnan(latestVelMsg->angular.z));
+    while(latestVelMsg == NULL)
+    {
+        ros::spinOnce();
+    }
     EXPECT_EQ(1, latestVelMsg->linear.z);
 
-    while(!goalCalled);
-    while(action->getState() != Action::State::EXECUTING);
+    while(holdDepthCalls != 1)
+    {
+        ros::spinOnce();
+    }
+    EXPECT_EQ(1, holdDepthCalls);
 
-    EXPECT_EQ(5, z);
-    EXPECT_TRUE(holdDepth);
+    while(action->getState() != Action::State::EXECUTING)
+    {
+        ros::spinOnce();
+    }
     EXPECT_EQ(Action::State::EXECUTING, action->getState());
+    EXPECT_EQ(5, depth);
 
     ros::Duration(3).sleep();
     executor.monitor(action);
     EXPECT_TRUE(executor.triggerReplan(action));
     EXPECT_FALSE(executor.triggerReplan(action));
 
-    spinner.stop();
 }
 
 TEST(HoldDepthSimActionExecutor, DistanceReplan)
@@ -403,30 +319,20 @@ TEST(HoldDepthSimActionExecutor, DistanceReplan)
     auto velCB = [&] (geometry_msgs::Twist::ConstPtr val)
     { latestVelMsg = val; };
     ros::Subscriber velSub = nh.subscribe<geometry_msgs::Twist>("command_target_velocity", 1, velCB);
-
     ros::Publisher posePub = nh.advertise<nav_msgs::Odometry>("primary_navigation", 2);
-	actionlib::SimpleActionServer<vehicle_auto_control::GoToZRosAction> goToZServer(nh, "go_to_z", false);
 
-    bool goalCalled = false;
-    double z = -1;
-    bool holdDepth = false;
-    auto goalHoldDepthCB = [&] (void) 
-    {
-        vehicle_auto_control::GoToZRosGoalConstPtr goToZGoal = goToZServer.acceptNewGoal();
-        z = goToZGoal->z;
-        holdDepth = goToZGoal->holdDepth;
-        goalCalled = true;
-    };
+    double depth = 0;
+    unsigned int holdDepthCalls = 0;
+    auto holdDepth = [&] (const ros::MessageEvent< underwater_vehicle_msgs::GoToZ const >& holdDepth) 
+    {depth = holdDepth.getConstMessage().get()->depth;
+     holdDepthCalls++;};
 
-    bool preemptCalled = false;
-    auto preemptHoldDepthCB = [&] (void) { preemptCalled = true; };
+	ros::Subscriber holdDepthSub = nh.subscribe<underwater_vehicle_msgs::GoToZ>("go_to_z", 10, holdDepth);
 
+    unsigned int holdDepthEnableCalls = 0;
+    auto holdDepthEnable = [&] (const ros::MessageEvent< std_msgs::Bool const >& enable) {holdDepthEnableCalls++;};
+	ros::Subscriber holdDepthEnableSub = nh.subscribe<std_msgs::Bool>("go_to_z_enable", 10, holdDepthEnable);
 
-	goToZServer.registerGoalCallback(goalHoldDepthCB);
-    goToZServer.registerPreemptCallback(preemptHoldDepthCB);
-	goToZServer.start();
-
-    ros::AsyncSpinner spinner(1);
     std::shared_ptr<HoldDepthAction> action(new HoldDepthAction(5,
                                                                 1,
                                                                 100,
@@ -441,20 +347,26 @@ TEST(HoldDepthSimActionExecutor, DistanceReplan)
     VehicleInfo info(infoMsg);
     HoldDepthSimActionExecutor executor(nh, info);
 
-    spinner.start();
     EXPECT_TRUE(executor.execute(action));
 
-    while(latestVelMsg == NULL);
-    EXPECT_TRUE(std::isnan(latestVelMsg->linear.x));
-    EXPECT_TRUE(std::isnan(latestVelMsg->angular.z));
+    while(latestVelMsg == NULL)
+    {
+        ros::spinOnce();
+    }
     EXPECT_EQ(1, latestVelMsg->linear.z);
 
-    while(!goalCalled);
-    while(action->getState() != Action::State::EXECUTING);
+    while(holdDepthCalls != 1)
+    {
+        ros::spinOnce();
+    }
+    EXPECT_EQ(1, holdDepthCalls);
 
-    EXPECT_EQ(5, z);
-    EXPECT_TRUE(holdDepth);
+    while(action->getState() != Action::State::EXECUTING)
+    {
+        ros::spinOnce();
+    }
     EXPECT_EQ(Action::State::EXECUTING, action->getState());
+    EXPECT_EQ(5, depth);
 
     executor.monitor(action);
     EXPECT_FALSE(executor.triggerReplan(action));
@@ -471,11 +383,10 @@ TEST(HoldDepthSimActionExecutor, DistanceReplan)
     {
         executor.monitor(action);
         replan = executor.triggerReplan(action);
+        ros::spinOnce();
     }
     EXPECT_TRUE(replan);
     EXPECT_FALSE(executor.triggerReplan(action));
-
-    spinner.stop();
 }
 
 //Had issues doing this in the roslaunch file for this test. Not sure why.

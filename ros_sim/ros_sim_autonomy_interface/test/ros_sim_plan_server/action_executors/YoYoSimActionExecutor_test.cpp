@@ -3,8 +3,6 @@
 #include <iostream>
 
 #include "ros/ros.h"
-#include "actionlib/server/simple_action_server.h"
-#include "vehicle_auto_control/GoToZRosAction.h"
 
 #include <tf2_ros/static_transform_broadcaster.h>
 #include "tf2_ros/transform_broadcaster.h"
@@ -15,6 +13,7 @@
 
 #include "underwater_vehicle_msgs/GetVehicleInfo.h"
 #include "underwater_vehicle_msgs/VehicleInfo.h"
+#include "underwater_vehicle_msgs/GoToZ.h"
 
 #include "ros_sim_plan_server/action_executors/YoYoSimActionExecutor.h"
 
@@ -51,33 +50,21 @@ TEST(YoYoSimActionExecutor, ExecuteAndCancel)
     auto velCB = [&] (geometry_msgs::Twist::ConstPtr val)
     { latestVelMsg = val; };
     ros::Subscriber velSub = nh.subscribe<geometry_msgs::Twist>("command_target_velocity", 1, velCB);
+    ros::Publisher posePub = nh.advertise<nav_msgs::Odometry>("primary_navigation", 2);
 
-	actionlib::SimpleActionServer<vehicle_auto_control::GoToZRosAction> goToZServer(nh, "go_to_z", false);
+    double depth = 0;
+    unsigned int goToZCalls = 0;
+    auto goToZ = [&] (const ros::MessageEvent< underwater_vehicle_msgs::GoToZ const >& goToXY) 
+    {depth = goToXY.getConstMessage().get()->depth;
+     goToZCalls++;};
 
-    bool goalCalled = false;
-    double z = 0;
-    bool holdDepth = false;
-    auto goalYoYoCB = [&] (void) 
-    {
-        vehicle_auto_control::GoToZRosGoalConstPtr goToZGoal = goToZServer.acceptNewGoal();
-        z = goToZGoal->z;
-        holdDepth = goToZGoal->holdDepth;
-        goalCalled = true;
-    };
+	ros::Subscriber goToZSub = nh.subscribe<underwater_vehicle_msgs::GoToZ>("go_to_z", 10, goToZ);
 
-    bool preemptCalled = false;
-    auto preemptYoYoCB = [&] (void) 
-    { 
-        preemptCalled = true;
-        goToZServer.setPreempted();
-    };
+    unsigned int goToZEnableCalls = 0;
+    auto goToZEnable = [&] (const ros::MessageEvent< std_msgs::Bool const >& enable) {goToZEnableCalls++;};
+	ros::Subscriber goToZEnableSub = nh.subscribe<std_msgs::Bool>("go_to_z_enable", 10, goToZEnable);
 
-
-	goToZServer.registerGoalCallback(goalYoYoCB);
-    goToZServer.registerPreemptCallback(preemptYoYoCB);
-	goToZServer.start();
-
-    ros::AsyncSpinner spinner(1);
+    ros::Publisher goToZCompletePub = nh.advertise<std_msgs::Bool>("go_to_z_complete", 2);
 
     std::shared_ptr<YoYoAction> action(new YoYoAction(1,
                                                       2,
@@ -94,29 +81,43 @@ TEST(YoYoSimActionExecutor, ExecuteAndCancel)
     VehicleInfo info(infoMsg);
     YoYoSimActionExecutor executor(nh, info);
 
-    spinner.start();
     EXPECT_TRUE(executor.execute(action));
 
-    while(latestVelMsg == NULL);
+    while(latestVelMsg == NULL)
+    {
+        ros::spinOnce();
+    }
     EXPECT_TRUE(std::isnan(latestVelMsg->linear.x));
     EXPECT_TRUE(std::isnan(latestVelMsg->angular.z));
     EXPECT_EQ(3, latestVelMsg->linear.z);
 
-    while(!goalCalled);
-    while(action->getState() != Action::State::EXECUTING);
 
-    EXPECT_EQ(1, z);
-    EXPECT_FALSE(holdDepth);
+    while(goToZCalls != 1)
+    {
+        ros::spinOnce();
+    }
+    EXPECT_EQ(1, goToZCalls);
 
+    while(action->getState() != Action::State::EXECUTING)
+    {
+        ros::spinOnce();
+    }
     EXPECT_EQ(Action::State::EXECUTING, action->getState());
+    EXPECT_EQ(1, depth);
 
     executor.cancel(action);
-    while(!preemptCalled);
-    EXPECT_TRUE(preemptCalled);
-    while(action->getState() != Action::State::INTERRUPTED);
+    while(goToZEnableCalls != 1)
+    {
+        ros::spinOnce();
+    }
+    EXPECT_EQ(1, goToZEnableCalls);
+
+    while(action->getState() != Action::State::INTERRUPTED)
+    {
+        ros::spinOnce();
+    }
     EXPECT_EQ(Action::State::INTERRUPTED, action->getState());
 
-    spinner.stop();
 }
 
 TEST(YoYoSimActionExecutor, ExecuteAndTimeout)
@@ -127,33 +128,22 @@ TEST(YoYoSimActionExecutor, ExecuteAndTimeout)
     auto velCB = [&] (geometry_msgs::Twist::ConstPtr val)
     { latestVelMsg = val; };
     ros::Subscriber velSub = nh.subscribe<geometry_msgs::Twist>("command_target_velocity", 1, velCB);
+    ros::Publisher posePub = nh.advertise<nav_msgs::Odometry>("primary_navigation", 2);
 
-	actionlib::SimpleActionServer<vehicle_auto_control::GoToZRosAction> goToZServer(nh, "go_to_z", false);
+    double depth = 0;
+    unsigned int goToZCalls = 0;
+    auto goToZ = [&] (const ros::MessageEvent< underwater_vehicle_msgs::GoToZ const >& goToXY) 
+    {depth = goToXY.getConstMessage().get()->depth;
+     goToZCalls++;};
 
-    bool goalCalled = false;
-    double z = 0;
-    bool holdDepth = false;
-    auto goalYoYoCB = [&] (void) 
-    {
-        vehicle_auto_control::GoToZRosGoalConstPtr goToZGoal = goToZServer.acceptNewGoal();
-        z = goToZGoal->z;
-        holdDepth = goToZGoal->holdDepth;
-        goalCalled = true;
-    };
+	ros::Subscriber goToZSub = nh.subscribe<underwater_vehicle_msgs::GoToZ>("go_to_z", 10, goToZ);
 
-    bool preemptCalled = false;
-    auto preemptYoYoCB = [&] (void) 
-    { 
-        preemptCalled = true;
-        goToZServer.setPreempted();
-    };
+    unsigned int goToZEnableCalls = 0;
+    auto goToZEnable = [&] (const ros::MessageEvent< std_msgs::Bool const >& enable) {goToZEnableCalls++;};
+	ros::Subscriber goToZEnableSub = nh.subscribe<std_msgs::Bool>("go_to_z_enable", 10, goToZEnable);
 
+    ros::Publisher goToZCompletePub = nh.advertise<std_msgs::Bool>("go_to_z_complete", 2);
 
-	goToZServer.registerGoalCallback(goalYoYoCB);
-    goToZServer.registerPreemptCallback(preemptYoYoCB);
-	goToZServer.start();
-
-    ros::AsyncSpinner spinner(1);
     std::shared_ptr<YoYoAction> action(new YoYoAction(1,
                                                       2,
                                                       3,
@@ -169,28 +159,38 @@ TEST(YoYoSimActionExecutor, ExecuteAndTimeout)
     VehicleInfo info(infoMsg);
     YoYoSimActionExecutor executor(nh, info);
 
-    spinner.start();
     EXPECT_TRUE(executor.execute(action));
 
-    while(latestVelMsg == NULL);
+    while(latestVelMsg == NULL)
+    {
+        ros::spinOnce();
+    }
     EXPECT_TRUE(std::isnan(latestVelMsg->linear.x));
     EXPECT_TRUE(std::isnan(latestVelMsg->angular.z));
     EXPECT_EQ(3, latestVelMsg->linear.z);
 
-    while(!goalCalled);
-    while(action->getState() != Action::State::EXECUTING);
 
-    EXPECT_EQ(1, z);
-    EXPECT_FALSE(holdDepth);
+    while(goToZCalls != 1)
+    {
+        ros::spinOnce();
+    }
+    EXPECT_EQ(1, goToZCalls);
 
+    while(action->getState() != Action::State::EXECUTING)
+    {
+        ros::spinOnce();
+    }
     EXPECT_EQ(Action::State::EXECUTING, action->getState());
+    EXPECT_EQ(1, depth);
 
     ros::Duration(2).sleep();
     executor.monitor(action);
-    while(action->getState() != Action::State::FAILED);
+    while(action->getState() != Action::State::FAILED)
+    {
+        ros::spinOnce();
+    }
     EXPECT_EQ(Action::State::FAILED, action->getState());
 
-    spinner.stop();
 }
 
 
@@ -202,33 +202,22 @@ TEST(YoYoSimActionExecutor, ExecuteAndSucceed)
     auto velCB = [&] (geometry_msgs::Twist::ConstPtr val)
     { latestVelMsg = val; };
     ros::Subscriber velSub = nh.subscribe<geometry_msgs::Twist>("command_target_velocity", 1, velCB);
+    ros::Publisher posePub = nh.advertise<nav_msgs::Odometry>("primary_navigation", 2);
 
-	actionlib::SimpleActionServer<vehicle_auto_control::GoToZRosAction> goToZServer(nh, "go_to_z", false);
+    double depth = 0;
+    unsigned int goToZCalls = 0;
+    auto goToZ = [&] (const ros::MessageEvent< underwater_vehicle_msgs::GoToZ const >& goToXY) 
+    {depth = goToXY.getConstMessage().get()->depth;
+     goToZCalls++;};
 
-    bool goalCalled = false;
-    double z = -1;
-    bool holdDepth = false;
-    auto goalYoYoCB = [&] (void) 
-    {
-        vehicle_auto_control::GoToZRosGoalConstPtr goToZGoal = goToZServer.acceptNewGoal();
-        z = goToZGoal->z;
-        holdDepth = goToZGoal->holdDepth;
-        goalCalled = true;
-    };
+	ros::Subscriber goToZSub = nh.subscribe<underwater_vehicle_msgs::GoToZ>("go_to_z", 10, goToZ);
 
-    bool preemptCalled = false;
-    auto preemptYoYoCB = [&] (void) 
-    { 
-        preemptCalled = true; 
-        goToZServer.setPreempted();
-    };
+    unsigned int goToZEnableCalls = 0;
+    auto goToZEnable = [&] (const ros::MessageEvent< std_msgs::Bool const >& enable) {goToZEnableCalls++;};
+	ros::Subscriber goToZEnableSub = nh.subscribe<std_msgs::Bool>("go_to_z_enable", 10, goToZEnable);
 
+    ros::Publisher goToZCompletePub = nh.advertise<std_msgs::Bool>("go_to_z_complete", 2);
 
-	goToZServer.registerGoalCallback(goalYoYoCB);
-    goToZServer.registerPreemptCallback(preemptYoYoCB);
-	goToZServer.start();
-
-    ros::AsyncSpinner spinner(1);
     std::shared_ptr<YoYoAction> action(new YoYoAction(1,
                                                       2,
                                                       3,
@@ -244,108 +233,55 @@ TEST(YoYoSimActionExecutor, ExecuteAndSucceed)
     VehicleInfo info(infoMsg);
     YoYoSimActionExecutor executor(nh, info);
 
-    spinner.start();
     EXPECT_TRUE(executor.execute(action));
 
-    while(latestVelMsg == NULL);
+    while(latestVelMsg == NULL)
+    {
+        ros::spinOnce();
+    }
     EXPECT_TRUE(std::isnan(latestVelMsg->linear.x));
     EXPECT_TRUE(std::isnan(latestVelMsg->angular.z));
     EXPECT_EQ(3, latestVelMsg->linear.z);
 
-    while(!goalCalled);
-    while(action->getState() != Action::State::EXECUTING);
 
-    EXPECT_EQ(1, z);
-    EXPECT_FALSE(holdDepth);
+    while(goToZCalls != 1)
+    {
+        ros::spinOnce();
+    }
+    EXPECT_EQ(1, goToZCalls);
+
+    while(action->getState() != Action::State::EXECUTING)
+    {
+        ros::spinOnce();
+    }
     EXPECT_EQ(Action::State::EXECUTING, action->getState());
+    EXPECT_EQ(1, depth);
 
     //Reset goal called
-    goalCalled = false;
-    goToZServer.setSucceeded();
+    std_msgs::Bool completeMsg;
+    completeMsg.data = true;
+    goToZCompletePub.publish(completeMsg);
+    ros::WallDuration(3).sleep();
+    ros::spinOnce();
 
-    //Wait for next go to z call
-    while(!goalCalled);
-
-    EXPECT_EQ(2, z);
-    EXPECT_FALSE(holdDepth);
+    executor.monitor(action);
+    while(goToZCalls != 2)
+    {
+        ros::spinOnce();
+    }
+    EXPECT_EQ(2, goToZCalls);
+    EXPECT_EQ(2, depth);
     EXPECT_EQ(Action::State::EXECUTING, action->getState());
 
     ros::Duration(2).sleep();
     executor.monitor(action);
-    while(action->getState() != Action::State::COMPLETED);
+    while(action->getState() != Action::State::COMPLETED)
+    {
+        ros::spinOnce();
+    }
     EXPECT_EQ(Action::State::COMPLETED, action->getState());
 
-    spinner.stop();
 }
-
-TEST(YoYoSimActionExecutor, ExecuteAndAbort)
-{
-    ros::NodeHandle nh("ExecuteAndAbort");
-
-    geometry_msgs::Twist::ConstPtr latestVelMsg = NULL;
-    auto velCB = [&] (geometry_msgs::Twist::ConstPtr val)
-    { latestVelMsg = val; };
-    ros::Subscriber velSub = nh.subscribe<geometry_msgs::Twist>("command_target_velocity", 1, velCB);
-
-	actionlib::SimpleActionServer<vehicle_auto_control::GoToZRosAction> goToZServer(nh, "go_to_z", false);
-
-    bool goalCalled = false;
-    double z = -1;
-    bool holdDepth = false;
-    auto goalYoYoCB = [&] (void) 
-    {
-        vehicle_auto_control::GoToZRosGoalConstPtr goToZGoal = goToZServer.acceptNewGoal();
-        z = goToZGoal->z;
-        holdDepth = goToZGoal->holdDepth;
-        goalCalled = true;
-    };
-
-    bool preemptCalled = false;
-    auto preemptYoYoCB = [&] (void) { preemptCalled = true; };
-
-
-	goToZServer.registerGoalCallback(goalYoYoCB);
-    goToZServer.registerPreemptCallback(preemptYoYoCB);
-	goToZServer.start();
-
-    ros::AsyncSpinner spinner(1);
-    std::shared_ptr<YoYoAction> action(new YoYoAction(1,
-                                                      2,
-                                                      3,
-                                                      100,
-                                                      200,
-                                                      NULL,
-                                                      YoYoAction::ReplanType::NONE,
-                                                      4,
-                                                      NULL));
-
-    underwater_vehicle_msgs::GetVehicleInfo infoMsg;
-    infoMsg.response.propModuleType = "FourDOFPropulsion";
-    VehicleInfo info(infoMsg);
-    YoYoSimActionExecutor executor(nh, info);
-
-    spinner.start();
-    EXPECT_TRUE(executor.execute(action));
-
-    while(latestVelMsg == NULL);
-    EXPECT_TRUE(std::isnan(latestVelMsg->linear.x));
-    EXPECT_TRUE(std::isnan(latestVelMsg->angular.z));
-    EXPECT_EQ(3, latestVelMsg->linear.z);
-
-    while(!goalCalled);
-    while(action->getState() != Action::State::EXECUTING);
-
-    EXPECT_EQ(1, z);
-    EXPECT_FALSE(holdDepth);
-    EXPECT_EQ(Action::State::EXECUTING, action->getState());
-
-    goToZServer.setAborted();
-    while(action->getState() != Action::State::FAILED);
-    EXPECT_EQ(Action::State::FAILED, action->getState());
-
-    spinner.stop();
-}
-
 
 TEST(YoYoSimActionExecutor, TimeReplan)
 {
@@ -355,29 +291,20 @@ TEST(YoYoSimActionExecutor, TimeReplan)
     auto velCB = [&] (geometry_msgs::Twist::ConstPtr val)
     { latestVelMsg = val; };
     ros::Subscriber velSub = nh.subscribe<geometry_msgs::Twist>("command_target_velocity", 1, velCB);
+    ros::Publisher posePub = nh.advertise<nav_msgs::Odometry>("primary_navigation", 2);
 
-	actionlib::SimpleActionServer<vehicle_auto_control::GoToZRosAction> goToZServer(nh, "go_to_z", false);
+    double depth = 0;
+    unsigned int goToZCalls = 0;
+    auto goToZ = [&] (const ros::MessageEvent< underwater_vehicle_msgs::GoToZ const >& goToXY) 
+    {depth = goToXY.getConstMessage().get()->depth;
+     goToZCalls++;};
 
-    bool goalCalled = false;
-    double z = -1;
-    bool holdDepth = false;
-    auto goalYoYoCB = [&] (void) 
-    {
-        vehicle_auto_control::GoToZRosGoalConstPtr goToZGoal = goToZServer.acceptNewGoal();
-        z = goToZGoal->z;
-        holdDepth = goToZGoal->holdDepth;
-        goalCalled = true;
-    };
+	ros::Subscriber goToZSub = nh.subscribe<underwater_vehicle_msgs::GoToZ>("go_to_z", 10, goToZ);
 
-    bool preemptCalled = false;
-    auto preemptYoYoCB = [&] (void) { preemptCalled = true; };
+    unsigned int goToZEnableCalls = 0;
+    auto goToZEnable = [&] (const ros::MessageEvent< std_msgs::Bool const >& enable) {goToZEnableCalls++;};
+	ros::Subscriber goToZEnableSub = nh.subscribe<std_msgs::Bool>("go_to_z_enable", 10, goToZEnable);
 
-
-	goToZServer.registerGoalCallback(goalYoYoCB);
-    goToZServer.registerPreemptCallback(preemptYoYoCB);
-	goToZServer.start();
-
-    ros::AsyncSpinner spinner(1);
     std::shared_ptr<YoYoAction> action(new YoYoAction(1,
                                                       2,
                                                       3,
@@ -393,27 +320,34 @@ TEST(YoYoSimActionExecutor, TimeReplan)
     VehicleInfo info(infoMsg);
     YoYoSimActionExecutor executor(nh, info);
 
-    spinner.start();
     EXPECT_TRUE(executor.execute(action));
 
-    while(latestVelMsg == NULL);
+    while(latestVelMsg == NULL)
+    {
+        ros::spinOnce();
+    }
     EXPECT_TRUE(std::isnan(latestVelMsg->linear.x));
     EXPECT_TRUE(std::isnan(latestVelMsg->angular.z));
     EXPECT_EQ(3, latestVelMsg->linear.z);
 
-    while(!goalCalled);
-    while(action->getState() != Action::State::EXECUTING);
 
-    EXPECT_EQ(1, z);
-    EXPECT_FALSE(holdDepth);
+    while(goToZCalls != 1)
+    {
+        ros::spinOnce();
+    }
+    EXPECT_EQ(1, goToZCalls);
+
+    while(action->getState() != Action::State::EXECUTING)
+    {
+        ros::spinOnce();
+    }
     EXPECT_EQ(Action::State::EXECUTING, action->getState());
+    EXPECT_EQ(1, depth);
 
     ros::Duration(3).sleep();
     executor.monitor(action);
     EXPECT_TRUE(executor.triggerReplan(action));
     EXPECT_FALSE(executor.triggerReplan(action));
-
-    spinner.stop();
 }
 
 TEST(YoYoSimActionExecutor, DistanceReplan)
@@ -424,30 +358,15 @@ TEST(YoYoSimActionExecutor, DistanceReplan)
     auto velCB = [&] (geometry_msgs::Twist::ConstPtr val)
     { latestVelMsg = val; };
     ros::Subscriber velSub = nh.subscribe<geometry_msgs::Twist>("command_target_velocity", 1, velCB);
-
     ros::Publisher posePub = nh.advertise<nav_msgs::Odometry>("primary_navigation", 2);
-	actionlib::SimpleActionServer<vehicle_auto_control::GoToZRosAction> goToZServer(nh, "go_to_z", false);
 
-    bool goalCalled = false;
-    double z = -1;
-    bool holdDepth = false;
-    auto goalYoYoCB = [&] (void) 
-    {
-        vehicle_auto_control::GoToZRosGoalConstPtr goToZGoal = goToZServer.acceptNewGoal();
-        z = goToZGoal->z;
-        holdDepth = goToZGoal->holdDepth;
-        goalCalled = true;
-    };
+    double depth = 0;
+    unsigned int goToZCalls = 0;
+    auto goToZ = [&] (const ros::MessageEvent< underwater_vehicle_msgs::GoToZ const >& goToXY) 
+    {depth = goToXY.getConstMessage().get()->depth;
+     goToZCalls++;};
 
-    bool preemptCalled = false;
-    auto preemptYoYoCB = [&] (void) { preemptCalled = true; };
-
-
-	goToZServer.registerGoalCallback(goalYoYoCB);
-    goToZServer.registerPreemptCallback(preemptYoYoCB);
-	goToZServer.start();
-
-    ros::AsyncSpinner spinner(1);
+	ros::Subscriber goToZSub = nh.subscribe<underwater_vehicle_msgs::GoToZ>("go_to_z", 10, goToZ);
     std::shared_ptr<YoYoAction> action(new YoYoAction(1,
                                                       2,
                                                       3,
@@ -463,20 +382,29 @@ TEST(YoYoSimActionExecutor, DistanceReplan)
     VehicleInfo info(infoMsg);
     YoYoSimActionExecutor executor(nh, info);
 
-    spinner.start();
     EXPECT_TRUE(executor.execute(action));
 
-    while(latestVelMsg == NULL);
+    while(latestVelMsg == NULL)
+    {
+        ros::spinOnce();
+    }
     EXPECT_TRUE(std::isnan(latestVelMsg->linear.x));
     EXPECT_TRUE(std::isnan(latestVelMsg->angular.z));
     EXPECT_EQ(3, latestVelMsg->linear.z);
 
-    while(!goalCalled);
-    while(action->getState() != Action::State::EXECUTING);
 
-    EXPECT_EQ(1, z);
-    EXPECT_FALSE(holdDepth);
+    while(goToZCalls != 1)
+    {
+        ros::spinOnce();
+    }
+    EXPECT_EQ(1, goToZCalls);
+
+    while(action->getState() != Action::State::EXECUTING)
+    {
+        ros::spinOnce();
+    }
     EXPECT_EQ(Action::State::EXECUTING, action->getState());
+    EXPECT_EQ(1, depth);
 
     executor.monitor(action);
     EXPECT_FALSE(executor.triggerReplan(action));
@@ -493,11 +421,10 @@ TEST(YoYoSimActionExecutor, DistanceReplan)
     {
         executor.monitor(action);
         replan = executor.triggerReplan(action);
+        ros::spinOnce();
     }
     EXPECT_TRUE(replan);
     EXPECT_FALSE(executor.triggerReplan(action));
-
-    spinner.stop();
 }
 
 TEST(YoYoSimActionExecutor, TurnReplan)
@@ -508,33 +435,17 @@ TEST(YoYoSimActionExecutor, TurnReplan)
     auto velCB = [&] (geometry_msgs::Twist::ConstPtr val)
     { latestVelMsg = val; };
     ros::Subscriber velSub = nh.subscribe<geometry_msgs::Twist>("command_target_velocity", 1, velCB);
+    ros::Publisher posePub = nh.advertise<nav_msgs::Odometry>("primary_navigation", 2);
 
-	actionlib::SimpleActionServer<vehicle_auto_control::GoToZRosAction> goToZServer(nh, "go_to_z", false);
+    double depth = 0;
+    unsigned int goToZCalls = 0;
+    auto goToZ = [&] (const ros::MessageEvent< underwater_vehicle_msgs::GoToZ const >& goToXY) 
+    {depth = goToXY.getConstMessage().get()->depth;
+     goToZCalls++;};
 
-    bool goalCalled = false;
-    double z = -1;
-    bool holdDepth = false;
-    auto goalYoYoCB = [&] (void) 
-    {
-        vehicle_auto_control::GoToZRosGoalConstPtr goToZGoal = goToZServer.acceptNewGoal();
-        z = goToZGoal->z;
-        holdDepth = goToZGoal->holdDepth;
-        goalCalled = true;
-    };
+	ros::Subscriber goToZSub = nh.subscribe<underwater_vehicle_msgs::GoToZ>("go_to_z", 10, goToZ);
+    ros::Publisher goToZCompletePub = nh.advertise<std_msgs::Bool>("go_to_z_complete", 2);
 
-    bool preemptCalled = false;
-    auto preemptYoYoCB = [&] (void) 
-    { 
-        preemptCalled = true; 
-        goToZServer.setPreempted();
-    };
-
-
-	goToZServer.registerGoalCallback(goalYoYoCB);
-    goToZServer.registerPreemptCallback(preemptYoYoCB);
-	goToZServer.start();
-
-    ros::AsyncSpinner spinner(1);
     std::shared_ptr<YoYoAction> action(new YoYoAction(1,
                                                       2,
                                                       3,
@@ -550,39 +461,48 @@ TEST(YoYoSimActionExecutor, TurnReplan)
     VehicleInfo info(infoMsg);
     YoYoSimActionExecutor executor(nh, info);
 
-    spinner.start();
     EXPECT_TRUE(executor.execute(action));
 
-    while(latestVelMsg == NULL);
+    while(latestVelMsg == NULL)
+    {
+        ros::spinOnce();
+    }
     EXPECT_TRUE(std::isnan(latestVelMsg->linear.x));
     EXPECT_TRUE(std::isnan(latestVelMsg->angular.z));
     EXPECT_EQ(3, latestVelMsg->linear.z);
 
-    while(!goalCalled);
-    while(action->getState() != Action::State::EXECUTING);
 
-    EXPECT_EQ(1, z);
-    EXPECT_FALSE(holdDepth);
+    while(goToZCalls != 1)
+    {
+        ros::spinOnce();
+    }
+    EXPECT_EQ(1, goToZCalls);
+
+    while(action->getState() != Action::State::EXECUTING)
+    {
+        ros::spinOnce();
+    }
     EXPECT_EQ(Action::State::EXECUTING, action->getState());
+    EXPECT_EQ(1, depth);
 
-    //Reset goal called
-    goalCalled = false;
-    goToZServer.setSucceeded();
-
-    //Wait for next go to z call
-    while(!goalCalled);
-
-    EXPECT_EQ(2, z);
-    EXPECT_FALSE(holdDepth);
+    std_msgs::Bool completeMsg;
+    completeMsg.data = true;
+    goToZCompletePub.publish(completeMsg);
+    ros::WallDuration(3).sleep();
+    ros::spinOnce();
+    
+    executor.monitor(action);
+    while(goToZCalls != 2)
+    {
+        ros::spinOnce();
+    }
+    EXPECT_EQ(2, goToZCalls);
+    EXPECT_EQ(2, depth);
     EXPECT_EQ(Action::State::EXECUTING, action->getState());
 
     EXPECT_TRUE(executor.triggerReplan(action));
     EXPECT_FALSE(executor.triggerReplan(action));
-
-    spinner.stop();
 }
-
-
 
 //Had issues doing this in the roslaunch file for this test. Not sure why.
 //Normally this can be included in the roslaunch file with the following

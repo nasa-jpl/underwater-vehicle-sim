@@ -8,14 +8,13 @@
 
 #include "geometry_msgs/Point.h"
 #include "geometry_msgs/Twist.h"
+#include "underwater_vehicle_msgs/GoToZ.h"
 
 #include "tf2_geometry_msgs/tf2_geometry_msgs.h"
 
 #include "underwater_autonomy/planner/actions/Action.h"
 
 #include "underwater_autonomy/planner/actions/YoYoAction.h"
-
-#include "actionlib/client/simple_action_client.h"
 
 using namespace underwater_autonomy;
 
@@ -25,16 +24,19 @@ YoYoSimActionExecutor::YoYoSimActionExecutor(VehicleInfo& vehicleInfo) :
 
 YoYoSimActionExecutor::YoYoSimActionExecutor(ros::NodeHandle nh, VehicleInfo& vehicleInfo) :
 	vehicleInfo(vehicleInfo),
-	goToZClient(nh, "go_to_z", true),
 	replanNextUpdate(false),
 	lastReplan(ros::Time::now()),
 	distanceSinceReplan(0),
 	currentDuration(0),
-	stateAfterCancel(Action::State::INTERRUPTED),
-	listener(buffer)
+	gotCompleteCallback(false)
 {
 	velPub = nh.advertise<geometry_msgs::Twist>("command_target_velocity", 1000, true);
 	poseSub = nh.subscribe("primary_navigation", 1, &YoYoSimActionExecutor::navigationFilterCallback, this);
+
+	goToZPub = nh.advertise<underwater_vehicle_msgs::GoToZ>("go_to_z", 1000);
+	goToZEnablePub = nh.advertise<std_msgs::Bool>("go_to_z_enable", 1000);
+	goToZComplete = nh.subscribe("go_to_z_complete", 1, &YoYoSimActionExecutor::goToZCompleteCallback, this);
+
 }
 
 bool YoYoSimActionExecutor::execute(std::shared_ptr<YoYoAction> action)
@@ -63,8 +65,21 @@ bool YoYoSimActionExecutor::execute(std::shared_ptr<YoYoAction> action)
 		return false;
 	}
 
+
+	//Check that we have someone listening to us
+	ros::WallTime time = ros::WallTime::now();
+	while(goToZPub.getNumSubscribers() == 0 &&
+		  ros::WallTime::now() - time < ros::WallDuration(5)) {ros::WallDuration(1).sleep();}
+	if(goToZPub.getNumSubscribers() == 0)
+	{
+		return false;
+	}
+
+
 	//Creates an action goal and sends it to the action server for point path movement
 	sendNewGoToZGoal(action);
+	action->setState(Action::State::EXECUTING);
+
 	distanceSinceReplan = 0;
 	lastUpdate = ros::Time::now();
 	return true;
@@ -72,16 +87,11 @@ bool YoYoSimActionExecutor::execute(std::shared_ptr<YoYoAction> action)
 
 void YoYoSimActionExecutor::cancel(std::shared_ptr<YoYoAction> action)
 {
-	if(goToZClient.getState() == actionlib::SimpleClientGoalState::PENDING ||
-	   goToZClient.getState() == actionlib::SimpleClientGoalState::ACTIVE)
-	{
-		goToZClient.cancelGoal();
-	}
-	else
-	{
-		action->setState(Action::State::INTERRUPTED);
-		ROS_INFO("YoYo action interrupted");
-	}
+	std_msgs::Bool enableMsg;
+	enableMsg.data = false;
+	goToZEnablePub.publish(enableMsg);
+
+	action->setState(Action::State::INTERRUPTED);
 }
 
 bool YoYoSimActionExecutor::triggerReplan(std::shared_ptr<YoYoAction> action)
@@ -97,37 +107,24 @@ bool YoYoSimActionExecutor::triggerReplan(std::shared_ptr<YoYoAction> action)
 	return false;
 }
 
-void YoYoSimActionExecutor::rosActionDone(std::shared_ptr<YoYoAction> action,
-					const actionlib::SimpleClientGoalState& state,
-                	const vehicle_auto_control::GoToZRosResultConstPtr& result)
+void YoYoSimActionExecutor::goToZCompleteCallback(const std_msgs::Bool complete)
 {
-	if(state == actionlib::SimpleClientGoalState::RECALLED ||
-	   state == actionlib::SimpleClientGoalState::PREEMPTED)
-	{
-		if(stateAfterCancel == Action::State::INTERRUPTED)
-		{
-			action->setState(Action::State::INTERRUPTED);
-			ROS_INFO("Yoyo action interrupted");
-		}
-		else if(stateAfterCancel == Action::State::FAILED)
-		{
-			action->setState(Action::State::FAILED);
-			ROS_INFO("Yoyo action failed");
-		}
-		else if(stateAfterCancel == Action::State::COMPLETED)
-		{
-			action->setState(Action::State::COMPLETED);
-			ROS_INFO("Yoyo action completed");
-		}
+	if(complete.data)
+	{		
+		gotCompleteCallback = true;
 	}
-	else if(state == actionlib::SimpleClientGoalState::REJECTED ||
-			state == actionlib::SimpleClientGoalState::ABORTED)
+}
+
+void YoYoSimActionExecutor::monitor(std::shared_ptr<underwater_autonomy::YoYoAction> action)
+{
+	ros::Time currentTime = ros::Time::now();
+	currentDuration += currentTime - lastUpdate;
+	lastUpdate = currentTime;
+
+	if(gotCompleteCallback)
 	{
-		action->setState(Action::State::FAILED);
-		ROS_INFO("YoYo action failed");
-	}
-	else if(state == actionlib::SimpleClientGoalState::SUCCEEDED)
-	{
+		gotCompleteCallback = false;
+
 		action->setGoingUp(!action->getGoingUp());
 		if(!replanNextUpdate)
 		{
@@ -141,33 +138,19 @@ void YoYoSimActionExecutor::rosActionDone(std::shared_ptr<YoYoAction> action,
 			sendNewGoToZGoal(action);
 		}
 	}
-}
-
-void YoYoSimActionExecutor::rosActionActive(std::shared_ptr<YoYoAction> action)
-{
-	action->setState(Action::State::EXECUTING);
-}
-
-void YoYoSimActionExecutor::rosActionFeedback(std::shared_ptr<YoYoAction> action,
-					const vehicle_auto_control::GoToZRosFeedbackConstPtr& feedback) {}
-
-void YoYoSimActionExecutor::monitor(std::shared_ptr<underwater_autonomy::YoYoAction> action)
-{
-	ros::Time currentTime = ros::Time::now();
-	currentDuration += currentTime - lastUpdate;
-	lastUpdate = currentTime;
-
-	if(action->getYoYoTime() >= 0 && currentDuration.toSec() >= action->getYoYoTime())
+	else if(action->getYoYoTime() >= 0 && currentDuration.toSec() >= action->getYoYoTime())
 	{
-		//We need to cancel the action lib but still what to set the underwater autonomy action as complete
-		stateAfterCancel = Action::State::COMPLETED;
-		goToZClient.cancelGoal();
+		action->setState(Action::State::COMPLETED);
+		std_msgs::Bool enableMsg;
+		enableMsg.data = false;
+		goToZEnablePub.publish(enableMsg);
 	}
 	else if(action->getTimeout() >= 0 && currentDuration.toSec() >= action->getTimeout())
 	{
-		//We need to cancel the action lib but still what to set the underwater autonomy action as failed
-		stateAfterCancel = Action::State::FAILED;
-		goToZClient.cancelGoal();
+		action->setState(Action::State::FAILED);
+		std_msgs::Bool enableMsg;
+		enableMsg.data = false;
+		goToZEnablePub.publish(enableMsg);
 	}
 
 	if(!replanNextUpdate)
@@ -179,25 +162,21 @@ void YoYoSimActionExecutor::monitor(std::shared_ptr<underwater_autonomy::YoYoAct
 
 void YoYoSimActionExecutor::sendNewGoToZGoal(std::shared_ptr<underwater_autonomy::YoYoAction> action)
 {
-	vehicle_auto_control::GoToZRosGoal goToZGoal;
-
+	//ROS_INFO("SEND_Z");
+	underwater_vehicle_msgs::GoToZ goToZMsg;
 	if(action->getGoingUp())
 	{
-		goToZGoal.z = action->getUpperDepth();
+		goToZMsg.depth = action->getUpperDepth();
 	}
 	else
 	{
-		goToZGoal.z = action->getLowerDepth();
+		goToZMsg.depth = action->getLowerDepth();
 	}
 
-	goToZGoal.holdDepth = false;
+	goToZMsg.enable = true;
+	goToZMsg.holdDepth = false;
 
-	goToZClient.waitForServer();
-	ROS_INFO("Send goal to GoToZ Server");
-	goToZClient.sendGoal(goToZGoal,
-						 boost::bind(&YoYoSimActionExecutor::rosActionDone, this, action, _1, _2),
-						 boost::bind(&YoYoSimActionExecutor::rosActionActive, this, action),
-						 boost::bind(&YoYoSimActionExecutor::rosActionFeedback, this, action, _1));
+	goToZPub.publish(goToZMsg);
 }
 
 void YoYoSimActionExecutor::navigationFilterCallback(const nav_msgs::Odometry odo)
