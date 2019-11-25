@@ -1,9 +1,11 @@
 import rosbag
 import sys
 import matplotlib.pyplot as plt
+import matplotlib.colors
 import pandas as pd
 import numpy as np
 import subprocess
+
 
 # phase should be "SPIRAL", "LAWNMOWER", "DYNAMIC_LAWNMOWER", "OTHER", or "UNSET" (if unimplemented)
 def main(bagName, phase = "None", model = False):
@@ -35,7 +37,7 @@ def main(bagName, phase = "None", model = False):
 			print(msg)
 
 	bag.close()
-
+	
 	if model:
 		# in python3, this is subprocess.run()
 		subprocess.call(["./devel/lib/visualization/visualization_MODEL_FETCHER", bagName])
@@ -62,9 +64,11 @@ def main(bagName, phase = "None", model = False):
 
 		plt.plot(modelTimes, modelHeight, c='k')
 
-	plt.scatter(time, z, c=np.log2(dye), linewidth=0, cmap="plasma")
-	plt.scatter(time, seaFloor, linewidth=0, cmap="plasma")
-	plt.gca().invert_yaxis()
+	dye = [max(d, 0.1) for d in dye]
+	plt.scatter(time, z, c=dye, linewidth=0, cmap="plasma", norm=matplotlib.colors.LogNorm(vmin=min(dye), vmax=max(dye)))
+	# plt.scatter(time, z, c=np.log2(dye), linewidth=0, cmap="plasma")
+
+	plt.scatter(time, seaFloor, linewidth=0, cmap="plasma")	plt.gca().invert_yaxis()
 	plt.show()
 
 if __name__ == "__main__":

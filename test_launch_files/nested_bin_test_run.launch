@@ -1,6 +1,6 @@
 <launch>
     <!--Simulation-->
-    <node pkg="underwater_vehicle_sim" type="underwater_vehicle_sim_node" name="vehicle_sim" ns="v1" output="screen">
+    <node pkg="underwater_vehicle_sim" type="underwater_vehicle_sim_node" name="vehicle_sim" ns="v1">
         <rosparam param="sim_hertz">10</rosparam>
         <rosparam param="start_x">-1432.16016854</rosparam>
         <rosparam param="start_y">-1054.18858199</rosparam>
@@ -57,7 +57,7 @@
     </node>
 
     <!--High Level Control-->
-    <node pkg="vehicle_auto_control" type="vehicle_auto_control_node" name="controller" ns="v1" output="screen">
+    <node pkg="vehicle_auto_control" type="vehicle_auto_control_node" name="controller" ns="v1">
          <rosparam param="hertz">10</rosparam>
          <remap from="primary_navigation" to="nav_filters/true_nav" />
     </node>
@@ -133,7 +133,7 @@
 
 
     <!--Navigation-->
-    <node pkg="ros_sim_autonomy_interface" type="ros_sim_navigation_node" name="ros_sim_navigation" ns="v1" output="screen">
+    <node pkg="ros_sim_autonomy_interface" type="ros_sim_navigation_node" name="ros_sim_navigation" ns="v1">
         <rosparam param="hertz">10</rosparam>
         <rosparam param="filter_names">[true_nav]</rosparam>
         <rosparam param="filter/true_nav/type">TrueNavigation</rosparam>
@@ -142,46 +142,17 @@
     </node>
 
     <!--Autonomy-->
-    <node pkg="ros_sim_autonomy_interface" type="ros_sim_plan_server_node" name="ros_sim_plan_server" ns="v1"  output="screen">
-        <rosparam param="type">NestedBin</rosparam>
+    <node pkg="ros_sim_autonomy_interface" type="ros_sim_plan_server_node" name="ros_sim_plan_server" ns="v1" output="screen" >
+        <param name="planner_config_file" value="$(dirname)/planner_parameters/nested_bin_test.toml"/>
+
         <rosparam param="hertz">1</rosparam>
-        <rosparam param="spiral_spacing">5000</rosparam>
-        <rosparam param="inital_spacing">4000</rosparam>
-        <rosparam param="final_spacing">200</rosparam>
         <rosparam param="fail_time">5011200</rosparam>
-        <rosparam param="yoyo_min_depth">100</rosparam>
-        <rosparam param="yoyo_max_depth">2000</rosparam>
-        <rosparam param="target_horizontal_velocity">1</rosparam>
-        <rosparam param="target_vertical_velocity">1</rosparam>
-
-        <rosparam param="detection_threshold">2.0</rosparam>
-
-        <rosparam param="target_data">plume</rosparam>
-        <rosparam param="lawnmower_data_range">10</rosparam>
-
-        <rosparam param="spiral_start_x">-1432.16016854</rosparam>
-        <rosparam param="spiral_start_y">-1054.18858199</rosparam>
-        <rosparam param="spiral_start_z">0</rosparam>
-
-        <rosparam param="sim_target_x">0</rosparam>
-        <rosparam param="sim_target_y">0</rosparam>
-
-        <rosparam param="operation_region_min_x">-11000</rosparam>
-        <rosparam param="operation_region_min_y">-11000</rosparam>
-        <rosparam param="operation_region_min_z">0</rosparam>
-        <rosparam param="operation_region_max_x">11000</rosparam>
-        <rosparam param="operation_region_max_y">11000</rosparam>
-        <rosparam param="operation_region_max_z">4000</rosparam>
-
-        <rosparam param="sonar_depth_enabled">true</rosparam>
-        <rosparam param="sonar_data">sonar_depth</rosparam>
-        <rosparam param="gradient_descent_time">60.0</rosparam>
-
+        <rosparam param="cancel_timeout">60</rosparam>
         <remap from="primary_navigation" to="nav_filters/true_nav" />
     </node>
 
     <param name="use_sim_time" value="true" />
-    <rosparam param="speed_up_factor">50</rosparam>
+    <rosparam param="speed_up_factor">75</rosparam>
     <rosparam param="sim_start_time">2592000</rosparam>
 
 <!--
@@ -189,7 +160,7 @@
     <rosparam param="model/depth">200</rosparam>
 -->
     <rosparam param="model_type">fvcom</rosparam>
-   <!-- <rosparam param="model/fvcom_directory" subst_value="True">/home/dev/proj/axial/</rosparam>-->
+   <!-- <rosparam param="model/fvcom_directory" subst_value="True">/home/dev/Documents/model-data/axial/</rosparam>-->
     <rosparam param="model/fvcom_directory" subst_value="True">/home/dev/proj/axial/</rosparam>
 
     <node pkg="tf2_ros" type="static_transform_publisher" name="ned_publisher" args="0 0 0 1.57079632679 0 3.14159265359 world world_ned"/>
