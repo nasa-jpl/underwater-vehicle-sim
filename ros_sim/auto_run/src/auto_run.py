@@ -1,11 +1,15 @@
 import roslaunch
 import rospy
+import rosbag
 import os
 import shutil
 import sys
 
+import subprocess, shlex
+
 from std_msgs.msg import String
 import data_server.srv
+
 
 currentGoal = "running"
 dataFilePub = None
@@ -20,25 +24,31 @@ def getLaunchFiles(directory):
 def runLaunchFile(uuid, filename, outputDirectory, inputDirectory):
     launch = roslaunch.parent.ROSLaunchParent(uuid, [filename])
 
+    if not os.path.exists(outputDirectory):
+        os.makedirs(outputDirectory)
+
     rospy.loginfo("Starting launch file: %s", filename)
     launch.start()
 
     rate = rospy.Rate(0.1)
 
+    # start recording messages to bag
+    # TODO TODO: this process won't die if you terminate the parent early (i.e. you ctr-c)
+    command = "rosbag record -o " + outputDirectory + "/vehicleData /v1/data_broadcaster/data /v1/plannerStatus"
+    command = shlex.split(command)
+    rosbag_proc = subprocess.Popen(command)
+
     sawRunning = False
     while not sawRunning or currentGoal == 'running' :
         if(currentGoal == 'running'):
             sawRunning = True
-            
+
         try:
             rate.sleep()
         except rospy.exceptions.ROSTimeMovedBackwardsException:
             pass
 
     rospy.loginfo("Goal reached saving data to: %s", outputDirectory)
-
-    if not os.path.exists(outputDirectory):
-        os.makedirs(outputDirectory)
 
     try:
         dataFileClient = rospy.ServiceProxy('/data_server/save', data_server.srv.SaveData)
@@ -59,8 +69,11 @@ def runLaunchFile(uuid, filename, outputDirectory, inputDirectory):
     with open(os.path.join(outputDirectory, "stats.txt"), 'w+') as f:
         f.write("Goal State: " + currentGoal)
 
+    # stop the bag recording
+    rosbag_proc.send_signal(subprocess.signal.SIGINT)
+
     shutil.copy(filename, outputDirectory)
-    
+
     rospy.loginfo("Stopping launch file: %s", filename)
     launch.shutdown()
 
@@ -70,7 +83,7 @@ def main(argv):
     global currentGoal
 
     if len(argv) != 3:
-        print("Invalid Arguments")
+        print("Invalid Arguments. Usage: inputDir outputDir")
         sys.exit()
 
     inputDirectory = argv[1]
@@ -79,6 +92,7 @@ def main(argv):
     if not os.path.exists(os.path.join(inputDirectory, "completed")):
         os.makedirs(os.path.join(inputDirectory, "completed"))
 
+    # if getting stuck here, need to run roscore in different process
     rospy.init_node('en_Mapping', anonymous=True)
 
     uuid = roslaunch.rlutil.get_or_generate_uuid(None, False)
