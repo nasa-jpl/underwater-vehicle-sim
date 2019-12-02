@@ -22,7 +22,7 @@ std::unique_ptr<ModelInterface> model;
 
 ros::Publisher clockSpeedPub;
 ros::ServiceServer dataService;
-float speedUpFactor;   
+float speedUpFactor;
 
 double modelTimeOffset = 0;
 double modelXOffset = 0;
@@ -45,7 +45,7 @@ void endModelLoad()
 
 bool getModelData(model_server::GetModelData::Request &req,
 				  model_server::GetModelData::Response &res)
-{   
+{
     try
     {
         ModelData data = model->getData(req.x + modelXOffset, req.y + modelYOffset, req.h, req.time + modelTimeOffset);
@@ -54,7 +54,7 @@ bool getModelData(model_server::GetModelData::Request &req,
         res.dye = data.dye;
         res.temp = data.temp;
         res.salt = data.salt;
-        res.depth = data.depth; 
+        res.depth = data.depth;
     }
     catch(const std::out_of_range& e)
     {
@@ -67,7 +67,7 @@ bool getModelData(model_server::GetModelData::Request &req,
         res.salt = data.salt;
         res.depth = data.depth;
     }
-    
+
 	return true;
 }
 
@@ -75,7 +75,7 @@ int main(int argc, char **argv)
 {
     ros::init(argc, argv, "model_server");
     ros::NodeHandle n;
-    
+
     std::string model_type;
 
     clockSpeedPub = n.advertise<std_msgs::Float64>("clock_server/speed_up_factor", 1, true);
@@ -92,6 +92,11 @@ int main(int argc, char **argv)
     n.getParam("model/model_x_offset", modelXOffset);
     n.getParam("model/model_y_offset", modelYOffset);
 
+    std::cout << "\n\n\n\n------------  ";
+    ROS_INFO("Model time offset: %f", modelTimeOffset);
+    ROS_INFO("Model X offset: %f", modelXOffset);
+    ROS_INFO("Model Y offset: %f", modelYOffset);
+
     if(model_type == "FVCOM" || model_type == "fvcom")
     {
         std::string fvcom_directory;
@@ -106,7 +111,7 @@ int main(int argc, char **argv)
     }
     else if(model_type == "constant")
     {
-        float u = 0; 
+        float u = 0;
         float v = 0;
         float temp = 0;
         float salt = 0;
@@ -122,10 +127,10 @@ int main(int argc, char **argv)
 
         model.reset(new ConstantModel(u, v, temp, salt, dye, depth));
         ROS_INFO("Constant Model Loaded");
-    } 
+    }
     else if(model_type == "linear")
     {
-        float u = 0; 
+        float u = 0;
         float v = 0;
         float temp = 0;
         float salt = 0;
@@ -153,7 +158,7 @@ int main(int argc, char **argv)
 
         model.reset(new LinearModel(u, v, temp, salt, dye, depth, zeroDistance, centerX, centerY, centerZ, type));
         ROS_INFO("Linear Model Loaded");
-    }   
+    }
     else
     {
         ROS_FATAL("Parameter \"model_type\" is not valid.");

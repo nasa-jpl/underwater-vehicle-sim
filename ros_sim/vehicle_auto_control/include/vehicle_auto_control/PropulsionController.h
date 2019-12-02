@@ -5,10 +5,10 @@
 #include <vector>
 
 #include "ros/ros.h"
-#include "actionlib/server/simple_action_server.h"
 
 #include "nav_msgs/Odometry.h"
 #include "geometry_msgs/Twist.h"
+#include "std_msgs/Bool.h"
 
 #include "tf2/LinearMath/Transform.h"
 #include "tf2_ros/transform_listener.h"
@@ -18,12 +18,12 @@
 #include "underwater_vehicle_msgs/GetVehicleInfo.h"
 #include "underwater_vehicle_msgs/VehicleInfo.h"
 #include "underwater_vehicle_msgs/VehicleData.h"
-
-#include "vehicle_auto_control/GoToXYRosAction.h"
-#include "vehicle_auto_control/GoToZRosAction.h"
-#include "vehicle_auto_control/FollowHeadingRosAction.h"
+#include "underwater_vehicle_msgs/GoToZ.h"
+#include "underwater_vehicle_msgs/GoToXY.h"
+#include "underwater_vehicle_msgs/FollowHeading.h"
 
 #include "underwater_autonomy/util/VehiclePose.h"
+
 
 class PropulsionController
 {
@@ -41,25 +41,19 @@ private:
 	void getTargetVelocityCommand(const geometry_msgs::Twist vel);
 	void getVehicleData(const underwater_vehicle_msgs::VehicleData data);
 
-	/**
-	* Accepts new goals for the GoToXY SimpleActionServer
-	*/ 
-	void goalGoToXYCB(void);
-	void preemptGoToXYCB(void);
+	//Go To XY
+	void goToXYCallback(const underwater_vehicle_msgs::GoToXY parameters);
+	void goToXYEnableCallback(const std_msgs::Bool enable);
 	void goToXYUpdate(void);
 
-	/**
-	* Accepts new goals for the GoToZ SimpleActionServer
-	*/ 
-	void goalGoToZCB(void);
-	void preemptGoToZCB(void);
+	//Go To Z
+	void goToZCallback(const underwater_vehicle_msgs::GoToZ parameters);
+	void goToZEnableCallback(const std_msgs::Bool enable);
 	void goToZUpdate(void);
 
-	/**
-	* Accepts new goals for the FollowHeading SimpleActionServer
-	*/ 
-	void goalFollowHeadingCB(void);
-	void preemptFollowHeadingCB(void);
+	//Follow Heading
+	void followHeadingCallback(const underwater_vehicle_msgs::FollowHeading parameters);
+	void followHeadingEnableCallback(const std_msgs::Bool enable);
 	void followHeadingUpdate(void);
 
 private:
@@ -68,23 +62,27 @@ private:
 
 	VehicleInfo info;
 
-	tf2_ros::Buffer buffer;
- 	tf2_ros::TransformListener listener;
-
 	std::unique_ptr<PropulsionLogicInterface> logicController;
 
-	//Point Path Goal Parameters
-	actionlib::SimpleActionServer<vehicle_auto_control::GoToXYRosAction> goToXYServer;
-	actionlib::SimpleActionServer<vehicle_auto_control::GoToZRosAction> goToZServer;
-	actionlib::SimpleActionServer<vehicle_auto_control::FollowHeadingRosAction> followHeadingServer;
+	//GoToZ Topics and Parameters
+	ros::Subscriber goToZSub;
+	ros::Subscriber goToZEnableSub;
+	ros::Publisher goToZComplete;
+	bool goToZEnable;
+	bool goToZHoldDepth;
 
-	ros::Time goToXYStart;
+	//GoToXY Topics and Parameters
+	ros::Subscriber goToXYSub;
+	ros::Subscriber goToXYEnableSub;
+	ros::Publisher goToXYComplete;
+	bool goToXYEnable;
 
-	ros::Time followHeadingStart;
+	//FollowHeading Topics and Parameters
+	ros::Subscriber followHeadingSub;
+	ros::Subscriber followHeadingEnableSub;
+	ros::Publisher followHeadingComplete;
+	bool followHeadingEnable;
 	
-	ros::Time goToZStart;
-	bool holdAtZ;
-
 	ros::Subscriber dataSub;
 
 	ros::Subscriber velSub;

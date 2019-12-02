@@ -8,14 +8,13 @@
 
 #include "geometry_msgs/Point.h"
 #include "geometry_msgs/Twist.h"
+#include "underwater_vehicle_msgs/GoToZ.h"
 
 #include "tf2_geometry_msgs/tf2_geometry_msgs.h"
 
 #include "underwater_autonomy/planner/actions/Action.h"
 
 #include "underwater_autonomy/planner/actions/HoldDepthAction.h"
-
-#include "actionlib/client/simple_action_client.h"
 
 using namespace underwater_autonomy;
 
@@ -25,16 +24,18 @@ HoldDepthSimActionExecutor::HoldDepthSimActionExecutor(VehicleInfo& vehicleInfo)
 
 HoldDepthSimActionExecutor::HoldDepthSimActionExecutor(ros::NodeHandle nh, VehicleInfo& vehicleInfo) :
 	vehicleInfo(vehicleInfo),
-	goToZClient(nh, "go_to_z", true),
 	replanNextUpdate(false),
 	lastReplan(ros::Time::now()),
 	distanceSinceReplan(0),
 	currentDuration(0),
-	stateAfterCancel(Action::State::INTERRUPTED),
-	listener(buffer)
+	gotCompleteCallback(false)
 {
 	velPub = nh.advertise<geometry_msgs::Twist>("command_target_velocity", 1000, true);
 	poseSub = nh.subscribe("primary_navigation", 1, &HoldDepthSimActionExecutor::navigationFilterCallback, this);
+
+	goToZPub = nh.advertise<underwater_vehicle_msgs::GoToZ>("go_to_z", 1000);
+	goToZEnablePub = nh.advertise<std_msgs::Bool>("go_to_z_enable", 1000);
+	goToZComplete = nh.subscribe("go_to_z_complete", 1, &HoldDepthSimActionExecutor::goToZCompleteCallback, this);
 }
 
 bool HoldDepthSimActionExecutor::execute(std::shared_ptr<HoldDepthAction> action)
@@ -63,18 +64,24 @@ bool HoldDepthSimActionExecutor::execute(std::shared_ptr<HoldDepthAction> action
 		return false;
 	}
 
-	//Creates an action goal and sends it to the action server for point path movement
-	goToZGoal = vehicle_auto_control::GoToZRosGoal();
+	//Check that we have someone listening to us
+	ros::WallTime time = ros::WallTime::now();
+	while(goToZPub.getNumSubscribers() == 0 &&
+		  ros::WallTime::now() - time < ros::WallDuration(5)) {ros::WallDuration(1).sleep();}
+	if(goToZPub.getNumSubscribers() == 0)
+	{
+		return false;
+	}
 
-	goToZGoal.z = action->getDepth();
-	goToZGoal.holdDepth = true;
-
-	goToZClient.waitForServer();
-	ROS_INFO("Send goal to GoToZ Server");
-	goToZClient.sendGoal(goToZGoal,
-						 boost::bind(&HoldDepthSimActionExecutor::rosActionDone, this, action, _1, _2),
-						 boost::bind(&HoldDepthSimActionExecutor::rosActionActive, this, action),
-						 boost::bind(&HoldDepthSimActionExecutor::rosActionFeedback, this, action, _1));
+	//Send message to Go To Z Controller
+	//Reset complete callback
+	gotCompleteCallback = false;
+	underwater_vehicle_msgs::GoToZ goToZMsg;
+	goToZMsg.depth = action->getDepth();
+	goToZMsg.enable = true;
+	goToZMsg.holdDepth = true;
+	goToZPub.publish(goToZMsg);
+	action->setState(Action::State::EXECUTING);
 	
 	lastUpdate = ros::Time::now();
 	distanceSinceReplan = 0;
@@ -83,7 +90,11 @@ bool HoldDepthSimActionExecutor::execute(std::shared_ptr<HoldDepthAction> action
 
 void HoldDepthSimActionExecutor::cancel(std::shared_ptr<HoldDepthAction> action)
 {
-	goToZClient.cancelGoal();
+	std_msgs::Bool enableMsg;
+	enableMsg.data = false;
+	goToZEnablePub.publish(enableMsg);
+
+	action->setState(Action::State::INTERRUPTED);
 }
 
 bool HoldDepthSimActionExecutor::triggerReplan(std::shared_ptr<HoldDepthAction> action)
@@ -99,49 +110,13 @@ bool HoldDepthSimActionExecutor::triggerReplan(std::shared_ptr<HoldDepthAction> 
 	return false;
 }
 
-void HoldDepthSimActionExecutor::rosActionDone(std::shared_ptr<HoldDepthAction> action,
-					const actionlib::SimpleClientGoalState& state,
-                	const vehicle_auto_control::GoToZRosResultConstPtr& result)
+void HoldDepthSimActionExecutor::goToZCompleteCallback(const std_msgs::Bool complete)
 {
-	if(state == actionlib::SimpleClientGoalState::RECALLED ||
-	   state == actionlib::SimpleClientGoalState::PREEMPTED)
+	if(complete.data)
 	{
-		if(stateAfterCancel == Action::State::INTERRUPTED)
-		{
-			action->setState(Action::State::INTERRUPTED);
-			ROS_INFO("Hold depth action interrupted");
-		}
-		else if(stateAfterCancel == Action::State::FAILED)
-		{
-			action->setState(Action::State::FAILED);
-			ROS_INFO("Hold depth action failed");
-		}
-		else if(stateAfterCancel == Action::State::COMPLETED)
-		{
-			action->setState(Action::State::COMPLETED);
-			ROS_INFO("Hold depth action completed");
-		}
-	}
-	else if(state == actionlib::SimpleClientGoalState::REJECTED ||
-			state == actionlib::SimpleClientGoalState::ABORTED)
-	{
-		action->setState(Action::State::FAILED);
-		ROS_INFO("Hold depth action failed");
-	}
-	else if(state == actionlib::SimpleClientGoalState::SUCCEEDED)
-	{
-		action->setState(Action::State::COMPLETED);
-		ROS_INFO("Hold depth action completed from GoToZ return");
+		gotCompleteCallback = true;
 	}
 }
-
-void HoldDepthSimActionExecutor::rosActionActive(std::shared_ptr<HoldDepthAction> action)
-{
-	action->setState(Action::State::EXECUTING);
-}
-
-void HoldDepthSimActionExecutor::rosActionFeedback(std::shared_ptr<HoldDepthAction> action,
-					const vehicle_auto_control::GoToZRosFeedbackConstPtr& feedback) {}
 
 void HoldDepthSimActionExecutor::monitor(std::shared_ptr<underwater_autonomy::HoldDepthAction> action)
 {
@@ -149,17 +124,31 @@ void HoldDepthSimActionExecutor::monitor(std::shared_ptr<underwater_autonomy::Ho
 	currentDuration += currentTime - lastUpdate;
 	lastUpdate = currentTime;
 
-	if(action->getHoldDepthTime() >= 0 && currentDuration.toSec() >= action->getHoldDepthTime())
+	if(gotCompleteCallback && action->getState() == Action::State::EXECUTING)
 	{
-		//We need to cancel the action lib but still what to set the underwater autonomy action as complete
-		stateAfterCancel = Action::State::COMPLETED;
-		goToZClient.cancelGoal();
+		gotCompleteCallback = false;
+
+		std_msgs::Bool enableMsg;
+		enableMsg.data = false;
+		goToZEnablePub.publish(enableMsg);
+
+		action->setState(Action::State::COMPLETED);
+	}
+	else if(action->getHoldDepthTime() >= 0 && currentDuration.toSec() >= action->getHoldDepthTime())
+	{
+		action->setState(Action::State::COMPLETED);
+
+		std_msgs::Bool enableMsg;
+		enableMsg.data = false;
+		goToZEnablePub.publish(enableMsg);
 	}
 	else if(action->getTimeout() >= 0 && currentDuration.toSec() >= action->getTimeout())
 	{
-		//We need to cancel the action lib but still what to set the underwater autonomy action as failed
-		stateAfterCancel = Action::State::FAILED;
-		goToZClient.cancelGoal();
+		action->setState(Action::State::FAILED);
+
+		std_msgs::Bool enableMsg;
+		enableMsg.data = false;
+		goToZEnablePub.publish(enableMsg);
 	}
 
 	replanNextUpdate = action->doReplan((ros::Time::now() - lastReplan).toSec(),

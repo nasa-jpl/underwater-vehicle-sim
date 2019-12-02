@@ -100,7 +100,7 @@ int main(int argc, char **argv)
         GoldenSelectionHomingPlanner::Parameters parameters(config);
         planner.reset(new GoldenSelectionHomingPlanner(factory, interface, parameters));
     }
-      
+
     ROSSimPlanServer server(std::move(planner), interface, cancelTimeout);
 
     // make a publisher to send planner status messages

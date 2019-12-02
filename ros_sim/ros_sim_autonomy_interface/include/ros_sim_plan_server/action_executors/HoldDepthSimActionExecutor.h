@@ -10,16 +10,13 @@
 #include "tf2/LinearMath/Transform.h"
 
 #include "nav_msgs/Odometry.h"
+#include "std_msgs/Bool.h"
+#include "underwater_vehicle_msgs/VehicleInfo.h"
 
 #include "underwater_autonomy/planner/ActionExecutor.h"
 #include "underwater_autonomy/planner/actions/HoldDepthAction.h"
 
 #include "underwater_autonomy/util/VehiclePose.h"
-
-#include "underwater_vehicle_msgs/VehicleInfo.h"
-
-#include "actionlib/client/simple_action_client.h"
-#include "vehicle_auto_control/GoToZRosAction.h"
 
 
 class HoldDepthSimActionExecutor : public underwater_autonomy::ActionExecutor<underwater_autonomy::HoldDepthAction>
@@ -56,34 +53,14 @@ public:
 
 private:
     void navigationFilterCallback(const nav_msgs::Odometry odo);
-
-    /**
-    * Callback that occurs when the action is finished
-    * @param action Action is avalible to update the internal state
-    */
-    void rosActionDone(std::shared_ptr<underwater_autonomy::HoldDepthAction> action,
-                    const actionlib::SimpleClientGoalState& state,
-                    const vehicle_auto_control::GoToZRosResultConstPtr& result);
-
-    /**
-    * Callback that occurs when the action goes active
-    */
-    void rosActionActive(std::shared_ptr<underwater_autonomy::HoldDepthAction> action);
-
-    /**
-     * Callback that occurs when feedback is recieved from the action
-     * @param action Action is avalible to update the internal state
-     * @param feedback Feedback pointer
-     */
-    void rosActionFeedback(std::shared_ptr<underwater_autonomy::HoldDepthAction> action,
-                        const vehicle_auto_control::GoToZRosFeedbackConstPtr& feedback);
+    void goToZCompleteCallback(const std_msgs::Bool complete);
 
 private:
     VehicleInfo vehicleInfo;
 
-    actionlib::SimpleActionClient<vehicle_auto_control::GoToZRosAction> goToZClient;
-    vehicle_auto_control::GoToZRosGoal goToZGoal;
-
+    ros::Publisher goToZPub;
+	ros::Publisher goToZEnablePub;
+	ros::Subscriber goToZComplete;
 
     bool replanNextUpdate;
     ros::Time lastReplan;
@@ -91,15 +68,13 @@ private:
     
     ros::Time lastUpdate;
     ros::Duration currentDuration;
-    underwater_autonomy::Action::State stateAfterCancel;
-
-    tf2_ros::Buffer buffer;
-    tf2_ros::TransformListener listener;
 
     tf2::Vector3 lastLocation;
     ros::Publisher velPub;
     ros::Subscriber poseSub;
     underwater_autonomy::VehiclePose currentPose;
+
+    bool gotCompleteCallback;
 };
 
 #endif
