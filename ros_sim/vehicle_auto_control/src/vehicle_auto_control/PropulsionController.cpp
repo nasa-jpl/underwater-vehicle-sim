@@ -32,17 +32,16 @@ PropulsionController::PropulsionController(ros::NodeHandle nh, VehicleInfo& info
 	//Go To Z Topics
 	goToZSub = nh.subscribe("go_to_z", 10, &PropulsionController::goToZCallback, this);
 	goToZEnableSub = nh.subscribe("go_to_z_enable", 10, &PropulsionController::goToZEnableCallback, this);
-	goToZComplete = nh.advertise<std_msgs::Bool>("go_to_z_complete", 1000);
+	goToZComplete = nh.advertise<underwater_vehicle_msgs::GoToZComplete>("go_to_z_complete", 1000);
 
 	//Go To XY Topics
 	goToXYSub = nh.subscribe("go_to_xy", 10, &PropulsionController::goToXYCallback, this);
 	goToXYEnableSub = nh.subscribe("go_to_xy_enable", 10, &PropulsionController::goToXYEnableCallback, this);
-	goToXYComplete = nh.advertise<std_msgs::Bool>("go_to_xy_complete", 1000);
+	goToXYComplete = nh.advertise<underwater_vehicle_msgs::GoToXYComplete>("go_to_xy_complete", 1000);
 
 	//Go To XY Topics
 	followHeadingSub = nh.subscribe("follow_heading", 10, &PropulsionController::followHeadingCallback, this);
 	followHeadingEnableSub = nh.subscribe("follow_heading_enable", 10, &PropulsionController::followHeadingEnableCallback, this);
-	followHeadingComplete = nh.advertise<std_msgs::Bool>("follow_heading_complete", 1000);
 }
 
 void PropulsionController::getTargetVelocityCommand(const geometry_msgs::Twist vel)
@@ -108,8 +107,9 @@ void PropulsionController::goToXYUpdate(void)
 		logicController->stopXY();
 		goToXYEnable = false;
 
-		std_msgs::Bool completeMsg;
-		completeMsg.data = true;
+		underwater_vehicle_msgs::GoToXYComplete completeMsg;
+		completeMsg.x = logicController->getTargetX();
+		completeMsg.y = logicController->getTargetY();
 		goToXYComplete.publish(completeMsg);
 		ROS_DEBUG("GoToXY goal completed");
 	}
@@ -175,8 +175,9 @@ void PropulsionController::goToZUpdate(void)
 		logicController->stopZ();
 		goToZEnable = false;
 
-		std_msgs::Bool completeMsg;
-		completeMsg.data = true;
+		underwater_vehicle_msgs::GoToZComplete completeMsg;
+		completeMsg.depth = logicController->getTargetZ();
+		completeMsg.holdDepth = goToZHoldDepth;
 		goToZComplete.publish(completeMsg);
 		ROS_DEBUG("GoToZ goal completed");
 	}

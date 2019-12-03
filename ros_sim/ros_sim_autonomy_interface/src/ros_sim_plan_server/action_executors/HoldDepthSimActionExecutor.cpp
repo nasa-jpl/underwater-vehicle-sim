@@ -110,12 +110,11 @@ bool HoldDepthSimActionExecutor::triggerReplan(std::shared_ptr<HoldDepthAction> 
 	return false;
 }
 
-void HoldDepthSimActionExecutor::goToZCompleteCallback(const std_msgs::Bool complete)
+void HoldDepthSimActionExecutor::goToZCompleteCallback(const underwater_vehicle_msgs::GoToZComplete complete)
 {
-	if(complete.data)
-	{
-		gotCompleteCallback = true;
-	}
+	gotCompleteCallback = true;
+	completeCallbackZ = complete.depth;
+	completeCallbackHoldDepth = complete.holdDepth;
 }
 
 void HoldDepthSimActionExecutor::monitor(std::shared_ptr<underwater_autonomy::HoldDepthAction> action)
@@ -124,7 +123,10 @@ void HoldDepthSimActionExecutor::monitor(std::shared_ptr<underwater_autonomy::Ho
 	currentDuration += currentTime - lastUpdate;
 	lastUpdate = currentTime;
 
-	if(gotCompleteCallback && action->getState() == Action::State::EXECUTING)
+	if(gotCompleteCallback && 
+	   doubleEq(action->getDepth(), completeCallbackZ) &&
+	   completeCallbackHoldDepth &&
+	   action->getState() == Action::State::EXECUTING)
 	{
 		gotCompleteCallback = false;
 
@@ -208,4 +210,9 @@ void HoldDepthSimActionExecutor::navigationFilterCallback(const nav_msgs::Odomet
     currentPose.setLinearVelocity(linearVelocity);
     currentPose.setAngularVelocity(angularVelocity);
     currentPose.setTwistCovariance(twistCovariance);
+}
+
+bool HoldDepthSimActionExecutor::doubleEq(double d1, double d2)
+{
+	return abs(d1 - d2) < 0.001;
 }

@@ -3,8 +3,6 @@
 #include <iostream>
 
 #include "ros/ros.h"
-#include "actionlib/server/simple_action_server.h"
-#include "vehicle_auto_control/GoToXYRosAction.h"
 
 #include <tf2_ros/static_transform_broadcaster.h>
 #include "tf2_ros/transform_broadcaster.h"
@@ -218,7 +216,7 @@ TEST(PointPathSimActionExecutor, ExecuteAndSucceed)
     auto goToXYEnable = [&] (const ros::MessageEvent< std_msgs::Bool const >& enable) {goToXYEnableCalls++;};
 	ros::Subscriber goToXYEnableSub = nh.subscribe<std_msgs::Bool>("go_to_xy_enable", 10, goToXYEnable);
 
-    ros::Publisher goToXYCompletePub = nh.advertise<std_msgs::Bool>("go_to_xy_complete", 2);
+    ros::Publisher goToXYCompletePub = nh.advertise<underwater_vehicle_msgs::GoToXYComplete>("go_to_xy_complete", 2);
 
     std::vector<Eigen::Vector3d> points;
     points.push_back(Eigen::Vector3d(1,2,3));
@@ -270,8 +268,10 @@ TEST(PointPathSimActionExecutor, ExecuteAndSucceed)
     ros::WallDuration(0.5).sleep();
     ros::spinOnce();
 
-    std_msgs::Bool completeMsg;
-    completeMsg.data = true;
+    underwater_vehicle_msgs::GoToXYComplete completeMsg;
+    completeMsg.x = 1;
+    completeMsg.y = 2;
+
     goToXYCompletePub.publish(completeMsg);
     ros::WallDuration(0.5).sleep();
     ros::spinOnce();
@@ -316,6 +316,8 @@ TEST(PointPathSimActionExecutor, ExecuteAndSucceed)
     EXPECT_EQ(100, x);
     EXPECT_EQ(-100, y);
 
+    completeMsg.x = 100;
+    completeMsg.y = -100;
     goToXYCompletePub.publish(completeMsg);
     ros::WallDuration(0.5).sleep();
     ros::spinOnce();
@@ -335,6 +337,8 @@ TEST(PointPathSimActionExecutor, ExecuteAndSucceed)
     EXPECT_EQ(2, x);
     EXPECT_EQ(3, y);
 
+    completeMsg.x = 2;
+    completeMsg.y = 3;
     goToXYCompletePub.publish(completeMsg);
     ros::WallDuration(0.5).sleep();
     ros::spinOnce();
@@ -354,6 +358,8 @@ TEST(PointPathSimActionExecutor, ExecuteAndSucceed)
     EXPECT_EQ(3, x);
     EXPECT_EQ(4, y);
 
+    completeMsg.x = 3;
+    completeMsg.y = 4;
     goToXYCompletePub.publish(completeMsg);
     ros::WallDuration(0.5).sleep();
     ros::spinOnce();
@@ -390,7 +396,7 @@ TEST(PointPathSimActionExecutor, TimeReplan)
     auto goToXYEnable = [&] (const ros::MessageEvent< std_msgs::Bool const >& enable) {goToXYEnableCalls++;};
 	ros::Subscriber goToXYEnableSub = nh.subscribe<std_msgs::Bool>("go_to_xy_enable", 10, goToXYEnable);
 
-    ros::Publisher goToXYCompletePub = nh.advertise<std_msgs::Bool>("go_to_xy_complete", 2);
+    ros::Publisher goToXYCompletePub = nh.advertise<underwater_vehicle_msgs::GoToXYComplete>("go_to_xy_complete", 2);
 
     std::vector<Eigen::Vector3d> points;
     points.push_back(Eigen::Vector3d(1,2,3));
@@ -433,8 +439,10 @@ TEST(PointPathSimActionExecutor, TimeReplan)
     EXPECT_EQ(1, x);
     EXPECT_EQ(2, y);
 
-    std_msgs::Bool completeMsg;
-    completeMsg.data = true;
+    underwater_vehicle_msgs::GoToXYComplete completeMsg;
+    completeMsg.x = 1;
+    completeMsg.y = 2;
+
     goToXYCompletePub.publish(completeMsg);
     ros::WallDuration(3).sleep();
     ros::spinOnce();
@@ -468,7 +476,7 @@ TEST(PointPathSimActionExecutor, DistanceReplan)
     auto goToXYEnable = [&] (const ros::MessageEvent< std_msgs::Bool const >& enable) {goToXYEnableCalls++;};
 	ros::Subscriber goToXYEnableSub = nh.subscribe<std_msgs::Bool>("go_to_xy_enable", 10, goToXYEnable);
 
-    ros::Publisher goToXYCompletePub = nh.advertise<std_msgs::Bool>("go_to_xy_complete", 2);
+    ros::Publisher goToXYCompletePub = nh.advertise<underwater_vehicle_msgs::GoToXYComplete>("go_to_xy_complete", 2);
 
     std::vector<Eigen::Vector3d> points;
     points.push_back(Eigen::Vector3d(1,2,3));
@@ -510,8 +518,10 @@ TEST(PointPathSimActionExecutor, DistanceReplan)
     EXPECT_EQ(1, x);
     EXPECT_EQ(2, y);
 
-    std_msgs::Bool completeMsg;
-    completeMsg.data = true;
+    underwater_vehicle_msgs::GoToXYComplete completeMsg;
+    completeMsg.x = 1;
+    completeMsg.y = 2;
+
     goToXYCompletePub.publish(completeMsg);
     ros::WallDuration(3).sleep();
     ros::spinOnce();

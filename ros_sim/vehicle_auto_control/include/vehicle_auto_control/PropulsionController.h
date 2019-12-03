@@ -21,6 +21,8 @@
 #include "underwater_vehicle_msgs/GoToZ.h"
 #include "underwater_vehicle_msgs/GoToXY.h"
 #include "underwater_vehicle_msgs/FollowHeading.h"
+#include "underwater_vehicle_msgs/GoToZComplete.h"
+#include "underwater_vehicle_msgs/GoToXYComplete.h"
 
 #include "underwater_autonomy/util/VehiclePose.h"
 
@@ -80,7 +82,6 @@ private:
 	//FollowHeading Topics and Parameters
 	ros::Subscriber followHeadingSub;
 	ros::Subscriber followHeadingEnableSub;
-	ros::Publisher followHeadingComplete;
 	bool followHeadingEnable;
 	
 	ros::Subscriber dataSub;
