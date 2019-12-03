@@ -93,7 +93,12 @@ void PointPathSimActionExecutor::monitor(std::shared_ptr<underwater_autonomy::Po
 	currentDuration += currentTime - lastUpdate;
 	lastUpdate = currentTime;
 
-	if(gotCompleteCallback && action->getState() == Action::State::EXECUTING)
+	Eigen::Vector3d currentTargetPoint = action->getCurrentTargetPoint();
+
+	if(gotCompleteCallback && 
+	   doubleEq(currentTargetPoint[0], completeCallbackX) &&
+	   doubleEq(currentTargetPoint[1], completeCallbackY) &&
+	   action->getState() == Action::State::EXECUTING)
 	{
 		gotCompleteCallback = false;
 		action->reachedTargetPoint();
@@ -149,12 +154,11 @@ bool PointPathSimActionExecutor::triggerReplan(std::shared_ptr<PointPathAction> 
 	return false;
 }
 
-void PointPathSimActionExecutor::goToXYCompleteCallback(const std_msgs::Bool complete)
+void PointPathSimActionExecutor::goToXYCompleteCallback(const underwater_vehicle_msgs::GoToXYComplete complete)
 {
-	if(complete.data)
-	{
-		gotCompleteCallback = true;
-	}
+	gotCompleteCallback = true;
+	completeCallbackX = complete.x;
+	completeCallbackY = complete.y;
 }
 
 void PointPathSimActionExecutor::sendNextGoToXYGoal(std::shared_ptr<underwater_autonomy::PointPathAction> action)
@@ -222,4 +226,9 @@ void PointPathSimActionExecutor::navigationFilterCallback(const nav_msgs::Odomet
     currentPose.setLinearVelocity(linearVelocity);
     currentPose.setAngularVelocity(angularVelocity);
     currentPose.setTwistCovariance(twistCovariance);
+}
+
+bool PointPathSimActionExecutor::doubleEq(double d1, double d2)
+{
+	return abs(d1 - d2) < 0.001;
 }

@@ -27,12 +27,8 @@ public:
 	void stopXY() override;
 	void stopZ() override;
 
-	void setTargetXY(double x, double y) override;
-	void setTargetZ(double z) override;
-	void setFollowHeading(double heading) override;
-
-	bool isAtXY(underwater_autonomy::VehiclePose& pose) override;
-	bool isAtZ(underwater_autonomy::VehiclePose& pose) override;
+	bool isAtXY(underwater_autonomy::VehiclePose& pose);
+	bool isAtZ(underwater_autonomy::VehiclePose& pose);
 
 	void setTargetVelocity(const geometry_msgs::Twist vel) override;
 	void processNewData(const underwater_vehicle_msgs::VehicleData data) override;
@@ -69,12 +65,7 @@ private:
 
 	bool xyEnabled;
 	bool zEnabled;
-
-	double targetX;
-	double targetY;
-	double targetZ;
 	
-	double targetHeading;
 
 	ros::Publisher forwardThrustPub;
 	ros::Publisher lateralThrustPub;

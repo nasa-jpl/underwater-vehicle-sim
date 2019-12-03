@@ -64,7 +64,7 @@ TEST(YoYoSimActionExecutor, ExecuteAndCancel)
     auto goToZEnable = [&] (const ros::MessageEvent< std_msgs::Bool const >& enable) {goToZEnableCalls++;};
 	ros::Subscriber goToZEnableSub = nh.subscribe<std_msgs::Bool>("go_to_z_enable", 10, goToZEnable);
 
-    ros::Publisher goToZCompletePub = nh.advertise<std_msgs::Bool>("go_to_z_complete", 2);
+    ros::Publisher goToZCompletePub = nh.advertise<underwater_vehicle_msgs::GoToZComplete>("go_to_z_complete", 2);
 
     std::shared_ptr<YoYoAction> action(new YoYoAction(1,
                                                       2,
@@ -142,7 +142,7 @@ TEST(YoYoSimActionExecutor, ExecuteAndTimeout)
     auto goToZEnable = [&] (const ros::MessageEvent< std_msgs::Bool const >& enable) {goToZEnableCalls++;};
 	ros::Subscriber goToZEnableSub = nh.subscribe<std_msgs::Bool>("go_to_z_enable", 10, goToZEnable);
 
-    ros::Publisher goToZCompletePub = nh.advertise<std_msgs::Bool>("go_to_z_complete", 2);
+    ros::Publisher goToZCompletePub = nh.advertise<underwater_vehicle_msgs::GoToZComplete>("go_to_z_complete", 2);
 
     std::shared_ptr<YoYoAction> action(new YoYoAction(1,
                                                       2,
@@ -216,7 +216,7 @@ TEST(YoYoSimActionExecutor, ExecuteAndSucceed)
     auto goToZEnable = [&] (const ros::MessageEvent< std_msgs::Bool const >& enable) {goToZEnableCalls++;};
 	ros::Subscriber goToZEnableSub = nh.subscribe<std_msgs::Bool>("go_to_z_enable", 10, goToZEnable);
 
-    ros::Publisher goToZCompletePub = nh.advertise<std_msgs::Bool>("go_to_z_complete", 2);
+    ros::Publisher goToZCompletePub = nh.advertise<underwater_vehicle_msgs::GoToZComplete>("go_to_z_complete", 2);
 
     std::shared_ptr<YoYoAction> action(new YoYoAction(1,
                                                       2,
@@ -258,8 +258,9 @@ TEST(YoYoSimActionExecutor, ExecuteAndSucceed)
     EXPECT_EQ(1, depth);
 
     //Reset goal called
-    std_msgs::Bool completeMsg;
-    completeMsg.data = true;
+    underwater_vehicle_msgs::GoToZComplete completeMsg;
+    completeMsg.depth = 1;
+    completeMsg.holdDepth = false;
     goToZCompletePub.publish(completeMsg);
     ros::WallDuration(3).sleep();
     ros::spinOnce();
@@ -444,7 +445,7 @@ TEST(YoYoSimActionExecutor, TurnReplan)
      goToZCalls++;};
 
 	ros::Subscriber goToZSub = nh.subscribe<underwater_vehicle_msgs::GoToZ>("go_to_z", 10, goToZ);
-    ros::Publisher goToZCompletePub = nh.advertise<std_msgs::Bool>("go_to_z_complete", 2);
+    ros::Publisher goToZCompletePub = nh.advertise<underwater_vehicle_msgs::GoToZComplete>("go_to_z_complete", 2);
 
     std::shared_ptr<YoYoAction> action(new YoYoAction(1,
                                                       2,
@@ -485,8 +486,9 @@ TEST(YoYoSimActionExecutor, TurnReplan)
     EXPECT_EQ(Action::State::EXECUTING, action->getState());
     EXPECT_EQ(1, depth);
 
-    std_msgs::Bool completeMsg;
-    completeMsg.data = true;
+    underwater_vehicle_msgs::GoToZComplete completeMsg;
+    completeMsg.depth = 1;
+    completeMsg.holdDepth = false;
     goToZCompletePub.publish(completeMsg);
     ros::WallDuration(3).sleep();
     ros::spinOnce();

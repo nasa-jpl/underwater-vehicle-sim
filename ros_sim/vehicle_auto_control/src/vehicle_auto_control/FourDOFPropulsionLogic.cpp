@@ -260,37 +260,6 @@ void FourDOFPropulsionLogic::stopZ(void)
     verticalThrustPub.publish(msg);
 }
 
-void FourDOFPropulsionLogic::setTargetXY(double x, double y)
-{
-    targetX = x;
-    targetY = y;
-}
-
-void FourDOFPropulsionLogic::setTargetZ(double z)
-{
-    targetZ = z;
-}
-
-void FourDOFPropulsionLogic::setFollowHeading(double heading)
-{
-    targetHeading = heading;
-}
-
-bool FourDOFPropulsionLogic::isAtXY(VehiclePose& pose)
-{
-    tf2::Vector3 point(targetX - pose.getPosition()[0], targetY - pose.getPosition()[1], 0);
-    return abs(point.length()) <= lateralError;
-}
-
-bool FourDOFPropulsionLogic::isAtZ(VehiclePose& pose)
-{
-    double targetVertPosition = std::min(targetZ, (pose.getPosition()[2] + latestSonarDepth) - minSeafloorDistance);
-    tf2::Vector3 point(0, 0, targetVertPosition - pose.getPosition()[2]);
-
-    //We only care about z
-    return abs(point.z()) <= verticalError;
-}
-
 void FourDOFPropulsionLogic::setTargetVelocity(const geometry_msgs::Twist vel)
 {
     tf2::Vector3 messageLinearVelocity;
@@ -312,6 +281,21 @@ void FourDOFPropulsionLogic::setTargetVelocity(const geometry_msgs::Twist vel)
         }
     }
 
+}
+
+bool FourDOFPropulsionLogic::isAtXY(underwater_autonomy::VehiclePose& pose)
+{
+    tf2::Vector3 point(targetX - pose.getPosition()[0], targetY - pose.getPosition()[1], 0);
+    return abs(point.length()) <= lateralError;
+}
+
+bool FourDOFPropulsionLogic::isAtZ(underwater_autonomy::VehiclePose& pose)
+{
+    double targetVertPosition = std::min(targetZ, (pose.getPosition()[2] + latestSonarDepth) - minSeafloorDistance);
+    tf2::Vector3 point(0, 0, targetVertPosition - pose.getPosition()[2]);
+
+    //We only care about z
+    return abs(point.z()) <= verticalError;
 }
 
 void FourDOFPropulsionLogic::processNewData(const underwater_vehicle_msgs::VehicleData data)

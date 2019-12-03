@@ -107,12 +107,11 @@ bool YoYoSimActionExecutor::triggerReplan(std::shared_ptr<YoYoAction> action)
 	return false;
 }
 
-void YoYoSimActionExecutor::goToZCompleteCallback(const std_msgs::Bool complete)
-{
-	if(complete.data)
-	{		
-		gotCompleteCallback = true;
-	}
+void YoYoSimActionExecutor::goToZCompleteCallback(const underwater_vehicle_msgs::GoToZComplete complete)
+{	
+	gotCompleteCallback = true;
+	completeCallbackZ = complete.depth;
+	completeCallbackHoldDepth = complete.holdDepth;
 }
 
 void YoYoSimActionExecutor::monitor(std::shared_ptr<underwater_autonomy::YoYoAction> action)
@@ -121,7 +120,20 @@ void YoYoSimActionExecutor::monitor(std::shared_ptr<underwater_autonomy::YoYoAct
 	currentDuration += currentTime - lastUpdate;
 	lastUpdate = currentTime;
 
-	if(gotCompleteCallback && action->getState() == Action::State::EXECUTING)
+	double targetDepth = 0;
+	if(action->getGoingUp())
+	{
+		targetDepth = action->getUpperDepth();
+	}
+	else
+	{
+		targetDepth = action->getLowerDepth();
+	}
+
+	if(gotCompleteCallback && 
+	   doubleEq(targetDepth, completeCallbackZ) &&
+	   !completeCallbackHoldDepth &&
+	   action->getState() == Action::State::EXECUTING)
 	{
 		gotCompleteCallback = false;
 
@@ -233,4 +245,9 @@ void YoYoSimActionExecutor::navigationFilterCallback(const nav_msgs::Odometry od
     currentPose.setLinearVelocity(linearVelocity);
     currentPose.setAngularVelocity(angularVelocity);
     currentPose.setTwistCovariance(twistCovariance);
+}
+
+bool YoYoSimActionExecutor::doubleEq(double d1, double d2)
+{
+	return abs(d1 - d2) < 0.001;
 }

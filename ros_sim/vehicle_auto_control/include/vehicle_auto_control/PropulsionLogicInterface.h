@@ -60,17 +60,37 @@ public:
 	/**
 	* Sets the target xy location for goToXY
 	*/
-	virtual void setTargetXY(double x, double y)=0;
+	void setTargetXY(double x, double y);
 	
 	/**
 	* Sets the target z location for goToZ
 	*/
-	virtual void setTargetZ(double z)=0;
+	void setTargetZ(double z);
 
 	/**
-	* Sets the target headingtion for followHeading
+	* Sets the target heading for followHeading
 	*/
-	virtual void setFollowHeading(double heading)=0;
+	virtual void setFollowHeading(double heading);
+
+	/**
+	* Gets the target x location for goToXY
+	*/
+	double getTargetX();
+
+	/**
+	* Gets the target y location for goToXY
+	*/
+	double getTargetY();
+	
+	/**
+	* Gets the target z location for goToZ
+	*/
+	double getTargetZ();
+
+	/**
+	* Gets the target heading to follow 
+	*/
+	double getFollowHeading();
 
 	/**
 	* Determines if the vehicle has reached the xy location
@@ -87,6 +107,12 @@ public:
 protected:
 	ros::NodeHandle vehicleNode;
 	VehicleInfo& vehicleInfo;
+
+	double targetX;
+	double targetY;
+	double targetZ;
+	double targetHeading;
+
 };
 
 #endif
