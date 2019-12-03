@@ -10,6 +10,7 @@
 #include "tf2/LinearMath/Transform.h"
 
 #include "nav_msgs/Odometry.h"
+#include "underwater_vehicle_msgs/GoToXYComplete.h"
 #include "std_msgs/Bool.h"
 
 #include "underwater_autonomy/planner/ActionExecutor.h"
@@ -50,9 +51,12 @@ public:
 
 private:
     void navigationFilterCallback(const nav_msgs::Odometry odo);
-    void goToXYCompleteCallback(const std_msgs::Bool complete);
+    void goToXYCompleteCallback(const underwater_vehicle_msgs::GoToXYComplete complete);
 
     void sendNextGoToXYGoal(std::shared_ptr<underwater_autonomy::PointPathAction> action);
+
+    bool doubleEq(double d1, double d2);
+    
 private:
     VehicleInfo vehicleInfo;
 
@@ -75,6 +79,8 @@ private:
     underwater_autonomy::VehiclePose currentPose;
 
     bool gotCompleteCallback;
+    double completeCallbackX;
+    double completeCallbackY;
 };
 
 #endif

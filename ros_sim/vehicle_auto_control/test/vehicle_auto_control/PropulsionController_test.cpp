@@ -64,9 +64,16 @@ TEST(PropulsionController, goToZNoHoldDepth)
     ros::Publisher goToZPub = nh.advertise<underwater_vehicle_msgs::GoToZ>("go_to_z", 1000);
 
     unsigned int goToZCompleteCalls = 0;
-    auto goToZComplete = [&] (const ros::MessageEvent< std_msgs::Bool const >& complete) {goToZCompleteCalls++;};
+    double lastZCompleteDepth = 0;
+    bool lastZCompleteHoldDepth = false;
+    auto goToZComplete = [&] (const ros::MessageEvent< underwater_vehicle_msgs::GoToZComplete const >& complete) 
+    {
+        goToZCompleteCalls++;
+        lastZCompleteDepth = complete.getConstMessage().get()->depth;
+        lastZCompleteHoldDepth = complete.getConstMessage().get()->holdDepth;
+    };
 
-	ros::Subscriber goToZCompleteSub = nh.subscribe<std_msgs::Bool>("go_to_z_complete", 10, goToZComplete);
+	ros::Subscriber goToZCompleteSub = nh.subscribe<underwater_vehicle_msgs::GoToZComplete>("go_to_z_complete", 10, goToZComplete);
 
     std::unique_ptr<UthPropulsionLogic> uthLogic(new UthPropulsionLogic(info));
     UthPropulsionLogic* rawLogicPtr = uthLogic.get();
@@ -111,6 +118,8 @@ TEST(PropulsionController, goToZNoHoldDepth)
     EXPECT_EQ(1, rawLogicPtr->getGoToZCalls());
     EXPECT_EQ(1, rawLogicPtr->getStopZCalls());
     EXPECT_EQ(1, goToZCompleteCalls);
+    EXPECT_DOUBLE_EQ(100, lastZCompleteDepth);
+    EXPECT_FALSE(lastZCompleteHoldDepth);
 
     EXPECT_FALSE(rawLogicPtr->getZMovement());
 }
@@ -186,8 +195,15 @@ TEST(PropulsionController, goToZHoldDepth)
     ros::Publisher goToZPub = nh.advertise<underwater_vehicle_msgs::GoToZ>("go_to_z", 1000);
 
     unsigned int goToZCompleteCalls = 0;
-    auto goToZComplete = [&] (const ros::MessageEvent< std_msgs::Bool const >& complete) {goToZCompleteCalls++;};
-	ros::Subscriber goToZCompleteSub = nh.subscribe<std_msgs::Bool>("go_to_z_complete", 10, goToZComplete);
+    double lastZCompleteDepth = 0;
+    bool lastZCompleteHoldDepth = false;
+    auto goToZComplete = [&] (const ros::MessageEvent< underwater_vehicle_msgs::GoToZComplete const >& complete)
+    {
+        goToZCompleteCalls++;
+        lastZCompleteDepth = complete.getConstMessage().get()->depth;
+        lastZCompleteHoldDepth = complete.getConstMessage().get()->holdDepth;
+    };
+	ros::Subscriber goToZCompleteSub = nh.subscribe<underwater_vehicle_msgs::GoToZComplete>("go_to_z_complete", 10, goToZComplete);
 
     std::unique_ptr<UthPropulsionLogic> uthLogic(new UthPropulsionLogic(info));
     UthPropulsionLogic* rawLogicPtr = uthLogic.get();
@@ -242,8 +258,15 @@ TEST(PropulsionController, goToXY)
     ros::Publisher goToXYPub = nh.advertise<underwater_vehicle_msgs::GoToXY>("go_to_xy", 1000);
 
     unsigned int goToXYCompleteCalls = 0;
-    auto goToXYComplete = [&] (const ros::MessageEvent< std_msgs::Bool const >& complete) {goToXYCompleteCalls++;};
-	ros::Subscriber goToXYCompleteSub = nh.subscribe<std_msgs::Bool>("go_to_xy_complete", 10, goToXYComplete);
+    double lastXYCompleteX = -1;
+    double lastXYCompleteY = -1;
+    auto goToXYComplete = [&] (const ros::MessageEvent< underwater_vehicle_msgs::GoToXYComplete const >& complete) 
+    {
+        goToXYCompleteCalls++; 
+        lastXYCompleteX = complete.getConstMessage().get()->x;
+        lastXYCompleteY = complete.getConstMessage().get()->y;
+    };
+	ros::Subscriber goToXYCompleteSub = nh.subscribe<underwater_vehicle_msgs::GoToXYComplete>("go_to_xy_complete", 10, goToXYComplete);
 
     std::unique_ptr<UthPropulsionLogic> uthLogic(new UthPropulsionLogic(info));
     UthPropulsionLogic* rawLogicPtr = uthLogic.get();
@@ -266,7 +289,7 @@ TEST(PropulsionController, goToXY)
     //Send Goal
     underwater_vehicle_msgs::GoToXY goToXYMsg;
     goToXYMsg.x = 100;
-    goToXYMsg.y = 100;
+    goToXYMsg.y = -100;
     goToXYMsg.enable = true;
 
     goToXYPub.publish(goToXYMsg);
@@ -292,6 +315,8 @@ TEST(PropulsionController, goToXY)
     EXPECT_EQ(1, rawLogicPtr->getGoToXYCalls());
     EXPECT_EQ(1, rawLogicPtr->getStopXYCalls());
     EXPECT_EQ(1, goToXYCompleteCalls);
+    EXPECT_DOUBLE_EQ(100, lastXYCompleteX);
+    EXPECT_DOUBLE_EQ(-100, lastXYCompleteY);
     EXPECT_FALSE(rawLogicPtr->getXYMovement());
     EXPECT_TRUE(rawLogicPtr->getZMovement());
 }

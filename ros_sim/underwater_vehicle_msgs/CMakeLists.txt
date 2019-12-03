@@ -25,6 +25,8 @@ add_message_files(
     GoToZ.msg
     GoToXY.msg
     FollowHeading.msg
+    GoToZComplete.msg
+    GoToXYComplete.msg
 )
 
 ## Generate services in the 'srv' folder

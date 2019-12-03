@@ -11,6 +11,7 @@
 
 #include "nav_msgs/Odometry.h"
 #include "std_msgs/Bool.h"
+#include "underwater_vehicle_msgs/GoToZComplete.h"
 
 #include "underwater_autonomy/planner/ActionExecutor.h"
 #include "underwater_autonomy/planner/actions/YoYoAction.h"
@@ -53,9 +54,12 @@ public:
 
 private:
     void navigationFilterCallback(const nav_msgs::Odometry odo);
-    void goToZCompleteCallback(const std_msgs::Bool complete);
+    void goToZCompleteCallback(const underwater_vehicle_msgs::GoToZComplete complete);
 
     void sendNewGoToZGoal(std::shared_ptr<underwater_autonomy::YoYoAction> action);
+
+    bool doubleEq(double d1, double d2);
+
 private:
     VehicleInfo vehicleInfo;
 
@@ -76,6 +80,8 @@ private:
     underwater_autonomy::VehiclePose currentPose;
 
     bool gotCompleteCallback;
+    double completeCallbackZ;
+    bool completeCallbackHoldDepth;
 };
 
 #endif

@@ -27,10 +27,6 @@ public:
 	void stopXY() override;
 	void stopZ() override;
 
-	void setTargetXY(double x, double y) override;
-	void setTargetZ(double z) override;
-	void setFollowHeading(double heading) override;
-
 	bool isAtXY(underwater_autonomy::VehiclePose& pose) override;
 	bool isAtZ(underwater_autonomy::VehiclePose& pose) override;
 
@@ -46,11 +42,6 @@ public:
 	int getFollowHeadingCalls();
 	int getStopXYCalls();
 	int getStopZCalls();
-
-	double getTargetX();
-	double getTargetY();
-	double getTargetZ();
-	double getFollowHeading();
 
 	void setAtXY(bool atXY);
 	void setAtZ(bool atZ);
@@ -79,11 +70,6 @@ private:
 	int followHeadingCalls;
 	int stopXYCalls;
 	int stopZCalls;
-
-	double targetX;
-	double targetY;
-	double targetZ;
-	double targetFollowHeading;
 
 	bool atXY;
 	bool atZ;

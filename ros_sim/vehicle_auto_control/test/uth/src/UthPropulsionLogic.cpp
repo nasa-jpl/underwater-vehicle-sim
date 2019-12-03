@@ -25,10 +25,6 @@ UthPropulsionLogic::UthPropulsionLogic(VehicleInfo& vehicleInfo) :
 	followHeadingCalls(0),
 	stopXYCalls(0),
 	stopZCalls(0),
-	targetX(0),
-	targetY(0),
-	targetZ(0),
-	targetFollowHeading(0),
 	atXY(false),
 	atZ(false)
 {}
@@ -69,22 +65,6 @@ void UthPropulsionLogic::stopZ(void)
     stopZCalls++;
 }
 
-void UthPropulsionLogic::setTargetXY(double x, double y)
-{
-    targetX = x;
-    targetY = y;
-}
-
-void UthPropulsionLogic::setTargetZ(double z)
-{
-    targetZ = z;
-}
-
-void UthPropulsionLogic::setFollowHeading(double heading)
-{
-    targetFollowHeading = heading;
-}
-
 bool UthPropulsionLogic::isAtXY(VehiclePose& pose)
 {
     return atXY;
@@ -114,11 +94,6 @@ int UthPropulsionLogic::getGoToZCalls() {return goToZCalls;}
 int UthPropulsionLogic::getFollowHeadingCalls() {return followHeadingCalls;}
 int UthPropulsionLogic::getStopXYCalls() {return stopXYCalls;}
 int UthPropulsionLogic::getStopZCalls() {return stopZCalls;}
-
-double UthPropulsionLogic::getTargetX() {return targetX;}
-double UthPropulsionLogic::getTargetY() {return targetY;}
-double UthPropulsionLogic::getTargetZ() {return targetZ;}
-double UthPropulsionLogic::getFollowHeading() {return targetFollowHeading;}
 
 void UthPropulsionLogic::setAtXY(bool atXY) {this->atXY = atXY;}
 void UthPropulsionLogic::setAtZ(bool atZ) {this->atZ = atZ;}
