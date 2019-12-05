@@ -11,8 +11,6 @@ yoyo_max_depth = 2000
 target_horizontal_velocity = 1
 target_vertical_velocity = 1
 
-gradient_descent_time = 60
-
 detection_threshold = 2.0
 
 target_data = "plume"
