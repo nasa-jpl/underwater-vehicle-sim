@@ -45,7 +45,7 @@ int main(int argc,      // Number of strings in array argv
     bag.open(argv[1]);  // BagMode is Read by default
 
     int lower_limit = 2000;
-    
+
     int upper_limit = 100;
     std::string fileName = "out.csv";
 
@@ -94,14 +94,13 @@ int main(int argc,      // Number of strings in array argv
         zs.push_back(double(i));
     }
 
-    std::cout << "Making big thing\n" << std::flush;
-    std::cout << zs.size() << "\n" << std::flush;
     // for all x,y,time tuples from bag, loop over and find the plume value (dye) at each z
     std::vector<std::vector<double> > dyeMatrix(xs.size(), std::vector<double>(zs.size()));
-    std::cout << "Made big thing\n" << std::flush;
 
-    std::cout << xs.size() << "; " << ys.size() << "; " << zs.size() << "; " << times.size() << "\n" << std::flush;
-    std::cout << dyeMatrix.size() << "; " << dyeMatrix[0].size() << "\n" << std::flush;
+    std::cout << xs.size() << "; " << ys.size() << "; " << zs.size() << "; " << times.size() << "\n";
+    std::cout << dyeMatrix.size() << "; " << dyeMatrix[0].size() << "\n";
+
+    std::stringstream outputStringStream;
 
     for(int i = 0; i<xs.size(); i++)
     {
@@ -116,38 +115,17 @@ int main(int argc,      // Number of strings in array argv
                 dyeMatrix[i][j] = model->getDataOutOfRange(ys[i] + modelXOffset, xs[i] + modelYOffset,
                                                 -1*zs[j], times[i].toSec() + modelTimeOffset).dye;
             }
+
+            outputStringStream << xs[i] << "," << ys[i] << "," << zs[j] << "," << times[i] << "," << dyeMatrix[i][j] << "\n";
         }
     }
 
-    // the matrix is a mapping from (ZYT \cross Z) -> dye
+    std::cout << "Writing file\n";
 
-    std::cout << "Printing values to file\n" << std::flush;
-
-    // output the contents of matrix as csv
-    // open file
-    std::ofstream outfile;
-    outfile.open(fileName);
-
-    // for(auto row: dyeMatrix)
-    // {
-    //     for(auto& dye: row)
-    //     {
-    //         outfile << dye << ",";
-    //     }
-    //     outfile << "\n";
-    // }
+    std::ofstream outfile(fileName);
 
     outfile << "x,y,z,time,dye\n";
-
-    for(int i = 0; i<xs.size(); i++)
-    {
-        for(int j = 0; j<zs.size(); j++)
-        {
-            outfile << xs[i] << "," << ys[i] << "," << zs[j] << "," << times[i] << "," << dyeMatrix[i][j] << "\n";
-        }
-    }
-
-    outfile.close();
+    outfile << outputStringStream.rdbuf();
 
     return 0;
 }

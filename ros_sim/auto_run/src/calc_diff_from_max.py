@@ -38,48 +38,26 @@ def main(bagName, phase = "None", model = False):
 
 	bag.close()
 
-	if model:
-		# in python3, this is subprocess.run()
-		subprocess.call(["./devel/lib/visualization/visualization_MODEL_FETCHER", bagName])
-		df = pd.read_csv("out.csv")
+	# in python3, this is subprocess.run()
+	subprocess.call(["./devel/lib/visualization/visualization_MODEL_FETCHER", bagName])
+	df = pd.read_csv("out.csv")
 
-		print("Read data, analyzing")
+	print("Read data, analyzing")
 
-		maximum = df.loc[df.groupby(['time'])['dye'].idxmax()]
-		modelTimes = maximum['time']
-		modelHeight = maximum['z']
-		modelDyeMax = maximum['dye']
+	maximum = df.loc[df.groupby(['time'])['dye'].idxmax()]
+	modelTimes = maximum['time']
+	modelHeight = maximum['z']
+	modelDyeMax = maximum['dye']
 
-		plt.plot(modelTimes, modelHeight, c='y')
+	plt.plot(modelTimes, modelHeight, c='y')
 
-		modelHeight = list(modelHeight)
+	modelHeight = list(modelHeight)
 
-		sse = 0
-		for i in range(0, len(modelTimes), 10):
-			sse += (modelHeight[i % 10] - z[i])**2
-		print("Score: " + str(sse))
+	sse = 0
+	for i in range(0, len(modelTimes), 10):
+		sse += (modelHeight[i % 10] - z[i])**2
+	print("Score: " + str(sse))
 
-		maxPlumeHeights = df.loc[df[df['dye'] >= 2].groupby('time')['z'].idxmax()]
-		modelTimes = maxPlumeHeights['time']
-		modelHeight = maxPlumeHeights['z']
-
-		plt.plot(modelTimes, modelHeight, c='r')
-
-		maxPlumeHeights = df.loc[df[df['dye'] >= 2].groupby('time')['z'].idxmin()]
-		modelTimes = maxPlumeHeights['time']
-		modelHeight = maxPlumeHeights['z']
-
-		plt.plot(modelTimes, modelHeight, c='k')
-
-
-	dye = [max(d, 0.1) for d in dye]
-	plt.scatter(time, z, c=dye, linewidth=0, cmap="plasma", norm=matplotlib.colors.LogNorm(vmin=min(dye), vmax=max(dye)))
-	# plt.scatter(time, z, c=np.log2(dye), linewidth=0, cmap="plasma")
-
-	plt.scatter(time, seaFloor, linewidth=0, cmap="plasma")
-
-	plt.gca().invert_yaxis()
-	plt.show()
 
 if __name__ == "__main__":
 	if len(sys.argv) > 2:

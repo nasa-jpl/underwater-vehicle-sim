@@ -1,9 +1,12 @@
-planner_type = "NestedBin"
+planner_type = "SurfaceGradient"
+hertz = 0.1
 
 spiral_spacing = 5000
 initial_spacing = 4000
 final_spacing = 200
 fail_time = 5011200
+
+gradient_radius = 5000
 
 yoyo_during_spiral = true
 yoyo_min_depth = 100
@@ -36,3 +39,8 @@ sonar_depth_enabled = true
 sonar_data = "sonar_depth"
 
 gradient_descent_time = 60
+
+gradient_threshold = 0
+gradient_window = 2000
+min_follow_distance = 2000
+max_follow_distance = 10000
