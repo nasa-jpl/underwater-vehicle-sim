@@ -17,7 +17,7 @@
 #include "underwater_autonomy/planner/actions/HoldDepthAction.h"
 #include "underwater_autonomy/planner/actions/YoYoAction.h"
 #include "underwater_autonomy/planner/actions/TwoConcurrentActionsAction.h"
-#include "underwater_autonomy/planner/actions/xyAction.h"
+#include "underwater_autonomy/planner/actions/XYAction.h"
 #include "underwater_autonomy/planner/actions/DepthAction.h"
 
 
@@ -63,8 +63,8 @@ public:
                                                                          const underwater_autonomy::PointPathAction::ReplanType replan,
                                                                          const double periodicReplanTime) override;
 
-    std::shared_ptr<underwater_autonomy::TwoConcurrentActionsAction> createTwoConcurrentActionsAction(std::shared_ptr<underwater_autonomy::xyAction> xy_action,
-                                                                                                      std::shared_ptr<underwater_autonomy::DepthAction> depth_action,
+    std::shared_ptr<underwater_autonomy::TwoConcurrentActionsAction> createTwoConcurrentActionsAction(std::shared_ptr<underwater_autonomy::XYAction> xyAction,
+                                                                                                      std::shared_ptr<underwater_autonomy::DepthAction> depthAction,
                                                                                                       std::unique_ptr<underwater_autonomy::OperationRegion> operationRegion,
                                                                                                       const bool onlyEndAtXY = false) override;
 private:
