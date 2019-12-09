@@ -8,8 +8,10 @@ fail_time = 5011200
 yoyo_during_spiral = true
 yoyo_min_depth = 100
 yoyo_max_depth = 2000
+target_vertical_velocity_spiral = 1
+target_vertical_velocity_gd_yoyo = 0.1
 target_horizontal_velocity = 1
-target_vertical_velocity = 1
+target_rotational_velocity = 0.349066
 
 detection_threshold = 2.0
 
@@ -36,3 +38,9 @@ sonar_depth_enabled = true
 sonar_data = "sonar_depth"
 
 gradient_descent_time = 60
+
+depth_buffer = 15
+seafloor_buffer = 20
+yo_gradient_threshold = -0.01
+
+yoyo_replan_time = 10
