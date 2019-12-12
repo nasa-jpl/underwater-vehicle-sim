@@ -132,6 +132,7 @@ void YoYoSimActionExecutor::monitor(std::shared_ptr<underwater_autonomy::YoYoAct
 
 	if(action->getState() == Action::State::EXECUTING)
 	{
+
 		if(gotCompleteCallback && 
 		   doubleEq(targetDepth, completeCallbackZ) &&
 		   !completeCallbackHoldDepth)
@@ -148,7 +149,8 @@ void YoYoSimActionExecutor::monitor(std::shared_ptr<underwater_autonomy::YoYoAct
 
 			sendNewGoToZGoal(action);
 		}
-		else if(action->getYoYoTime() >= 0 && currentDuration.toSec() >= action->getYoYoTime())
+		
+		if(action->getYoYoTime() >= 0 && currentDuration.toSec() >= action->getYoYoTime())
 		{
 			action->setState(Action::State::COMPLETED);
 			std_msgs::Bool enableMsg;
@@ -157,7 +159,9 @@ void YoYoSimActionExecutor::monitor(std::shared_ptr<underwater_autonomy::YoYoAct
 		}
 	}
 	
-	if(action->getTimeout() >= 0 && currentDuration.toSec() >= action->getTimeout())
+	if(action->getTimeout() >= 0 && 
+	   currentDuration.toSec() >= action->getTimeout() &&
+	   action->getState() != Action::State::COMPLETED)
 	{
 		action->setState(Action::State::FAILED);
 		std_msgs::Bool enableMsg;

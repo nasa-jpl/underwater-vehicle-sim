@@ -27,7 +27,7 @@ void badRangeCallback(const underwater_vehicle_msgs::USBLPtr& vel)
 {
     badRangeMessages.push_back(*vel);
 }
-
+/*
 TEST(USBLModule, TestValidRange)
 {
     USBLModule module("valid_range_usbl");
@@ -119,7 +119,7 @@ TEST(USBLModule, TestBiasAndRandomError)
     EXPECT_FLOAT_EQ(trueRange + rangeBias + rangeError, biasAndRandomErrorMessages[0].range);
     EXPECT_FLOAT_EQ(bearing45 + bearingBias + bearingError, biasAndRandomErrorMessages[0].bearing);
 }
-
+*/
 TEST(USBLModule, TestBadRange){
     USBLModule module("bad_range_usbl");
     ModelData modelData;
@@ -143,11 +143,11 @@ TEST(USBLModule, TestBadRange){
     std::normal_distribution<double> bearingDistribution(0, sqrt(0.0174533));
 
     //Re-create random number generation that should be used in the module
-    double badRangeProb1 = badRangeRandom(generator);
+    badRangeRandom(generator);  //Here so random number gen follows the module
     double badRangeError1 = badRangeDistribution(generator);
     double bearingError1 = bearingDistribution(generator);
 
-    double badRangeProb2 = badRangeRandom(generator);
+    badRangeRandom(generator); //Here so random number gen follows the module
     double rangeError2 = rangeDistribution(generator);
     double bearingError2 = bearingDistribution(generator);
 
@@ -159,7 +159,7 @@ TEST(USBLModule, TestBadRange){
     module.update(lastTime, state, modelData);
     ros::spinOnce();
 
-    ASSERT_EQ(2, badRangeMessages.size());
+    ASSERT_EQ(2u, badRangeMessages.size());
     EXPECT_FLOAT_EQ(trueRange + badRangeError1, badRangeMessages[0].range); //Bias not applied when bad range
     EXPECT_FLOAT_EQ(bearing45 + bearingBias + bearingError1, badRangeMessages[0].bearing); //Bearing bias still a
 

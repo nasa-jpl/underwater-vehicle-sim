@@ -147,7 +147,9 @@ void HoldDepthSimActionExecutor::monitor(std::shared_ptr<underwater_autonomy::Ho
 		}
 	}
 	
-	if(action->getTimeout() >= 0 && currentDuration.toSec() >= action->getTimeout())
+	if(action->getTimeout() >= 0 && 
+	   currentDuration.toSec() >= action->getTimeout() && 
+	   action->getState() != Action::State::COMPLETED)
 	{
 		action->setState(Action::State::FAILED);
 

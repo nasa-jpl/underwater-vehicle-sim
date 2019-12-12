@@ -96,7 +96,7 @@ TEST(YoYoSimActionExecutor, ExecuteAndCancel)
     {
         ros::spinOnce();
     }
-    EXPECT_EQ(1, goToZCalls);
+    EXPECT_EQ(1u, goToZCalls);
 
     while(action->getState() != Action::State::EXECUTING)
     {
@@ -110,7 +110,7 @@ TEST(YoYoSimActionExecutor, ExecuteAndCancel)
     {
         ros::spinOnce();
     }
-    EXPECT_EQ(1, goToZEnableCalls);
+    EXPECT_EQ(1u, goToZEnableCalls);
 
     while(action->getState() != Action::State::INTERRUPTED)
     {
@@ -174,7 +174,7 @@ TEST(YoYoSimActionExecutor, ExecuteAndTimeout)
     {
         ros::spinOnce();
     }
-    EXPECT_EQ(1, goToZCalls);
+    EXPECT_EQ(1u, goToZCalls);
 
     while(action->getState() != Action::State::EXECUTING)
     {
@@ -190,9 +190,7 @@ TEST(YoYoSimActionExecutor, ExecuteAndTimeout)
         ros::spinOnce();
     }
     EXPECT_EQ(Action::State::FAILED, action->getState());
-
 }
-
 
 TEST(YoYoSimActionExecutor, ExecuteAndSucceed)
 {
@@ -221,8 +219,8 @@ TEST(YoYoSimActionExecutor, ExecuteAndSucceed)
     std::shared_ptr<YoYoAction> action(new YoYoAction(1,
                                                       2,
                                                       3,
-                                                      2,
-                                                      2,
+                                                      5,
+                                                      6,
                                                       NULL,
                                                       YoYoAction::ReplanType::NONE,
                                                       4,
@@ -248,7 +246,7 @@ TEST(YoYoSimActionExecutor, ExecuteAndSucceed)
     {
         ros::spinOnce();
     }
-    EXPECT_EQ(1, goToZCalls);
+    EXPECT_EQ(1u, goToZCalls);
 
     while(action->getState() != Action::State::EXECUTING)
     {
@@ -270,11 +268,11 @@ TEST(YoYoSimActionExecutor, ExecuteAndSucceed)
     {
         ros::spinOnce();
     }
-    EXPECT_EQ(2, goToZCalls);
+    EXPECT_EQ(2u, goToZCalls);
     EXPECT_EQ(2, depth);
     EXPECT_EQ(Action::State::EXECUTING, action->getState());
 
-    ros::Duration(2).sleep();
+    ros::WallDuration(2).sleep();
     executor.monitor(action);
     while(action->getState() != Action::State::COMPLETED)
     {
@@ -336,7 +334,7 @@ TEST(YoYoSimActionExecutor, TimeReplan)
     {
         ros::spinOnce();
     }
-    EXPECT_EQ(1, goToZCalls);
+    EXPECT_EQ(1u, goToZCalls);
 
     while(action->getState() != Action::State::EXECUTING)
     {
@@ -398,7 +396,7 @@ TEST(YoYoSimActionExecutor, DistanceReplan)
     {
         ros::spinOnce();
     }
-    EXPECT_EQ(1, goToZCalls);
+    EXPECT_EQ(1u, goToZCalls);
 
     while(action->getState() != Action::State::EXECUTING)
     {
@@ -477,7 +475,7 @@ TEST(YoYoSimActionExecutor, TurnReplan)
     {
         ros::spinOnce();
     }
-    EXPECT_EQ(1, goToZCalls);
+    EXPECT_EQ(1u, goToZCalls);
 
     while(action->getState() != Action::State::EXECUTING)
     {
@@ -498,7 +496,7 @@ TEST(YoYoSimActionExecutor, TurnReplan)
     {
         ros::spinOnce();
     }
-    EXPECT_EQ(2, goToZCalls);
+    EXPECT_EQ(2u, goToZCalls);
     EXPECT_EQ(2, depth);
     EXPECT_EQ(Action::State::EXECUTING, action->getState());
 

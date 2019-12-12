@@ -89,7 +89,7 @@ TEST(HoldDepthSimActionExecutor, ExecuteAndCancel)
     {
         ros::spinOnce();
     }
-    EXPECT_EQ(1, holdDepthCalls);
+    EXPECT_EQ(1u, holdDepthCalls);
 
     while(action->getState() != Action::State::EXECUTING)
     {
@@ -103,7 +103,7 @@ TEST(HoldDepthSimActionExecutor, ExecuteAndCancel)
     {
         ros::spinOnce();
     }
-    EXPECT_EQ(1, holdDepthEnableCalls);
+    EXPECT_EQ(1u, holdDepthEnableCalls);
 
     while(action->getState() != Action::State::INTERRUPTED)
     {
@@ -138,7 +138,7 @@ TEST(HoldDepthSimActionExecutor, ExecuteAndSucceed)
     std::shared_ptr<HoldDepthAction> action(new HoldDepthAction(5,
                                                                 1,
                                                                 2,
-                                                                2,
+                                                                3,
                                                                 NULL,
                                                                 HoldDepthAction::ReplanType::NONE,
                                                                 4,
@@ -161,7 +161,7 @@ TEST(HoldDepthSimActionExecutor, ExecuteAndSucceed)
     {
         ros::spinOnce();
     }
-    EXPECT_EQ(1, holdDepthCalls);
+    EXPECT_EQ(1u, holdDepthCalls);
 
     while(action->getState() != Action::State::EXECUTING)
     {
@@ -229,7 +229,7 @@ TEST(HoldDepthSimActionExecutor, ExecuteAndTimeout)
     {
         ros::spinOnce();
     }
-    EXPECT_EQ(1, holdDepthCalls);
+    EXPECT_EQ(1u, holdDepthCalls);
 
     while(action->getState() != Action::State::EXECUTING)
     {
@@ -295,7 +295,7 @@ TEST(HoldDepthSimActionExecutor, TimeReplan)
     {
         ros::spinOnce();
     }
-    EXPECT_EQ(1, holdDepthCalls);
+    EXPECT_EQ(1u, holdDepthCalls);
 
     while(action->getState() != Action::State::EXECUTING)
     {
@@ -359,7 +359,7 @@ TEST(HoldDepthSimActionExecutor, DistanceReplan)
     {
         ros::spinOnce();
     }
-    EXPECT_EQ(1, holdDepthCalls);
+    EXPECT_EQ(1u, holdDepthCalls);
 
     while(action->getState() != Action::State::EXECUTING)
     {
