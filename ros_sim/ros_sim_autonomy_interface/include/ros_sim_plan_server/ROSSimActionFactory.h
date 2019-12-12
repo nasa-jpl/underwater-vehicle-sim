@@ -55,13 +55,13 @@ public:
                                                                                         const underwater_autonomy::FollowHeadingAction::ReplanType replanType,
                                                                                         const double periodicReplanValue) override;
 
-    std::shared_ptr<underwater_autonomy::PointPathAction> createPointPathAction(std::unique_ptr<underwater_autonomy::OperationRegion> operationRegion,
-                                                                         const double targetHorizontalVelocity, 
-                                                                         const double targetRotationalVelocity,
-                                                                         const double timeout,
-                                                                         const std::vector<Eigen::Vector3d>& points,
-                                                                         const underwater_autonomy::PointPathAction::ReplanType replan,
-                                                                         const double periodicReplanTime) override;
+    std::shared_ptr<underwater_autonomy::PointPathAction> createPointPathAction(const std::vector<Eigen::Vector3d>& points,
+                                                                                const double targetHorizontalVelocity, 
+                                                                                const double targetRotationalVelocity,
+                                                                                const double timeout,
+                                                                                std::unique_ptr<underwater_autonomy::OperationRegion> operationRegion,
+                                                                                const underwater_autonomy::PointPathAction::ReplanType replanType,
+                                                                                const double periodicReplanValue) override;
 
     std::shared_ptr<underwater_autonomy::TwoConcurrentActionsAction> createTwoConcurrentActionsAction(std::shared_ptr<underwater_autonomy::XYAction> xyAction,
                                                                                                       std::shared_ptr<underwater_autonomy::DepthAction> depthAction,
