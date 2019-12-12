@@ -1,5 +1,6 @@
 import rosbag
 import sys, math
+import argparse
 
 # calc score from bag file
 # score is x,y distance from vent source
@@ -26,4 +27,12 @@ def main(bagName, ventX = 0, ventY = 0):
 
 
 if __name__ == "__main__":
-	main(sys.argv[1])
+	parser = argparse.ArgumentParser()
+
+	parser.add_argument("bagName", help="the path of the bag file")
+	parser.add_argument("-x", "--ventX", help="give x loc of vent source", type=float, default=0)
+	parser.add_argument("-y", "--ventY", help="give y loc of vent source", type=float, default=0)
+
+	args = parser.parse_args()
+
+	main(args.bagName, args.ventX, args.ventY)
