@@ -10,6 +10,8 @@ import subprocess, shlex
 from std_msgs.msg import String
 import data_server.srv
 
+import argparse
+
 
 currentGoal = "running"
 dataFilePub = None
@@ -77,20 +79,17 @@ def runLaunchFile(uuid, filename, outputDirectory, inputDirectory):
     rospy.loginfo("Stopping launch file: %s", filename)
     launch.shutdown()
 
-    shutil.move(filename, os.path.join(inputDirectory, "completed"))
+    if os.path.exists(os.path.join(inputDirectory, "completed")):
+        shutil.move(filename, os.path.join(inputDirectory, "completed"))
 
-def main(argv):
+def main(input, outputDirectory):
     global currentGoal
 
-    if len(argv) != 3:
-        print("Invalid Arguments. Usage: inputDir outputDir")
-        sys.exit()
+    if not os.path.isfile(input):
+        if file == None and not os.path.exists(os.path.join(inputDirectory, "completed")):
+            os.makedirs(os.path.join(inputDirectory, "completed"))
 
-    inputDirectory = argv[1]
-    outputDirectory = argv[2]
-
-    if not os.path.exists(os.path.join(inputDirectory, "completed")):
-        os.makedirs(os.path.join(inputDirectory, "completed"))
+        launchFiles = getLaunchFiles(inputDirectory)
 
     # if getting stuck here, need to run roscore in different process
     rospy.init_node('en_Mapping', anonymous=True)
@@ -100,15 +99,29 @@ def main(argv):
 
     rospy.Subscriber('/planner/goal', String, callback)
 
-    launchFiles = getLaunchFiles(inputDirectory)
+    if not os.path.isfile(input):
+        outputDirectories = [os.path.join(outputDirectory, os.path.basename(file).replace('.','_')) for file in launchFiles]
 
-    outputDirectories = [os.path.join(outputDirectory, os.path.basename(file).replace('.','_')) for file in launchFiles]
-
-    for launchFile, output in zip(launchFiles, outputDirectories):
+        for launchFile, output in zip(launchFiles, outputDirectories):
+            currentGoal = 'running'
+            runLaunchFile(uuid, launchFile, output, inputDirectory)
+    else:
         currentGoal = 'running'
-        runLaunchFile(uuid, launchFile, output, inputDirectory)
+        runLaunchFile(uuid, input, outputDirectory, os.getcwd())
 
 
 
 if __name__ == "__main__":
-    main(sys.argv)
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument("input", help="path of launch file or directory containg launch files")
+    parser.add_argument("outputDir", help="path of directory of output", nargs='*', default=None)
+
+    args = parser.parse_args()
+
+    if args.outputDir:
+        outDir = args.outputDir[0]
+    else:
+        outDir = os.getcwd()
+
+    main(args.input, outDir)
