@@ -24,14 +24,14 @@ TEST(PointPathSimActionExecutor, ExecutePropModuleTypeFail)
 {
     ros::NodeHandle nh("ExecutePropModuleTypeFail");
     std::vector<Eigen::Vector3d> points;
-    std::shared_ptr<PointPathAction> action(new PointPathAction(NULL,
-                                                        NULL,
-                                                        0,
-                                                        0,
-                                                        0,
-                                                        points,
-                                                        PointPathAction::ReplanType::NONE,
-                                                        0)); 
+    std::shared_ptr<PointPathAction> action(new PointPathAction(points,
+                                                                0,
+                                                                0,
+                                                                0,
+                                                                NULL,
+                                                                PointPathAction::ReplanType::NONE,
+                                                                0,
+                                                                NULL));
 
                                                             
     underwater_vehicle_msgs::GetVehicleInfo infoMsg;
@@ -68,14 +68,14 @@ TEST(PointPathSimActionExecutor, ExecuteAndCancel)
     std::vector<Eigen::Vector3d> points;
     points.push_back(Eigen::Vector3d(1,2,3));
     points.push_back(Eigen::Vector3d(2,3,4));
-    std::shared_ptr<PointPathAction> action(new PointPathAction(NULL,
-                                                        NULL,
-                                                        1,
-                                                        2,
-                                                        3,
-                                                        points,
-                                                        PointPathAction::ReplanType::PERIODIC_TIME,
-                                                        3));
+    std::shared_ptr<PointPathAction> action(new PointPathAction(points,
+                                                                1,
+                                                                2,
+                                                                3,
+                                                                NULL,
+                                                                PointPathAction::ReplanType::PERIODIC_TIME,
+                                                                3,
+                                                                NULL));
 
     underwater_vehicle_msgs::GetVehicleInfo infoMsg;
     infoMsg.response.propModuleType = "FourDOFPropulsion";
@@ -146,14 +146,14 @@ TEST(PointPathSimActionExecutor, ExecuteAndTimeout)
     std::vector<Eigen::Vector3d> points;
     points.push_back(Eigen::Vector3d(1,2,3));
     points.push_back(Eigen::Vector3d(2,3,4));
-    std::shared_ptr<PointPathAction> action(new PointPathAction(NULL,
-                                                        NULL,
-                                                        1,
-                                                        2,
-                                                        1,
-                                                        points,
-                                                        PointPathAction::ReplanType::PERIODIC_TIME,
-                                                        3));
+    std::shared_ptr<PointPathAction> action(new PointPathAction(points,
+                                                                1,
+                                                                2,
+                                                                1,
+                                                                NULL,
+                                                                PointPathAction::ReplanType::PERIODIC_TIME,
+                                                                3,
+                                                                NULL));
 
     underwater_vehicle_msgs::GetVehicleInfo infoMsg;
     infoMsg.response.propModuleType = "FourDOFPropulsion";
@@ -222,14 +222,14 @@ TEST(PointPathSimActionExecutor, ExecuteAndSucceed)
     points.push_back(Eigen::Vector3d(1,2,3));
     points.push_back(Eigen::Vector3d(2,3,4));
     points.push_back(Eigen::Vector3d(3,4,5));
-    std::shared_ptr<PointPathAction> action(new PointPathAction(NULL,
-                                                        NULL,
-                                                        1,
-                                                        2,
-                                                        3,
-                                                        points,
-                                                        PointPathAction::ReplanType::NONE,
-                                                        3));
+    std::shared_ptr<PointPathAction> action(new PointPathAction(points,
+                                                                1,
+                                                                2,
+                                                                3,
+                                                                NULL,
+                                                                PointPathAction::ReplanType::NONE,
+                                                                3,
+                                                                NULL));
 
     underwater_vehicle_msgs::GetVehicleInfo infoMsg;
     infoMsg.response.propModuleType = "FourDOFPropulsion";
@@ -401,14 +401,14 @@ TEST(PointPathSimActionExecutor, TimeReplan)
     std::vector<Eigen::Vector3d> points;
     points.push_back(Eigen::Vector3d(1,2,3));
     points.push_back(Eigen::Vector3d(2,3,4));
-    std::shared_ptr<PointPathAction> action(new PointPathAction(NULL,
-                                                        NULL,
-                                                        1,
-                                                        2,
-                                                        3,
-                                                        points,
-                                                        PointPathAction::ReplanType::PERIODIC_TIME,
-                                                        3));
+    std::shared_ptr<PointPathAction> action(new PointPathAction(points,
+                                                                1,
+                                                                2,
+                                                                3,
+                                                                NULL,
+                                                                PointPathAction::ReplanType::PERIODIC_TIME,
+                                                                3,
+                                                                NULL));
 
     underwater_vehicle_msgs::GetVehicleInfo infoMsg;
     infoMsg.response.propModuleType = "FourDOFPropulsion";
@@ -481,14 +481,14 @@ TEST(PointPathSimActionExecutor, DistanceReplan)
     std::vector<Eigen::Vector3d> points;
     points.push_back(Eigen::Vector3d(1,2,3));
     points.push_back(Eigen::Vector3d(2,3,4));
-    std::shared_ptr<PointPathAction> action(new PointPathAction(NULL,
-                                                        NULL,
-                                                        1,
-                                                        2,
-                                                        3,
-                                                        points,
-                                                        PointPathAction::ReplanType::PERIODIC_DISTANCE,
-                                                        3));
+    std::shared_ptr<PointPathAction> action(new PointPathAction(points,
+                                                                1,
+                                                                2,
+                                                                3,
+                                                                NULL,
+                                                                PointPathAction::ReplanType::PERIODIC_DISTANCE,
+                                                                3,
+                                                                NULL));
 
     underwater_vehicle_msgs::GetVehicleInfo infoMsg;
     infoMsg.response.propModuleType = "FourDOFPropulsion";

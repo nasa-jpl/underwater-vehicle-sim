@@ -71,8 +71,6 @@ private:
     ros::Publisher velPub;
     ros::Subscriber poseSub;
     underwater_autonomy::VehiclePose currentPose;
-
-    bool gotCompleteCallback;
 };
 
 #endif

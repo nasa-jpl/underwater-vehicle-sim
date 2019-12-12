@@ -60,23 +60,23 @@ std::shared_ptr<FollowHeadingAction> ROSSimActionFactory::createFollowHeadingAct
                                                                 std::move(executor)));
 }   
 
-std::shared_ptr<PointPathAction> ROSSimActionFactory::createPointPathAction(std::unique_ptr<OperationRegion> operationRegion,
-                                                                             const double targetHorizontalVelocity, 
-                                                                             const double targetRotationalVelocity,
-                                                                             const double timeout,
-                                                                             const std::vector<Eigen::Vector3d>& points,
-                                                                             const PointPathAction::ReplanType replan,
-                                                                             const double periodicReplanTime)
+std::shared_ptr<PointPathAction> ROSSimActionFactory::createPointPathAction(const std::vector<Eigen::Vector3d>& points,
+                                                                            const double targetHorizontalVelocity, 
+                                                                            const double targetRotationalVelocity,
+                                                                            const double timeout,
+                                                                            std::unique_ptr<underwater_autonomy::OperationRegion> operationRegion,
+                                                                            const PointPathAction::ReplanType replanType,
+                                                                            const double periodicReplanValue)
 {
     std::unique_ptr<ActionExecutor<PointPathAction>> executor(new PointPathSimActionExecutor(vehicleInfo));
-    return std::unique_ptr<PointPathAction>(new PointPathAction(std::move(executor),
-                                                                std::move(operationRegion),
+    return std::unique_ptr<PointPathAction>(new PointPathAction(points,
                                                                 targetHorizontalVelocity,
                                                                 targetRotationalVelocity,
                                                                 timeout,
-                                                                points,
-                                                                replan,
-                                                                periodicReplanTime));
+                                                                std::move(operationRegion),
+                                                                replanType,
+                                                                periodicReplanValue,
+                                                                std::move(executor)));
 }
 
 std::shared_ptr<HoldDepthAction> ROSSimActionFactory::createHoldDepthAction(const double depth,
@@ -98,15 +98,15 @@ std::shared_ptr<HoldDepthAction> ROSSimActionFactory::createHoldDepthAction(cons
                                                                 std::move(executor)));
 }
 
-std::shared_ptr<TwoConcurrentActionsAction> ROSSimActionFactory::createTwoConcurrentActionsAction(std::shared_ptr<xyAction> xy_action,
-                                                                                                  std::shared_ptr<DepthAction> depth_action,
+std::shared_ptr<TwoConcurrentActionsAction> ROSSimActionFactory::createTwoConcurrentActionsAction(std::shared_ptr<XYAction> xyAction,
+                                                                                                  std::shared_ptr<DepthAction> depthAction,
                                                                                                   std::unique_ptr<OperationRegion> operationRegion,
                                                                                                   const bool onlyEndAtXY)
 {
 
     
-        return std::unique_ptr<TwoConcurrentActionsAction>(new TwoConcurrentActionsAction(std::move(xy_action),
-                                                                                          std::move(depth_action),
+        return std::unique_ptr<TwoConcurrentActionsAction>(new TwoConcurrentActionsAction(std::move(xyAction),
+                                                                                          std::move(depthAction),
                                                                                           std::move(operationRegion),
                                                                                           onlyEndAtXY));                                                                                  
                                                                                                

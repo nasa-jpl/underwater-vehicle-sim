@@ -123,28 +123,31 @@ void HoldDepthSimActionExecutor::monitor(std::shared_ptr<underwater_autonomy::Ho
 	currentDuration += currentTime - lastUpdate;
 	lastUpdate = currentTime;
 
-	if(gotCompleteCallback && 
-	   doubleEq(action->getDepth(), completeCallbackZ) &&
-	   completeCallbackHoldDepth &&
-	   action->getState() == Action::State::EXECUTING)
+	if(action->getState() == Action::State::EXECUTING)
 	{
-		gotCompleteCallback = false;
+		if(gotCompleteCallback && 
+		   doubleEq(action->getDepth(), completeCallbackZ) &&
+		   completeCallbackHoldDepth)
+		{
+			gotCompleteCallback = false;
 
-		std_msgs::Bool enableMsg;
-		enableMsg.data = false;
-		goToZEnablePub.publish(enableMsg);
+			std_msgs::Bool enableMsg;
+			enableMsg.data = false;
+			goToZEnablePub.publish(enableMsg);
 
-		action->setState(Action::State::COMPLETED);
+			action->setState(Action::State::COMPLETED);
+		}
+		else if(action->getHoldDepthTime() >= 0 && currentDuration.toSec() >= action->getHoldDepthTime())
+		{
+			action->setState(Action::State::COMPLETED);
+
+			std_msgs::Bool enableMsg;
+			enableMsg.data = false;
+			goToZEnablePub.publish(enableMsg);
+		}
 	}
-	else if(action->getHoldDepthTime() >= 0 && currentDuration.toSec() >= action->getHoldDepthTime())
-	{
-		action->setState(Action::State::COMPLETED);
-
-		std_msgs::Bool enableMsg;
-		enableMsg.data = false;
-		goToZEnablePub.publish(enableMsg);
-	}
-	else if(action->getTimeout() >= 0 && currentDuration.toSec() >= action->getTimeout())
+	
+	if(action->getTimeout() >= 0 && currentDuration.toSec() >= action->getTimeout())
 	{
 		action->setState(Action::State::FAILED);
 

@@ -112,7 +112,8 @@ void PointPathSimActionExecutor::monitor(std::shared_ptr<underwater_autonomy::Po
 			sendNextGoToXYGoal(action);
 		}
 	}
-	else if(action->getTimeout() >= 0 && currentDuration.toSec() >= action->getTimeout())
+	
+	if(action->getTimeout() >= 0 && currentDuration.toSec() >= action->getTimeout())
 	{
 		action->setState(Action::State::FAILED);
 		std_msgs::Bool enableMsg;
