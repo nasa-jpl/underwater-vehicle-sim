@@ -25,15 +25,13 @@ FollowHeadingSimActionExecutor::FollowHeadingSimActionExecutor(ros::NodeHandle n
 	replanNextUpdate(false),
 	lastReplan(ros::Time::now()),
 	distanceSinceReplan(0),
-	currentDuration(0),
-	gotCompleteCallback(false)
+	currentDuration(0)
 {
 	velPub = nh.advertise<geometry_msgs::Twist>("command_target_velocity", 1000, true);
 	poseSub = nh.subscribe("primary_navigation", 1, &FollowHeadingSimActionExecutor::navigationFilterCallback, this);
 
 	followHeadingPub = nh.advertise<underwater_vehicle_msgs::FollowHeading>("follow_heading", 1000);
 	followHeadingEnablePub = nh.advertise<std_msgs::Bool>("follow_heading_enable", 1000);
-	followHeadingComplete = nh.subscribe("follow_heading_complete", 1, &FollowHeadingSimActionExecutor::followHeadingCompleteCallback, this);
 }
 
 bool FollowHeadingSimActionExecutor::execute(std::shared_ptr<FollowHeadingAction> action)
@@ -74,7 +72,6 @@ bool FollowHeadingSimActionExecutor::execute(std::shared_ptr<FollowHeadingAction
 
 	//Send message to Follow Heading Controller
 	//Reset complete callback
-	gotCompleteCallback = false;
 	underwater_vehicle_msgs::FollowHeading followHeadingMsg;
 	followHeadingMsg.heading = action->getHeading();
 	followHeadingMsg.enable = true;
@@ -108,31 +105,16 @@ bool FollowHeadingSimActionExecutor::triggerReplan(std::shared_ptr<FollowHeading
 	return false;
 }
 
-void FollowHeadingSimActionExecutor::followHeadingCompleteCallback(const std_msgs::Bool complete)
-{
-	if(complete.data)
-	{
-		gotCompleteCallback = true;
-	}
-}
-
 void FollowHeadingSimActionExecutor::monitor(std::shared_ptr<underwater_autonomy::FollowHeadingAction> action)
 {
 	ros::Time currentTime = ros::Time::now();
 	currentDuration += currentTime - lastUpdate;
 	lastUpdate = currentTime;
 
-	if(gotCompleteCallback && action->getState() == Action::State::EXECUTING)
-	{
-		gotCompleteCallback = false;
-
-		std_msgs::Bool enableMsg;
-		enableMsg.data = false;
-		followHeadingEnablePub.publish(enableMsg);
-
-		action->setState(Action::State::COMPLETED);
-	}
-	else if(action->getFollowHeadingTime() >= 0 && currentDuration.toSec() >= action->getFollowHeadingTime())
+	
+	if(action->getFollowHeadingTime() >= 0 && 
+	   currentDuration.toSec() >= action->getFollowHeadingTime() &&
+	   action->getState() == Action::State::EXECUTING)
 	{
 		action->setState(Action::State::COMPLETED);
 

@@ -130,34 +130,34 @@ void YoYoSimActionExecutor::monitor(std::shared_ptr<underwater_autonomy::YoYoAct
 		targetDepth = action->getLowerDepth();
 	}
 
-	if(gotCompleteCallback && 
-	   doubleEq(targetDepth, completeCallbackZ) &&
-	   !completeCallbackHoldDepth &&
-	   action->getState() == Action::State::EXECUTING)
+	if(action->getState() == Action::State::EXECUTING)
 	{
-		gotCompleteCallback = false;
-
-		action->setGoingUp(!action->getGoingUp());
-		if(!replanNextUpdate)
+		if(gotCompleteCallback && 
+		   doubleEq(targetDepth, completeCallbackZ) &&
+		   !completeCallbackHoldDepth)
 		{
+			gotCompleteCallback = false;
 
-			replanNextUpdate = action->doReplan(true, (ros::Time::now() - lastReplan).toSec(),
-												distanceSinceReplan);
-		}
+			action->setGoingUp(!action->getGoingUp());
+			if(!replanNextUpdate)
+			{
 
-		if(action->getState() == Action::State::EXECUTING)
-		{
+				replanNextUpdate = action->doReplan(true, (ros::Time::now() - lastReplan).toSec(),
+													distanceSinceReplan);
+			}
+
 			sendNewGoToZGoal(action);
 		}
+		else if(action->getYoYoTime() >= 0 && currentDuration.toSec() >= action->getYoYoTime())
+		{
+			action->setState(Action::State::COMPLETED);
+			std_msgs::Bool enableMsg;
+			enableMsg.data = false;
+			goToZEnablePub.publish(enableMsg);
+		}
 	}
-	else if(action->getYoYoTime() >= 0 && currentDuration.toSec() >= action->getYoYoTime())
-	{
-		action->setState(Action::State::COMPLETED);
-		std_msgs::Bool enableMsg;
-		enableMsg.data = false;
-		goToZEnablePub.publish(enableMsg);
-	}
-	else if(action->getTimeout() >= 0 && currentDuration.toSec() >= action->getTimeout())
+	
+	if(action->getTimeout() >= 0 && currentDuration.toSec() >= action->getTimeout())
 	{
 		action->setState(Action::State::FAILED);
 		std_msgs::Bool enableMsg;
