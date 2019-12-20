@@ -85,8 +85,10 @@ def runLaunchFile(uuid, filename, outputDirectory, inputDirectory):
 def main(input, outputDirectory):
     global currentGoal
 
+    # check if input is file or directory
+    # true if input is directory
     if not os.path.isfile(input):
-        if file == None and not os.path.exists(os.path.join(inputDirectory, "completed")):
+        if not os.path.exists(os.path.join(inputDirectory, "completed")):
             os.makedirs(os.path.join(inputDirectory, "completed"))
 
         launchFiles = getLaunchFiles(inputDirectory)
@@ -100,12 +102,14 @@ def main(input, outputDirectory):
     rospy.Subscriber('/planner/goal', String, callback)
 
     if not os.path.isfile(input):
+        # run all launch files in dir
         outputDirectories = [os.path.join(outputDirectory, os.path.basename(file).replace('.','_')) for file in launchFiles]
 
         for launchFile, output in zip(launchFiles, outputDirectories):
             currentGoal = 'running'
             runLaunchFile(uuid, launchFile, output, inputDirectory)
     else:
+        # run the launch file
         currentGoal = 'running'
         runLaunchFile(uuid, input, outputDirectory, os.getcwd())
 

@@ -10,26 +10,34 @@ def replaceStartLocation(string, x, y, z):
     string = string.replace("<START_Z>", str(z))
     return string
 
+def replaceConfigName(string, path):
+    string = string.replace("<CONFIG_NAME>", str(path))
+    return string
+
 def main(argv):
 
-    if len(argv) != 5:
-        print("Invalid Arguments: Expected <inputFile> <outputDirectory> <spacing> <maxDistanceFromCenter>")
+    if len(argv) != 6:
+        print("Invalid Arguments: Expected <inputFile> <tomlInputFile> <outputDirectory> <spacing> <maxDistanceFromCenter>")
         sys.exit()
 
     inputFile = argv[1]
-    outputDirectory = argv[2]
-    spacing = float(argv[3])
-    maxDistanceFromCenter = float(argv[4])
+    tomlInputFile = argv[2]
+    outputDirectory = argv[3]
+    spacing = float(argv[4])
+    maxDistanceFromCenter = float(argv[5])
     randomizedFactor = 1500
 
     with open(inputFile, 'r') as file:
         exampleFile = file.read()
+    with open(tomlInputFile, 'r') as file:
+        exampleTomlFile = file.read()
 
 
     plotX = []
     plotY = []
 
     files = []
+    configFiles = []
     dimX = 0
     dimY = 0
     while dimX <= maxDistanceFromCenter:
@@ -38,13 +46,15 @@ def main(argv):
             randomX = random.uniform(-randomizedFactor, randomizedFactor)
             randomY = random.uniform(-randomizedFactor, randomizedFactor)
             files.append(replaceStartLocation(exampleFile, dimX + randomX, dimY + randomY, 0))
+            configFiles.append(replaceStartLocation(exampleTomlFile, dimX + randomX, dimY + randomY, 0))
             plotX.append(dimX + randomX)
             plotY.append(dimY + randomY)
-            
+
             if dimY != 0:
                 randomX = random.uniform(-randomizedFactor, randomizedFactor)
                 randomY = random.uniform(-randomizedFactor, randomizedFactor)
                 files.append(replaceStartLocation(exampleFile, dimX + randomX, -dimY + randomY, 0))
+                configFiles.append(replaceStartLocation(exampleTomlFile, dimX + randomX, dimY + randomY, 0))
                 plotX.append(dimX + randomX)
                 plotY.append(-dimY + randomY)
 
@@ -52,27 +62,35 @@ def main(argv):
                 randomX = random.uniform(-randomizedFactor, randomizedFactor)
                 randomY = random.uniform(-randomizedFactor, randomizedFactor)
                 files.append(replaceStartLocation(exampleFile, -dimX + randomX, dimY + randomY, 0))
+                configFiles.append(replaceStartLocation(exampleTomlFile, dimX + randomX, dimY + randomY, 0))
                 plotX.append(-dimX + randomX)
                 plotY.append(dimY + randomY)
-                
+
                 if dimY != 0:
                     randomX = random.uniform(-randomizedFactor, randomizedFactor)
                     randomY = random.uniform(-randomizedFactor, randomizedFactor)
                     files.append(replaceStartLocation(exampleFile, -dimX + randomX, -dimY + randomY, 0))
+                    configFiles.append(replaceStartLocation(exampleTomlFile, dimX + randomX, dimY + randomY, 0))
                     plotX.append(-dimX + randomX)
                     plotY.append(-dimY + randomY)
 
-            
+
             dimY += spacing
         dimX += spacing
 
     if not os.path.exists(outputDirectory):
         os.makedirs(outputDirectory)
 
+    if not os.path.exists(os.path.join(outputDirectory, "planner_parameters")):
+        os.makedirs(os.path.join(outputDirectory, "planner_parameters"))
+
     for i, file in enumerate(files):
         with open(os.path.join(outputDirectory, "planner_" + str(i) + ".launch"), "w+") as f:
-            f.write(file)
+            f.write(replaceConfigName(file, "config_" + str(i) + ".toml"))
 
+    for i, file in enumerate(configFiles):
+        with open(os.path.join(outputDirectory, "planner_parameters", "config_" + str(i) + ".toml"), "w+") as f:
+            f.write(file)
 
     with open(os.path.join(outputDirectory, "info.txt"), 'w+') as f:
         f.write("spacing " + str(spacing) + "\n")

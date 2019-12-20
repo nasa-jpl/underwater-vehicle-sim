@@ -6,7 +6,7 @@ initial_spacing = 4000
 final_spacing = 200
 fail_time = 5011200
 
-gradient_radius = 5000
+gradient_radius = 200
 
 yoyo_during_spiral = true
 yoyo_min_depth = 100
@@ -16,14 +16,14 @@ target_vertical_velocity_gd_yoyo = 0.1
 target_horizontal_velocity = 1
 target_rotational_velocity = 0.349066
 
-detection_threshold = 2.0
+detection_threshold = 2
 
 target_data = "plume"
 lawnmower_data_range = 10
 
-start_location.x = -1432.16016854
+start_location.x = 1432.16016854
 start_location.y = -1054.18858199
-start_location.z = 0
+start_location.z = 1
 
 has_sim_target = true
 sim_target.x = 0
@@ -43,8 +43,8 @@ sonar_data = "sonar_depth"
 gradient_descent_time = 60
 
 gradient_threshold = 0
-gradient_window = 2000
-min_follow_distance = 2000
+gradient_window = 250
+min_follow_distance = 250
 max_follow_distance = 10000
 
 depth_buffer = 15
