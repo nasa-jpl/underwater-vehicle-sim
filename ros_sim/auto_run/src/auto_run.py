@@ -107,7 +107,7 @@ def main(input, outputDirectory):
 
         for launchFile, output in zip(launchFiles, outputDirectories):
             currentGoal = 'running'
-            runLaunchFile(uuid, launchFile, output, inputDirectory)
+            runLaunchFile(uuid, launchFile, output, input)
     else:
         # run the launch file
         currentGoal = 'running'
