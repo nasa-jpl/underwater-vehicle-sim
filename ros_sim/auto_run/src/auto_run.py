@@ -88,10 +88,10 @@ def main(input, outputDirectory):
     # check if input is file or directory
     # true if input is directory
     if not os.path.isfile(input):
-        if not os.path.exists(os.path.join(inputDirectory, "completed")):
-            os.makedirs(os.path.join(inputDirectory, "completed"))
+        if not os.path.exists(os.path.join(input, "completed")):
+            os.makedirs(os.path.join(input, "completed"))
 
-        launchFiles = getLaunchFiles(inputDirectory)
+        launchFiles = getLaunchFiles(input)
 
     # if getting stuck here, need to run roscore in different process
     rospy.init_node('en_Mapping', anonymous=True)
