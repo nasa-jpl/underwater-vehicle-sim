@@ -1,0 +1,169 @@
+<launch>
+    <!--Simulation-->
+    <node pkg="underwater_vehicle_sim" type="underwater_vehicle_sim_node" name="vehicle_sim" ns="v1">
+        <rosparam param="sim_hertz">10</rosparam>
+        <rosparam param="start_x">-1436.084441821266</rosparam>
+        <rosparam param="start_y">16581.87455119435</rosparam>
+
+        <rosparam param="start_z">0</rosparam>
+        <rosparam param="evect_by_currents">false</rosparam>
+        <rosparam param="local_model">true</rosparam>
+
+        <rosparam param="propulsion_type">FourDOFPropulsion</rosparam>
+        <rosparam param="thrust_sensor_random_noise">2</rosparam>
+        <rosparam param="rudder_sensor_random_noise">0.0872665</rosparam>
+        <rosparam param="propulsion_hertz">10</rosparam>
+        <rosparam param="forward_thruster_thrust">[-100, -75, -50, -25, 0, 25, 50, 75, 100]</rosparam>
+        <rosparam param="forward_thruster_velocity">[-1.40625, -1.3125, -1.125, -0.75, 0, 0.75, 1.125, 1.3125, 1.40625]</rosparam>
+        <rosparam param="lateral_thruster_thrust">[-100, -75, -50, -25, 0, 25, 50, 75, 100]</rosparam>
+        <rosparam param="lateral_thruster_velocity">[-1.40625, -1.3125, -1.125, -0.75, 0, 0.75, 1.125, 1.3125, 1.40625]</rosparam>
+        <rosparam param="vertical_thruster_thrust">[-100, -75, -50, -25, 0, 25, 50, 75, 100]</rosparam>
+        <rosparam param="vertical_thruster_velocity">[-1.40625, -1.3125, -1.125, -0.75, 0, 0.75, 1.125, 1.3125, 1.40625]</rosparam>
+        <rosparam param="rudder_angle">[-45,0,45]</rosparam>
+        <rosparam param="rudder_velocity">[-0.349066,0,0.349066]</rosparam>
+
+        <rosparam param="moduleNames">[data_broadcaster, imu, usbl, depth]</rosparam>
+        <rosparam param="data_broadcaster/type">DataBroadcaster</rosparam>
+        <rosparam param="data_broadcaster/hertz">2.5</rosparam>
+
+        <rosparam param="imu/type">IMU</rosparam>
+        <rosparam param="imu/angular_velocity_random_error">0.004363323</rosparam>
+        <rosparam param="imu/angular_velocity_bias_error">0</rosparam>
+        <rosparam param="imu/heading_random_error">0.0174533</rosparam>
+        <rosparam param="imu/heading_bias_error">0.0523599</rosparam>
+        <rosparam param="imu/roll_pitch_random_error">0.0174533</rosparam>
+        <rosparam param="imu/roll_bias_error">0.0523599</rosparam>
+        <rosparam param="imu/pitch_bias_error">-0.0523599</rosparam>
+        <rosparam param="imu/hertz">10</rosparam>
+
+        <rosparam param="depth/type">Depth</rosparam>
+        <rosparam param="depth/depth_random_error">1</rosparam>
+        <rosparam param="depth/depth_bias_error">0.5</rosparam>
+        <rosparam param="depth/hertz">10</rosparam>
+
+        <rosparam param="usbl/type">USBL</rosparam>
+        <rosparam param="usbl/bearing_random_error">0.0174533</rosparam>
+        <rosparam param="usbl/bearing_bias_error">0.00872665</rosparam>
+        <rosparam param="usbl/range_random_error">10</rosparam>
+        <rosparam param="usbl/range_bias_error">10</rosparam>
+        <rosparam param="usbl/valid_bearing_distance">1000</rosparam>
+        <rosparam param="usbl/valid_range_distance">3000</rosparam>
+        <rosparam param="usbl/bad_range_probability">0.1</rosparam>
+        <rosparam param="usbl/bad_range_error">100</rosparam>
+        <rosparam param="usbl/beacon_x">-1432.16016854</rosparam>
+        <rosparam param="usbl/beacon_y">-1054.18858199</rosparam>
+        <rosparam param="usbl/beacon_z">0</rosparam>
+        <rosparam param="usbl/hertz">10</rosparam>
+    </node>
+
+    <!--High Level Control-->
+    <node pkg="vehicle_auto_control" type="vehicle_auto_control_node" name="controller" ns="v1">
+         <rosparam param="hertz">10</rosparam>
+         <remap from="primary_navigation" to="nav_filters/true_nav" />
+    </node>
+
+     <!-- PID Controllers-->
+    <node name="forward_thruster_pid" pkg="pid" type="controller" ns="v1" >
+        <param name="node_name" value="forward_thruster_pid" />
+        <param name="Kp" value="8" />
+        <param name="Ki" value="20" />
+        <param name="Kd" value="3" />
+        <param name="upper_limit" value="100" />
+        <param name="lower_limit" value="-100" />
+        <param name="windup_limit" value="10" />
+        <param name="max_loop_frequency" value="1" />
+        <param name="min_loop_frequency" value="3" />
+
+        <param name="topic_from_controller" value="forward_thruster/control_effort" />
+        <param name="topic_from_plant" value="forward_thruster/state" />
+        <param name="setpoint_topic" value="forward_thruster/setpoint" />
+        <param name="pid_enable_topic" value="forward_thruster/pid_enable" />
+    </node>
+
+    <node name="vertical_thruster_pid" pkg="pid" type="controller" ns="v1"  >
+        <param name="node_name" value="vertical_thruster_pid" />
+        <param name="Kp" value="8" />
+        <param name="Ki" value="20" />
+        <param name="Kd" value="3" />
+        <param name="upper_limit" value="100" />
+        <param name="lower_limit" value="-100" />
+        <param name="windup_limit" value="10" />
+        <param name="max_loop_frequency" value="1" />
+        <param name="min_loop_frequency" value="3" />
+
+        <param name="topic_from_controller" value="vertical_thruster/control_effort" />
+        <param name="topic_from_plant" value="vertical_thruster/state" />
+        <param name="setpoint_topic" value="vertical_thruster/setpoint" />
+        <param name="pid_enable_topic" value="vertical_thruster/pid_enable" />
+    </node>
+<!--
+    <node name="lateral_thruster_pid" pkg="pid" type="controller" ns="v1" output="screen" >
+        <param name="node_name" value="lateral_thruster_pid" />
+        <param name="Kp" value="8" />
+        <param name="Ki" value="20" />
+        <param name="Kd" value="3" />
+        <param name="upper_limit" value="100" />
+        <param name="lower_limit" value="-100" />
+        <param name="windup_limit" value="10" />
+        <param name="max_loop_frequency" value="1" />
+        <param name="min_loop_frequency" value="3" />
+
+        <param name="topic_from_controller" value="lateral_thruster/control_effort" />
+        <param name="topic_from_plant" value="lateral_thruster/state" />
+        <param name="setpoint_topic" value="lateral_thruster/setpoint" />
+        <param name="pid_enable_topic" value="lateral_thruster/pid_enable" />
+    </node>
+-->
+    <node name="rudder_pid" pkg="pid" type="controller" ns="v1" >
+        <param name="node_name" value="rudder_pid" />
+        <param name="Kp" value="-30" />
+        <param name="Ki" value="0" />
+        <param name="Kd" value="0" />
+        <param name="upper_limit" value="45" />
+        <param name="lower_limit" value="-45" />
+        <param name="windup_limit" value="25" />
+        <param name="max_loop_frequency" value="1" />
+        <param name="min_loop_frequency" value="3" />
+
+        <param name="topic_from_controller" value="rudder/control_effort" />
+        <param name="topic_from_plant" value="rudder/state" />
+        <param name="setpoint_topic" value="rudder/setpoint" />
+        <param name="pid_enable_topic" value="rudder/pid_enable" />
+    </node>
+
+
+    <!--Navigation-->
+    <node pkg="ros_sim_autonomy_interface" type="ros_sim_navigation_node" name="ros_sim_navigation" ns="v1">
+        <rosparam param="hertz">10</rosparam>
+        <rosparam param="filter_names">[true_nav]</rosparam>
+        <rosparam param="filter/true_nav/type">TrueNavigation</rosparam>
+
+        <remap from="primary_navigation" to="nav_filters/true_nav" />
+    </node>
+
+    <!--Autonomy-->
+    <node pkg="ros_sim_autonomy_interface" type="ros_sim_plan_server_node" name="ros_sim_plan_server" ns="v1" output="screen" >
+        <param name="planner_config_file" value="$(dirname)/planner_parameters/config_5.toml"/>
+
+        <rosparam param="hertz">1</rosparam>
+        <rosparam param="fail_time">5011200</rosparam>
+        <rosparam param="cancel_timeout">60</rosparam>
+        <remap from="primary_navigation" to="nav_filters/true_nav" />
+    </node>
+
+    <param name="use_sim_time" value="true" />
+    <rosparam param="speed_up_factor">75</rosparam>
+    <rosparam param="sim_start_time">2592000</rosparam>
+
+<!--
+    <rosparam param="model_type">constant</rosparam>
+    <rosparam param="model/depth">200</rosparam>
+-->
+    <rosparam param="model_type">fvcom</rosparam>
+    <rosparam param="model/fvcom_directory" subst_value="True">/home/jamason/Documents/axial/</rosparam>
+    <!--<rosparam param="model/fvcom_directory" subst_value="True">/home/dev/proj/axial/</rosparam>-->
+
+    <node pkg="tf2_ros" type="static_transform_publisher" name="ned_publisher" args="0 0 0 1.57079632679 0 3.14159265359 world world_ned"/>
+    <node pkg="underwater_vehicle_sim" type="clock_server_node" name="clock_server" output="screen"/>
+ <!-->   <node pkg="model_server" type="model_server_node" name="model_server" output="screen"/>-->
+</launch>
