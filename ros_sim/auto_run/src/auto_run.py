@@ -58,6 +58,8 @@ def runLaunchFile(uuid, filename, outputDirectory, inputDirectory):
     except rospy.service.ServiceException:
         rospy.logerr("Auto Run: ServiceException /data_server/save: inputFile: %s", filename)
         launch.shutdown()
+        # stop the bag recording
+        rosbag_proc.send_signal(subprocess.signal.SIGINT)
         return
 
     try:
@@ -66,6 +68,8 @@ def runLaunchFile(uuid, filename, outputDirectory, inputDirectory):
     except rospy.service.ServiceException:
         rospy.logerr("Auto Run: ServiceException /planner_log/save: inputFile: %s", filename)
         launch.shutdown()
+        # stop the bag recording
+        rosbag_proc.send_signal(subprocess.signal.SIGINT)
         return
 
     with open(os.path.join(outputDirectory, "stats.txt"), 'w+') as f:
@@ -99,7 +103,7 @@ def main(input, outputDirectory):
     uuid = roslaunch.rlutil.get_or_generate_uuid(None, False)
     roslaunch.configure_logging(uuid)
 
-    rospy.Subscriber('/planner/goal', String, callback)
+    rospy.Subscriber('/v1/goal', String, callback)
 
     if not os.path.isfile(input):
         # run all launch files in dir
