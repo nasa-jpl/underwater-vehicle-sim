@@ -76,12 +76,29 @@ def runLaunchFile(uuid, filename, outputDirectory, inputDirectory):
         f.write("Goal State: " + currentGoal)
 
     # stop the bag recording
+    print("Stopping bag file\n")
     rosbag_proc.send_signal(subprocess.signal.SIGINT)
+
+    time.sleep(0.5)
+
+    # check if process was interrupted, if not escalate
+    if rosbag_proc.poll() is not None:
+        print("Rosbag was not interrupted. Sending SIGKILL")
+        rosbag_proc.send_signal(subprocess.signal.SIGKILL)
 
     shutil.copy(filename, outputDirectory)
 
     rospy.loginfo("Stopping launch file: %s", filename)
     launch.shutdown()
+
+    time.sleep(10)
+    # check if we've shut down the launch
+    if not rospy.is_shutdown():
+        print("Launch Nodes didn't shut down properly")
+        launch.shutdown()
+        rospy.signal_shutdown("Node didn't shut down properly. Trying to send signal")
+
+
 
     if os.path.exists(os.path.join(inputDirectory, "completed")):
         shutil.move(filename, os.path.join(inputDirectory, "completed"))
