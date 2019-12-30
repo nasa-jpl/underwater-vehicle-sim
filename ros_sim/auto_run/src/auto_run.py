@@ -3,7 +3,7 @@ import rospy
 import rosbag
 import os
 import shutil
-import sys
+import sys, time
 
 import subprocess, shlex
 
@@ -84,7 +84,7 @@ def runLaunchFile(uuid, filename, outputDirectory, inputDirectory):
     print("Stopping bag file\n")
     rosbag_proc.send_signal(subprocess.signal.SIGINT)
 
-    time.sleep(0.5)
+    time.sleep(2.5)
 
     # check if process was interrupted, if not escalate
     if rosbag_proc.poll() is not None:
