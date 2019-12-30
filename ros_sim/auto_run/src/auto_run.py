@@ -50,17 +50,22 @@ def runLaunchFile(uuid, filename, outputDirectory, inputDirectory):
         except rospy.exceptions.ROSTimeMovedBackwardsException:
             pass
 
+    print("Goal reached saving data\n")
+    sys.stdout.flush()
     rospy.loginfo("Goal reached saving data to: %s", outputDirectory)
 
-    try:
-        dataFileClient = rospy.ServiceProxy('/data_server/save', data_server.srv.SaveData)
-        dataFileClient(os.path.join(os.path.abspath(outputDirectory), "data.csv"))
-    except rospy.service.ServiceException:
-        rospy.logerr("Auto Run: ServiceException /data_server/save: inputFile: %s", filename)
-        launch.shutdown()
-        # stop the bag recording
-        rosbag_proc.send_signal(subprocess.signal.SIGINT)
-        return
+    # # this is crashing. It just saves that the run succeeded. Ignoring this for now
+    # # additionally, it took awhile for the script to notice that we were done with the run, maybe something to look at?
+    # #
+    # try:
+    #     dataFileClient = rospy.ServiceProxy('/data_server/save', data_server.srv.SaveData)
+    #     dataFileClient(os.path.join(os.path.abspath(outputDirectory), "data.csv"))
+    # except rospy.service.ServiceException:
+    #     rospy.logerr("Auto Run: ServiceException /data_server/save: inputFile: %s", filename)
+    #     launch.shutdown()
+    #     # stop the bag recording
+    #     rosbag_proc.send_signal(subprocess.signal.SIGINT)
+    #     return
 
     try:
         logClient = rospy.ServiceProxy('/planner_log/save', planner_log.srv.SaveLog)
@@ -96,8 +101,6 @@ def runLaunchFile(uuid, filename, outputDirectory, inputDirectory):
     if not rospy.is_shutdown():
         print("Launch Nodes didn't shut down properly")
         launch.shutdown()
-        rospy.signal_shutdown("Node didn't shut down properly. Trying to send signal")
-
 
 
     if os.path.exists(os.path.join(inputDirectory, "completed")):
