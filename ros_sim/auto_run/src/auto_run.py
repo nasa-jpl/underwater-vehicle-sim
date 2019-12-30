@@ -67,15 +67,15 @@ def runLaunchFile(uuid, filename, outputDirectory, inputDirectory):
     #     rosbag_proc.send_signal(subprocess.signal.SIGINT)
     #     return
 
-    try:
-        logClient = rospy.ServiceProxy('/planner_log/save', planner_log.srv.SaveLog)
-        logClient(os.path.join(os.path.abspath(outputDirectory), "log.txt"))
-    except rospy.service.ServiceException:
-        rospy.logerr("Auto Run: ServiceException /planner_log/save: inputFile: %s", filename)
-        launch.shutdown()
-        # stop the bag recording
-        rosbag_proc.send_signal(subprocess.signal.SIGINT)
-        return
+    # try:
+    #     logClient = rospy.ServiceProxy('/planner_log/save', planner_log.srv.SaveLog)
+    #     logClient(os.path.join(os.path.abspath(outputDirectory), "log.txt"))
+    # except rospy.service.ServiceException:
+    #     rospy.logerr("Auto Run: ServiceException /planner_log/save: inputFile: %s", filename)
+    #     launch.shutdown()
+    #     # stop the bag recording
+    #     rosbag_proc.send_signal(subprocess.signal.SIGINT)
+    #     return
 
     with open(os.path.join(outputDirectory, "stats.txt"), 'w+') as f:
         f.write("Goal State: " + currentGoal)
