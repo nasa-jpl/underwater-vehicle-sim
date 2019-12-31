@@ -23,7 +23,10 @@ def reap_children(timeout=3):
     def on_terminate(proc):
         print("process {} terminated with exit code {}".format(proc, proc.returncode))
 
-    procs = psutil.Process().children()
+    procs = psutil.Process().children(recursive=True)
+
+    if len(procs) == 0:
+        print("No children to reap.")
     # send SIGTERM
     for p in procs:
         try:
