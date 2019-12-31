@@ -115,10 +115,11 @@ def runLaunchFile(uuid, filename, outputDirectory, inputDirectory):
 
     time.sleep(2.5)
 
+    # # this was throwing an error for some reason (rosbaG_proc isn't a pid? doesnt make sense, it should work)
     # check if process was interrupted, if not escalate
-    if rosbag_proc.poll() is not None:
-        print("Rosbag was not interrupted. Sending SIGKILL")
-        rosbag_proc.send_signal(subprocess.signal.SIGKILL)
+    #if rosbag_proc.poll() is not None:
+    #    print("Rosbag was not interrupted. Sending SIGKILL")
+    #    rosbag_proc.send_signal(subprocess.signal.SIGKILL)
 
     shutil.copy(filename, outputDirectory)
 
@@ -131,7 +132,7 @@ def runLaunchFile(uuid, filename, outputDirectory, inputDirectory):
         print("Launch Nodes didn't shut down properly. Retrying")
         launch.shutdown()
 
-        print("Trying to reap children")
+        print("Trying to reap children. Will need to relaunch roscore and maybe launchile UUID")
         reap_children()
         time.sleep(2.5)
 
@@ -149,6 +150,8 @@ def main(input, outputDirectory):
             os.makedirs(os.path.join(input, "completed"))
 
         launchFiles = getLaunchFiles(input)
+
+    roscore = subprocess.Popen('roscore')
 
     # if getting stuck here, need to run roscore in different process
     rospy.init_node('en_Mapping', anonymous=True)
