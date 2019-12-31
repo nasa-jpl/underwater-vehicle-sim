@@ -98,9 +98,10 @@ def runLaunchFile(uuid, filename, outputDirectory, inputDirectory):
 
     time.sleep(10)
     # check if we've shut down the launch
-    if not rospy.is_shutdown():
-        print("Launch Nodes didn't shut down properly")
+    while not rospy.is_shutdown():
+        print("Launch Nodes didn't shut down properly. Retrying")
         launch.shutdown()
+        time.sleep(2.5)
 
 
     if os.path.exists(os.path.join(inputDirectory, "completed")):
