@@ -66,7 +66,7 @@ public:
     std::shared_ptr<underwater_autonomy::CombinedMoveAction> createCombinedMoveAction(std::shared_ptr<underwater_autonomy::XYAction> xyAction,
                                                                                                       std::shared_ptr<underwater_autonomy::DepthAction> depthAction,
                                                                                                       std::unique_ptr<underwater_autonomy::OperationRegion> operationRegion,
-                                                                                                      const bool onlyEndAtXY = false) override;
+                                                                                                      const underwater_autonomy::CombinedMoveAction::CompleteOn completeOn) override;
 private:
     VehicleInfo vehicleInfo;
 };
