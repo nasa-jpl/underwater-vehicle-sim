@@ -12,7 +12,7 @@ import data_server.srv
 
 import argparse
 
-import psutil
+import psutil, signal
 
 
 currentGoal = "running"
@@ -30,23 +30,32 @@ def reap_children(timeout=3):
     # send SIGTERM
     for p in procs:
         try:
-            p.terminate()
+            p.send_signal(signal.SIGINT)
         except psutil.NoSuchProcess:
             pass
     gone, alive = psutil.wait_procs(procs, timeout=timeout, callback=on_terminate)
     if alive:
         # send SIGKILL
         for p in alive:
-            print("process {} survived SIGTERM; trying SIGKILL".format(p))
+            print("process {} survived SIGINT; trying SIGTERM".format(p))
             try:
-                p.kill()
+                p.terminate()
             except psutil.NoSuchProcess:
                 pass
-        gone, alive = psutil.wait_procs(alive, timeout=timeout, callback=on_terminate)
+        gone, alive = psutil.wait_procs(procs, timeout=timeout, callback=on_terminate)
         if alive:
-            # give up
+            # send SIGKILL
             for p in alive:
-                print("process {} survived SIGKILL; giving up".format(p))
+                print("process {} survived SIGTERM; trying SIGKILL".format(p))
+                try:
+                    p.kill()
+                except psutil.NoSuchProcess:
+                    pass
+            gone, alive = psutil.wait_procs(alive, timeout=timeout, callback=on_terminate)
+            if alive:
+                # give up
+                for p in alive:
+                    print("process {} survived SIGKILL; giving up".format(p))
 
 def callback(data):
     global currentGoal
@@ -56,6 +65,7 @@ def getLaunchFiles(directory):
     return [os.path.join(directory, f) for f in os.listdir(directory) if os.path.isfile(os.path.join(directory, f)) and f.endswith(".launch")]
 
 def runLaunchFile(uuid, filename, outputDirectory, inputDirectory):
+    print("UUID: " + str(uuid))
     launch = roslaunch.parent.ROSLaunchParent(uuid, [filename])
 
     if not os.path.exists(outputDirectory):
