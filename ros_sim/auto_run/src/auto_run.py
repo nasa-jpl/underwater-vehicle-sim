@@ -18,54 +18,6 @@ import psutil, signal
 currentGoal = "running"
 dataFilePub = None
 
-def terminate_process_and_children(p):
-    ps_command = subprocess.Popen("ps -o pid --ppid %d --noheaders" % p.pid, shell=True, stdout=subprocess.PIPE)
-    ps_output = ps_command.stdout.read()
-    retcode = ps_command.wait()
-    assert retcode == 0, "ps command returned %d" % retcode
-    for pid_str in ps_output.split("\n")[:-1]:
-            os.kill(int(pid_str), signal.SIGINT)
-    p.terminate()
-
-def reap_children(timeout=3):
-    "Tries hard to terminate and ultimately kill all the children of this process."
-    def on_terminate(proc):
-        print("process {} terminated with exit code {}".format(proc, proc.returncode))
-
-    procs = psutil.Process().children(recursive=True)
-
-    if len(procs) == 0:
-        print("No children to reap.")
-    # send SIGTERM
-    for p in procs:
-        try:
-            p.send_signal(signal.SIGINT)
-        except psutil.NoSuchProcess:
-            pass
-    gone, alive = psutil.wait_procs(procs, timeout=timeout, callback=on_terminate)
-    if alive:
-        # send SIGKILL
-        for p in alive:
-            print("process {} survived SIGINT; trying SIGTERM".format(p))
-            try:
-                p.terminate()
-            except psutil.NoSuchProcess:
-                pass
-        gone, alive = psutil.wait_procs(procs, timeout=timeout, callback=on_terminate)
-        if alive:
-            # send SIGKILL
-            for p in alive:
-                print("process {} survived SIGTERM; trying SIGKILL".format(p))
-                try:
-                    p.kill()
-                except psutil.NoSuchProcess:
-                    pass
-            gone, alive = psutil.wait_procs(alive, timeout=timeout, callback=on_terminate)
-            if alive:
-                # give up
-                for p in alive:
-                    print("process {} survived SIGKILL; giving up".format(p))
-
 def callback(data):
     global currentGoal
     currentGoal = data.data
@@ -86,8 +38,8 @@ def runLaunchFile(uuid, filename, outputDirectory, inputDirectory):
     rate = rospy.Rate(0.1)
 
     # start recording messages to bag
-    # TODO TODO: this process won't die if you terminate the parent early (i.e. you ctr-c)
-    command = "rosbag record -o " + outputDirectory + "/vehicleData /v1/data_broadcaster/data /v1/plannerStatus"
+    # TODO: this process won't die if you terminate the parent early (i.e. you ctr-c)
+    command = "rosbag record -o " + outputDirectory + "/vehicleData /v1/data_broadcaster/data /v1/plannerStatus __name:=my_bag"
     command = shlex.split(command)
     rosbag_proc = subprocess.Popen(command)
 
@@ -133,33 +85,14 @@ def runLaunchFile(uuid, filename, outputDirectory, inputDirectory):
 
     # stop the bag recording
     print("Stopping bag file\n")
-    rosbag_proc.send_signal(subprocess.signal.SIGINT)
-
-    time.sleep(2.5)
-
-    # # this was throwing an error for some reason (rosbaG_proc isn't a pid? doesnt make sense, it should work)
-    # check if process was interrupted, if not escalate
-    #if rosbag_proc.poll() is not None:
-    #    print("Rosbag was not interrupted. Sending SIGKILL")
-    #    rosbag_proc.send_signal(subprocess.signal.SIGKILL)
+    command = "rosnode kill /my_bag"
+    command = shlex.split(command)
+    rosbag_proc = subprocess.Popen(command)
 
     shutil.copy(filename, outputDirectory)
 
     rospy.loginfo("Stopping launch file: %s", filename)
     launch.shutdown()
-
-    time.sleep(10)
-
-    print("Trying to stop bag file again")
-    terminate_process_and_children(rosbag_proc)
-    # check if we've shut down the launch
-    while not rospy.is_shutdown():
-        print("Launch Nodes didn't shut down properly. Retrying")
-        launch.shutdown()
-
-        print("Trying to reap children. Will need to relaunch roscore and maybe launchile UUID")
-        reap_children()
-        time.sleep(2.5)
 
 
     if os.path.exists(os.path.join(inputDirectory, "completed")):
