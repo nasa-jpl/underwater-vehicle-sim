@@ -98,16 +98,16 @@ std::shared_ptr<HoldDepthAction> ROSSimActionFactory::createHoldDepthAction(cons
                                                                 std::move(executor)));
 }
 
-std::shared_ptr<TwoConcurrentActionsAction> ROSSimActionFactory::createTwoConcurrentActionsAction(std::shared_ptr<XYAction> xyAction,
+std::shared_ptr<CombinedMoveAction> ROSSimActionFactory::createCombinedMoveAction(std::shared_ptr<XYAction> xyAction,
                                                                                                   std::shared_ptr<DepthAction> depthAction,
                                                                                                   std::unique_ptr<OperationRegion> operationRegion,
-                                                                                                  const bool onlyEndAtXY)
+                                                                                                  const CombinedMoveAction::CompleteOn completeOn)
 {
 
     
-        return std::unique_ptr<TwoConcurrentActionsAction>(new TwoConcurrentActionsAction(std::move(xyAction),
-                                                                                          std::move(depthAction),
-                                                                                          std::move(operationRegion),
-                                                                                          onlyEndAtXY));                                                                                  
+        return std::unique_ptr<CombinedMoveAction>(new CombinedMoveAction(std::move(xyAction),
+                                                                          std::move(depthAction),
+                                                                          std::move(operationRegion),
+                                                                          completeOn));                                                                                  
                                                                                                
 }
