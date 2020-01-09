@@ -104,8 +104,8 @@ int main(int argc, char **argv)
     ROSSimPlanServer server(std::move(planner), interface, cancelTimeout);
 
     // make a publisher to send planner status messages
-    ros::Publisher plannerStatus_pub = nh.advertise<std_msgs::String>("plannerStatus", 1);
-    std_msgs::String plannerStatusMsg;
+    // ros::Publisher plannerStatus_pub = nh.advertise<std_msgs::String>("plannerStatus", 1);
+    // std_msgs::String plannerStatusMsg;
 
     ROS_INFO("Planner Initalized");
 
@@ -134,8 +134,8 @@ int main(int argc, char **argv)
     {
         server.update();
 
-        plannerStatusMsg.data = server.getPlannerStatus();
-        plannerStatus_pub.publish(plannerStatusMsg);
+        //plannerStatusMsg.data = server.getPlannerStatus();
+        //plannerStatus_pub.publish(plannerStatusMsg);
 
         ros::spinOnce();
         r.sleep();

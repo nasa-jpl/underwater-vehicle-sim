@@ -58,6 +58,11 @@ void ROSSimVehicleInterface::sendPlannerStatus(PlannerStatus status)
         log(LogLevel::INFO, "Planner Status: Paused");
         msg.data = "paused";
     }
+    else
+    {
+        log(LogLevel::WARN, "Unexpected Planner Status");
+        msg.data = "unexpected_status";
+    }
 
     goalPub.publish(msg);
 }
@@ -118,8 +123,8 @@ void ROSSimVehicleInterface::receiveData(const underwater_vehicle_msgs::VehicleD
 void ROSSimVehicleInterface::receiveUSBLData(const underwater_vehicle_msgs::USBL::ConstPtr& usblData)
 {
     double time = usblData->header.stamp.toSec();
-    VehiclePose pose(Eigen::Vector3d(std::numeric_limits<double>::quiet_NaN(), 
-                                     std::numeric_limits<double>::quiet_NaN(), 
+    VehiclePose pose(Eigen::Vector3d(std::numeric_limits<double>::quiet_NaN(),
+                                     std::numeric_limits<double>::quiet_NaN(),
                                      std::numeric_limits<double>::quiet_NaN()));
     std::map<std::string, double> data;
 
@@ -144,7 +149,7 @@ VehiclePose ROSSimVehicleInterface::getPosition() const
 }
 
 void ROSSimVehicleInterface::navigationFilterCallback(const nav_msgs::Odometry odo)
-{	
+{
 	Eigen::Vector3d position(odo.pose.pose.position.x,
 							 odo.pose.pose.position.y,
 							 odo.pose.pose.position.z);
@@ -183,7 +188,7 @@ void ROSSimVehicleInterface::navigationFilterCallback(const nav_msgs::Odometry o
 	currentPose.setPosition(position);
     currentPose.setOrientation(orientation);
     currentPose.setPoseCovariance(poseCovariance);
-    
+
     currentPose.setLinearVelocity(linearVelocity);
     currentPose.setAngularVelocity(angularVelocity);
     currentPose.setTwistCovariance(twistCovariance);

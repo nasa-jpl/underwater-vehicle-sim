@@ -117,6 +117,7 @@ def main(input, outputDirectory):
     uuid = roslaunch.rlutil.get_or_generate_uuid(None, False)
     roslaunch.configure_logging(uuid)
 
+    # TODO check where the timeout message is sent to
     rospy.Subscriber('/v1/goal', String, callback)
 
     if not os.path.isfile(input):
