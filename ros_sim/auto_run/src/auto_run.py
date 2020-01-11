@@ -111,6 +111,8 @@ def main(input, outputDirectory):
 
     roscore = subprocess.Popen('roscore')
 
+    time.sleep(5)
+
     # if getting stuck here, need to run roscore in different process
     rospy.init_node('en_Mapping', anonymous=True)
 
