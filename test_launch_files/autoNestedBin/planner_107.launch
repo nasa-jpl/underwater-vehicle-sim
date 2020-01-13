@@ -2,8 +2,8 @@
     <!--Simulation-->
     <node pkg="underwater_vehicle_sim" type="underwater_vehicle_sim_node" name="vehicle_sim" ns="v1">
         <rosparam param="sim_hertz">10</rosparam>
-        <rosparam param="start_x">-31460.864882829817</rosparam>
-        <rosparam param="start_y">12420.517430271875</rosparam>
+        <rosparam param="start_x">-28560.8249434</rosparam>
+        <rosparam param="start_y">12430.9901389</rosparam>
 
         <rosparam param="start_z">0</rosparam>
         <rosparam param="evect_by_currents">false</rosparam>
@@ -160,6 +160,7 @@
     <rosparam param="model/depth">200</rosparam>
 -->
     <rosparam param="model_type">fvcom</rosparam>
+	<!--<rosparam param="model/fvcom_directory" subst_value="True">/home/dev/Documents/model-data/axial/</rosparam>-->
     <rosparam param="model/fvcom_directory" subst_value="True">/home/jamason/Documents/axial/</rosparam>
     <!--<rosparam param="model/fvcom_directory" subst_value="True">/home/dev/proj/axial/</rosparam>-->
 

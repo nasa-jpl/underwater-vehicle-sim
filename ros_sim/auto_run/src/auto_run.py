@@ -127,6 +127,7 @@ def main(input, outputDirectory):
         outputDirectories = [os.path.join(outputDirectory, os.path.basename(file).replace('.','_')) for file in launchFiles]
 
         for launchFile, output in zip(launchFiles, outputDirectories):
+            time.sleep(10)
             currentGoal = 'running'
             runLaunchFile(uuid, launchFile, output, input)
     else:
