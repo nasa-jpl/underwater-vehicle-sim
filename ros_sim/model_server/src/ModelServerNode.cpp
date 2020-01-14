@@ -92,7 +92,6 @@ int main(int argc, char **argv)
     n.getParam("model/model_x_offset", modelXOffset);
     n.getParam("model/model_y_offset", modelYOffset);
 
-    std::cout << "\n\n\n\n------------  ";
     ROS_INFO("Model time offset: %f", modelTimeOffset);
     ROS_INFO("Model X offset: %f", modelXOffset);
     ROS_INFO("Model Y offset: %f", modelYOffset);
