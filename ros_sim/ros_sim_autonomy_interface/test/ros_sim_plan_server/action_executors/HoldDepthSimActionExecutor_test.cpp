@@ -30,8 +30,7 @@ TEST(HoldDepthSimActionExecutor, ExecutePropModuleTypeFail)
                                                                 0,
                                                                 NULL,
                                                                 HoldDepthAction::ReplanType::NONE,
-                                                                0,
-                                                                NULL)); 
+                                                                0)); 
 
                                                             
     underwater_vehicle_msgs::GetVehicleInfo infoMsg;
@@ -69,8 +68,7 @@ TEST(HoldDepthSimActionExecutor, ExecuteAndCancel)
                                                                 3,
                                                                 NULL,
                                                                 HoldDepthAction::ReplanType::NONE,
-                                                                4,
-                                                                NULL));
+                                                                4));
 
     underwater_vehicle_msgs::GetVehicleInfo infoMsg;
     infoMsg.response.propModuleType = "FourDOFPropulsion";
@@ -141,8 +139,7 @@ TEST(HoldDepthSimActionExecutor, ExecuteAndSucceed)
                                                                 3,
                                                                 NULL,
                                                                 HoldDepthAction::ReplanType::NONE,
-                                                                4,
-                                                                NULL));
+                                                                4));
 
     underwater_vehicle_msgs::GetVehicleInfo infoMsg;
     infoMsg.response.propModuleType = "FourDOFPropulsion";
@@ -209,8 +206,7 @@ TEST(HoldDepthSimActionExecutor, ExecuteAndTimeout)
                                                                 2,
                                                                 NULL,
                                                                 HoldDepthAction::ReplanType::NONE,
-                                                                4,
-                                                                NULL));
+                                                                4));
 
     underwater_vehicle_msgs::GetVehicleInfo infoMsg;
     infoMsg.response.propModuleType = "FourDOFPropulsion";
@@ -275,8 +271,7 @@ TEST(HoldDepthSimActionExecutor, TimeReplan)
                                                                 100,
                                                                 NULL,
                                                                 HoldDepthAction::ReplanType::PERIODIC_TIME,
-                                                                3,
-                                                                NULL));
+                                                                3));
 
     underwater_vehicle_msgs::GetVehicleInfo infoMsg;
     infoMsg.response.propModuleType = "FourDOFPropulsion";
@@ -339,8 +334,7 @@ TEST(HoldDepthSimActionExecutor, DistanceReplan)
                                                                 100,
                                                                 NULL,
                                                                 HoldDepthAction::ReplanType::PERIODIC_DISTANCE,
-                                                                3,
-                                                                NULL));
+                                                                3));
 
     underwater_vehicle_msgs::GetVehicleInfo infoMsg;
     infoMsg.response.propModuleType = "FourDOFPropulsion";

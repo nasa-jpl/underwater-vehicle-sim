@@ -20,7 +20,10 @@
 
 #include "underwater_vehicle_msgs/VehicleInfo.h"
 
-class YoYoSimActionExecutor : public underwater_autonomy::ActionExecutor<underwater_autonomy::YoYoAction>
+#include "ros_sim_plan_server/action_executors/SimActionExecutorFactoryMethod.h"
+
+class YoYoSimActionExecutor : public underwater_autonomy::ActionExecutor<underwater_autonomy::YoYoAction>,
+                              public SimActionExecutorFactoryMethod<YoYoSimActionExecutor>
 {
 public:
     YoYoSimActionExecutor(VehicleInfo& info);

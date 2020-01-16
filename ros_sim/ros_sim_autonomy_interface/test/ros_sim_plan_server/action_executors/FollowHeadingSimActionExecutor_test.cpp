@@ -33,8 +33,7 @@ TEST(FollowHeadingSimActionExecutor, ExecutePropModuleTypeFail)
                                                                         0,
                                                                         std::unique_ptr<OperationRegion>(new BoxOperationRegion()),
                                                                         FollowHeadingAction::ReplanType::NONE,
-                                                                        0,
-                                                                        NULL)); 
+                                                                        0)); 
 
                                                             
     underwater_vehicle_msgs::GetVehicleInfo infoMsg;
@@ -73,8 +72,7 @@ TEST(FollowHeadingSimActionExecutor, ExecuteAndCancel)
                                                                         100,
                                                                         std::unique_ptr<OperationRegion>(new BoxOperationRegion()),
                                                                         FollowHeadingAction::ReplanType::NONE,
-                                                                        6,
-                                                                        NULL)); 
+                                                                        6)); 
 
     underwater_vehicle_msgs::GetVehicleInfo infoMsg;
     infoMsg.response.propModuleType = "FourDOFPropulsion";
@@ -148,8 +146,7 @@ TEST(FollowHeadingSimActionExecutor, ExecuteAndSucceed)
                                                                         2,
                                                                         std::unique_ptr<OperationRegion>(new BoxOperationRegion()),
                                                                         FollowHeadingAction::ReplanType::NONE,
-                                                                        6,
-                                                                        NULL)); 
+                                                                        6)); 
 
     underwater_vehicle_msgs::GetVehicleInfo infoMsg;
     infoMsg.response.propModuleType = "FourDOFPropulsion";
@@ -218,8 +215,7 @@ TEST(FollowHeadingSimActionExecutor, ExecuteAndTimeout)
                                                                         2,
                                                                         std::unique_ptr<OperationRegion>(new BoxOperationRegion()),
                                                                         FollowHeadingAction::ReplanType::NONE,
-                                                                        6,
-                                                                        NULL)); 
+                                                                        6)); 
 
     underwater_vehicle_msgs::GetVehicleInfo infoMsg;
     infoMsg.response.propModuleType = "FourDOFPropulsion";
@@ -288,8 +284,7 @@ TEST(FollowHeadingSimActionExecutor, ExecuteAndOutOfRegion)
                                                                         100,
                                                                         std::unique_ptr<OperationRegion>(new BoxOperationRegion(0, 0, 0, 100, 100, 100)),
                                                                         FollowHeadingAction::ReplanType::NONE,
-                                                                        6,
-                                                                        NULL)); 
+                                                                        6)); 
 
     underwater_vehicle_msgs::GetVehicleInfo infoMsg;
     infoMsg.response.propModuleType = "FourDOFPropulsion";
@@ -365,8 +360,7 @@ TEST(FollowHeadingSimActionExecutor, TimeReplan)
                                                                         100,
                                                                         std::unique_ptr<OperationRegion>(new BoxOperationRegion()),
                                                                         FollowHeadingAction::ReplanType::PERIODIC_TIME,
-                                                                        3,
-                                                                        NULL)); 
+                                                                        3)); 
 
     underwater_vehicle_msgs::GetVehicleInfo infoMsg;
     infoMsg.response.propModuleType = "FourDOFPropulsion";
@@ -431,8 +425,7 @@ TEST(FollowHeadingSimActionExecutor, DistanceReplan)
                                                                         100,
                                                                         std::unique_ptr<OperationRegion>(new BoxOperationRegion()),
                                                                         FollowHeadingAction::ReplanType::PERIODIC_DISTANCE,
-                                                                        3,
-                                                                        NULL)); 
+                                                                        3)); 
 
     underwater_vehicle_msgs::GetVehicleInfo infoMsg;
     infoMsg.response.propModuleType = "FourDOFPropulsion";

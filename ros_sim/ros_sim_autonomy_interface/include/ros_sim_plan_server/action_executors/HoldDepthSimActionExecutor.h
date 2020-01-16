@@ -11,17 +11,18 @@
 
 #include "nav_msgs/Odometry.h"
 #include "std_msgs/Bool.h"
-#include "underwater_vehicle_msgs/GoToZComplete.h"
 
+#include "underwater_vehicle_msgs/GoToZComplete.h"
 #include "underwater_vehicle_msgs/VehicleInfo.h"
 
 #include "underwater_autonomy/planner/ActionExecutor.h"
 #include "underwater_autonomy/planner/actions/HoldDepthAction.h"
-
 #include "underwater_autonomy/util/VehiclePose.h"
 
+#include "ros_sim_plan_server/action_executors/SimActionExecutorFactoryMethod.h"
 
-class HoldDepthSimActionExecutor : public underwater_autonomy::ActionExecutor<underwater_autonomy::HoldDepthAction>
+class HoldDepthSimActionExecutor : public underwater_autonomy::ActionExecutor<underwater_autonomy::HoldDepthAction>,
+                                   public SimActionExecutorFactoryMethod<HoldDepthSimActionExecutor>
 {
 public:
     HoldDepthSimActionExecutor(VehicleInfo& info);

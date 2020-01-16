@@ -160,7 +160,7 @@
     <rosparam param="model/depth">200</rosparam>
 -->
     <rosparam param="model_type">fvcom</rosparam>
-    <rosparam param="model/fvcom_directory" subst_value="True">/home/dev/Documents/model-data/axial/</rosparam>
+    <rosparam param="model/fvcom_directory" subst_value="True">/home/dev/proj/axial</rosparam>
     <!--<rosparam param="model/fvcom_directory" subst_value="True">/home/dev/proj/axial/</rosparam>-->
 
     <node pkg="tf2_ros" type="static_transform_publisher" name="ned_publisher" args="0 0 0 1.57079632679 0 3.14159265359 world world_ned"/>
