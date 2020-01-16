@@ -9,7 +9,6 @@
 #include "underwater_autonomy/planner/PlannerFactory.h"
 
 #include "ros_sim_plan_server/ROSSimPlanServer.h"
-#include "ros_sim_plan_server/ROSSimActionFactory.h"
 #include "ros_sim_plan_server/ROSSimVehicleInterface.cpp"
 
 #include "vent_planner/NestedBinVentPlanner.h"
@@ -20,6 +19,11 @@
 #include "navigation_planner/GoldenSelectionHomingPlanner.h"
 
 #include "data_server/GetLatestData.h"
+
+#include "ros_sim_plan_server/action_executors/YoYoSimActionExecutor.h"
+#include "ros_sim_plan_server/action_executors/HoldDepthSimActionExecutor.h"
+#include "ros_sim_plan_server/action_executors/PointPathSimActionExecutor.h"
+#include "ros_sim_plan_server/action_executors/FollowHeadingSimActionExecutor.h"
 
 using namespace underwater_autonomy;
 using namespace vent_planner;
@@ -61,10 +65,12 @@ int main(int argc, char **argv)
     vehicleInfoClient.call(getInfo);
     VehicleInfo info(getInfo);
 
-    ROSSimActionFactory factory(info);
-    ROSSimVehicleInterface interface(info);
-    std::unique_ptr<Planner> planner;
+    YoYoAction::setExecutorCreateFunction(std::bind(&YoYoSimActionExecutor::create, info));
+    HoldDepthAction::setExecutorCreateFunction(std::bind(&HoldDepthSimActionExecutor::create, info));
+    PointPathAction::setExecutorCreateFunction(std::bind(&PointPathSimActionExecutor::create, info));
+    FollowHeadingAction::setExecutorCreateFunction(std::bind(&FollowHeadingSimActionExecutor::create, info));
 
+    ROSSimVehicleInterface interface(info);
 
     std::string configFilename;
     nhPriv.getParam("planner_config_file", configFilename);
@@ -78,8 +84,7 @@ int main(int argc, char **argv)
     PlannerFactory::registerPlanner("GoldenSelectionHoming", &GoldenSelectionHomingPlanner::create);
 
     std::string plannerType = config.readSimpleEntry<std::string>("planner_type");
-    planner = PlannerFactory::create(plannerType, factory, interface, config);
-   // planner.reset(new GoldenSelectionHomingPlanner(factory, interface, parameters));
+    std::unique_ptr<Planner> planner = PlannerFactory::create(plannerType, interface, config);
 
     ROSSimPlanServer server(std::move(planner), interface, cancelTimeout);
 

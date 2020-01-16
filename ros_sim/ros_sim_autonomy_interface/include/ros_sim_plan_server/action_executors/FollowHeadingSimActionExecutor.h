@@ -17,7 +17,10 @@
 
 #include "underwater_vehicle_msgs/VehicleInfo.h"
 
-class FollowHeadingSimActionExecutor : public underwater_autonomy::ActionExecutor<underwater_autonomy::FollowHeadingAction>
+#include "ros_sim_plan_server/action_executors/SimActionExecutorFactoryMethod.h"
+
+class FollowHeadingSimActionExecutor : public underwater_autonomy::ActionExecutor<underwater_autonomy::FollowHeadingAction>,
+                                       public SimActionExecutorFactoryMethod<FollowHeadingSimActionExecutor>
 {
 public:
     FollowHeadingSimActionExecutor(VehicleInfo& info);
