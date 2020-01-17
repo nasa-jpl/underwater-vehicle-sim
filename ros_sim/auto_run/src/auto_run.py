@@ -14,18 +14,27 @@ import argparse
 
 import psutil, signal
 
+import rosgraph_msgs
+
 
 currentGoal = "running"
 dataFilePub = None
+currentTime = 1000
 
 def callback(data):
     global currentGoal
     currentGoal = data.data
 
+def runtimeCallback(data):
+    global currentTime
+
+    currentTime = data.clock.secs
+
 def getLaunchFiles(directory):
     return [os.path.join(directory, f) for f in os.listdir(directory) if os.path.isfile(os.path.join(directory, f)) and f.endswith(".launch")]
 
 def runLaunchFile(uuid, filename, outputDirectory, inputDirectory):
+    global currentTime
     print("UUID: " + str(uuid))
     launch = roslaunch.parent.ROSLaunchParent(uuid, [filename])
 
@@ -43,8 +52,10 @@ def runLaunchFile(uuid, filename, outputDirectory, inputDirectory):
     command = shlex.split(command)
     rosbag_proc = subprocess.Popen(command)
 
+    time.sleep(10)
+
     sawRunning = False
-    while not sawRunning or currentGoal == 'running' :
+    while (not sawRunning or currentGoal == 'running') and currentTime < 5011200:
         if(currentGoal == 'running'):
             sawRunning = True
 
@@ -56,6 +67,9 @@ def runLaunchFile(uuid, filename, outputDirectory, inputDirectory):
     print("Goal reached saving data\n")
     sys.stdout.flush()
     rospy.loginfo("Goal reached saving data to: %s", outputDirectory)
+
+    if currentTime >= 5011200:
+        rospy.loginfo("Ran out of time, stopping early")
 
     # # this is crashing. It just saves that the run succeeded. Ignoring this for now
     # # additionally, it took awhile for the script to notice that we were done with the run, maybe something to look at?
@@ -121,6 +135,9 @@ def main(input, outputDirectory):
 
     # TODO check where the timeout message is sent to
     rospy.Subscriber('/v1/goal', String, callback)
+
+    # roslib.rosgraph_msgs.Clock
+    rospy.Subscriber('/clock', rosgraph_msgs.msg.Clock, runtimeCallback)
 
     if not os.path.isfile(input):
         # run all launch files in dir
