@@ -6,9 +6,9 @@
 #include "underwater_autonomy/planner/actions/ActionFactory.h"
 #include "underwater_autonomy/planner/SingleActionPlanner.h"
 #include "underwater_autonomy/planner/ConfigurationFile.h"
+#include "underwater_autonomy/planner/PlannerFactory.h"
 
 #include "ros_sim_plan_server/ROSSimPlanServer.h"
-#include "ros_sim_plan_server/ROSSimActionFactory.h"
 #include "ros_sim_plan_server/ROSSimVehicleInterface.cpp"
 
 #include "vent_planner/NestedBinVentPlanner.h"
@@ -18,8 +18,12 @@
 
 #include "navigation_planner/GoldenSelectionHomingPlanner.h"
 
-
 #include "data_server/GetLatestData.h"
+
+#include "ros_sim_plan_server/action_executors/YoYoSimActionExecutor.h"
+#include "ros_sim_plan_server/action_executors/HoldDepthSimActionExecutor.h"
+#include "ros_sim_plan_server/action_executors/PointPathSimActionExecutor.h"
+#include "ros_sim_plan_server/action_executors/FollowHeadingSimActionExecutor.h"
 
 using namespace underwater_autonomy;
 using namespace vent_planner;
@@ -61,45 +65,26 @@ int main(int argc, char **argv)
     vehicleInfoClient.call(getInfo);
     VehicleInfo info(getInfo);
 
-    ROSSimActionFactory factory(info);
+    YoYoAction::setExecutorCreateFunction(std::bind(&YoYoSimActionExecutor::create, info));
+    HoldDepthAction::setExecutorCreateFunction(std::bind(&HoldDepthSimActionExecutor::create, info));
+    PointPathAction::setExecutorCreateFunction(std::bind(&PointPathSimActionExecutor::create, info));
+    FollowHeadingAction::setExecutorCreateFunction(std::bind(&FollowHeadingSimActionExecutor::create, info));
+
     ROSSimVehicleInterface interface(info);
-    std::unique_ptr<Planner> planner;
 
     std::string configFilename;
     nhPriv.getParam("planner_config_file", configFilename);
     ConfigurationFile config(configFilename);
 
-    std::string plannerType = config.readSimpleEntry<std::string>("planner_type");
-    if(plannerType == "SurfaceGradient")
-    {
-        SurfaceGradientVentPlanner::Parameters parameters(config);
-        planner.reset(new SurfaceGradientVentPlanner(factory, interface, parameters));
-    }
-    else if(plannerType == "NestedBin")
-    {
-        NestedBinVentPlanner::Parameters parameters(config);
-        planner.reset(new NestedBinVentPlanner(factory, interface, parameters));
-    }
-    else if(plannerType == "DirectionSet")
-    {
-        DirectionSetVentPlanner::Parameters parameters(config);
+    PlannerFactory::registerPlanner("SurfaceGradient", &SurfaceGradientVentPlanner::create);
+    PlannerFactory::registerPlanner("NestedBin", &NestedBinVentPlanner::create);
+    PlannerFactory::registerPlanner("DirectionSet", &DirectionSetVentPlanner::create);
+    PlannerFactory::registerPlanner("Waypoints", &WaypointsPlanner::create);
+    PlannerFactory::registerPlanner("SingleAction", &SingleActionPlanner::create);
+    PlannerFactory::registerPlanner("GoldenSelectionHoming", &GoldenSelectionHomingPlanner::create);
 
-        planner.reset(new DirectionSetVentPlanner(factory, interface, parameters));
-    }
-    else if(plannerType == "Waypoints")
-    {
-        WaypointsPlanner::Parameters parameters(config);
-        planner.reset(new WaypointsPlanner(factory, interface, parameters));
-    }
-    else if(plannerType == "SingleAction")
-    {
-        planner.reset(new SingleActionPlanner(factory, interface));
-    }
-    else if(plannerType == "GoldenSelectionHoming")
-    {
-        GoldenSelectionHomingPlanner::Parameters parameters(config);
-        planner.reset(new GoldenSelectionHomingPlanner(factory, interface, parameters));
-    }
+    std::string plannerType = config.readSimpleEntry<std::string>("planner_type");
+    std::unique_ptr<Planner> planner = PlannerFactory::create(plannerType, interface, config);
 
     ROSSimPlanServer server(std::move(planner), interface, cancelTimeout);
 

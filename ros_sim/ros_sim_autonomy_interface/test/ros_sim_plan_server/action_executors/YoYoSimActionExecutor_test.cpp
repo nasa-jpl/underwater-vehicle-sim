@@ -31,8 +31,7 @@ TEST(YoYoSimActionExecutor, ExecutePropModuleTypeFail)
                                                       0,
                                                       NULL,
                                                       YoYoAction::ReplanType::NONE,
-                                                      0,
-                                                      NULL)); 
+                                                      0)); 
 
                                                             
     underwater_vehicle_msgs::GetVehicleInfo infoMsg;
@@ -73,8 +72,7 @@ TEST(YoYoSimActionExecutor, ExecuteAndCancel)
                                                       200,
                                                       NULL,
                                                       YoYoAction::ReplanType::NONE,
-                                                      4,
-                                                      NULL));
+                                                      4));
 
     underwater_vehicle_msgs::GetVehicleInfo infoMsg;
     infoMsg.response.propModuleType = "FourDOFPropulsion";
@@ -151,8 +149,7 @@ TEST(YoYoSimActionExecutor, ExecuteAndTimeout)
                                                       2,
                                                       NULL,
                                                       YoYoAction::ReplanType::NONE,
-                                                      4,
-                                                      NULL));
+                                                      4));
 
     underwater_vehicle_msgs::GetVehicleInfo infoMsg;
     infoMsg.response.propModuleType = "FourDOFPropulsion";
@@ -223,8 +220,7 @@ TEST(YoYoSimActionExecutor, ExecuteAndSucceed)
                                                       6,
                                                       NULL,
                                                       YoYoAction::ReplanType::NONE,
-                                                      4,
-                                                      NULL));
+                                                      4));
 
     underwater_vehicle_msgs::GetVehicleInfo infoMsg;
     infoMsg.response.propModuleType = "FourDOFPropulsion";
@@ -311,8 +307,7 @@ TEST(YoYoSimActionExecutor, TimeReplan)
                                                       200,
                                                       NULL,
                                                       YoYoAction::ReplanType::PERIODIC_TIME,
-                                                      3,
-                                                      NULL));
+                                                      3));
 
     underwater_vehicle_msgs::GetVehicleInfo infoMsg;
     infoMsg.response.propModuleType = "FourDOFPropulsion";
@@ -373,8 +368,7 @@ TEST(YoYoSimActionExecutor, DistanceReplan)
                                                       200,
                                                       NULL,
                                                       YoYoAction::ReplanType::PERIODIC_DISTANCE,
-                                                      3,
-                                                      NULL));
+                                                      3));
 
     underwater_vehicle_msgs::GetVehicleInfo infoMsg;
     infoMsg.response.propModuleType = "FourDOFPropulsion";
@@ -452,8 +446,7 @@ TEST(YoYoSimActionExecutor, TurnReplan)
                                                       200,
                                                       NULL,
                                                       YoYoAction::ReplanType::ON_YOYO_TURN,
-                                                      3,
-                                                      NULL));
+                                                      3));
 
     underwater_vehicle_msgs::GetVehicleInfo infoMsg;
     infoMsg.response.propModuleType = "FourDOFPropulsion";

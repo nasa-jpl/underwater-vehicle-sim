@@ -30,8 +30,7 @@ TEST(PointPathSimActionExecutor, ExecutePropModuleTypeFail)
                                                                 0,
                                                                 NULL,
                                                                 PointPathAction::ReplanType::NONE,
-                                                                0,
-                                                                NULL));
+                                                                0));
 
                                                             
     underwater_vehicle_msgs::GetVehicleInfo infoMsg;
@@ -74,8 +73,7 @@ TEST(PointPathSimActionExecutor, ExecuteAndCancel)
                                                                 3,
                                                                 NULL,
                                                                 PointPathAction::ReplanType::PERIODIC_TIME,
-                                                                3,
-                                                                NULL));
+                                                                3));
 
     underwater_vehicle_msgs::GetVehicleInfo infoMsg;
     infoMsg.response.propModuleType = "FourDOFPropulsion";
@@ -152,8 +150,7 @@ TEST(PointPathSimActionExecutor, ExecuteAndTimeout)
                                                                 1,
                                                                 NULL,
                                                                 PointPathAction::ReplanType::PERIODIC_TIME,
-                                                                3,
-                                                                NULL));
+                                                                3));
 
     underwater_vehicle_msgs::GetVehicleInfo infoMsg;
     infoMsg.response.propModuleType = "FourDOFPropulsion";
@@ -228,8 +225,7 @@ TEST(PointPathSimActionExecutor, ExecuteAndSucceed)
                                                                 3,
                                                                 NULL,
                                                                 PointPathAction::ReplanType::NONE,
-                                                                3,
-                                                                NULL));
+                                                                3));
 
     underwater_vehicle_msgs::GetVehicleInfo infoMsg;
     infoMsg.response.propModuleType = "FourDOFPropulsion";
@@ -407,8 +403,7 @@ TEST(PointPathSimActionExecutor, TimeReplan)
                                                                 3,
                                                                 NULL,
                                                                 PointPathAction::ReplanType::PERIODIC_TIME,
-                                                                3,
-                                                                NULL));
+                                                                3));
 
     underwater_vehicle_msgs::GetVehicleInfo infoMsg;
     infoMsg.response.propModuleType = "FourDOFPropulsion";
@@ -487,8 +482,7 @@ TEST(PointPathSimActionExecutor, DistanceReplan)
                                                                 3,
                                                                 NULL,
                                                                 PointPathAction::ReplanType::PERIODIC_DISTANCE,
-                                                                3,
-                                                                NULL));
+                                                                3));
 
     underwater_vehicle_msgs::GetVehicleInfo infoMsg;
     infoMsg.response.propModuleType = "FourDOFPropulsion";
