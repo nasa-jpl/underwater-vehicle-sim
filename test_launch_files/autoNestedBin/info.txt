@@ -1,5 +1,0 @@
-spacing 6000.0
-maxDistanceFromCenter 30000.0
-center 0 0
-outputDirectory out5
-inputFile nested_bin_test_run.launch
