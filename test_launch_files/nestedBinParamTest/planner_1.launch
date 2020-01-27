@@ -143,7 +143,7 @@
 
     <!--Autonomy-->
     <node pkg="ros_sim_autonomy_interface" type="ros_sim_plan_server_node" name="ros_sim_plan_server" ns="v1" output="screen" >
-        <param name="planner_config_file" value="$(dirname)/planner_parameters/nested_bin_test.toml"/>
+        <param name="planner_config_file" value="$(dirname)/planner_parameters/config_1.toml"/>
 
         <rosparam param="hertz">1</rosparam>
         <rosparam param="fail_time">5011200</rosparam>
