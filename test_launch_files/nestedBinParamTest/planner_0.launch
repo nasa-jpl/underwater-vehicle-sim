@@ -152,7 +152,7 @@
     </node>
 
     <param name="use_sim_time" value="true" />
-    <rosparam param="speed_up_factor">100</rosparam>
+    <rosparam param="speed_up_factor">65</rosparam>
     <rosparam param="sim_start_time">2592000</rosparam>
 
 <!--
