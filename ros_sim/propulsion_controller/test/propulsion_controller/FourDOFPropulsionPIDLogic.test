@@ -1,0 +1,3 @@
+<launch>
+    <test test-name="four_dof_propulsion_pid_logic_test" pkg="propulsion_controller" ns="v1" type="four_dof_propulsion_pid_logic_test"/>
+</launch>

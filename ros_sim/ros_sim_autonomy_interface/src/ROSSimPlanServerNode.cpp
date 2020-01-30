@@ -3,7 +3,6 @@
 #include "underwater_autonomy/planner/Planner.h"
 #include "underwater_autonomy/planner/PlanDispatcher.h"
 #include "underwater_autonomy/util/BoxOperationRegion.h"
-#include "underwater_autonomy/planner/actions/ActionFactory.h"
 #include "underwater_autonomy/planner/SingleActionPlanner.h"
 #include "underwater_autonomy/planner/ConfigurationFile.h"
 #include "underwater_autonomy/planner/PlannerFactory.h"

@@ -1,0 +1,5 @@
+---
+bool xyEnabled
+bool zEnabled
+bool followHeadingEnabled
+bool holdDepth

@@ -57,9 +57,19 @@
     </node>
 
     <!--High Level Control-->
-    <node pkg="vehicle_auto_control" type="vehicle_auto_control_node" name="controller" ns="v1">
-         <rosparam param="hertz">10</rosparam>
-         <remap from="primary_navigation" to="nav_filters/true_nav" />
+    <node pkg="propulsion_controller" type="four_dof_propulsion_control_node" name="controller" ns="v1">
+        <param name="use_pid" value="false"/>
+        <rosparam param="forward_thruster_thrust">[-100, -75, -50, -25, 0, 25, 50, 75, 100]</rosparam>
+        <rosparam param="forward_thruster_velocity">[-1.40625, -1.3125, -1.125, -0.75, 0, 0.75, 1.125, 1.3125, 1.40625]</rosparam>
+        <rosparam param="vertical_thruster_thrust">[-100, -75, -50, -25, 0, 25, 50, 75, 100]</rosparam>
+        <rosparam param="vertical_thruster_velocity">[-1.40625, -1.3125, -1.125, -0.75, 0, 0.75, 1.125, 1.3125, 1.40625]</rosparam>
+        <rosparam param="rudder_angle">[-45,0,45]</rosparam>
+        <rosparam param="rudder_velocity">[-0.349066,0,0.349066]</rosparam>
+
+        <remap from="primary_navigation" to="nav_filters/true_nav" />
+        <remap from="get_state" to="get_propulsion_state" />
+        <remap from="state" to="prop_state" />
+
     </node>
 
      <!-- PID Controllers-->
@@ -142,17 +152,18 @@
     </node>
 
     <!--Autonomy-->
-    <node pkg="ros_sim_autonomy_interface" type="ros_sim_plan_server_node" name="ros_sim_plan_server" ns="v1" output="screen" >
+    <node pkg="ros_sim_autonomy_interface" type="ros_sim_plan_server_node" name="ros_sim_plan_server" ns="v1" output="screen">
         <param name="planner_config_file" value="$(dirname)/planner_parameters/nested_bin_test.toml"/>
 
         <rosparam param="hertz">1</rosparam>
         <rosparam param="fail_time">5011200</rosparam>
         <rosparam param="cancel_timeout">60</rosparam>
+        
         <remap from="primary_navigation" to="nav_filters/true_nav" />
     </node>
 
     <param name="use_sim_time" value="true" />
-    <rosparam param="speed_up_factor">75</rosparam>
+    <rosparam param="speed_up_factor">250</rosparam>
     <rosparam param="sim_start_time">2592000</rosparam>
 
 <!--

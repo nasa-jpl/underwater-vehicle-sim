@@ -29,10 +29,10 @@ public:
     HoldDepthSimActionExecutor(ros::NodeHandle nh, VehicleInfo& vehicleInfo);
 
     HoldDepthSimActionExecutor(const HoldDepthSimActionExecutor&&) = delete;
-	HoldDepthSimActionExecutor(const HoldDepthSimActionExecutor&) = delete;
+    HoldDepthSimActionExecutor(const HoldDepthSimActionExecutor&) = delete;
 
-	HoldDepthSimActionExecutor& operator=(HoldDepthSimActionExecutor&& ) = delete;
-	HoldDepthSimActionExecutor& operator=(HoldDepthSimActionExecutor& ) = delete;
+    HoldDepthSimActionExecutor& operator=(HoldDepthSimActionExecutor&& ) = delete;
+    HoldDepthSimActionExecutor& operator=(HoldDepthSimActionExecutor& ) = delete;
 
     ~HoldDepthSimActionExecutor() {}
 
@@ -64,8 +64,10 @@ private:
     VehicleInfo vehicleInfo;
 
     ros::Publisher goToZPub;
-	ros::Publisher goToZEnablePub;
-	ros::Subscriber goToZComplete;
+    ros::Publisher goToZEnablePub;
+    ros::Subscriber goToZComplete;
+
+    ros::ServiceClient propStateClient;
 
     bool replanNextUpdate;
     ros::Time lastReplan;
