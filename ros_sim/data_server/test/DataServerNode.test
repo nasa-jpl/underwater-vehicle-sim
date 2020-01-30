@@ -1,5 +1,0 @@
-<launch>
- <rosparam param="underwater_vehicle_sim/vehicles/names">[v1,v2]</rosparam>
- <node pkg="data_server" type="data_server_node" name="data_server" output="screen" />
- <test test-name="data_server_node_test" pkg="data_server" type="data_server_node_test" />
-</launch>

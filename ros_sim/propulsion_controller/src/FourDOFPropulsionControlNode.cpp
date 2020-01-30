@@ -1,0 +1,181 @@
+#include "ros/ros.h"
+
+#include "propulsion_controller/PropulsionController.h"
+
+#include "propulsion_controller/FourDOFPropulsionLogic.h"
+#include "propulsion_controller/FourDOFPropulsionPIDLogic.h"
+
+#include "underwater_autonomy/util/LinearPiecewise.h"
+
+underwater_autonomy::LinearPiecewise loadForwardThruster() {
+    ros::NodeHandle nhPriv("~");
+
+    if(nhPriv.hasParam("forward_thruster_thrust") && 
+        nhPriv.hasParam("forward_thruster_velocity"))
+    {
+        std::vector<double> thrust;
+        std::vector<double> velocity;
+        nhPriv.getParam("forward_thruster_thrust", thrust);
+        nhPriv.getParam("forward_thruster_velocity", velocity);
+
+        if(thrust.size() == velocity.size())
+        {
+            if(thrust.size() == 0)
+            {
+                ROS_FATAL("%s/forward_thruster_thrust and %s/forward_thruster_velocity are empty.", nhPriv.getNamespace().c_str(), nhPriv.getNamespace().c_str());
+                exit(1);
+            }
+            else
+            {
+                std::vector<underwater_autonomy::LinearPiecewise::Point> points;
+                for(unsigned int i = 0; i < thrust.size(); i++)
+                {
+                    points.push_back({velocity[i], thrust[i]});
+                }
+                return underwater_autonomy::LinearPiecewise(points);
+            }
+        }
+        else
+        {
+            ROS_FATAL("%s/forward_thruster_thrust and %s/forward_thruster_velocity have differing length.", nhPriv.getNamespace().c_str(), nhPriv.getNamespace().c_str());
+            exit(1);
+        }
+    }
+    else
+    {
+        ROS_FATAL("%s/forward_thruster_thrust or %s/forward_thruster_velocity does not exist.", nhPriv.getNamespace().c_str(), nhPriv.getNamespace().c_str());
+        exit(1);
+    }
+
+    return underwater_autonomy::LinearPiecewise();
+}
+
+underwater_autonomy::LinearPiecewise loadVerticalThruster() {
+    ros::NodeHandle nhPriv("~");
+
+    if(nhPriv.hasParam("vertical_thruster_thrust") && 
+       nhPriv.hasParam("vertical_thruster_velocity"))
+    {
+        std::vector<double> thrust;
+        std::vector<double> velocity;
+        nhPriv.getParam("vertical_thruster_thrust", thrust);
+        nhPriv.getParam("vertical_thruster_velocity", velocity);
+
+        if(thrust.size() == velocity.size())
+        {
+            if(thrust.size() == 0)
+            {
+                ROS_FATAL("%s/vertical_thruster_thrust and %s/vertical_thruster_velocity are empty.", nhPriv.getNamespace().c_str(), nhPriv.getNamespace().c_str());
+                exit(1);
+            }
+            else
+            {
+                std::vector<underwater_autonomy::LinearPiecewise::Point> points;
+                for(unsigned int i = 0; i < thrust.size(); i++)
+                {
+                    points.push_back({velocity[i], thrust[i]});
+                }
+                return underwater_autonomy::LinearPiecewise(points);
+            }
+        }
+        else
+        {
+            ROS_FATAL("%s/vertical_thruster_thrust and %s/vertical_thruster_velocity have differing length.", nhPriv.getNamespace().c_str(), nhPriv.getNamespace().c_str());
+            exit(1);
+        }
+    }
+    else
+    {
+        ROS_FATAL("%s/vertical_thruster_thrust or %s/vertical_thruster_velocity does not exist.", nhPriv.getNamespace().c_str(), nhPriv.getNamespace().c_str());
+        exit(1);
+    }
+
+    return underwater_autonomy::LinearPiecewise();
+}
+
+underwater_autonomy::LinearPiecewise loadRudder() {
+    ros::NodeHandle nhPriv("~");
+
+    if(nhPriv.hasParam("rudder_angle") && 
+       nhPriv.hasParam("rudder_velocity"))
+    {
+        std::vector<double> angle;
+        std::vector<double> velocity;
+        nhPriv.getParam("rudder_angle", angle);
+        nhPriv.getParam("rudder_velocity", velocity);
+
+        if(angle.size() == velocity.size())
+        {
+            if(angle.size() == 0)
+            {
+                ROS_FATAL("%s/rudder_angle and %s/rudder_velocity are empty.", nhPriv.getNamespace().c_str(), nhPriv.getNamespace().c_str());
+                exit(1);
+            }
+            else
+            {
+                std::vector<underwater_autonomy::LinearPiecewise::Point> points;
+                for(unsigned int i = 0; i < angle.size(); i++)
+                {
+                    points.push_back({velocity[i], angle[i]});
+                }
+                return underwater_autonomy::LinearPiecewise(points);
+            }
+        }
+        else
+        {
+            ROS_FATAL("%s/rudder_angle and %s/rudder_velocity have differing length.", nhPriv.getNamespace().c_str(), nhPriv.getNamespace().c_str());
+            exit(1);
+        }
+    }
+    else
+    {
+        ROS_FATAL("%s/rudder_angle or %s/rudder_velocity does not exist.", nhPriv.getNamespace().c_str(), nhPriv.getNamespace().c_str());
+        exit(1);
+    }
+
+    return underwater_autonomy::LinearPiecewise();
+}
+
+int main(int argc, char **argv)
+{
+    ros::init(argc, argv, "four_dof_propulsion_control");
+    ros::NodeHandle nh;
+    ros::NodeHandle nhPriv("~");
+
+    std::unique_ptr<PropulsionController> controller;
+ 
+    ros::ServiceClient infoClient = nh.serviceClient<underwater_vehicle_msgs::GetVehicleInfo>("get_info");
+    infoClient.waitForExistence();
+
+    underwater_vehicle_msgs::GetVehicleInfo info;
+    infoClient.call(info);
+    VehicleInfo vehicleInfo(info);
+
+    bool usePID;
+    if(!nhPriv.getParam("use_pid", usePID))
+    {
+        ROS_FATAL("Parameter \"use_pid\" not present in the parameter server.");
+        exit(1);
+    }
+
+    if(usePID)
+    {
+        std::unique_ptr<PropulsionLogicInterface> logic(new FourDOFPropulsionPIDLogic(vehicleInfo));
+        controller.reset(new PropulsionController(vehicleInfo, std::move(logic)));
+    }
+    else
+    {
+        underwater_autonomy::LinearPiecewise forwardThruster = loadForwardThruster();
+        underwater_autonomy::LinearPiecewise verticalThruster = loadVerticalThruster();
+        underwater_autonomy::LinearPiecewise rudder = loadRudder();
+
+        std::unique_ptr<PropulsionLogicInterface> logic(new FourDOFPropulsionLogic(vehicleInfo, 
+                                                                                   forwardThruster, 
+                                                                                   verticalThruster, 
+                                                                                   rudder));
+        controller.reset(new PropulsionController(vehicleInfo, std::move(logic)));
+    }
+
+    ros::spin();
+    return 0;
+}
