@@ -30,10 +30,10 @@ public:
     YoYoSimActionExecutor(ros::NodeHandle nh, VehicleInfo& vehicleInfo);
 
     YoYoSimActionExecutor(const YoYoSimActionExecutor&&) = delete;
-	YoYoSimActionExecutor(const YoYoSimActionExecutor&) = delete;
+    YoYoSimActionExecutor(const YoYoSimActionExecutor&) = delete;
 
-	YoYoSimActionExecutor& operator=(YoYoSimActionExecutor&& ) = delete;
-	YoYoSimActionExecutor& operator=(YoYoSimActionExecutor& ) = delete;
+    YoYoSimActionExecutor& operator=(YoYoSimActionExecutor&& ) = delete;
+    YoYoSimActionExecutor& operator=(YoYoSimActionExecutor& ) = delete;
 
     ~YoYoSimActionExecutor() {}
 
@@ -67,8 +67,10 @@ private:
     VehicleInfo vehicleInfo;
 
     ros::Publisher goToZPub;
-	ros::Publisher goToZEnablePub;
-	ros::Subscriber goToZComplete;
+    ros::Publisher goToZEnablePub;
+    ros::Subscriber goToZComplete;
+
+    ros::ServiceClient propStateClient;
 
     bool replanNextUpdate;
     ros::Time lastReplan;

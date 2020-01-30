@@ -27,10 +27,10 @@ public:
     FollowHeadingSimActionExecutor(ros::NodeHandle nh, VehicleInfo& vehicleInfo);
 
     FollowHeadingSimActionExecutor(const FollowHeadingSimActionExecutor&&) = delete;
-	FollowHeadingSimActionExecutor(const FollowHeadingSimActionExecutor&) = delete;
+    FollowHeadingSimActionExecutor(const FollowHeadingSimActionExecutor&) = delete;
 
-	FollowHeadingSimActionExecutor& operator=(FollowHeadingSimActionExecutor&& ) = delete;
-	FollowHeadingSimActionExecutor& operator=(FollowHeadingSimActionExecutor& ) = delete;
+    FollowHeadingSimActionExecutor& operator=(FollowHeadingSimActionExecutor&& ) = delete;
+    FollowHeadingSimActionExecutor& operator=(FollowHeadingSimActionExecutor& ) = delete;
 
     ~FollowHeadingSimActionExecutor() {}
 
@@ -60,8 +60,10 @@ private:
     VehicleInfo vehicleInfo;
 
     ros::Publisher followHeadingPub;
-	ros::Publisher followHeadingEnablePub;
-	ros::Subscriber followHeadingComplete;
+    ros::Publisher followHeadingEnablePub;
+    ros::Subscriber followHeadingComplete;
+
+    ros::ServiceClient propStateClient;
 
     bool replanNextUpdate;
     ros::Time lastReplan;

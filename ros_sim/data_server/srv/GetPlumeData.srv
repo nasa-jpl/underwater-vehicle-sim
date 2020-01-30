@@ -1,9 +1,0 @@
-string name
-time start_time
-time end_time
----
-float64[] x
-float64[] y
-float64[] h
-time[] time
-float64[] plume_val

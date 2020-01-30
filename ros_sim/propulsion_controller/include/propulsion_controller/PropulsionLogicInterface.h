@@ -1,0 +1,116 @@
+#ifndef PROPULSION_LOGIC_INTERFACE_H
+#define PROPULSION_LOGIC_INTERFACE_H
+
+#include "ros/ros.h"
+
+#include <memory>
+#include <vector>
+
+#include "geometry_msgs/Twist.h"
+
+#include "tf2/LinearMath/Transform.h"
+#include "tf2_ros/transform_listener.h"
+
+#include "underwater_vehicle_msgs/GetVehicleInfo.h"
+#include "underwater_vehicle_msgs/VehicleInfo.h"
+#include "underwater_vehicle_msgs/VehicleData.h"
+
+#include "underwater_autonomy/util/VehiclePose.h"
+
+class PropulsionLogicInterface
+{
+
+public:
+	PropulsionLogicInterface(VehicleInfo& vehicleInfo);
+	virtual ~PropulsionLogicInterface() {}
+
+	virtual void setTargetVelocity(const geometry_msgs::Twist vel)=0;
+	virtual void processNewData(const underwater_vehicle_msgs::VehicleData data)=0;
+
+	/**
+	* Sends messages to make vehicle go to xy location
+	*/
+	virtual void goToXY(underwater_autonomy::VehiclePose& pose)=0;
+
+	/**
+	* Sends messages to make vehicle follow a specified heading
+	*/
+	virtual void followHeading(underwater_autonomy::VehiclePose& pose)=0;
+
+	/**
+	* Sends messages to make vehicle go to z location
+	*/
+	virtual void goToZ(underwater_autonomy::VehiclePose& pose)=0;
+
+	/**
+	* Sends messages to make vehicle avoid the seafloor
+	*/
+	virtual void avoidSeafloor(underwater_autonomy::VehiclePose& pose)=0;
+
+	/**
+	* Sends messages to stop xy movement
+	*/
+	virtual void stopXY()=0;
+
+	/**
+	* Sends messages to stop z movement
+	*/
+	virtual void stopZ()=0;
+
+	/**
+	* Sets the target xy location for goToXY
+	*/
+	void setTargetXY(double x, double y);
+	
+	/**
+	* Sets the target z location for goToZ
+	*/
+	void setTargetZ(double z);
+
+	/**
+	* Sets the target heading for followHeading
+	*/
+	virtual void setFollowHeading(double heading);
+
+	/**
+	* Gets the target x location for goToXY
+	*/
+	double getTargetX();
+
+	/**
+	* Gets the target y location for goToXY
+	*/
+	double getTargetY();
+	
+	/**
+	* Gets the target z location for goToZ
+	*/
+	double getTargetZ();
+
+	/**
+	* Gets the target heading to follow 
+	*/
+	double getFollowHeading();
+
+	/**
+	* Determines if the vehicle has reached the xy location
+	*/
+	virtual bool isAtXY(underwater_autonomy::VehiclePose& pose)=0;
+
+	/**
+	* Determines if the vehicle has reached the z location
+	*/
+	virtual bool isAtZ(underwater_autonomy::VehiclePose& pose)=0;
+
+protected:
+	ros::NodeHandle vehicleNode;
+	VehicleInfo& vehicleInfo;
+
+	double targetX;
+	double targetY;
+	double targetZ;
+	double targetHeading;
+
+};
+
+#endif

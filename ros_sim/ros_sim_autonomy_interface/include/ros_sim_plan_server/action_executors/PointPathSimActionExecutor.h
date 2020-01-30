@@ -27,10 +27,10 @@ public:
     PointPathSimActionExecutor(VehicleInfo& info);
     PointPathSimActionExecutor(ros::NodeHandle nh, VehicleInfo& info);
     PointPathSimActionExecutor(const PointPathSimActionExecutor&&) = delete;
-	PointPathSimActionExecutor(const PointPathSimActionExecutor&) = delete;
+    PointPathSimActionExecutor(const PointPathSimActionExecutor&) = delete;
 
-	PointPathSimActionExecutor& operator=(PointPathSimActionExecutor&& ) = delete;
-	PointPathSimActionExecutor& operator=(PointPathSimActionExecutor& ) = delete;
+    PointPathSimActionExecutor& operator=(PointPathSimActionExecutor&& ) = delete;
+    PointPathSimActionExecutor& operator=(PointPathSimActionExecutor& ) = delete;
 
     ~PointPathSimActionExecutor() {}
 
@@ -58,14 +58,16 @@ private:
 
     void sendNextGoToXYGoal(std::shared_ptr<underwater_autonomy::PointPathAction> action);
 
+    void propStateCB(const std_msgs::Bool data);
+
     bool doubleEq(double d1, double d2);
     
 private:
     VehicleInfo vehicleInfo;
 
     ros::Publisher goToXYPub;
-	ros::Publisher goToXYEnablePub;
-	ros::Subscriber goToXYComplete;
+    ros::Publisher goToXYEnablePub;
+    ros::Subscriber goToXYComplete;
 
     bool replanNextUpdate;
     ros::Time lastReplan;
@@ -76,6 +78,8 @@ private:
 
     ros::Publisher velPub;
     ros::Subscriber poseSub;
+
+    ros::ServiceClient propStateClient;
 
     tf2::Vector3 lastLocation;
     

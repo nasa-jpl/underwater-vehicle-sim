@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(ros_sim_autonomy_interface)
+project(propulsion_controller)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
 add_compile_options(-std=c++11)
@@ -8,25 +8,28 @@ add_compile_options($<BUILD_INTERFACE:-Wall>)
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
-find_package(catkin REQUIRED
-             actionlib_msgs
-             roscpp
-             tf2
-             tf2_ros
-             tf2_geometry_msgs
-             underwater_vehicle_sim
-             underwater_vehicle_msgs
-             propulsion_controller
-             nav_msgs)
+find_package(catkin REQUIRED COMPONENTS
+ actionlib_msgs
+ tf2
+ tf2_ros
+ tf2_geometry_msgs
+ roscpp
+ geometry_msgs
+ underwater_vehicle_msgs
+ nav_msgs
+ message_generation)
 
 find_library(UNDERWATER_AUTONOMY_LIB underwater_autonomy)
 find_path(UNDERWATER_AUTONOMY_INCLUDE underwater_autonomy)
-find_library(VENT_PLANNER_LIB vent_planner)
-find_path(VENT_PLANNER_INCLUDE vent_planner)
-find_library(NAVIGATION_PLANNER_LIB navigation_planner)
-find_path(NAVIGATION_PLANNER_INCLUDE navigation_planner)
 
-find_package (Eigen3 3.3 REQUIRED NO_MODULE)
+## System dependencies are found with CMake's conventions
+# find_package(Boost REQUIRED COMPONENTS system)
+
+
+## Uncomment this if the package has a setup.py. This macro ensures
+## modules and global scripts declared therein get installed
+## See http://ros.org/doc/api/catkin/html/user_guide/setup_dot_py.html
+# catkin_python_setup()
 
 ################################################
 ## Declare ROS messages, services and actions ##
@@ -53,32 +56,23 @@ find_package (Eigen3 3.3 REQUIRED NO_MODULE)
 ##   * add every package in MSG_DEP_SET to generate_messages(DEPENDENCIES ...)
 
 ## Generate messages in the 'msg' folder
-# add_message_files(
-#   FILES
-#   Message1.msg
-#   Message2.msg
-# )
+ add_message_files(
+   FILES
+   Velocity.msg
+ )
 
 ## Generate services in the 'srv' folder
-# add_service_files(
-#   FILES
-#   Service1.srv
+ add_service_files(
+   FILES
+   PropulsionControllerState.srv
 #   Service2.srv
-# )
-
-## Generate actions in the 'action' folder
-# add_action_files(
-#   FILES
-#   DynamicLawnmowerRos.action  
-#   PointPathRos.action
-# )
+ )
 
 ## Generate added messages and services with any dependencies listed here
  generate_messages(
    DEPENDENCIES
    geometry_msgs
-   propulsion_controller
-   actionlib_msgs  # Or other packages containing msgs
+   actionlib_msgs
  )
 
 ################################################
@@ -111,9 +105,9 @@ find_package (Eigen3 3.3 REQUIRED NO_MODULE)
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-   INCLUDE_DIRS include
-   LIBRARIES ros_sim_autonomy_interface
-#  CATKIN_DEPENDS other_catkin_pkg
+#  INCLUDE_DIRS include
+#  LIBRARIES propulsion_controller
+  CATKIN_DEPENDS actionlib_msgs
 #  DEPENDS system_lib
 )
 
@@ -129,56 +123,38 @@ include_directories(
 )
 
 ## Declare a C++ library
-add_library(${PROJECT_NAME}
-    src/ros_sim_navigation/ROSSimNavigationFilter.cpp
-    src/ros_sim_plan_server/RosSimPlanServer.cpp  
-    src/ros_sim_plan_server/ROSSimVehicleInterface.cpp
-    src/ros_sim_plan_server/action_executors/PointPathSimActionExecutor.cpp
-    src/ros_sim_plan_server/action_executors/FollowHeadingSimActionExecutor.cpp
-    src/ros_sim_plan_server/action_executors/HoldDepthSimActionExecutor.cpp
-    src/ros_sim_plan_server/action_executors/YoYoSimActionExecutor.cpp
-)
-target_include_directories(${PROJECT_NAME} PUBLIC /usr/local/include/bfl)
+ add_library(${PROJECT_NAME}
+   src/${PROJECT_NAME}/PropulsionController.cpp
+   src/${PROJECT_NAME}/PropulsionLogicInterface.cpp
+   src/${PROJECT_NAME}/FourDOFPropulsionPIDLogic.cpp
+   src/${PROJECT_NAME}/FourDOFPropulsionLogic.cpp
 
+ )
+ target_include_directories(${PROJECT_NAME} PUBLIC ${UNDERWATER_AUTONOMY_INCLUDE})
+ target_link_libraries(${PROJECT_NAME} ${UNDERWATER_AUTONOMY_LIB} ${catkin_LIBRARIES})
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
 ## either from message generation or dynamic reconfigure
  add_dependencies(${PROJECT_NAME} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
- target_include_directories(ros_sim_autonomy_interface PUBLIC ${NAVIGATION_PLANNER_INCLUDE} ${VENT_PLANNER_INCLUDE} ${UNDERWATER_AUTONOMY_INCLUDE})
- target_link_libraries(ros_sim_autonomy_interface
-   ${UNDERWATER_AUTONOMY_LIB}
-   ${VENT_PLANNER_LIB}
-   ${NAVIGATION_PLANNER_LIB}
-   ${catkin_LIBRARIES}
- )
-
 ## Declare a C++ executable
- add_executable(ros_sim_plan_server_node src/ROSSimPlanServerNode.cpp)
+## With catkin_make all packages are built within a single CMake context
+## The recommended prefix ensures that target names across packages don't collide
+ add_executable(four_dof_propulsion_control_node src/FourDOFPropulsionControlNode.cpp)
 
-# set_target_properties(ros_sim_plan_server_node PROPERTIES OUTPUT_NAME node PREFIX "")
+## Rename C++ executable without prefix
+## The above recommended prefix causes long target names, the following renames the
+## target back to the shorter version for ease of user use
+## e.g. "rosrun someones_pkg node" instead of "rosrun someones_pkg someones_pkg_node"
+# set_target_properties(${PROJECT_NAME}_node PROPERTIES OUTPUT_NAME node PREFIX "")
 
- add_dependencies(ros_sim_plan_server_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
- target_include_directories(ros_sim_plan_server_node PRIVATE ${NAVIGATION_PLANNER_INCLUDE} ${VENT_PLANNER_INCLUDE} ${UNDERWATER_AUTONOMY_INCLUDE})
- target_link_libraries(ros_sim_plan_server_node
-   ros_sim_autonomy_interface
-   ${UNDERWATER_AUTONOMY_LIB}
-   ${VENT_PLANNER_LIB}
-   ${NAVIGATION_PLANNER_LIB}
-   ${catkin_LIBRARIES}
- )
+## Add cmake target dependencies of the executable
+## same as for the library above
+ add_dependencies(four_dof_propulsion_control_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
-  add_executable(ros_sim_navigation_node src/ROSSimNavigationNode.cpp)
-
-# set_target_properties(ros_sim_navigation_node PROPERTIES OUTPUT_NAME node PREFIX "")
-
- add_dependencies(ros_sim_navigation_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
- target_include_directories(ros_sim_navigation_node PRIVATE ${NAVIGATION_PLANNER_INCLUDE} ${VENT_PLANNER_INCLUDE} ${UNDERWATER_AUTONOMY_INCLUDE})
- target_link_libraries(ros_sim_navigation_node
-   ros_sim_autonomy_interface
-   ${UNDERWATER_AUTONOMY_LIB}
-   ${VENT_PLANNER_LIB}
-   ${NAVIGATION_PLANNER_LIB}
+## Specify libraries to link a library or executable target against
+ target_link_libraries(four_dof_propulsion_control_node
+   ${PROJECT_NAME}
    ${catkin_LIBRARIES}
  )
 
@@ -221,34 +197,24 @@ target_include_directories(${PROJECT_NAME} PUBLIC /usr/local/include/bfl)
 ## Testing ##
 #############
 
+
+add_library(${PROJECT_NAME}_uth
+  test/uth/src/UthPropulsionLogic.cpp)
+target_include_directories(${PROJECT_NAME}_uth PUBLIC test/uth/include ${catkin_INCLUDE_DIRS})
+target_include_directories(${PROJECT_NAME}_uth PUBLIC ${UNDERWATER_AUTONOMY_INCLUDE})
+target_link_libraries(${PROJECT_NAME}_uth ${UNDERWATER_AUTONOMY_LIB} ${PROJECT_NAME} ${catkin_LIBRARIES})
+
 ## Add gtest based cpp test target and link libraries
 if (CATKIN_ENABLE_TESTING)
  find_package(rostest REQUIRED)
 
- add_rostest_gtest(ros_sim_navigation_filter_test test/ros_sim_navigation/ROSSimNavigationFilter.test test/ros_sim_navigation/ROSSimNavigationFilter_test.cpp)
- target_link_libraries(ros_sim_navigation_filter_test ros_sim_autonomy_interface ${catkin_LIBRARIES} )
- 
- add_rostest_gtest(follow_heading_sim_action_executor_test 
-                   test/ros_sim_plan_server/action_executors/FollowHeadingSimActionExecutor.test 
-                   test/ros_sim_plan_server/action_executors/FollowHeadingSimActionExecutor_test.cpp)
- target_link_libraries(follow_heading_sim_action_executor_test ros_sim_autonomy_interface ${catkin_LIBRARIES} )
+ add_rostest_gtest(four_dof_propulsion_pid_logic_test test/propulsion_controller/FourDOFPropulsionPIDLogic.test test/propulsion_controller/FourDOFPropulsionPIDLogic_test.cpp)
+ target_include_directories(four_dof_propulsion_pid_logic_test PRIVATE ${UNDERWATER_AUTONOMY_INCLUDE})
+ target_link_libraries(four_dof_propulsion_pid_logic_test ${UNDERWATER_AUTONOMY_LIB} ${PROJECT_NAME} ${catkin_LIBRARIES})
 
- add_rostest_gtest(hold_depth_sim_action_executor_test 
-                   test/ros_sim_plan_server/action_executors/HoldDepthSimActionExecutor.test 
-                   test/ros_sim_plan_server/action_executors/HoldDepthSimActionExecutor_test.cpp)
- target_link_libraries(hold_depth_sim_action_executor_test ros_sim_autonomy_interface ${catkin_LIBRARIES} )
+ add_rostest_gtest(propulsion_controller_test test/propulsion_controller/PropulsionController.test test/propulsion_controller/PropulsionController_test.cpp)
+ target_include_directories(propulsion_controller_test PRIVATE ${UNDERWATER_AUTONOMY_INCLUDE})
+ target_link_libraries(propulsion_controller_test ${UNDERWATER_AUTONOMY_LIB} ${PROJECT_NAME} ${PROJECT_NAME}_uth ${catkin_LIBRARIES})
 
- add_rostest_gtest(yoyo_sim_action_executor_test 
-                   test/ros_sim_plan_server/action_executors/YoYoSimActionExecutor.test 
-                   test/ros_sim_plan_server/action_executors/YoYoSimActionExecutor_test.cpp)
- target_link_libraries(yoyo_sim_action_executor_test ros_sim_autonomy_interface ${catkin_LIBRARIES} )
-
- add_rostest_gtest(point_path_sim_action_executor_test 
-                   test/ros_sim_plan_server/action_executors/PointPathSimActionExecutor.test 
-                   test/ros_sim_plan_server/action_executors/PointPathSimActionExecutor_test.cpp)
- target_link_libraries(point_path_sim_action_executor_test ros_sim_autonomy_interface ${catkin_LIBRARIES} )
 
 endif()
-
-## Add folders to be run by python nosetests
-# catkin_add_nosetests(test)
