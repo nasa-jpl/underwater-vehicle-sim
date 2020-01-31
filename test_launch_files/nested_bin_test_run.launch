@@ -73,6 +73,7 @@
     </node>
 
      <!-- PID Controllers-->
+<!--
     <node name="forward_thruster_pid" pkg="pid" type="controller" ns="v1" >
         <param name="node_name" value="forward_thruster_pid" />
         <param name="Kp" value="8" />
@@ -106,7 +107,8 @@
         <param name="setpoint_topic" value="vertical_thruster/setpoint" />
         <param name="pid_enable_topic" value="vertical_thruster/pid_enable" />
     </node>
-<!--
+-->
+<!-- Note: This was previously commented out before PID removal
     <node name="lateral_thruster_pid" pkg="pid" type="controller" ns="v1" output="screen" >
         <param name="node_name" value="lateral_thruster_pid" />
         <param name="Kp" value="8" />
@@ -124,6 +126,7 @@
         <param name="pid_enable_topic" value="lateral_thruster/pid_enable" />
     </node>
 -->
+<!--
     <node name="rudder_pid" pkg="pid" type="controller" ns="v1" >
         <param name="node_name" value="rudder_pid" />
         <param name="Kp" value="-30" />
@@ -140,6 +143,7 @@
         <param name="setpoint_topic" value="rudder/setpoint" />
         <param name="pid_enable_topic" value="rudder/pid_enable" />
     </node>
+-->
 
 
     <!--Navigation-->
@@ -158,7 +162,7 @@
         <rosparam param="hertz">1</rosparam>
         <rosparam param="fail_time">5011200</rosparam>
         <rosparam param="cancel_timeout">60</rosparam>
-        
+
         <remap from="primary_navigation" to="nav_filters/true_nav" />
     </node>
 
