@@ -2,7 +2,7 @@
     <!--Simulation-->
     <node pkg="underwater_vehicle_sim" type="underwater_vehicle_sim_node" name="vehicle_sim" ns="v1">
         <rosparam param="sim_hertz">10</rosparam>
-        <rosparam param="start_x">-1432.16016854</rosparam>
+        <rosparam param="start_x">1432.16016854</rosparam>
         <rosparam param="start_y">-1054.18858199</rosparam>
 
         <rosparam param="start_z">1</rosparam>
@@ -152,7 +152,7 @@
     </node>
 
     <param name="use_sim_time" value="true" />
-    <rosparam param="speed_up_factor">75</rosparam>
+    <rosparam param="speed_up_factor">50</rosparam>
     <rosparam param="sim_start_time">2592000</rosparam>
 
 <!--

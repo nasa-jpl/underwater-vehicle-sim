@@ -74,8 +74,15 @@ def dye_plot(fvcomData, plotType, siglays, minColor=-1, maxColor=-1):
             x.append(d[0])
             y.append(d[1])
             z.append(d[2][siglay])
-            depth.append(d[3]),
-            dye.append(d[4][siglay])
+            depth.append(d[3])
+
+            if(d[4][siglay] >= 0125):
+                dye.append(d[4][siglay])
+            else:
+                dye.append(0)
+
+    if len(x) == 0:
+        return
 
     print("Depth Range: " + str(min(z)) + " " + str(max(z)))
 
@@ -108,7 +115,7 @@ def dye_plot(fvcomData, plotType, siglays, minColor=-1, maxColor=-1):
 
         cf = ax.scatter(x, y, c=dye, vmin=minColor, vmax=maxColor, cmap="plasma", linewidth=0, norm=colors.SymLogNorm(1))
         cbar = fig.colorbar(cf, ax=ax)
-        cbar.ax.tick_params(labelsize=16) 
+        cbar.ax.tick_params(labelsize=16)
         cbar.set_label("Neutrally Buoyant Tracer", fontsize=16)
         ax.set_xlabel('X (m)', fontsize=16)
         ax.set_ylabel('Y (m)', fontsize=16)
@@ -157,7 +164,7 @@ def main():
     outputDir = sys.argv[3]
 
     fvcomData = loadFVCOM(fvcomFile, 1)
-    fvcomData = filterXY(fvcomData, (-1500, 1500), (-1500, 1500))
+    fvcomData = filterXY(fvcomData, (-10000, 10000), (-10000, 10000))
 
     #bathymetry_plot(fvcomData, plotType)
  #   dye_plot(fvcomData, plotType, range(90, 127, 3), minColor=0, maxColor=100)
@@ -167,7 +174,7 @@ def main():
         print("Output: " + str(i))
         dye_plot(fvcomData, plotType, [i], minColor=0, maxColor=100)
 
-        filename = format(i, '03') + ".png"        
+        filename = format(i, '03') + ".png"
         plt.savefig(os.path.join(outputDir, filename), bbox_inches='tight', dpi=500)
         plt.close()
 

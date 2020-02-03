@@ -53,6 +53,8 @@ int main(int argc,      // Number of strings in array argv
     std::vector<double> ys;
     std::vector<ros::Time> times;
 
+    std::cout << "Getting data from model\n";
+
     // take a sample, 1 out of every 10
     int progress = 0;
     std::cout << "Reading from bag\n";
