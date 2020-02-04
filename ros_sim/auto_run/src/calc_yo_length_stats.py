@@ -1,7 +1,7 @@
 import rosbag
 import sys, math
 import argparse
-import numpy
+import numpy as np
 
 # calc score from bag file
 # score is x,y distance from vent source
