@@ -10,7 +10,7 @@
 
 #include "underwater_vehicle_msgs/VehicleData.h"
 
-#include "vehicle_auto_control/PropulsionController.h"
+#include "propulsion_controller/PropulsionController.h"
 
 #include "uth/UthPropulsionLogic.h"
 

@@ -18,11 +18,7 @@
 
 using namespace underwater_autonomy;
 
-PointPathSimActionExecutor::PointPathSimActionExecutor(VehicleInfo& vehicleInfo) :
-    PointPathSimActionExecutor(ros::NodeHandle(), vehicleInfo)
-{}
-
-PointPathSimActionExecutor::PointPathSimActionExecutor(ros::NodeHandle nh, VehicleInfo& vehicleInfo) :
+PointPathSimActionExecutor::PointPathSimActionExecutor(ros::NodeHandle& nh, VehicleInfo& vehicleInfo) :
     vehicleInfo(vehicleInfo),
     replanNextUpdate(false),
     lastReplan(ros::Time::now()),
@@ -57,7 +53,6 @@ bool PointPathSimActionExecutor::execute(std::shared_ptr<PointPathAction> action
         velMsg.angular.z = action->getTargetRotationalVelocity();
     
         velPub.publish(velMsg);
-
     }
     else //If the prop module is not known then this cannot be completed
     {
@@ -73,7 +68,6 @@ bool PointPathSimActionExecutor::execute(std::shared_ptr<PointPathAction> action
         return false;
     }
 
-
     //Creates an action goal and sends it to the action server for point path movement
     if(!action->isDone())
     {
@@ -85,18 +79,14 @@ bool PointPathSimActionExecutor::execute(std::shared_ptr<PointPathAction> action
         action->setState(Action::State::COMPLETED);
         ROS_INFO("Point path action completed");
     }
-    
-    lastUpdate = ros::Time::now();
+
+    lastReplan = ros::Time::now();
     distanceSinceReplan = 0;
     return true;
 }
 
 void PointPathSimActionExecutor::monitor(std::shared_ptr<underwater_autonomy::PointPathAction> action)
 {
-    ros::Time currentTime = ros::Time::now();
-    currentDuration += currentTime - lastUpdate;
-    lastUpdate = currentTime;
-
     Eigen::Vector3d currentTargetPoint = action->getCurrentTargetPoint();
 
     if(gotCompleteCallback && 
@@ -115,31 +105,36 @@ void PointPathSimActionExecutor::monitor(std::shared_ptr<underwater_autonomy::Po
         {
             sendNextGoToXYGoal(action);
         }
+        replanNextUpdate = action->doReplan(true,
+                                            (ros::Time::now() - lastReplan).toSec(),
+                                            distanceSinceReplan);
     }
-    else if(action->getState() == Action::State::INTERRUPTING)
-    {
-        propulsion_controller::PropulsionControllerState srv;
-        propStateClient.call(srv);
-
-        if(!srv.response.xyEnabled)
-        {
-            action->setInterruptPoint(currentPose.getPosition());
-            action->setState(Action::State::INTERRUPTED);
-        }
-    }
-    
-    if(action->getTimeout() >= 0 && currentDuration.toSec() >= action->getTimeout())
+    else if(!action->inOperationRegion(currentPose.getPosition()))
     {
         action->setState(Action::State::FAILED);
+
         std_msgs::Bool enableMsg;
         enableMsg.data = false;
         goToXYEnablePub.publish(enableMsg);
     }
+    else if(action->getState() == Action::State::INTERRUPTING)
+    {
+        if(propStateClient.exists())
+        {
+            propulsion_controller::PropulsionControllerState srv;
+            propStateClient.call(srv);
 
+            if(!srv.response.xyEnabled)
+            {
+                action->setInterruptPoint(currentPose.getPosition());
+                action->setState(Action::State::INTERRUPTED);
+            }
+        }
+    }
+    
     if(!replanNextUpdate)
     {
-        bool replan = !action->getDoInterruptPoint();
-        replanNextUpdate = action->doReplan(replan,
+        replanNextUpdate = action->doReplan(false,
                                             (ros::Time::now() - lastReplan).toSec(),
                                             distanceSinceReplan);
     }

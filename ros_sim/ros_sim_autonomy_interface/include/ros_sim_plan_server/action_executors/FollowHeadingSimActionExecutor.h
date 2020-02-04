@@ -23,8 +23,7 @@ class FollowHeadingSimActionExecutor : public underwater_autonomy::ActionExecuto
                                        public SimActionExecutorFactoryMethod<FollowHeadingSimActionExecutor>
 {
 public:
-    FollowHeadingSimActionExecutor(VehicleInfo& info);
-    FollowHeadingSimActionExecutor(ros::NodeHandle nh, VehicleInfo& vehicleInfo);
+    FollowHeadingSimActionExecutor(ros::NodeHandle& nh, VehicleInfo& vehicleInfo);
 
     FollowHeadingSimActionExecutor(const FollowHeadingSimActionExecutor&&) = delete;
     FollowHeadingSimActionExecutor(const FollowHeadingSimActionExecutor&) = delete;
@@ -64,14 +63,11 @@ private:
     ros::Subscriber followHeadingComplete;
 
     ros::ServiceClient propStateClient;
-
+    
     bool replanNextUpdate;
     ros::Time lastReplan;
     double distanceSinceReplan;
     
-    ros::Time lastUpdate;
-    ros::Duration currentDuration;
-
     tf2::Vector3 lastLocation;
     ros::Publisher velPub;
     ros::Subscriber poseSub;

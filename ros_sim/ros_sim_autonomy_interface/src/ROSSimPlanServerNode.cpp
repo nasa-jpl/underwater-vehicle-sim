@@ -19,6 +19,8 @@
 
 #include "data_server/GetLatestData.h"
 
+#include "underwater_autonomy/planner/actions/CombinedMoveActionExecutor.h"
+
 #include "ros_sim_plan_server/action_executors/YoYoSimActionExecutor.h"
 #include "ros_sim_plan_server/action_executors/HoldDepthSimActionExecutor.h"
 #include "ros_sim_plan_server/action_executors/PointPathSimActionExecutor.h"
@@ -64,12 +66,14 @@ int main(int argc, char **argv)
     vehicleInfoClient.call(getInfo);
     VehicleInfo info(getInfo);
 
-    YoYoAction::setExecutorCreateFunction(std::bind(&YoYoSimActionExecutor::create, info));
-    HoldDepthAction::setExecutorCreateFunction(std::bind(&HoldDepthSimActionExecutor::create, info));
-    PointPathAction::setExecutorCreateFunction(std::bind(&PointPathSimActionExecutor::create, info));
-    FollowHeadingAction::setExecutorCreateFunction(std::bind(&FollowHeadingSimActionExecutor::create, info));
-
     ROSSimVehicleInterface interface(info);
+
+    CombinedMoveAction::setExecutorCreateFunction(std::bind(&CombinedMoveActionExecutor::create, std::ref(interface)));
+    YoYoAction::setExecutorCreateFunction(std::bind(&YoYoSimActionExecutor::create, nh, info));
+    HoldDepthAction::setExecutorCreateFunction(std::bind(&HoldDepthSimActionExecutor::create, nh, info));
+    PointPathAction::setExecutorCreateFunction(std::bind(&PointPathSimActionExecutor::create, nh, info));
+    FollowHeadingAction::setExecutorCreateFunction(std::bind(&FollowHeadingSimActionExecutor::create, nh, info));
+
 
     std::string configFilename;
     nhPriv.getParam("planner_config_file", configFilename);

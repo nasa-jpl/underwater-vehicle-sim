@@ -16,28 +16,43 @@
 #include "underwater_vehicle_msgs/GoToXY.h"
 
 #include "ros_sim_plan_server/action_executors/PointPathSimActionExecutor.h"
+#include "propulsion_controller/PropulsionControllerState.h"
+#include "underwater_autonomy/util/BoxOperationRegion.h"
 
 
 using namespace underwater_autonomy;
 
+std::shared_ptr<PointPathAction> actionExecutePropModuleTypeFail;
+std::shared_ptr<PointPathAction> actionExecuteAndCancel;
+std::shared_ptr<PointPathAction> actionExecuteAndSucceed;
+std::shared_ptr<PointPathAction> actionExecuteAndOutOfRegion;
+std::shared_ptr<PointPathAction> actionTimeReplan;
+std::shared_ptr<PointPathAction> actionDistanceReplan;
+std::shared_ptr<PointPathAction> actionPointReachedReplan;
+
+bool xyStateCancel = true;
+bool propStateCancel(propulsion_controller::PropulsionControllerState::Request  &req, 
+               propulsion_controller::PropulsionControllerState::Response &res) 
+{
+    res.xyEnabled = xyStateCancel; 
+    return true;
+};
+
+bool propStateSucceed(propulsion_controller::PropulsionControllerState::Request  &req, 
+               propulsion_controller::PropulsionControllerState::Response &res) 
+{
+    res.xyEnabled = 0; 
+    return true;
+};
+
+
 TEST(PointPathSimActionExecutor, ExecutePropModuleTypeFail)
 {
     ros::NodeHandle nh("ExecutePropModuleTypeFail");
-    std::vector<Eigen::Vector3d> points;
-    std::shared_ptr<PointPathAction> action(new PointPathAction(points,
-                                                                0,
-                                                                0,
-                                                                0,
-                                                                NULL,
-                                                                PointPathAction::ReplanType::NONE,
-                                                                0));
 
-                                                            
-    underwater_vehicle_msgs::GetVehicleInfo infoMsg;
-    infoMsg.response.propModuleType = "Invalid";
-    VehicleInfo info(infoMsg);
-    PointPathSimActionExecutor executor(nh, info);
-    EXPECT_FALSE(executor.execute(action));
+    actionExecutePropModuleTypeFail->execute(ros::Time::now().toSec());
+    EXPECT_EQ(Action::State::FAILED, actionExecutePropModuleTypeFail->getState());
+
 }
 
 TEST(PointPathSimActionExecutor, ExecuteAndCancel)
@@ -64,23 +79,14 @@ TEST(PointPathSimActionExecutor, ExecuteAndCancel)
     auto goToXYEnable = [&] (const ros::MessageEvent< std_msgs::Bool const >& enable) {goToXYEnableCalls++;};
 	ros::Subscriber goToXYEnableSub = nh.subscribe<std_msgs::Bool>("go_to_xy_enable", 10, goToXYEnable);
 
-    std::vector<Eigen::Vector3d> points;
-    points.push_back(Eigen::Vector3d(1,2,3));
-    points.push_back(Eigen::Vector3d(2,3,4));
-    std::shared_ptr<PointPathAction> action(new PointPathAction(points,
-                                                                1,
-                                                                2,
-                                                                3,
-                                                                NULL,
-                                                                PointPathAction::ReplanType::PERIODIC_TIME,
-                                                                3));
+    ros::ServiceServer stateService = nh.advertiseService("get_propulsion_state", propStateCancel);
+    ros::ServiceClient propStateClient = nh.serviceClient<propulsion_controller::PropulsionControllerState>("get_propulsion_state");
+    while(!propStateClient.exists()) {ros::spinOnce();}
 
-    underwater_vehicle_msgs::GetVehicleInfo infoMsg;
-    infoMsg.response.propModuleType = "FourDOFPropulsion";
-    VehicleInfo info(infoMsg);
-    PointPathSimActionExecutor executor(nh, info);
+    ros::AsyncSpinner spinner(1);
+    spinner.start();
 
-    EXPECT_TRUE(executor.execute(action));
+    actionExecuteAndCancel->execute(ros::Time::now().toSec());
 
     while(latestVelMsg == NULL)
     {
@@ -95,98 +101,34 @@ TEST(PointPathSimActionExecutor, ExecuteAndCancel)
     }
     EXPECT_EQ(1, goToXYCalls);
 
-    while(action->getState() != Action::State::EXECUTING)
+    while(actionExecuteAndCancel->getState() != Action::State::EXECUTING)
     {
         ros::spinOnce();
     }
-    EXPECT_EQ(Action::State::EXECUTING, action->getState());
+    EXPECT_EQ(Action::State::EXECUTING, actionExecuteAndCancel->getState());
     EXPECT_EQ(1, x);
     EXPECT_EQ(2, y);
 
-    executor.cancel(action);
+    actionExecuteAndCancel->cancel(ros::Time::now().toSec());
     while(goToXYEnableCalls != 1)
     {
         ros::spinOnce();
     }
     EXPECT_EQ(1, goToXYEnableCalls);
 
-    while(action->getState() != Action::State::INTERRUPTED)
+    EXPECT_EQ(Action::State::INTERRUPTING, actionExecuteAndCancel->getState());
+    actionExecuteAndCancel->monitor(ros::Time::now().toSec());
+    EXPECT_EQ(Action::State::INTERRUPTING, actionExecuteAndCancel->getState());
+
+    xyStateCancel = false;
+    actionExecuteAndCancel->monitor(ros::Time::now().toSec());
+
+    while(actionExecuteAndCancel->getState() != Action::State::INTERRUPTED)
     {
         ros::spinOnce();
     }
-    EXPECT_EQ(Action::State::INTERRUPTED, action->getState());
-}
-
-TEST(PointPathSimActionExecutor, ExecuteAndTimeout)
-{
-    ros::NodeHandle nh("ExecuteAndTimeout");
-
-    geometry_msgs::Twist::ConstPtr latestVelMsg = NULL;
-    auto velCB = [&] (geometry_msgs::Twist::ConstPtr val)
-    { latestVelMsg = val; };
-    ros::Subscriber velSub = nh.subscribe<geometry_msgs::Twist>("command_target_velocity", 1, velCB);
-    ros::Publisher posePub = nh.advertise<nav_msgs::Odometry>("primary_navigation", 2);
-
-    double x = 0;
-    double y = 0;
-    unsigned int goToXYCalls = 0;
-    auto goToXY = [&] (const ros::MessageEvent< underwater_vehicle_msgs::GoToXY const >& goToXY) 
-    {x = goToXY.getConstMessage().get()->x;
-     y = goToXY.getConstMessage().get()->y;
-     goToXYCalls++;};
-
-	ros::Subscriber goToXYSub = nh.subscribe<underwater_vehicle_msgs::GoToXY>("go_to_xy", 10, goToXY);
-
-    unsigned int goToXYEnableCalls = 0;
-    auto goToXYEnable = [&] (const ros::MessageEvent< std_msgs::Bool const >& enable) {goToXYEnableCalls++;};
-	ros::Subscriber goToXYEnableSub = nh.subscribe<std_msgs::Bool>("go_to_xy_enable", 10, goToXYEnable);
-
-    std::vector<Eigen::Vector3d> points;
-    points.push_back(Eigen::Vector3d(1,2,3));
-    points.push_back(Eigen::Vector3d(2,3,4));
-    std::shared_ptr<PointPathAction> action(new PointPathAction(points,
-                                                                1,
-                                                                2,
-                                                                1,
-                                                                NULL,
-                                                                PointPathAction::ReplanType::PERIODIC_TIME,
-                                                                3));
-
-    underwater_vehicle_msgs::GetVehicleInfo infoMsg;
-    infoMsg.response.propModuleType = "FourDOFPropulsion";
-    VehicleInfo info(infoMsg);
-    PointPathSimActionExecutor executor(nh, info);
-
-    EXPECT_TRUE(executor.execute(action));
-
-    while(latestVelMsg == NULL)
-    {
-        ros::spinOnce();
-    }
-    EXPECT_EQ(1, latestVelMsg->linear.x);
-    EXPECT_EQ(2, latestVelMsg->angular.z);
-
-    while(goToXYCalls != 1)
-    {
-        ros::spinOnce();
-    }
-    EXPECT_EQ(1, goToXYCalls);
-
-    while(action->getState() != Action::State::EXECUTING)
-    {
-        ros::spinOnce();
-    }
-    EXPECT_EQ(Action::State::EXECUTING, action->getState());
-    EXPECT_EQ(1, x);
-    EXPECT_EQ(2, y);
-
-    ros::Duration(1).sleep();
-    executor.monitor(action);
-    while(action->getState() != Action::State::FAILED)
-    {
-        ros::spinOnce();
-    }
-    EXPECT_EQ(Action::State::FAILED, action->getState());
+    EXPECT_EQ(Action::State::INTERRUPTED, actionExecuteAndCancel->getState());
+    spinner.stop();
 }
 
 TEST(PointPathSimActionExecutor, ExecuteAndSucceed)
@@ -215,25 +157,15 @@ TEST(PointPathSimActionExecutor, ExecuteAndSucceed)
 
     ros::Publisher goToXYCompletePub = nh.advertise<underwater_vehicle_msgs::GoToXYComplete>("go_to_xy_complete", 2);
 
-    std::vector<Eigen::Vector3d> points;
-    points.push_back(Eigen::Vector3d(1,2,3));
-    points.push_back(Eigen::Vector3d(2,3,4));
-    points.push_back(Eigen::Vector3d(3,4,5));
-    std::shared_ptr<PointPathAction> action(new PointPathAction(points,
-                                                                1,
-                                                                2,
-                                                                3,
-                                                                NULL,
-                                                                PointPathAction::ReplanType::NONE,
-                                                                3));
+    ros::ServiceServer stateService = nh.advertiseService("get_propulsion_state", propStateSucceed);
+    ros::ServiceClient propStateClient = nh.serviceClient<propulsion_controller::PropulsionControllerState>("get_propulsion_state");
+    while(!propStateClient.exists()) {ros::spinOnce();}
 
-    underwater_vehicle_msgs::GetVehicleInfo infoMsg;
-    infoMsg.response.propModuleType = "FourDOFPropulsion";
-    VehicleInfo info(infoMsg);
-    PointPathSimActionExecutor executor(nh, info);
+    ros::AsyncSpinner spinner(1);
+    spinner.start();
 
     //Execute Action
-    EXPECT_TRUE(executor.execute(action));
+    actionExecuteAndSucceed->execute(ros::Time::now().toSec());
 
     while(latestVelMsg == NULL)
     {
@@ -248,11 +180,11 @@ TEST(PointPathSimActionExecutor, ExecuteAndSucceed)
     }
     EXPECT_EQ(1, goToXYCalls);
 
-    while(action->getState() != Action::State::EXECUTING)
+    while(actionExecuteAndSucceed->getState() != Action::State::EXECUTING)
     {
         ros::spinOnce();
     }
-    EXPECT_EQ(Action::State::EXECUTING, action->getState());
+    EXPECT_EQ(Action::State::EXECUTING, actionExecuteAndSucceed->getState());
     EXPECT_EQ(1, x);
     EXPECT_EQ(2, y);
 
@@ -271,7 +203,7 @@ TEST(PointPathSimActionExecutor, ExecuteAndSucceed)
     goToXYCompletePub.publish(completeMsg);
     ros::WallDuration(0.5).sleep();
     ros::spinOnce();
-    executor.monitor(action);
+    actionExecuteAndSucceed->monitor(ros::Time::now().toSec());
 
     while(goToXYCalls != 2)
     {
@@ -282,33 +214,32 @@ TEST(PointPathSimActionExecutor, ExecuteAndSucceed)
     EXPECT_EQ(3, y);
 
     //Cancel Action
-    executor.cancel(action);
+    actionExecuteAndSucceed->cancel(ros::Time::now().toSec());
+
+
+    
     while(goToXYEnableCalls != 1)
     {
         ros::spinOnce();
     }
     EXPECT_EQ(1, goToXYEnableCalls);
 
-    while(action->getState() != Action::State::INTERRUPTED)
-    {
-        ros::spinOnce();
-    }
-    EXPECT_EQ(Action::State::INTERRUPTED, action->getState());
-
+    actionExecuteAndSucceed->monitor(ros::Time::now().toSec());
+    EXPECT_EQ(Action::State::INTERRUPTED, actionExecuteAndSucceed->getState());
 
     //Restart Action
-    executor.execute(action);
+    actionExecuteAndSucceed->execute(ros::Time::now().toSec());
     while(goToXYCalls != 3)
     {
         ros::spinOnce();
     }
     EXPECT_EQ(3, goToXYCalls);
 
-    while(action->getState() != Action::State::EXECUTING)
+    while(actionExecuteAndSucceed->getState() != Action::State::EXECUTING)
     {
         ros::spinOnce();
     }
-    EXPECT_EQ(Action::State::EXECUTING, action->getState());
+    EXPECT_EQ(Action::State::EXECUTING, actionExecuteAndSucceed->getState());
     EXPECT_EQ(100, x);
     EXPECT_EQ(-100, y);
 
@@ -317,7 +248,7 @@ TEST(PointPathSimActionExecutor, ExecuteAndSucceed)
     goToXYCompletePub.publish(completeMsg);
     ros::WallDuration(0.5).sleep();
     ros::spinOnce();
-    executor.monitor(action);
+    actionExecuteAndSucceed->monitor(ros::Time::now().toSec());
 
     while(goToXYCalls != 4)
     {
@@ -325,11 +256,11 @@ TEST(PointPathSimActionExecutor, ExecuteAndSucceed)
     }
     EXPECT_EQ(4, goToXYCalls);
 
-    while(action->getState() != Action::State::EXECUTING)
+    while(actionExecuteAndSucceed->getState() != Action::State::EXECUTING)
     {
         ros::spinOnce();
     }
-    EXPECT_EQ(Action::State::EXECUTING, action->getState());
+    EXPECT_EQ(Action::State::EXECUTING, actionExecuteAndSucceed->getState());
     EXPECT_EQ(2, x);
     EXPECT_EQ(3, y);
 
@@ -338,7 +269,7 @@ TEST(PointPathSimActionExecutor, ExecuteAndSucceed)
     goToXYCompletePub.publish(completeMsg);
     ros::WallDuration(0.5).sleep();
     ros::spinOnce();
-    executor.monitor(action);
+    actionExecuteAndSucceed->monitor(ros::Time::now().toSec());
 
     while(goToXYCalls != 5)
     {
@@ -346,11 +277,11 @@ TEST(PointPathSimActionExecutor, ExecuteAndSucceed)
     }
     EXPECT_EQ(5, goToXYCalls);
 
-    while(action->getState() != Action::State::EXECUTING)
+    while(actionExecuteAndSucceed->getState() != Action::State::EXECUTING)
     {
         ros::spinOnce();
     }
-    EXPECT_EQ(Action::State::EXECUTING, action->getState());
+    EXPECT_EQ(Action::State::EXECUTING, actionExecuteAndSucceed->getState());
     EXPECT_EQ(3, x);
     EXPECT_EQ(4, y);
 
@@ -359,13 +290,75 @@ TEST(PointPathSimActionExecutor, ExecuteAndSucceed)
     goToXYCompletePub.publish(completeMsg);
     ros::WallDuration(0.5).sleep();
     ros::spinOnce();
-    executor.monitor(action);
+    actionExecuteAndSucceed->monitor(ros::Time::now().toSec());
 
-    while(action->getState() != Action::State::COMPLETED)
+    while(actionExecuteAndSucceed->getState() != Action::State::COMPLETED)
     {
         ros::spinOnce();
     }
-    EXPECT_EQ(Action::State::COMPLETED, action->getState());
+    EXPECT_EQ(Action::State::COMPLETED, actionExecuteAndSucceed->getState());
+    spinner.stop();
+}
+
+TEST(PointPathSimActionExecutor, ExecuteAndOutOfRegion)
+{
+    ros::NodeHandle nh("ExecuteAndOutOfRegion");
+
+    geometry_msgs::Twist::ConstPtr latestVelMsg = NULL;
+    auto velCB = [&] (geometry_msgs::Twist::ConstPtr val)
+    { latestVelMsg = val; };
+    ros::Subscriber velSub = nh.subscribe<geometry_msgs::Twist>("command_target_velocity", 1, velCB);
+    ros::Publisher posePub = nh.advertise<nav_msgs::Odometry>("primary_navigation", 2);
+
+    double x = 0;
+    double y = 0;
+    unsigned int goToXYCalls = 0;
+    auto goToXY = [&] (const ros::MessageEvent< underwater_vehicle_msgs::GoToXY const >& goToXY) 
+    {x = goToXY.getConstMessage().get()->x;
+     y = goToXY.getConstMessage().get()->y;
+     goToXYCalls++;};
+
+	ros::Subscriber goToXYSub = nh.subscribe<underwater_vehicle_msgs::GoToXY>("go_to_xy", 10, goToXY);
+
+    unsigned int goToXYEnableCalls = 0;
+    auto goToXYEnable = [&] (const ros::MessageEvent< std_msgs::Bool const >& enable) {goToXYEnableCalls++;};
+	ros::Subscriber goToXYEnableSub = nh.subscribe<std_msgs::Bool>("go_to_xy_enable", 10, goToXYEnable);
+
+    actionExecuteAndOutOfRegion->execute(ros::Time::now().toSec());
+    while(latestVelMsg == NULL)
+    {
+        ros::spinOnce();
+    }
+    EXPECT_EQ(1, latestVelMsg->linear.x);
+    EXPECT_EQ(2, latestVelMsg->angular.z);
+
+    while(goToXYCalls != 1)
+    {
+        ros::spinOnce();
+    }
+    EXPECT_EQ(1, goToXYCalls);
+
+    while(actionExecuteAndOutOfRegion->getState() != Action::State::EXECUTING)
+    {
+        ros::spinOnce();
+    }
+    EXPECT_EQ(Action::State::EXECUTING, actionExecuteAndOutOfRegion->getState());
+
+    nav_msgs::Odometry poseMsg;
+    poseMsg.pose.pose.position.x = 1000;
+    poseMsg.pose.pose.position.y = 0;
+    poseMsg.pose.pose.position.z = 0;
+
+    posePub.publish(poseMsg);
+
+    
+    while(actionExecuteAndOutOfRegion->getState() != Action::State::FAILED)
+    {
+        actionExecuteAndOutOfRegion->monitor(ros::Time::now().toSec());
+        ros::spinOnce();
+    }
+    EXPECT_EQ(Action::State::FAILED, actionExecuteAndOutOfRegion->getState());
+
 }
 
 TEST(PointPathSimActionExecutor, TimeReplan)
@@ -394,24 +387,8 @@ TEST(PointPathSimActionExecutor, TimeReplan)
 
     ros::Publisher goToXYCompletePub = nh.advertise<underwater_vehicle_msgs::GoToXYComplete>("go_to_xy_complete", 2);
 
-    std::vector<Eigen::Vector3d> points;
-    points.push_back(Eigen::Vector3d(1,2,3));
-    points.push_back(Eigen::Vector3d(2,3,4));
-    std::shared_ptr<PointPathAction> action(new PointPathAction(points,
-                                                                1,
-                                                                2,
-                                                                3,
-                                                                NULL,
-                                                                PointPathAction::ReplanType::PERIODIC_TIME,
-                                                                3));
 
-    underwater_vehicle_msgs::GetVehicleInfo infoMsg;
-    infoMsg.response.propModuleType = "FourDOFPropulsion";
-    VehicleInfo info(infoMsg);
-    PointPathSimActionExecutor executor(nh, info);
-
-
-    EXPECT_TRUE(executor.execute(action));
+    actionTimeReplan->execute(ros::Time::now().toSec());
 
     while(latestVelMsg == NULL)
     {
@@ -426,11 +403,11 @@ TEST(PointPathSimActionExecutor, TimeReplan)
     }
     EXPECT_EQ(1, goToXYCalls);
 
-    while(action->getState() != Action::State::EXECUTING)
+    while(actionTimeReplan->getState() != Action::State::EXECUTING)
     {
         ros::spinOnce();
     }
-    EXPECT_EQ(Action::State::EXECUTING, action->getState());
+    EXPECT_EQ(Action::State::EXECUTING, actionTimeReplan->getState());
     EXPECT_EQ(1, x);
     EXPECT_EQ(2, y);
 
@@ -441,9 +418,9 @@ TEST(PointPathSimActionExecutor, TimeReplan)
     goToXYCompletePub.publish(completeMsg);
     ros::WallDuration(3).sleep();
     ros::spinOnce();
-    executor.monitor(action);
-    EXPECT_TRUE(executor.triggerReplan(action));
-    EXPECT_FALSE(executor.triggerReplan(action));
+    actionTimeReplan->monitor(ros::Time::now().toSec());
+    EXPECT_TRUE(actionTimeReplan->triggerReplan());
+    EXPECT_FALSE(actionTimeReplan->triggerReplan());
 }
 
 
@@ -473,23 +450,7 @@ TEST(PointPathSimActionExecutor, DistanceReplan)
 
     ros::Publisher goToXYCompletePub = nh.advertise<underwater_vehicle_msgs::GoToXYComplete>("go_to_xy_complete", 2);
 
-    std::vector<Eigen::Vector3d> points;
-    points.push_back(Eigen::Vector3d(1,2,3));
-    points.push_back(Eigen::Vector3d(2,3,4));
-    std::shared_ptr<PointPathAction> action(new PointPathAction(points,
-                                                                1,
-                                                                2,
-                                                                3,
-                                                                NULL,
-                                                                PointPathAction::ReplanType::PERIODIC_DISTANCE,
-                                                                3));
-
-    underwater_vehicle_msgs::GetVehicleInfo infoMsg;
-    infoMsg.response.propModuleType = "FourDOFPropulsion";
-    VehicleInfo info(infoMsg);
-    PointPathSimActionExecutor executor(nh, info);
-
-    EXPECT_TRUE(executor.execute(action));
+    actionDistanceReplan->execute(ros::Time::now().toSec());
 
     while(latestVelMsg == NULL)
     {
@@ -504,11 +465,11 @@ TEST(PointPathSimActionExecutor, DistanceReplan)
     }
     EXPECT_EQ(1, goToXYCalls);
 
-    while(action->getState() != Action::State::EXECUTING)
+    while(actionDistanceReplan->getState() != Action::State::EXECUTING)
     {
         ros::spinOnce();
     }
-    EXPECT_EQ(Action::State::EXECUTING, action->getState());
+    EXPECT_EQ(Action::State::EXECUTING, actionDistanceReplan->getState());
     EXPECT_EQ(1, x);
     EXPECT_EQ(2, y);
 
@@ -520,8 +481,8 @@ TEST(PointPathSimActionExecutor, DistanceReplan)
     ros::WallDuration(3).sleep();
     ros::spinOnce();
 
-    executor.monitor(action);
-    EXPECT_FALSE(executor.triggerReplan(action));
+    actionDistanceReplan->monitor(ros::Time::now().toSec());
+    EXPECT_FALSE(actionDistanceReplan->triggerReplan());
     
     nav_msgs::Odometry poseMsg;
     poseMsg.pose.pose.position.x = 3.1;
@@ -534,14 +495,84 @@ TEST(PointPathSimActionExecutor, DistanceReplan)
 
     while(!replan)
     {
-        executor.monitor(action);
-        replan = executor.triggerReplan(action);
+        actionDistanceReplan->monitor(ros::Time::now().toSec());
+        replan = actionDistanceReplan->triggerReplan();
         ros::spinOnce();
     }
     EXPECT_TRUE(replan);
-    EXPECT_FALSE(executor.triggerReplan(action));
+    EXPECT_FALSE(actionDistanceReplan->triggerReplan());
 }
 
+TEST(PointPathSimActionExecutor, PointReachedReplan)
+{
+    ros::NodeHandle nh("PointReachedReplan");
+
+    geometry_msgs::Twist::ConstPtr latestVelMsg = NULL;
+    auto velCB = [&] (geometry_msgs::Twist::ConstPtr val)
+    { latestVelMsg = val; };
+    ros::Subscriber velSub = nh.subscribe<geometry_msgs::Twist>("command_target_velocity", 1, velCB);
+    ros::Publisher posePub = nh.advertise<nav_msgs::Odometry>("primary_navigation", 2);
+
+    double x = 0;
+    double y = 0;
+    unsigned int goToXYCalls = 0;
+    auto goToXY = [&] (const ros::MessageEvent< underwater_vehicle_msgs::GoToXY const >& goToXY) 
+    {x = goToXY.getConstMessage().get()->x;
+     y = goToXY.getConstMessage().get()->y;
+     goToXYCalls++;};
+
+	ros::Subscriber goToXYSub = nh.subscribe<underwater_vehicle_msgs::GoToXY>("go_to_xy", 10, goToXY);
+
+    unsigned int goToXYEnableCalls = 0;
+    auto goToXYEnable = [&] (const ros::MessageEvent< std_msgs::Bool const >& enable) {goToXYEnableCalls++;};
+	ros::Subscriber goToXYEnableSub = nh.subscribe<std_msgs::Bool>("go_to_xy_enable", 10, goToXYEnable);
+
+    ros::Publisher goToXYCompletePub = nh.advertise<underwater_vehicle_msgs::GoToXYComplete>("go_to_xy_complete", 2);
+
+    actionPointReachedReplan->execute(ros::Time::now().toSec());
+
+    while(latestVelMsg == NULL)
+    {
+        ros::spinOnce();
+    }
+    EXPECT_EQ(1, latestVelMsg->linear.x);
+    EXPECT_EQ(2, latestVelMsg->angular.z);
+
+    while(goToXYCalls != 1)
+    {
+        ros::spinOnce();
+    }
+    EXPECT_EQ(1, goToXYCalls);
+
+    while(actionPointReachedReplan->getState() != Action::State::EXECUTING)
+    {
+        ros::spinOnce();
+    }
+    EXPECT_EQ(Action::State::EXECUTING, actionPointReachedReplan->getState());
+    EXPECT_EQ(1, x);
+    EXPECT_EQ(2, y);
+
+    actionPointReachedReplan->monitor(ros::Time::now().toSec());
+    EXPECT_FALSE(actionPointReachedReplan->triggerReplan());
+
+    underwater_vehicle_msgs::GoToXYComplete completeMsg;
+    completeMsg.x = 1;
+    completeMsg.y = 2;
+
+    goToXYCompletePub.publish(completeMsg);
+    ros::WallDuration(3).sleep();
+    ros::spinOnce();
+
+    bool replan = false;
+    while(!replan)
+    {
+        actionPointReachedReplan->monitor(ros::Time::now().toSec());
+        replan = actionPointReachedReplan->triggerReplan();
+        ros::spinOnce();
+    }
+    EXPECT_TRUE(replan);
+    EXPECT_FALSE(actionPointReachedReplan->triggerReplan());
+}
 
 //Had issues doing this in the roslaunch file for this test. Not sure why.
 //Normally this can be included in the roslaunch file with the following
@@ -571,6 +602,90 @@ int main(int argc, char** argv){
     ros::init(argc, argv, "point_path_sim_action_executor");
 
     broadcastStaticTransform();
+
+    underwater_vehicle_msgs::GetVehicleInfo invalidInfoMsg;
+    invalidInfoMsg.response.propModuleType = "Invalid";
+    VehicleInfo invalidInfo(invalidInfoMsg);
+
+    underwater_vehicle_msgs::GetVehicleInfo infoMsg;
+    infoMsg.response.propModuleType = "FourDOFPropulsion";
+    VehicleInfo info(infoMsg);
+
+    ros::NodeHandle nhExecutePropModuleTypeFail("ExecutePropModuleTypeFail");
+    std::vector<Eigen::Vector3d> points;
+    points.push_back(Eigen::Vector3d(1,2,3));
+    points.push_back(Eigen::Vector3d(2,3,4));
+    points.push_back(Eigen::Vector3d(3,4,5));
+
+    PointPathAction::setExecutorCreateFunction(std::bind(&PointPathSimActionExecutor::create, nhExecutePropModuleTypeFail, invalidInfo));
+    actionExecutePropModuleTypeFail = std::shared_ptr<PointPathAction>(new PointPathAction(points,
+                                                                                            0,
+                                                                                            0,
+                                                                                            0,
+                                                                                            std::unique_ptr<OperationRegion>(new BoxOperationRegion()),
+                                                                                            PointPathAction::ReplanType::NONE,
+                                                                                            0));
+
+    ros::NodeHandle nhExecuteAndCancel("ExecuteAndCancel");
+    PointPathAction::setExecutorCreateFunction(std::bind(&PointPathSimActionExecutor::create, nhExecuteAndCancel, info));
+    actionExecuteAndCancel = std::shared_ptr<PointPathAction>(new PointPathAction(points,
+                                                                                    1,
+                                                                                    2,
+                                                                                    3,
+                                                                                    std::unique_ptr<OperationRegion>(new BoxOperationRegion()),
+                                                                                    PointPathAction::ReplanType::NONE,
+                                                                                    3));
+
+    ros::NodeHandle nhExecuteAndSucceed("ExecuteAndSucceed");
+    PointPathAction::setExecutorCreateFunction(std::bind(&PointPathSimActionExecutor::create, nhExecuteAndSucceed, info));
+    actionExecuteAndSucceed = std::shared_ptr<PointPathAction>(new PointPathAction(points,
+                                                                                    1,
+                                                                                    2,
+                                                                                    3,
+                                                                                    std::unique_ptr<OperationRegion>(new BoxOperationRegion()),
+                                                                                    PointPathAction::ReplanType::NONE,
+                                                                                    3));
+
+    ros::NodeHandle nhExecuteAndOutOfRegion("ExecuteAndOutOfRegion");
+    PointPathAction::setExecutorCreateFunction(std::bind(&PointPathSimActionExecutor::create, nhExecuteAndOutOfRegion, info));
+    actionExecuteAndOutOfRegion = std::shared_ptr<PointPathAction>(new PointPathAction(points,
+                                                                                        1,
+                                                                                        2,
+                                                                                        3,
+                                                                                        std::unique_ptr<OperationRegion>(new BoxOperationRegion(0, 0, 0, 100, 100, 100)),
+                                                                                        PointPathAction::ReplanType::NONE,
+                                                                                        3));
+
+    ros::NodeHandle nhTimeReplan("TimeReplan");
+    PointPathAction::setExecutorCreateFunction(std::bind(&PointPathSimActionExecutor::create, nhTimeReplan, info));
+    actionTimeReplan = std::shared_ptr<PointPathAction>(new PointPathAction(points,
+                                                                            1,
+                                                                            2,
+                                                                            3,
+                                                                            std::unique_ptr<OperationRegion>(new BoxOperationRegion()),
+                                                                            PointPathAction::ReplanType::PERIODIC_TIME,
+                                                                            3));
+
+    ros::NodeHandle nhDistanceReplan("DistanceReplan");
+    PointPathAction::setExecutorCreateFunction(std::bind(&PointPathSimActionExecutor::create, nhDistanceReplan, info));
+    actionDistanceReplan = std::shared_ptr<PointPathAction>(new PointPathAction(points,
+                                                                                1,
+                                                                                2,
+                                                                                3,
+                                                                                std::unique_ptr<OperationRegion>(new BoxOperationRegion()),
+                                                                                PointPathAction::ReplanType::PERIODIC_DISTANCE,
+                                                                                3));
+
+    ros::NodeHandle nhPointReachedReplan("PointReachedReplan");
+    PointPathAction::setExecutorCreateFunction(std::bind(&PointPathSimActionExecutor::create, nhPointReachedReplan, info));
+    actionPointReachedReplan = std::shared_ptr<PointPathAction>(new PointPathAction(points,
+                                                                                    1,
+                                                                                    2,
+                                                                                    3,
+                                                                                    std::unique_ptr<OperationRegion>(new BoxOperationRegion()),
+                                                                                    PointPathAction::ReplanType::ON_POINT_REACHED,
+                                                                                    3));
+
 
     return RUN_ALL_TESTS();
 }

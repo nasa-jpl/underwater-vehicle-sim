@@ -25,8 +25,7 @@ class HoldDepthSimActionExecutor : public underwater_autonomy::ActionExecutor<un
                                    public SimActionExecutorFactoryMethod<HoldDepthSimActionExecutor>
 {
 public:
-    HoldDepthSimActionExecutor(VehicleInfo& info);
-    HoldDepthSimActionExecutor(ros::NodeHandle nh, VehicleInfo& vehicleInfo);
+    HoldDepthSimActionExecutor(ros::NodeHandle& nh, VehicleInfo& vehicleInfo);
 
     HoldDepthSimActionExecutor(const HoldDepthSimActionExecutor&&) = delete;
     HoldDepthSimActionExecutor(const HoldDepthSimActionExecutor&) = delete;
@@ -72,9 +71,6 @@ private:
     bool replanNextUpdate;
     ros::Time lastReplan;
     double distanceSinceReplan;
-    
-    ros::Time lastUpdate;
-    ros::Duration currentDuration;
 
     tf2::Vector3 lastLocation;
     ros::Publisher velPub;

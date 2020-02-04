@@ -24,8 +24,7 @@ class PointPathSimActionExecutor : public underwater_autonomy::ActionExecutor<un
                                    public SimActionExecutorFactoryMethod<PointPathSimActionExecutor>
 {
 public:
-    PointPathSimActionExecutor(VehicleInfo& info);
-    PointPathSimActionExecutor(ros::NodeHandle nh, VehicleInfo& info);
+    PointPathSimActionExecutor(ros::NodeHandle& nh, VehicleInfo& info);
     PointPathSimActionExecutor(const PointPathSimActionExecutor&&) = delete;
     PointPathSimActionExecutor(const PointPathSimActionExecutor&) = delete;
 
@@ -68,20 +67,15 @@ private:
     ros::Publisher goToXYPub;
     ros::Publisher goToXYEnablePub;
     ros::Subscriber goToXYComplete;
-
+    
     bool replanNextUpdate;
     ros::Time lastReplan;
     double distanceSinceReplan;
-
-    ros::Time lastUpdate;
-    ros::Duration currentDuration;
 
     ros::Publisher velPub;
     ros::Subscriber poseSub;
 
     ros::ServiceClient propStateClient;
-
-    tf2::Vector3 lastLocation;
     
     underwater_autonomy::VehiclePose currentPose;
 
