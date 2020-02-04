@@ -3,6 +3,8 @@ import sys, math
 import argparse
 import numpy as np
 
+from tqdm import tqdm
+
 # calc score from bag file
 # score is x,y distance from vent source
 def main(bagName, ventX = 0, ventY = 0):
@@ -14,8 +16,8 @@ def main(bagName, ventX = 0, ventY = 0):
 	startY = 0
 	startedYo = False
 
-	for topic, msg, t in bag.read_messages(topics=['/v1/data_broadcaster/data', '/v1/plannerStatus',
-											'model/model_time_offset', 'model/model_x_offset', 'model/model_y_offset']):
+	for topic, msg, t in tqdm(bag.read_messages(topics=['/v1/data_broadcaster/data', '/v1/plannerStatus',
+											'model/model_time_offset', 'model/model_x_offset', 'model/model_y_offset'])):
 		if topic == '/v1/plannerStatus':
 			if msg.data == "YO TURN":
 				if not startedYo:
@@ -47,7 +49,7 @@ def main(bagName, ventX = 0, ventY = 0):
 	print("Yo Length Statistics:")
 	print("mean = " + str(meanYo) + "m")
 	print("std dev = " + str(stdYo) + "m")
-	print("n = " + len(yoLengths))
+	print("n = " + str(len(yoLengths)))
 	print("max = " + str(maxYo) + "m")
 	print("min = " + str(minYo) + "m")
 
