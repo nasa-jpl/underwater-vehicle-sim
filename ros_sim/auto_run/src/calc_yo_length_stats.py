@@ -34,9 +34,18 @@ def main(bagName, ventX = 0, ventY = 0):
 
 	bag.close()
 
-	score = sum(yoLengths)/len(yoLengths)
+	# calculate descriptive statistics
+	meanYo = sum(yoLengths)/len(yoLengths)
+	minYo = min(yoLengths)
+	maxYo = max(yoLengths)
+	stdYo = yoLengths.std()
 
-	print("Dist from Source = " + str(score) + "m")
+
+	print("Yo Length Statistics:")
+	print("mean = " + str(meanYo) + "m")
+	print("std dev = " + str(stdYo) + "m")
+	print("max = " + str(maxYo) + "m")
+	print("min = " + str(minYo) + "m")
 
 	return score
 
