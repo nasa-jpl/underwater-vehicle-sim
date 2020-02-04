@@ -27,8 +27,8 @@ def main(bagName, ventX = 0, ventY = 0):
 					dist = math.sqrt((startX - lastX)**2 + (startY - lastY)**2)
 					yoLengths.append(dist)
 		elif topic == '/v1/data_broadcaster/data':
-			lastX = msg.X
-			lastY = msg.Y
+			lastX = msg.x
+			lastY = msg.y
 		else:
 			print(msg)
 
