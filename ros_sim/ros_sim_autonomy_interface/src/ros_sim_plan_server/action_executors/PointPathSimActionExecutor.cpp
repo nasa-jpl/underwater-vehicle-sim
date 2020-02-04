@@ -89,6 +89,7 @@ void PointPathSimActionExecutor::monitor(std::shared_ptr<underwater_autonomy::Po
 {
     Eigen::Vector3d currentTargetPoint = action->getCurrentTargetPoint();
 
+    bool pointReached = false;
     if(gotCompleteCallback && 
        doubleEq(currentTargetPoint[0], completeCallbackX) &&
        doubleEq(currentTargetPoint[1], completeCallbackY) &&
@@ -105,9 +106,7 @@ void PointPathSimActionExecutor::monitor(std::shared_ptr<underwater_autonomy::Po
         {
             sendNextGoToXYGoal(action);
         }
-        replanNextUpdate = action->doReplan(true,
-                                            (ros::Time::now() - lastReplan).toSec(),
-                                            distanceSinceReplan);
+        pointReached = true;
     }
     else if(!action->inOperationRegion(currentPose.getPosition()))
     {
@@ -134,7 +133,7 @@ void PointPathSimActionExecutor::monitor(std::shared_ptr<underwater_autonomy::Po
     
     if(!replanNextUpdate)
     {
-        replanNextUpdate = action->doReplan(false,
+        replanNextUpdate = action->doReplan(pointReached,
                                             (ros::Time::now() - lastReplan).toSec(),
                                             distanceSinceReplan);
     }

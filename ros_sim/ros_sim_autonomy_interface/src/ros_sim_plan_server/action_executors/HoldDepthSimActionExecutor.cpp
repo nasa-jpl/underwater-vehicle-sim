@@ -160,8 +160,12 @@ void HoldDepthSimActionExecutor::monitor(std::shared_ptr<underwater_autonomy::Ho
             }
         }
     }
-    replanNextUpdate = action->doReplan((ros::Time::now() - lastReplan).toSec(),
-                                         distanceSinceReplan);
+
+    if(!replanNextUpdate)
+    {
+        replanNextUpdate = action->doReplan((ros::Time::now() - lastReplan).toSec(),
+                                             distanceSinceReplan);
+    }
 }
 
 void HoldDepthSimActionExecutor::navigationFilterCallback(const nav_msgs::Odometry odo)

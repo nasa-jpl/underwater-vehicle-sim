@@ -135,8 +135,11 @@ void FollowHeadingSimActionExecutor::monitor(std::shared_ptr<underwater_autonomy
         }
     }
 
-    replanNextUpdate = action->doReplan((ros::Time::now() - lastReplan).toSec(),
-                                        distanceSinceReplan);
+    if(!replanNextUpdate)
+    {
+        replanNextUpdate = action->doReplan((ros::Time::now() - lastReplan).toSec(),
+                                            distanceSinceReplan);
+    }
 }
 
 
