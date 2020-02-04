@@ -1,6 +1,7 @@
 import rosbag
 import sys, math
 import argparse
+import numpy
 
 # calc score from bag file
 # score is x,y distance from vent source
@@ -34,16 +35,19 @@ def main(bagName, ventX = 0, ventY = 0):
 
 	bag.close()
 
+	yoLengths = np.array(yoLengths)
+
 	# calculate descriptive statistics
-	meanYo = sum(yoLengths)/len(yoLengths)
-	minYo = min(yoLengths)
-	maxYo = max(yoLengths)
+	meanYo = yoLengths.mean()
+	minYo = yoLengths.min()
+	maxYo = yoLengths.max()
 	stdYo = yoLengths.std()
 
 
 	print("Yo Length Statistics:")
 	print("mean = " + str(meanYo) + "m")
 	print("std dev = " + str(stdYo) + "m")
+	print("n = " + len(yoLengths))
 	print("max = " + str(maxYo) + "m")
 	print("min = " + str(minYo) + "m")
 
