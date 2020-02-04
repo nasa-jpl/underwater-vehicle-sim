@@ -53,7 +53,7 @@ def main(bagName, ventX = 0, ventY = 0):
 	print("max = " + str(maxYo) + "m")
 	print("min = " + str(minYo) + "m")
 
-	return score
+	return meanYo
 
 
 if __name__ == "__main__":
