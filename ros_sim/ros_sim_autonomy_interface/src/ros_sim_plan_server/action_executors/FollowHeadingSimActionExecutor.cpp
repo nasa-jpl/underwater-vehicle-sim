@@ -18,16 +18,11 @@
 
 using namespace underwater_autonomy;
 
-FollowHeadingSimActionExecutor::FollowHeadingSimActionExecutor(VehicleInfo& vehicleInfo) :
-    FollowHeadingSimActionExecutor(ros::NodeHandle(), vehicleInfo)
-{}
-
-FollowHeadingSimActionExecutor::FollowHeadingSimActionExecutor(ros::NodeHandle nh, VehicleInfo& vehicleInfo) :
+FollowHeadingSimActionExecutor::FollowHeadingSimActionExecutor(ros::NodeHandle& nh, VehicleInfo& vehicleInfo) :
     vehicleInfo(vehicleInfo),
     replanNextUpdate(false),
     lastReplan(ros::Time::now()),
-    distanceSinceReplan(0),
-    currentDuration(0)
+    distanceSinceReplan(0)
 {
     velPub = nh.advertise<geometry_msgs::Twist>("command_target_velocity", 1000, true);
     poseSub = nh.subscribe("primary_navigation", 1, &FollowHeadingSimActionExecutor::navigationFilterCallback, this);
@@ -82,7 +77,7 @@ bool FollowHeadingSimActionExecutor::execute(std::shared_ptr<FollowHeadingAction
     followHeadingPub.publish(followHeadingMsg);
     action->setState(Action::State::EXECUTING);
 
-    lastUpdate = ros::Time::now();
+    lastReplan = ros::Time::now();
     distanceSinceReplan = 0;
     return true;
 }
@@ -92,8 +87,6 @@ void FollowHeadingSimActionExecutor::cancel(std::shared_ptr<FollowHeadingAction>
     std_msgs::Bool enableMsg;
     enableMsg.data = false;
     followHeadingEnablePub.publish(enableMsg);
-
-    action->setState(Action::State::INTERRUPTED);
 }
 
 bool FollowHeadingSimActionExecutor::triggerReplan(std::shared_ptr<FollowHeadingAction> action)
@@ -111,13 +104,8 @@ bool FollowHeadingSimActionExecutor::triggerReplan(std::shared_ptr<FollowHeading
 
 void FollowHeadingSimActionExecutor::monitor(std::shared_ptr<underwater_autonomy::FollowHeadingAction> action)
 {
-    ros::Time currentTime = ros::Time::now();
-    currentDuration += currentTime - lastUpdate;
-    lastUpdate = currentTime;
-
-    
     if(action->getFollowHeadingTime() >= 0 && 
-       currentDuration.toSec() >= action->getFollowHeadingTime() &&
+       action->getTimeRunning() >= action->getFollowHeadingTime() &&
        action->getState() == Action::State::EXECUTING)
     {
         action->setState(Action::State::COMPLETED);
@@ -126,15 +114,7 @@ void FollowHeadingSimActionExecutor::monitor(std::shared_ptr<underwater_autonomy
         enableMsg.data = false;
         followHeadingEnablePub.publish(enableMsg);
     }
-    else if(action->getTimeout() >= 0 && currentDuration.toSec() >= action->getTimeout())
-    {
-        action->setState(Action::State::FAILED);
-
-        std_msgs::Bool enableMsg;
-        enableMsg.data = false;
-        followHeadingEnablePub.publish(enableMsg);
-    }
-    else if(!action->inXYOperationRegion(currentPose.getPosition()))
+    else if(!action->inOperationRegion(currentPose.getPosition()))
     {
         action->setState(Action::State::FAILED);
 
@@ -144,18 +124,25 @@ void FollowHeadingSimActionExecutor::monitor(std::shared_ptr<underwater_autonomy
     }
     else if(action->getState() == Action::State::INTERRUPTING)
     {
-        propulsion_controller::PropulsionControllerState srv;
-        propStateClient.call(srv);
-
-        if(!srv.response.xyEnabled)
+        if(propStateClient.exists())
         {
-            action->setState(Action::State::INTERRUPTED);
+            propulsion_controller::PropulsionControllerState srv;
+            propStateClient.call(srv);
+            if(!srv.response.followHeadingEnabled)
+            {
+                action->setState(Action::State::INTERRUPTED);
+            }
         }
     }
 
-    replanNextUpdate = action->doReplan((ros::Time::now() - lastReplan).toSec(),
-                                        distanceSinceReplan);
+    if(!replanNextUpdate)
+    {
+        replanNextUpdate = action->doReplan((ros::Time::now() - lastReplan).toSec(),
+                                            distanceSinceReplan);
+    }
 }
+
+
 
 void FollowHeadingSimActionExecutor::navigationFilterCallback(const nav_msgs::Odometry odo)
 {    

@@ -26,8 +26,7 @@ class YoYoSimActionExecutor : public underwater_autonomy::ActionExecutor<underwa
                               public SimActionExecutorFactoryMethod<YoYoSimActionExecutor>
 {
 public:
-    YoYoSimActionExecutor(VehicleInfo& info);
-    YoYoSimActionExecutor(ros::NodeHandle nh, VehicleInfo& vehicleInfo);
+    YoYoSimActionExecutor(ros::NodeHandle& nh, VehicleInfo& vehicleInfo);
 
     YoYoSimActionExecutor(const YoYoSimActionExecutor&&) = delete;
     YoYoSimActionExecutor(const YoYoSimActionExecutor&) = delete;
@@ -71,13 +70,10 @@ private:
     ros::Subscriber goToZComplete;
 
     ros::ServiceClient propStateClient;
-
+    
     bool replanNextUpdate;
     ros::Time lastReplan;
     double distanceSinceReplan;
-
-    ros::Time lastUpdate;
-    ros::Duration currentDuration;
 
     tf2::Vector3 lastLocation;
     ros::Publisher velPub;

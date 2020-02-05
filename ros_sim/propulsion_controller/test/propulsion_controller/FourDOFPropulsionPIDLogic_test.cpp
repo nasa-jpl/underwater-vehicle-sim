@@ -13,7 +13,7 @@
 #include "underwater_vehicle_msgs/VehicleData.h"
 
 
-#include "vehicle_auto_control/FourDOFPropulsionPIDLogic.h"
+#include "propulsion_controller/FourDOFPropulsionPIDLogic.h"
 
 using namespace underwater_autonomy;
 

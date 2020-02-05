@@ -16,31 +16,34 @@
 #include "underwater_vehicle_msgs/FollowHeading.h"
 
 #include "ros_sim_plan_server/action_executors/FollowHeadingSimActionExecutor.h"
+#include "propulsion_controller/PropulsionControllerState.h"
 
 #include "underwater_autonomy/util/BoxOperationRegion.h"
 
-
 using namespace underwater_autonomy;
+
+std::shared_ptr<FollowHeadingAction> actionExecutePropModuleTypeFail;
+std::shared_ptr<FollowHeadingAction> actionExecuteAndCancel;
+std::shared_ptr<FollowHeadingAction> actionExecuteAndSucceed;
+std::shared_ptr<FollowHeadingAction> actionExecuteAndOutOfRegion;
+std::shared_ptr<FollowHeadingAction> actionTimeReplan;
+std::shared_ptr<FollowHeadingAction> actionDistanceReplan;
+
+bool followHeadingState = true;
+bool propState(propulsion_controller::PropulsionControllerState::Request  &req, 
+               propulsion_controller::PropulsionControllerState::Response &res) 
+{
+    res.followHeadingEnabled = followHeadingState; 
+    return true;
+};
+
 
 TEST(FollowHeadingSimActionExecutor, ExecutePropModuleTypeFail)
 {
     ros::NodeHandle nh("ExecutePropModuleTypeFail");
 
-    std::shared_ptr<FollowHeadingAction> action(new FollowHeadingAction(0,
-                                                                        0,
-                                                                        0,
-                                                                        0,
-                                                                        0,
-                                                                        std::unique_ptr<OperationRegion>(new BoxOperationRegion()),
-                                                                        FollowHeadingAction::ReplanType::NONE,
-                                                                        0)); 
-
-                                                            
-    underwater_vehicle_msgs::GetVehicleInfo infoMsg;
-    infoMsg.response.propModuleType = "Invalid";
-    VehicleInfo info(infoMsg);
-    FollowHeadingSimActionExecutor executor(nh, info);
-    EXPECT_FALSE(executor.execute(action));
+    actionExecutePropModuleTypeFail->execute(ros::Time::now().toSec());
+    EXPECT_EQ(Action::State::FAILED, actionExecutePropModuleTypeFail->getState());
 }
 
 
@@ -65,22 +68,15 @@ TEST(FollowHeadingSimActionExecutor, ExecuteAndCancel)
     auto followHeadingEnable = [&] (const ros::MessageEvent< std_msgs::Bool const >& enable) {followHeadingEnableCalls++;};
 	ros::Subscriber followHeadingEnableSub = nh.subscribe<std_msgs::Bool>("follow_heading_enable", 10, followHeadingEnable);
 
-    std::shared_ptr<FollowHeadingAction> action(new FollowHeadingAction(1,
-                                                                        2,
-                                                                        3,
-                                                                        100,
-                                                                        100,
-                                                                        std::unique_ptr<OperationRegion>(new BoxOperationRegion()),
-                                                                        FollowHeadingAction::ReplanType::NONE,
-                                                                        6)); 
+    ros::ServiceServer stateService = nh.advertiseService("get_propulsion_state", propState);
+    ros::ServiceClient propStateClient = nh.serviceClient<propulsion_controller::PropulsionControllerState>("get_propulsion_state");
+    while(!propStateClient.exists()) {ros::spinOnce();}
 
-    underwater_vehicle_msgs::GetVehicleInfo infoMsg;
-    infoMsg.response.propModuleType = "FourDOFPropulsion";
-    VehicleInfo info(infoMsg);
-    FollowHeadingSimActionExecutor executor(nh, info);
+    ros::AsyncSpinner spinner(1);
+    spinner.start();
 
     //Execute action
-    EXPECT_TRUE(executor.execute(action));
+    actionExecuteAndCancel->execute(ros::Time::now().toSec());
 
     while(latestVelMsg == NULL)
     {
@@ -95,26 +91,33 @@ TEST(FollowHeadingSimActionExecutor, ExecuteAndCancel)
     }
     EXPECT_EQ(1, followHeadingCalls);
 
-    while(action->getState() != Action::State::EXECUTING)
+    while(actionExecuteAndCancel->getState() != Action::State::EXECUTING)
     {
         ros::spinOnce();
     }
-    EXPECT_EQ(Action::State::EXECUTING, action->getState());
+    EXPECT_EQ(Action::State::EXECUTING, actionExecuteAndCancel->getState());
     EXPECT_EQ(1, heading);
 
     //Cancel action
-    executor.cancel(action);
+    actionExecuteAndCancel->cancel(ros::Time::now().toSec());
     while(followHeadingEnableCalls != 1)
     {
         ros::spinOnce();
     }
     EXPECT_EQ(1, followHeadingEnableCalls);
 
-    while(action->getState() != Action::State::INTERRUPTED)
+    EXPECT_EQ(Action::State::INTERRUPTING, actionExecuteAndCancel->getState());
+    actionExecuteAndCancel->monitor(ros::Time::now().toSec());
+    EXPECT_EQ(Action::State::INTERRUPTING, actionExecuteAndCancel->getState());
+
+    followHeadingState = false;
+    actionExecuteAndCancel->monitor(ros::Time::now().toSec());
+    while(actionExecuteAndCancel->getState() != Action::State::INTERRUPTED)
     {
         ros::spinOnce();
     }
-    EXPECT_EQ(Action::State::INTERRUPTED, action->getState());
+    EXPECT_EQ(Action::State::INTERRUPTED, actionExecuteAndCancel->getState());
+    spinner.stop();
 }
 
 
@@ -139,22 +142,7 @@ TEST(FollowHeadingSimActionExecutor, ExecuteAndSucceed)
     auto followHeadingEnable = [&] (const ros::MessageEvent< std_msgs::Bool const >& enable) {followHeadingEnableCalls++;};
 	ros::Subscriber followHeadingEnableSub = nh.subscribe<std_msgs::Bool>("follow_heading_enable", 10, followHeadingEnable);
 
-    std::shared_ptr<FollowHeadingAction> action(new FollowHeadingAction(1,
-                                                                        2,
-                                                                        3,
-                                                                        2,
-                                                                        2,
-                                                                        std::unique_ptr<OperationRegion>(new BoxOperationRegion()),
-                                                                        FollowHeadingAction::ReplanType::NONE,
-                                                                        6)); 
-
-    underwater_vehicle_msgs::GetVehicleInfo infoMsg;
-    infoMsg.response.propModuleType = "FourDOFPropulsion";
-    VehicleInfo info(infoMsg);
-    FollowHeadingSimActionExecutor executor(nh, info);
-
-    EXPECT_TRUE(executor.execute(action));
-
+    actionExecuteAndSucceed->execute(ros::Time::now().toSec());
     while(latestVelMsg == NULL)
     {
         ros::spinOnce();
@@ -168,90 +156,21 @@ TEST(FollowHeadingSimActionExecutor, ExecuteAndSucceed)
     }
     EXPECT_EQ(1, followHeadingCalls);
 
-    while(action->getState() != Action::State::EXECUTING)
+    while(actionExecuteAndSucceed->getState() != Action::State::EXECUTING)
     {
         ros::spinOnce();
     }
-    EXPECT_EQ(Action::State::EXECUTING, action->getState());
+    EXPECT_EQ(Action::State::EXECUTING, actionExecuteAndSucceed->getState());
     EXPECT_EQ(1, heading);
 
     ros::Duration(2).sleep();
-    executor.monitor(action);
+    actionExecuteAndSucceed->monitor(ros::Time::now().toSec());
 
-    while(action->getState() != Action::State::COMPLETED)
+    while(actionExecuteAndSucceed->getState() != Action::State::COMPLETED)
     {
         ros::spinOnce();
     }
-    EXPECT_EQ(Action::State::COMPLETED, action->getState());
-
-}
-
-
-TEST(FollowHeadingSimActionExecutor, ExecuteAndTimeout)
-{
-    ros::NodeHandle nh("ExecuteAndTimeout");
-
-    geometry_msgs::Twist::ConstPtr latestVelMsg = NULL;
-    auto velCB = [&] (geometry_msgs::Twist::ConstPtr val)
-    { latestVelMsg = val; };
-    ros::Subscriber velSub = nh.subscribe<geometry_msgs::Twist>("command_target_velocity", 1, velCB);
-
-    double heading = 0;
-    unsigned int followHeadingCalls = 0;
-    auto followHeading = [&] (const ros::MessageEvent< underwater_vehicle_msgs::FollowHeading const >& followHeading) 
-    {heading = followHeading.getConstMessage().get()->heading;
-     followHeadingCalls++;};
-
-	ros::Subscriber followHeadingSub = nh.subscribe<underwater_vehicle_msgs::FollowHeading>("follow_heading", 10, followHeading);
-
-    unsigned int followHeadingEnableCalls = 0;
-    auto followHeadingEnable = [&] (const ros::MessageEvent< std_msgs::Bool const >& enable) {followHeadingEnableCalls++;};
-	ros::Subscriber followHeadingEnableSub = nh.subscribe<std_msgs::Bool>("follow_heading_enable", 10, followHeadingEnable);
-
-    std::shared_ptr<FollowHeadingAction> action(new FollowHeadingAction(1,
-                                                                        2,
-                                                                        3,
-                                                                        100,
-                                                                        2,
-                                                                        std::unique_ptr<OperationRegion>(new BoxOperationRegion()),
-                                                                        FollowHeadingAction::ReplanType::NONE,
-                                                                        6)); 
-
-    underwater_vehicle_msgs::GetVehicleInfo infoMsg;
-    infoMsg.response.propModuleType = "FourDOFPropulsion";
-    VehicleInfo info(infoMsg);
-    FollowHeadingSimActionExecutor executor(nh, info);
-
-    EXPECT_TRUE(executor.execute(action));
-
-    while(latestVelMsg == NULL)
-    {
-        ros::spinOnce();
-    }
-    EXPECT_EQ(2, latestVelMsg->linear.x);
-    EXPECT_EQ(3, latestVelMsg->angular.z);
-
-    while(followHeadingCalls != 1)
-    {
-        ros::spinOnce();
-    }
-    EXPECT_EQ(1, followHeadingCalls);
-
-    while(action->getState() != Action::State::EXECUTING)
-    {
-        ros::spinOnce();
-    }
-    EXPECT_EQ(Action::State::EXECUTING, action->getState());
-    EXPECT_EQ(1, heading);
-
-    ros::Duration(2).sleep();
-    executor.monitor(action);
-    
-    while(action->getState() != Action::State::FAILED)
-    {
-        ros::spinOnce();
-    }
-    EXPECT_EQ(Action::State::FAILED, action->getState());
+    EXPECT_EQ(Action::State::COMPLETED, actionExecuteAndSucceed->getState());
 
 }
 
@@ -277,22 +196,7 @@ TEST(FollowHeadingSimActionExecutor, ExecuteAndOutOfRegion)
     auto followHeadingEnable = [&] (const ros::MessageEvent< std_msgs::Bool const >& enable) {followHeadingEnableCalls++;};
 	ros::Subscriber followHeadingEnableSub = nh.subscribe<std_msgs::Bool>("follow_heading_enable", 10, followHeadingEnable);
 
-    std::shared_ptr<FollowHeadingAction> action(new FollowHeadingAction(1,
-                                                                        2,
-                                                                        3,
-                                                                        100,
-                                                                        100,
-                                                                        std::unique_ptr<OperationRegion>(new BoxOperationRegion(0, 0, 0, 100, 100, 100)),
-                                                                        FollowHeadingAction::ReplanType::NONE,
-                                                                        6)); 
-
-    underwater_vehicle_msgs::GetVehicleInfo infoMsg;
-    infoMsg.response.propModuleType = "FourDOFPropulsion";
-    VehicleInfo info(infoMsg);
-    FollowHeadingSimActionExecutor executor(nh, info);
-
-    EXPECT_TRUE(executor.execute(action));
-
+    actionExecuteAndOutOfRegion->execute(ros::Time::now().toSec());
     while(latestVelMsg == NULL)
     {
         ros::spinOnce();
@@ -306,11 +210,11 @@ TEST(FollowHeadingSimActionExecutor, ExecuteAndOutOfRegion)
     }
     EXPECT_EQ(1, followHeadingCalls);
 
-    while(action->getState() != Action::State::EXECUTING)
+    while(actionExecuteAndOutOfRegion->getState() != Action::State::EXECUTING)
     {
         ros::spinOnce();
     }
-    EXPECT_EQ(Action::State::EXECUTING, action->getState());
+    EXPECT_EQ(Action::State::EXECUTING, actionExecuteAndOutOfRegion->getState());
     EXPECT_EQ(1, heading);
 
     nav_msgs::Odometry poseMsg;
@@ -321,15 +225,14 @@ TEST(FollowHeadingSimActionExecutor, ExecuteAndOutOfRegion)
     posePub.publish(poseMsg);
 
     
-    while(action->getState() != Action::State::FAILED)
+    while(actionExecuteAndOutOfRegion->getState() != Action::State::FAILED)
     {
-        executor.monitor(action);
+        actionExecuteAndOutOfRegion->monitor(ros::Time::now().toSec());
         ros::spinOnce();
     }
-    EXPECT_EQ(Action::State::FAILED, action->getState());
+    EXPECT_EQ(Action::State::FAILED, actionExecuteAndOutOfRegion->getState());
 
 }
-
 
 TEST(FollowHeadingSimActionExecutor, TimeReplan)
 {
@@ -353,22 +256,12 @@ TEST(FollowHeadingSimActionExecutor, TimeReplan)
     auto followHeadingEnable = [&] (const ros::MessageEvent< std_msgs::Bool const >& enable) {followHeadingEnableCalls++;};
 	ros::Subscriber followHeadingEnableSub = nh.subscribe<std_msgs::Bool>("follow_heading_enable", 10, followHeadingEnable);
 
-    std::shared_ptr<FollowHeadingAction> action(new FollowHeadingAction(1,
-                                                                        2,
-                                                                        3,
-                                                                        100,
-                                                                        100,
-                                                                        std::unique_ptr<OperationRegion>(new BoxOperationRegion()),
-                                                                        FollowHeadingAction::ReplanType::PERIODIC_TIME,
-                                                                        3)); 
-
     underwater_vehicle_msgs::GetVehicleInfo infoMsg;
     infoMsg.response.propModuleType = "FourDOFPropulsion";
     VehicleInfo info(infoMsg);
     FollowHeadingSimActionExecutor executor(nh, info);
 
-    EXPECT_TRUE(executor.execute(action));
-
+    actionTimeReplan->execute(ros::Time::now().toSec());
     while(latestVelMsg == NULL)
     {
         ros::spinOnce();
@@ -382,19 +275,18 @@ TEST(FollowHeadingSimActionExecutor, TimeReplan)
     }
     EXPECT_EQ(1, followHeadingCalls);
 
-    while(action->getState() != Action::State::EXECUTING)
+    while(actionTimeReplan->getState() != Action::State::EXECUTING)
     {
         ros::spinOnce();
     }
-    EXPECT_EQ(Action::State::EXECUTING, action->getState());
+    EXPECT_EQ(Action::State::EXECUTING, actionTimeReplan->getState());
     EXPECT_EQ(1, heading);
 
     ros::WallDuration(3).sleep();
-    executor.monitor(action);
-    EXPECT_TRUE(executor.triggerReplan(action));
-    EXPECT_FALSE(executor.triggerReplan(action));
+    actionTimeReplan->monitor(ros::Time::now().toSec());
+    EXPECT_TRUE(actionTimeReplan->triggerReplan());
+    EXPECT_FALSE(actionTimeReplan->triggerReplan());
 }
-
 
 TEST(FollowHeadingSimActionExecutor, DistanceReplan)
 {
@@ -418,21 +310,12 @@ TEST(FollowHeadingSimActionExecutor, DistanceReplan)
     auto followHeadingEnable = [&] (const ros::MessageEvent< std_msgs::Bool const >& enable) {followHeadingEnableCalls++;};
 	ros::Subscriber followHeadingEnableSub = nh.subscribe<std_msgs::Bool>("follow_heading_enable", 10, followHeadingEnable);
 
-    std::shared_ptr<FollowHeadingAction> action(new FollowHeadingAction(1,
-                                                                        2,
-                                                                        3,
-                                                                        100,
-                                                                        100,
-                                                                        std::unique_ptr<OperationRegion>(new BoxOperationRegion()),
-                                                                        FollowHeadingAction::ReplanType::PERIODIC_DISTANCE,
-                                                                        3)); 
-
     underwater_vehicle_msgs::GetVehicleInfo infoMsg;
     infoMsg.response.propModuleType = "FourDOFPropulsion";
     VehicleInfo info(infoMsg);
     FollowHeadingSimActionExecutor executor(nh, info);
 
-    EXPECT_TRUE(executor.execute(action));
+    actionDistanceReplan->execute(ros::Time::now().toSec());
 
     while(latestVelMsg == NULL)
     {
@@ -447,11 +330,11 @@ TEST(FollowHeadingSimActionExecutor, DistanceReplan)
     }
     EXPECT_EQ(1, followHeadingCalls);
 
-    while(action->getState() != Action::State::EXECUTING)
+    while(actionDistanceReplan->getState() != Action::State::EXECUTING)
     {
         ros::spinOnce();
     }
-    EXPECT_EQ(Action::State::EXECUTING, action->getState());
+    EXPECT_EQ(Action::State::EXECUTING, actionDistanceReplan->getState());
     EXPECT_EQ(1, heading);
     
     nav_msgs::Odometry poseMsg;
@@ -464,12 +347,12 @@ TEST(FollowHeadingSimActionExecutor, DistanceReplan)
     bool replan = false;
     while(!replan)
     {
-        executor.monitor(action);
-        replan = executor.triggerReplan(action);
+        actionDistanceReplan->monitor(ros::Time::now().toSec());
+        replan = actionDistanceReplan->triggerReplan();
         ros::spinOnce();
     }
     EXPECT_TRUE(replan);
-    EXPECT_FALSE(executor.triggerReplan(action));
+    EXPECT_FALSE(actionDistanceReplan->triggerReplan());
 }
 
 //Had issues doing this in the roslaunch file for this test. Not sure why.
@@ -500,6 +383,80 @@ int main(int argc, char** argv){
     ros::init(argc, argv, "follow_heading_sim_action_executor");
 
     broadcastStaticTransform();
+
+    underwater_vehicle_msgs::GetVehicleInfo invalidInfoMsg;
+    invalidInfoMsg.response.propModuleType = "Invalid";
+    VehicleInfo invalidInfo(invalidInfoMsg);
+
+    underwater_vehicle_msgs::GetVehicleInfo infoMsg;
+    infoMsg.response.propModuleType = "FourDOFPropulsion";
+    VehicleInfo info(infoMsg);
+
+    ros::NodeHandle nhExecutePropModuleTypeFail("ExecutePropModuleTypeFail");
+    FollowHeadingAction::setExecutorCreateFunction(std::bind(&FollowHeadingSimActionExecutor::create, nhExecutePropModuleTypeFail, invalidInfo));
+    actionExecutePropModuleTypeFail = std::shared_ptr<FollowHeadingAction>(new FollowHeadingAction(0,
+                                                                            0,
+                                                                            0,
+                                                                            0,
+                                                                            0,
+                                                                            std::unique_ptr<OperationRegion>(new BoxOperationRegion()),
+                                                                            FollowHeadingAction::ReplanType::NONE,
+                                                                            0));
+
+    ros::NodeHandle nhExecuteAndCancel("ExecuteAndCancel");
+    FollowHeadingAction::setExecutorCreateFunction(std::bind(&FollowHeadingSimActionExecutor::create, nhExecuteAndCancel, info));
+    actionExecuteAndCancel = std::shared_ptr<FollowHeadingAction>(new FollowHeadingAction(1,
+                                                                    2,
+                                                                    3,
+                                                                    100,
+                                                                    100,
+                                                                    std::unique_ptr<OperationRegion>(new BoxOperationRegion()),
+                                                                    FollowHeadingAction::ReplanType::NONE,
+                                                                    6));
+
+    ros::NodeHandle nhExecuteAndSucceed("ExecuteAndSucceed");
+    FollowHeadingAction::setExecutorCreateFunction(std::bind(&FollowHeadingSimActionExecutor::create, nhExecuteAndSucceed, info));
+    actionExecuteAndSucceed = std::shared_ptr<FollowHeadingAction>(new FollowHeadingAction(1,
+                                                                    2,
+                                                                    3,
+                                                                    2,
+                                                                    2,
+                                                                    std::unique_ptr<OperationRegion>(new BoxOperationRegion()),
+                                                                    FollowHeadingAction::ReplanType::NONE,
+                                                                    6)); 
+
+    ros::NodeHandle nhExecuteAndOutOfRegion("ExecuteAndOutOfRegion");
+    FollowHeadingAction::setExecutorCreateFunction(std::bind(&FollowHeadingSimActionExecutor::create, nhExecuteAndOutOfRegion, info));
+    actionExecuteAndOutOfRegion = std::shared_ptr<FollowHeadingAction>(new FollowHeadingAction(1,
+                                                                        2,
+                                                                        3,
+                                                                        100,
+                                                                        100,
+                                                                        std::unique_ptr<OperationRegion>(new BoxOperationRegion(0, 0, 0, 100, 100, 100)),
+                                                                        FollowHeadingAction::ReplanType::NONE,
+                                                                        6)); 
+
+    ros::NodeHandle nhTimeReplan("TimeReplan");
+    FollowHeadingAction::setExecutorCreateFunction(std::bind(&FollowHeadingSimActionExecutor::create, nhTimeReplan, info));
+    actionTimeReplan = std::shared_ptr<FollowHeadingAction>(new FollowHeadingAction(1,
+                                                            2,
+                                                            3,
+                                                            100,
+                                                            100,
+                                                            std::unique_ptr<OperationRegion>(new BoxOperationRegion()),
+                                                            FollowHeadingAction::ReplanType::PERIODIC_TIME,
+                                                            3)); 
+
+    ros::NodeHandle nhDistanceReplan("DistanceReplan");
+    FollowHeadingAction::setExecutorCreateFunction(std::bind(&FollowHeadingSimActionExecutor::create, nhDistanceReplan, info));
+    actionDistanceReplan = std::shared_ptr<FollowHeadingAction>(new FollowHeadingAction(1,
+                                                                2,
+                                                                3,
+                                                                100,
+                                                                100,
+                                                                std::unique_ptr<OperationRegion>(new BoxOperationRegion()),
+                                                                FollowHeadingAction::ReplanType::PERIODIC_DISTANCE,
+                                                                3)); 
 
     return RUN_ALL_TESTS();
 }

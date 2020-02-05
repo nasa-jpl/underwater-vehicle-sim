@@ -4,14 +4,20 @@
 #include "tf2_geometry_msgs/tf2_geometry_msgs.h"
 #include "underwater_vehicle_msgs/GetVehicleInfo.h"
 
+
 PropulsionController::PropulsionController(VehicleInfo& info, std::unique_ptr<PropulsionLogicInterface> logicController) :
-    nh(ros::NodeHandle()),
+    PropulsionController(ros::NodeHandle(), info, std::move(logicController))
+{}
+
+PropulsionController::PropulsionController(ros::NodeHandle nh, VehicleInfo& info, std::unique_ptr<PropulsionLogicInterface> logicController) :
+    nh(nh),
     info(info),
     logicController(std::move(logicController)),
     goToZEnable(false),
     goToZHoldDepth(false),
     goToXYEnable(false),
     followHeadingEnable(false)
+
 {
     std::vector<std::string> dataModuleNames = info.getModuleNamesOfType("DataBroadcaster");
     if(dataModuleNames.size() > 0)

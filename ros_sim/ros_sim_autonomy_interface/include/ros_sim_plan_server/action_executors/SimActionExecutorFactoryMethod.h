@@ -11,9 +11,10 @@ template <class T>
 class SimActionExecutorFactoryMethod
 {
 public:
-    static std::unique_ptr<T> create(VehicleInfo& info)
+
+    static std::unique_ptr<T> create(ros::NodeHandle& nh, VehicleInfo& info)
     {
-        return std::unique_ptr<T>(new T(info));
+        return std::unique_ptr<T>(new T(nh, info));
     }
 };
 

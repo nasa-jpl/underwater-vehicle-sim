@@ -32,6 +32,7 @@ class PropulsionController
 {
 
 public:
+	PropulsionController(ros::NodeHandle nh, VehicleInfo& info, std::unique_ptr<PropulsionLogicInterface> logicController);
 	PropulsionController(VehicleInfo& info, std::unique_ptr<PropulsionLogicInterface> logicController);
 
 	~PropulsionController() {}
