@@ -44,7 +44,7 @@ def main(bagName, ventX = 0, ventY = 0):
 	minYo = yoLengths.min()
 	maxYo = yoLengths.max()
 	stdYo = yoLengths.std()
-	medianYo = yoLengths.median()
+	medianYo = np.median(yoLengths)
 
 
 	print("Yo Length Statistics:")
