@@ -24,7 +24,7 @@
 
         <rosparam param="moduleNames">[data_broadcaster, imu, usbl, depth]</rosparam>
         <rosparam param="data_broadcaster/type">DataBroadcaster</rosparam>
-        <rosparam param="data_broadcaster/hertz">2.5</rosparam>
+        <rosparam param="data_broadcaster/hertz">1</rosparam>
 
         <rosparam param="imu/type">IMU</rosparam>
         <rosparam param="imu/angular_velocity_random_error">0.004363323</rosparam>
