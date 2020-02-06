@@ -6,6 +6,8 @@ import pandas as pd
 import numpy as np
 import subprocess
 
+from tqdm import tqdm
+
 
 # phase should be "SPIRAL", "LAWNMOWER", "DYNAMIC_LAWNMOWER", "OTHER", or "UNSET" (if unimplemented)
 def main(bagName, phase = "None", model = False):
@@ -43,18 +45,17 @@ def main(bagName, phase = "None", model = False):
 
 		print("Read data, analyzing")
 
-		maximum = df.loc[df.groupby(['time'])['dye'].idxmax()]
-		modelTimes = maximum['time']
-		modelHeight = maximum['z']
-		modelDyeMax = maximum['dye']
-
-		modelHeight = list(modelHeight)
+		maximum = df.loc[df.groupby('time').dye.idxmax(),:]
+		maximum.reset_index(drop=True, inplace=True)
 
 		sum = 0
-		for i in tqdm(range(0, len(modelTimes), 10)):
-			sse += math.abs((modelHeight[i % 10] - z[i]))
+		n = 0
+		for i in tqdm(range(len(maximum))):
+			if(maximum.loc[i]['dye'] >= 0.5):
+				n += 1
+				sum += abs(maximum.loc[i]['z'] - z[i*10])
 
-		mean = sum/(len(modelTimes)/10)
+		mean = sum/n
 		print("Mean: " + str(mean))
 
 

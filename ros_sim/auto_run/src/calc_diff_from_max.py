@@ -2,6 +2,8 @@ import rosbag
 import sys, math
 import argparse
 
+from tqdm import tqdm
+
 # calc score from bag file
 # score is x,y distance from vent source
 def main(bagName, ventX = 0, ventY = 0):
@@ -10,7 +12,7 @@ def main(bagName, ventX = 0, ventY = 0):
 	argmaxX = float('inf')
 	argmaxY = float('inf')
 
-	for topic, msg, t in bag.read_messages(topics=['/v1/data_broadcaster/data']):
+	for topic, msg, t in tqdm(bag.read_messages(topics=['/v1/data_broadcaster/data'])):
 		if topic == '/v1/data_broadcaster/data':
 			if(msg.dye > maxDye):
 				maxDye = msg.dye
