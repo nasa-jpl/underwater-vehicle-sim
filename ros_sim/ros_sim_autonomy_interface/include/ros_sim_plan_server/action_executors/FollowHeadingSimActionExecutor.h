@@ -36,20 +36,20 @@ public:
     /**
     * Executes the yoyo action in the ros simulation with the given parameters
     */
-    bool execute(std::shared_ptr<underwater_autonomy::FollowHeadingAction> action) override;
+    bool execute(underwater_autonomy::FollowHeadingAction& action) override;
     
     /**
     * Monitors and updates the state of the yoyo action in the ros simulation 
     * All monitoring is done with action callbacks so this method is not used here
     */
-    void monitor(std::shared_ptr<underwater_autonomy::FollowHeadingAction> action) override;
+    void monitor(underwater_autonomy::FollowHeadingAction& action) override;
 
     /**
     * Allows the yoyo action to trigger a replan in the ros simulation 
     */
-    bool triggerReplan(std::shared_ptr<underwater_autonomy::FollowHeadingAction> action) override;
+    bool triggerReplan(underwater_autonomy::FollowHeadingAction& action) override;
 
-    void cancel(std::shared_ptr<underwater_autonomy::FollowHeadingAction> action) override;
+    void cancel(underwater_autonomy::FollowHeadingAction& action) override;
 
 private:
     void navigationFilterCallback(const nav_msgs::Odometry odo);

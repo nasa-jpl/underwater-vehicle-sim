@@ -36,26 +36,26 @@ public:
     /**
     * Executes the yoyo action in the ros simulation with the given parameters
     */
-    bool execute(std::shared_ptr<underwater_autonomy::PointPathAction> action) override;
+    bool execute(underwater_autonomy::PointPathAction& action) override;
     
     /**
     * Monitors and updates the state of the yoyo action in the ros simulation 
     * All monitoring is done with action callbacks so this method is not used here
     */
-    void monitor(std::shared_ptr<underwater_autonomy::PointPathAction> action) override;
+    void monitor(underwater_autonomy::PointPathAction& action) override;
 
     /**
     * Allows the yoyo action to trigger a replan in the ros simulation 
     */
-    bool triggerReplan(std::shared_ptr<underwater_autonomy::PointPathAction> action) override;
+    bool triggerReplan(underwater_autonomy::PointPathAction& action) override;
 
-    void cancel(std::shared_ptr<underwater_autonomy::PointPathAction> action) override;
+    void cancel(underwater_autonomy::PointPathAction& action) override;
 
 private:
     void navigationFilterCallback(const nav_msgs::Odometry odo);
     void goToXYCompleteCallback(const underwater_vehicle_msgs::GoToXYComplete complete);
 
-    void sendNextGoToXYGoal(std::shared_ptr<underwater_autonomy::PointPathAction> action);
+    void sendNextGoToXYGoal(underwater_autonomy::PointPathAction& action);
 
     void propStateCB(const std_msgs::Bool data);
 

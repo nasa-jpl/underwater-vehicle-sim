@@ -36,7 +36,7 @@ HoldDepthSimActionExecutor::HoldDepthSimActionExecutor(ros::NodeHandle& nh, Vehi
     propStateClient = nh.serviceClient<propulsion_controller::PropulsionControllerState>("get_propulsion_state");
 }
 
-bool HoldDepthSimActionExecutor::execute(std::shared_ptr<HoldDepthAction> action)
+bool HoldDepthSimActionExecutor::execute(underwater_autonomy::HoldDepthAction& action)
 {
     ROS_INFO("Execute hold depth action");
 
@@ -49,7 +49,7 @@ bool HoldDepthSimActionExecutor::execute(std::shared_ptr<HoldDepthAction> action
         velMsg.linear.x = std::numeric_limits<double>::quiet_NaN();
         velMsg.linear.y = std::numeric_limits<double>::quiet_NaN();
 
-        velMsg.linear.z = action->getTargetVerticalVelocity();
+        velMsg.linear.z = action.getTargetVerticalVelocity();
 
         velMsg.angular.x = std::numeric_limits<double>::quiet_NaN();
         velMsg.angular.y = std::numeric_limits<double>::quiet_NaN();
@@ -75,25 +75,25 @@ bool HoldDepthSimActionExecutor::execute(std::shared_ptr<HoldDepthAction> action
     //Reset complete callback
     gotCompleteCallback = false;
     underwater_vehicle_msgs::GoToZ goToZMsg;
-    goToZMsg.depth = action->getDepth();
+    goToZMsg.depth = action.getDepth();
     goToZMsg.enable = true;
     goToZMsg.holdDepth = true;
     goToZPub.publish(goToZMsg);
-    action->setState(Action::State::EXECUTING);
+    action.setState(Action::State::EXECUTING);
     
     lastReplan = ros::Time::now();
     distanceSinceReplan = 0;
     return true;
 }
 
-void HoldDepthSimActionExecutor::cancel(std::shared_ptr<HoldDepthAction> action)
+void HoldDepthSimActionExecutor::cancel(underwater_autonomy::HoldDepthAction& action)
 {
     std_msgs::Bool enableMsg;
     enableMsg.data = false;
     goToZEnablePub.publish(enableMsg);
 }
 
-bool HoldDepthSimActionExecutor::triggerReplan(std::shared_ptr<HoldDepthAction> action)
+bool HoldDepthSimActionExecutor::triggerReplan(underwater_autonomy::HoldDepthAction& action)
 {
     if(replanNextUpdate)
     {        
@@ -113,21 +113,24 @@ void HoldDepthSimActionExecutor::goToZCompleteCallback(const underwater_vehicle_
     completeCallbackHoldDepth = complete.holdDepth;
 }
 
-void HoldDepthSimActionExecutor::monitor(std::shared_ptr<underwater_autonomy::HoldDepthAction> action)
+void HoldDepthSimActionExecutor::monitor(underwater_autonomy::HoldDepthAction& action)
 {
-    if(!action->inOperationRegion(currentPose.getPosition()))
+    if((action.getState() == Action::State::DISPATCHED ||
+        action.getState() == Action::State::EXECUTING ||
+        action.getState() == Action::State::INTERRUPTING) &&
+       !action.inOperationRegion(currentPose.getPosition()))
     {
-        action->setState(Action::State::FAILED);
+        action.setState(Action::State::FAILED);
 
         std_msgs::Bool enableMsg;
         enableMsg.data = false;
         goToZEnablePub.publish(enableMsg);
     }
 
-    if(action->getState() == Action::State::EXECUTING)
+    if(action.getState() == Action::State::EXECUTING)
     {
         if(gotCompleteCallback && 
-           doubleEq(action->getDepth(), completeCallbackZ) &&
+           doubleEq(action.getDepth(), completeCallbackZ) &&
            completeCallbackHoldDepth)
         {
             gotCompleteCallback = false;
@@ -136,18 +139,18 @@ void HoldDepthSimActionExecutor::monitor(std::shared_ptr<underwater_autonomy::Ho
             enableMsg.data = false;
             goToZEnablePub.publish(enableMsg);
 
-            action->setState(Action::State::COMPLETED);
+            action.setState(Action::State::COMPLETED);
         }
-        else if(action->getHoldDepthTime() >= 0 && action->getTimeRunning() >= action->getHoldDepthTime())
+        else if(action.getHoldDepthTime() >= 0 && action.getTimeRunning() >= action.getHoldDepthTime())
         {
-            action->setState(Action::State::COMPLETED);
+            action.setState(Action::State::COMPLETED);
 
             std_msgs::Bool enableMsg;
             enableMsg.data = false;
             goToZEnablePub.publish(enableMsg);
         }
     }
-    else if(action->getState() == Action::State::INTERRUPTING)
+    else if(action.getState() == Action::State::INTERRUPTING)
     {
         if(propStateClient.exists())
         {
@@ -156,14 +159,14 @@ void HoldDepthSimActionExecutor::monitor(std::shared_ptr<underwater_autonomy::Ho
 
             if(!srv.response.zEnabled)
             {
-                action->setState(Action::State::INTERRUPTED);
+                action.setState(Action::State::INTERRUPTED);
             }
         }
     }
 
-    if(!replanNextUpdate)
+    if(action.getState() == Action::State::EXECUTING && !replanNextUpdate)
     {
-        replanNextUpdate = action->doReplan((ros::Time::now() - lastReplan).toSec(),
+        replanNextUpdate = action.doReplan((ros::Time::now() - lastReplan).toSec(),
                                              distanceSinceReplan);
     }
 }

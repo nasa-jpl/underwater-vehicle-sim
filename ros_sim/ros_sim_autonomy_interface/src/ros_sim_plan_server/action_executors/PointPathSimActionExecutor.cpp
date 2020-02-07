@@ -34,7 +34,7 @@ PointPathSimActionExecutor::PointPathSimActionExecutor(ros::NodeHandle& nh, Vehi
     propStateClient = nh.serviceClient<propulsion_controller::PropulsionControllerState>("get_propulsion_state");
 }
 
-bool PointPathSimActionExecutor::execute(std::shared_ptr<PointPathAction> action)
+bool PointPathSimActionExecutor::execute(underwater_autonomy::PointPathAction& action)
 {
     ROS_INFO("Execute point path action");
 
@@ -43,14 +43,14 @@ bool PointPathSimActionExecutor::execute(std::shared_ptr<PointPathAction> action
         //Send target velocities command
         geometry_msgs::Twist velMsg;
 
-        velMsg.linear.x = action->getTargetHorizontalVelocity();
+        velMsg.linear.x = action.getTargetHorizontalVelocity();
         velMsg.linear.y = 0;
         //Calculate the target vertical velocity based on target horizontal velocity and target slope
         velMsg.linear.z = std::numeric_limits<double>::quiet_NaN();
 
         velMsg.angular.x = 0;
         velMsg.angular.y = 0;
-        velMsg.angular.z = action->getTargetRotationalVelocity();
+        velMsg.angular.z = action.getTargetRotationalVelocity();
     
         velPub.publish(velMsg);
     }
@@ -69,14 +69,14 @@ bool PointPathSimActionExecutor::execute(std::shared_ptr<PointPathAction> action
     }
 
     //Creates an action goal and sends it to the action server for point path movement
-    if(!action->isDone())
+    if(!action.isDone())
     {
         sendNextGoToXYGoal(action);
-        action->setState(Action::State::EXECUTING);
+        action.setState(Action::State::EXECUTING);
     }
     else
     {
-        action->setState(Action::State::COMPLETED);
+        action.setState(Action::State::COMPLETED);
         ROS_INFO("Point path action completed");
     }
 
@@ -85,21 +85,21 @@ bool PointPathSimActionExecutor::execute(std::shared_ptr<PointPathAction> action
     return true;
 }
 
-void PointPathSimActionExecutor::monitor(std::shared_ptr<underwater_autonomy::PointPathAction> action)
+void PointPathSimActionExecutor::monitor(underwater_autonomy::PointPathAction& action)
 {
-    Eigen::Vector3d currentTargetPoint = action->getCurrentTargetPoint();
+    Eigen::Vector3d currentTargetPoint = action.getCurrentTargetPoint();
 
     bool pointReached = false;
     if(gotCompleteCallback && 
        doubleEq(currentTargetPoint[0], completeCallbackX) &&
        doubleEq(currentTargetPoint[1], completeCallbackY) &&
-       action->getState() == Action::State::EXECUTING)
+       action.getState() == Action::State::EXECUTING)
     {
         gotCompleteCallback = false;
-        action->reachedTargetPoint();
-        if(action->isDone())
+        action.reachedTargetPoint();
+        if(action.isDone())
         {
-            action->setState(Action::State::COMPLETED);
+            action.setState(Action::State::COMPLETED);
             ROS_INFO("Point path action completed");
         }
         else
@@ -108,15 +108,18 @@ void PointPathSimActionExecutor::monitor(std::shared_ptr<underwater_autonomy::Po
         }
         pointReached = true;
     }
-    else if(!action->inOperationRegion(currentPose.getPosition()))
+    else if((action.getState() == Action::State::DISPATCHED ||
+             action.getState() == Action::State::EXECUTING ||
+             action.getState() == Action::State::INTERRUPTING) && 
+             !action.inOperationRegion(currentPose.getPosition()))
     {
-        action->setState(Action::State::FAILED);
+        action.setState(Action::State::FAILED);
 
         std_msgs::Bool enableMsg;
         enableMsg.data = false;
         goToXYEnablePub.publish(enableMsg);
     }
-    else if(action->getState() == Action::State::INTERRUPTING)
+    else if(action.getState() == Action::State::INTERRUPTING)
     {
         if(propStateClient.exists())
         {
@@ -125,21 +128,21 @@ void PointPathSimActionExecutor::monitor(std::shared_ptr<underwater_autonomy::Po
 
             if(!srv.response.xyEnabled)
             {
-                action->setInterruptPoint(currentPose.getPosition());
-                action->setState(Action::State::INTERRUPTED);
+                action.setInterruptPoint(currentPose.getPosition());
+                action.setState(Action::State::INTERRUPTED);
             }
         }
     }
     
     if(!replanNextUpdate)
     {
-        replanNextUpdate = action->doReplan(pointReached,
+        replanNextUpdate = action.doReplan(pointReached,
                                             (ros::Time::now() - lastReplan).toSec(),
                                             distanceSinceReplan);
     }
 }
 
-void PointPathSimActionExecutor::cancel(std::shared_ptr<PointPathAction> action)
+void PointPathSimActionExecutor::cancel(underwater_autonomy::PointPathAction& action)
 {
     std_msgs::Bool enableMsg;
     enableMsg.data = false;
@@ -148,7 +151,7 @@ void PointPathSimActionExecutor::cancel(std::shared_ptr<PointPathAction> action)
     ROS_INFO("point path action interrupted");
 }
 
-bool PointPathSimActionExecutor::triggerReplan(std::shared_ptr<PointPathAction> action)
+bool PointPathSimActionExecutor::triggerReplan(underwater_autonomy::PointPathAction& action)
 {
     if(replanNextUpdate)
     {
@@ -168,12 +171,12 @@ void PointPathSimActionExecutor::goToXYCompleteCallback(const underwater_vehicle
     completeCallbackY = complete.y;
 }
 
-void PointPathSimActionExecutor::sendNextGoToXYGoal(std::shared_ptr<underwater_autonomy::PointPathAction> action)
+void PointPathSimActionExecutor::sendNextGoToXYGoal(underwater_autonomy::PointPathAction& action)
 {
     //Reset the gotCompleteCallback as this might have tripped on previous actions
     gotCompleteCallback = false;
 
-    Eigen::Vector3d point = action->getCurrentTargetPoint();
+    Eigen::Vector3d point = action.getCurrentTargetPoint();
     underwater_vehicle_msgs::GoToXY goToXYMsg;
     goToXYMsg.x = point[0];
     goToXYMsg.y = point[1];

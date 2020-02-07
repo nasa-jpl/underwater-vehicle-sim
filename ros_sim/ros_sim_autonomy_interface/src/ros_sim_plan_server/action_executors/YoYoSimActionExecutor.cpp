@@ -35,7 +35,7 @@ YoYoSimActionExecutor::YoYoSimActionExecutor(ros::NodeHandle& nh, VehicleInfo& v
     propStateClient = nh.serviceClient<propulsion_controller::PropulsionControllerState>("get_propulsion_state");
 }
 
-bool YoYoSimActionExecutor::execute(std::shared_ptr<YoYoAction> action)
+bool YoYoSimActionExecutor::execute(underwater_autonomy::YoYoAction& action)
 {
     ROS_INFO("Execute yoyo action");
 
@@ -48,7 +48,7 @@ bool YoYoSimActionExecutor::execute(std::shared_ptr<YoYoAction> action)
         velMsg.linear.x = std::numeric_limits<double>::quiet_NaN();
         velMsg.linear.y = std::numeric_limits<double>::quiet_NaN();
 
-        velMsg.linear.z = action->getTargetVerticalVelocity();
+        velMsg.linear.z = action.getTargetVerticalVelocity();
 
         velMsg.angular.x = std::numeric_limits<double>::quiet_NaN();
         velMsg.angular.y = std::numeric_limits<double>::quiet_NaN();
@@ -74,23 +74,23 @@ bool YoYoSimActionExecutor::execute(std::shared_ptr<YoYoAction> action)
 
     //Creates an action goal and sends it to the action server for point path movement
     sendNewGoToZGoal(action);
-    action->setState(Action::State::EXECUTING);
+    action.setState(Action::State::EXECUTING);
 
     lastReplan = ros::Time::now();
     distanceSinceReplan = 0;
     return true;
 }
 
-void YoYoSimActionExecutor::cancel(std::shared_ptr<YoYoAction> action)
+void YoYoSimActionExecutor::cancel(underwater_autonomy::YoYoAction& action)
 {
     std_msgs::Bool enableMsg;
     enableMsg.data = false;
     goToZEnablePub.publish(enableMsg);
 
-    action->setState(Action::State::INTERRUPTED);
+    action.setState(Action::State::INTERRUPTED);
 }
 
-bool YoYoSimActionExecutor::triggerReplan(std::shared_ptr<YoYoAction> action)
+bool YoYoSimActionExecutor::triggerReplan(underwater_autonomy::YoYoAction& action)
 {
     if(replanNextUpdate)
     {
@@ -110,29 +110,31 @@ void YoYoSimActionExecutor::goToZCompleteCallback(const underwater_vehicle_msgs:
     completeCallbackHoldDepth = complete.holdDepth;
 }
 
-void YoYoSimActionExecutor::monitor(std::shared_ptr<underwater_autonomy::YoYoAction> action)
+void YoYoSimActionExecutor::monitor(underwater_autonomy::YoYoAction& action)
 {
-    double targetDepth = 0;
-    if(action->getGoingUp())
+    if((action.getState() == Action::State::DISPATCHED ||
+        action.getState() == Action::State::EXECUTING ||
+        action.getState() == Action::State::INTERRUPTING) &&
+       !action.inOperationRegion(currentPose.getPosition()))
     {
-        targetDepth = action->getUpperDepth();
-    }
-    else
-    {
-        targetDepth = action->getLowerDepth();
-    }
-
-    if(!action->inOperationRegion(currentPose.getPosition()))
-    {
-        action->setState(Action::State::FAILED);
+        action.setState(Action::State::FAILED);
 
         std_msgs::Bool enableMsg;
         enableMsg.data = false;
         goToZEnablePub.publish(enableMsg);
     }  
 
-    if(action->getState() == Action::State::EXECUTING)
+    if(action.getState() == Action::State::EXECUTING)
     {
+        double targetDepth = 0;
+        if(action.getGoingUp())
+        {
+            targetDepth = action.getUpperDepth();
+        }
+        else
+        {
+            targetDepth = action.getLowerDepth();
+        }
 
         if(gotCompleteCallback && 
            doubleEq(targetDepth, completeCallbackZ) &&
@@ -140,26 +142,25 @@ void YoYoSimActionExecutor::monitor(std::shared_ptr<underwater_autonomy::YoYoAct
         {
             gotCompleteCallback = false;
 
-            action->setGoingUp(!action->getGoingUp());
+            action.setGoingUp(!action.getGoingUp());
             if(!replanNextUpdate)
             {
-
-                replanNextUpdate = action->doReplan(true, (ros::Time::now() - lastReplan).toSec(),
+                replanNextUpdate = action.doReplan(true, (ros::Time::now() - lastReplan).toSec(),
                                                     distanceSinceReplan);
             }
 
             sendNewGoToZGoal(action);
         }
         
-        if(action->getYoYoTime() >= 0 && action->getTimeRunning() >= action->getYoYoTime())
+        if(action.getYoYoTime() >= 0 && action.getTimeRunning() >= action.getYoYoTime())
         {
-            action->setState(Action::State::COMPLETED);
+            action.setState(Action::State::COMPLETED);
             std_msgs::Bool enableMsg;
             enableMsg.data = false;
             goToZEnablePub.publish(enableMsg);
         }
     }
-    else if(action->getState() == Action::State::INTERRUPTING)
+    else if(action.getState() == Action::State::INTERRUPTING)
     {
         if(propStateClient.exists())
         {
@@ -168,30 +169,30 @@ void YoYoSimActionExecutor::monitor(std::shared_ptr<underwater_autonomy::YoYoAct
 
             if(!srv.response.zEnabled)
             {
-                action->setState(Action::State::INTERRUPTED);
+                action.setState(Action::State::INTERRUPTED);
             }
         }
     }
 
-    if(!replanNextUpdate)
+    if(action.getState() == Action::State::EXECUTING && !replanNextUpdate)
     {
-        replanNextUpdate = action->doReplan(false, (ros::Time::now() - lastReplan).toSec(),
+        replanNextUpdate = action.doReplan(false, (ros::Time::now() - lastReplan).toSec(),
                                             distanceSinceReplan);
     }
 }
 
-void YoYoSimActionExecutor::sendNewGoToZGoal(std::shared_ptr<underwater_autonomy::YoYoAction> action)
+void YoYoSimActionExecutor::sendNewGoToZGoal(underwater_autonomy::YoYoAction& action)
 {
     //Reset got complete callback
     gotCompleteCallback = false;
     underwater_vehicle_msgs::GoToZ goToZMsg;
-    if(action->getGoingUp())
+    if(action.getGoingUp())
     {
-        goToZMsg.depth = action->getUpperDepth();
+        goToZMsg.depth = action.getUpperDepth();
     }
     else
     {
-        goToZMsg.depth = action->getLowerDepth();
+        goToZMsg.depth = action.getLowerDepth();
     }
 
     goToZMsg.enable = true;
