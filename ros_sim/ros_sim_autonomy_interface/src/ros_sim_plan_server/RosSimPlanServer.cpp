@@ -49,11 +49,22 @@ void ROSSimPlanServer::update()
 
         std::shared_ptr<Plan> newPlan = planner->plan();
     
+        planDispatcher.setPlan(newPlan);
+    }
+
+    if(planDispatcher.getState() == PlanDispatcher::PlanDispatcherState::WAITING_FOR_CANCEL_STOPPED ||
+       planDispatcher.getState() == PlanDispatcher::PlanDispatcherState::WAITING_FOR_CANCEL_RUNNING ||
+       planDispatcher.getState() == PlanDispatcher::PlanDispatcherState::WAITING_FOR_CANCEL_FAIL_ACTION )
+    {
+        std_msgs::Float64 slowSim;
+        slowSim.data = 1;
+        clockSpeedPub.publish(slowSim);
+    } 
+    else 
+    {
         std_msgs::Float64 startSim;
         startSim.data = speedUpFactor;
         clockSpeedPub.publish(startSim);
-
-        planDispatcher.setPlan(newPlan);
     }
 
     plannerStatus = planner->getPlannerStatus();
