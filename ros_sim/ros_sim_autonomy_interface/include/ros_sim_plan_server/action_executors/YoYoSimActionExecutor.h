@@ -39,26 +39,26 @@ public:
     /**
     * Executes the yoyo action in the ros simulation with the given parameters
     */
-    bool execute(std::shared_ptr<underwater_autonomy::YoYoAction> action) override;
+    bool execute(underwater_autonomy::YoYoAction& action) override;
     
     /**
     * Monitors and updates the state of the yoyo action in the ros simulation 
     * All monitoring is done with action callbacks so this method is not used here
     */
-    void monitor(std::shared_ptr<underwater_autonomy::YoYoAction> action) override;
+    void monitor(underwater_autonomy::YoYoAction& action) override;
 
     /**
     * Allows the yoyo action to trigger a replan in the ros simulation 
     */
-    bool triggerReplan(std::shared_ptr<underwater_autonomy::YoYoAction> action) override;
+    bool triggerReplan(underwater_autonomy::YoYoAction& action) override;
 
-    void cancel(std::shared_ptr<underwater_autonomy::YoYoAction> action) override;
+    void cancel(underwater_autonomy::YoYoAction& action) override;
 
 private:
     void navigationFilterCallback(const nav_msgs::Odometry odo);
     void goToZCompleteCallback(const underwater_vehicle_msgs::GoToZComplete complete);
 
-    void sendNewGoToZGoal(std::shared_ptr<underwater_autonomy::YoYoAction> action);
+    void sendNewGoToZGoal(underwater_autonomy::YoYoAction& action);
 
     bool doubleEq(double d1, double d2);
 
