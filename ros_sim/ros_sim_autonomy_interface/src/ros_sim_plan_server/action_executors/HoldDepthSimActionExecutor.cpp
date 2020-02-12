@@ -12,6 +12,7 @@
 
 #include "tf2_geometry_msgs/tf2_geometry_msgs.h"
 #include "propulsion_controller/PropulsionControllerState.h"
+#include "propulsion_controller/PropulsionControllerEnable.h"
 
 #include "underwater_autonomy/planner/actions/Action.h"
 
@@ -30,10 +31,8 @@ HoldDepthSimActionExecutor::HoldDepthSimActionExecutor(ros::NodeHandle& nh, Vehi
     poseSub = nh.subscribe("primary_navigation", 1, &HoldDepthSimActionExecutor::navigationFilterCallback, this);
 
     goToZPub = nh.advertise<underwater_vehicle_msgs::GoToZ>("go_to_z", 1000);
-    goToZEnablePub = nh.advertise<std_msgs::Bool>("go_to_z_enable", 1000);
-    goToZComplete = nh.subscribe("go_to_z_complete", 1, &HoldDepthSimActionExecutor::goToZCompleteCallback, this);
-    
-    propStateClient = nh.serviceClient<propulsion_controller::PropulsionControllerState>("get_propulsion_state");
+    goToZEnableClient = nh.serviceClient<propulsion_controller::PropulsionControllerEnable>("go_to_z_enable");
+    goToZComplete = nh.subscribe("go_to_z_complete", 1, &HoldDepthSimActionExecutor::goToZCompleteCallback, this);    
 }
 
 bool HoldDepthSimActionExecutor::execute(underwater_autonomy::HoldDepthAction& action)
@@ -88,9 +87,13 @@ bool HoldDepthSimActionExecutor::execute(underwater_autonomy::HoldDepthAction& a
 
 void HoldDepthSimActionExecutor::cancel(underwater_autonomy::HoldDepthAction& action)
 {
-    std_msgs::Bool enableMsg;
-    enableMsg.data = false;
-    goToZEnablePub.publish(enableMsg);
+    propulsion_controller::PropulsionControllerEnable enableMsg;
+    enableMsg.request.enable = false;
+    if(goToZEnableClient.exists() &&
+       goToZEnableClient.call(enableMsg))
+    {
+        action.setState(Action::State::INTERRUPTED);
+    }
 }
 
 bool HoldDepthSimActionExecutor::triggerReplan(underwater_autonomy::HoldDepthAction& action)
@@ -122,9 +125,9 @@ void HoldDepthSimActionExecutor::monitor(underwater_autonomy::HoldDepthAction& a
     {
         action.setState(Action::State::FAILED);
 
-        std_msgs::Bool enableMsg;
-        enableMsg.data = false;
-        goToZEnablePub.publish(enableMsg);
+        propulsion_controller::PropulsionControllerEnable enableMsg;
+        enableMsg.request.enable = false;
+        goToZEnableClient.call(enableMsg);
     }
 
     if(action.getState() == Action::State::EXECUTING)
@@ -135,9 +138,9 @@ void HoldDepthSimActionExecutor::monitor(underwater_autonomy::HoldDepthAction& a
         {
             gotCompleteCallback = false;
 
-            std_msgs::Bool enableMsg;
-            enableMsg.data = false;
-            goToZEnablePub.publish(enableMsg);
+            propulsion_controller::PropulsionControllerEnable enableMsg;
+            enableMsg.request.enable = false;
+            goToZEnableClient.call(enableMsg);
 
             action.setState(Action::State::COMPLETED);
         }
@@ -145,22 +148,20 @@ void HoldDepthSimActionExecutor::monitor(underwater_autonomy::HoldDepthAction& a
         {
             action.setState(Action::State::COMPLETED);
 
-            std_msgs::Bool enableMsg;
-            enableMsg.data = false;
-            goToZEnablePub.publish(enableMsg);
+            propulsion_controller::PropulsionControllerEnable enableMsg;
+            enableMsg.request.enable = false;
+            goToZEnableClient.call(enableMsg);
+
         }
     }
     else if(action.getState() == Action::State::INTERRUPTING)
     {
-        if(propStateClient.exists())
+        propulsion_controller::PropulsionControllerEnable enableMsg;
+        enableMsg.request.enable = false;
+        if(goToZEnableClient.exists() &&
+        goToZEnableClient.call(enableMsg))
         {
-            propulsion_controller::PropulsionControllerState srv;
-            propStateClient.call(srv);
-
-            if(!srv.response.zEnabled)
-            {
-                action.setState(Action::State::INTERRUPTED);
-            }
+            action.setState(Action::State::INTERRUPTED);
         }
     }
 

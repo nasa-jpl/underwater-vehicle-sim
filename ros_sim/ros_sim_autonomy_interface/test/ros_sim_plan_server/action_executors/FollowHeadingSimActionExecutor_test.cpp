@@ -17,6 +17,7 @@
 
 #include "ros_sim_plan_server/action_executors/FollowHeadingSimActionExecutor.h"
 #include "propulsion_controller/PropulsionControllerState.h"
+#include "propulsion_controller/PropulsionControllerEnable.h"
 
 #include "underwater_autonomy/util/BoxOperationRegion.h"
 
@@ -29,11 +30,11 @@ std::shared_ptr<FollowHeadingAction> actionExecuteAndOutOfRegion;
 std::shared_ptr<FollowHeadingAction> actionTimeReplan;
 std::shared_ptr<FollowHeadingAction> actionDistanceReplan;
 
-bool followHeadingState = true;
-bool propState(propulsion_controller::PropulsionControllerState::Request  &req, 
-               propulsion_controller::PropulsionControllerState::Response &res) 
+bool propEnable(propulsion_controller::PropulsionControllerEnable::Request  &req, 
+               propulsion_controller::PropulsionControllerEnable::Response &res,
+               uint* enable) 
 {
-    res.followHeadingEnabled = followHeadingState; 
+    (*enable)++;
     return true;
 };
 
@@ -45,7 +46,6 @@ TEST(FollowHeadingSimActionExecutor, ExecutePropModuleTypeFail)
     actionExecutePropModuleTypeFail->execute(ros::Time::now().toSec());
     EXPECT_EQ(Action::State::FAILED, actionExecutePropModuleTypeFail->getState());
 }
-
 
 TEST(FollowHeadingSimActionExecutor, ExecuteAndCancel)
 {
@@ -64,13 +64,14 @@ TEST(FollowHeadingSimActionExecutor, ExecuteAndCancel)
 
 	ros::Subscriber followHeadingSub = nh.subscribe<underwater_vehicle_msgs::FollowHeading>("follow_heading", 10, followHeading);
 
-    unsigned int followHeadingEnableCalls = 0;
-    auto followHeadingEnable = [&] (const ros::MessageEvent< std_msgs::Bool const >& enable) {followHeadingEnableCalls++;};
-	ros::Subscriber followHeadingEnableSub = nh.subscribe<std_msgs::Bool>("follow_heading_enable", 10, followHeadingEnable);
+    uint followHeadingEnableCalls = 0;
+    boost::function<bool (propulsion_controller::PropulsionControllerEnable::Request  &req, 
+                          propulsion_controller::PropulsionControllerEnable::Response &res)> propSrvFunction(boost::bind(&propEnable, _1, _2, &followHeadingEnableCalls));
 
-    ros::ServiceServer stateService = nh.advertiseService("get_propulsion_state", propState);
-    ros::ServiceClient propStateClient = nh.serviceClient<propulsion_controller::PropulsionControllerState>("get_propulsion_state");
-    while(!propStateClient.exists()) {ros::spinOnce();}
+    ros::ServiceServer propService = nh.advertiseService("follow_heading_enable", propSrvFunction);
+
+    ros::ServiceClient propServiceClient = nh.serviceClient<propulsion_controller::PropulsionControllerEnable>("follow_heading_enable");
+    while(!propServiceClient.exists()) {ros::spinOnce();}
 
     ros::AsyncSpinner spinner(1);
     spinner.start();
@@ -100,22 +101,7 @@ TEST(FollowHeadingSimActionExecutor, ExecuteAndCancel)
 
     //Cancel action
     actionExecuteAndCancel->cancel(ros::Time::now().toSec());
-    while(followHeadingEnableCalls != 1)
-    {
-        ros::spinOnce();
-    }
     EXPECT_EQ(1, followHeadingEnableCalls);
-
-    EXPECT_EQ(Action::State::INTERRUPTING, actionExecuteAndCancel->getState());
-    actionExecuteAndCancel->monitor(ros::Time::now().toSec());
-    EXPECT_EQ(Action::State::INTERRUPTING, actionExecuteAndCancel->getState());
-
-    followHeadingState = false;
-    actionExecuteAndCancel->monitor(ros::Time::now().toSec());
-    while(actionExecuteAndCancel->getState() != Action::State::INTERRUPTED)
-    {
-        ros::spinOnce();
-    }
     EXPECT_EQ(Action::State::INTERRUPTED, actionExecuteAndCancel->getState());
     spinner.stop();
 }
@@ -138,9 +124,17 @@ TEST(FollowHeadingSimActionExecutor, ExecuteAndSucceed)
 
 	ros::Subscriber followHeadingSub = nh.subscribe<underwater_vehicle_msgs::FollowHeading>("follow_heading", 10, followHeading);
 
-    unsigned int followHeadingEnableCalls = 0;
-    auto followHeadingEnable = [&] (const ros::MessageEvent< std_msgs::Bool const >& enable) {followHeadingEnableCalls++;};
-	ros::Subscriber followHeadingEnableSub = nh.subscribe<std_msgs::Bool>("follow_heading_enable", 10, followHeadingEnable);
+    uint followHeadingEnableCalls = 0;
+    boost::function<bool (propulsion_controller::PropulsionControllerEnable::Request  &req, 
+                          propulsion_controller::PropulsionControllerEnable::Response &res)> propSrvFunction(boost::bind(&propEnable, _1, _2, &followHeadingEnableCalls));
+
+    ros::ServiceServer propService = nh.advertiseService("follow_heading_enable", propSrvFunction);
+
+    ros::ServiceClient propServiceClient = nh.serviceClient<propulsion_controller::PropulsionControllerEnable>("follow_heading_enable");
+    while(!propServiceClient.exists()) {ros::spinOnce();}
+
+    ros::AsyncSpinner spinner(1);
+    spinner.start();
 
     actionExecuteAndSucceed->execute(ros::Time::now().toSec());
     while(latestVelMsg == NULL)
@@ -171,7 +165,7 @@ TEST(FollowHeadingSimActionExecutor, ExecuteAndSucceed)
         ros::spinOnce();
     }
     EXPECT_EQ(Action::State::COMPLETED, actionExecuteAndSucceed->getState());
-
+    spinner.stop();
 }
 
 TEST(FollowHeadingSimActionExecutor, ExecuteAndOutOfRegion)
@@ -192,9 +186,17 @@ TEST(FollowHeadingSimActionExecutor, ExecuteAndOutOfRegion)
 
 	ros::Subscriber followHeadingSub = nh.subscribe<underwater_vehicle_msgs::FollowHeading>("follow_heading", 10, followHeading);
 
-    unsigned int followHeadingEnableCalls = 0;
-    auto followHeadingEnable = [&] (const ros::MessageEvent< std_msgs::Bool const >& enable) {followHeadingEnableCalls++;};
-	ros::Subscriber followHeadingEnableSub = nh.subscribe<std_msgs::Bool>("follow_heading_enable", 10, followHeadingEnable);
+    uint followHeadingEnableCalls = 0;
+    boost::function<bool (propulsion_controller::PropulsionControllerEnable::Request  &req, 
+                          propulsion_controller::PropulsionControllerEnable::Response &res)> propSrvFunction(boost::bind(&propEnable, _1, _2, &followHeadingEnableCalls));
+
+    ros::ServiceServer propService = nh.advertiseService("follow_heading_enable", propSrvFunction);
+
+    ros::ServiceClient propServiceClient = nh.serviceClient<propulsion_controller::PropulsionControllerEnable>("follow_heading_enable");
+    while(!propServiceClient.exists()) {ros::spinOnce();}
+
+    ros::AsyncSpinner spinner(1);
+    spinner.start();
 
     actionExecuteAndOutOfRegion->execute(ros::Time::now().toSec());
     while(latestVelMsg == NULL)
@@ -231,7 +233,7 @@ TEST(FollowHeadingSimActionExecutor, ExecuteAndOutOfRegion)
         ros::spinOnce();
     }
     EXPECT_EQ(Action::State::FAILED, actionExecuteAndOutOfRegion->getState());
-
+    spinner.stop();
 }
 
 TEST(FollowHeadingSimActionExecutor, TimeReplan)
@@ -252,9 +254,17 @@ TEST(FollowHeadingSimActionExecutor, TimeReplan)
 
 	ros::Subscriber followHeadingSub = nh.subscribe<underwater_vehicle_msgs::FollowHeading>("follow_heading", 10, followHeading);
 
-    unsigned int followHeadingEnableCalls = 0;
-    auto followHeadingEnable = [&] (const ros::MessageEvent< std_msgs::Bool const >& enable) {followHeadingEnableCalls++;};
-	ros::Subscriber followHeadingEnableSub = nh.subscribe<std_msgs::Bool>("follow_heading_enable", 10, followHeadingEnable);
+    uint followHeadingEnableCalls = 0;
+    boost::function<bool (propulsion_controller::PropulsionControllerEnable::Request  &req, 
+                          propulsion_controller::PropulsionControllerEnable::Response &res)> propSrvFunction(boost::bind(&propEnable, _1, _2, &followHeadingEnableCalls));
+
+    ros::ServiceServer propService = nh.advertiseService("follow_heading_enable", propSrvFunction);
+
+    ros::ServiceClient propServiceClient = nh.serviceClient<propulsion_controller::PropulsionControllerEnable>("follow_heading_enable");
+    while(!propServiceClient.exists()) {ros::spinOnce();}
+
+    ros::AsyncSpinner spinner(1);
+    spinner.start();
 
     underwater_vehicle_msgs::GetVehicleInfo infoMsg;
     infoMsg.response.propModuleType = "FourDOFPropulsion";
@@ -286,6 +296,7 @@ TEST(FollowHeadingSimActionExecutor, TimeReplan)
     actionTimeReplan->monitor(ros::Time::now().toSec());
     EXPECT_TRUE(actionTimeReplan->triggerReplan());
     EXPECT_FALSE(actionTimeReplan->triggerReplan());
+    spinner.stop();
 }
 
 TEST(FollowHeadingSimActionExecutor, DistanceReplan)
@@ -306,9 +317,17 @@ TEST(FollowHeadingSimActionExecutor, DistanceReplan)
 
 	ros::Subscriber followHeadingSub = nh.subscribe<underwater_vehicle_msgs::FollowHeading>("follow_heading", 10, followHeading);
 
-    unsigned int followHeadingEnableCalls = 0;
-    auto followHeadingEnable = [&] (const ros::MessageEvent< std_msgs::Bool const >& enable) {followHeadingEnableCalls++;};
-	ros::Subscriber followHeadingEnableSub = nh.subscribe<std_msgs::Bool>("follow_heading_enable", 10, followHeadingEnable);
+    uint followHeadingEnableCalls = 0;
+    boost::function<bool (propulsion_controller::PropulsionControllerEnable::Request  &req, 
+                          propulsion_controller::PropulsionControllerEnable::Response &res)> propSrvFunction(boost::bind(&propEnable, _1, _2, &followHeadingEnableCalls));
+
+    ros::ServiceServer propService = nh.advertiseService("follow_heading_enable", propSrvFunction);
+
+    ros::ServiceClient propServiceClient = nh.serviceClient<propulsion_controller::PropulsionControllerEnable>("follow_heading_enable");
+    while(!propServiceClient.exists()) {ros::spinOnce();}
+
+    ros::AsyncSpinner spinner(1);
+    spinner.start();
 
     underwater_vehicle_msgs::GetVehicleInfo infoMsg;
     infoMsg.response.propModuleType = "FourDOFPropulsion";
@@ -353,6 +372,7 @@ TEST(FollowHeadingSimActionExecutor, DistanceReplan)
     }
     EXPECT_TRUE(replan);
     EXPECT_FALSE(actionDistanceReplan->triggerReplan());
+    spinner.stop();
 }
 
 //Had issues doing this in the roslaunch file for this test. Not sure why.

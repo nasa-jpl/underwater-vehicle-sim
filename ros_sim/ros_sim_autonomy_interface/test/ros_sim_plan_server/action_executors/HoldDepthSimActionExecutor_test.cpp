@@ -16,7 +16,7 @@
 #include "underwater_vehicle_msgs/GoToZ.h"
 
 #include "ros_sim_plan_server/action_executors/HoldDepthSimActionExecutor.h"
-#include "propulsion_controller/PropulsionControllerState.h"
+#include "propulsion_controller/PropulsionControllerEnable.h"
 
 #include "underwater_autonomy/util/BoxOperationRegion.h"
 
@@ -29,13 +29,14 @@ std::shared_ptr<HoldDepthAction> actionTimeReplan;
 std::shared_ptr<HoldDepthAction> actionDistanceReplan;
 std::shared_ptr<HoldDepthAction> actionExecuteAndOutOfRegion;
 
-bool zState = true;
-bool propState(propulsion_controller::PropulsionControllerState::Request  &req, 
-               propulsion_controller::PropulsionControllerState::Response &res) 
+bool propEnable(propulsion_controller::PropulsionControllerEnable::Request  &req, 
+               propulsion_controller::PropulsionControllerEnable::Response &res,
+               uint* enable) 
 {
-    res.zEnabled = zState; 
+    (*enable)++;
     return true;
 };
+
 
 TEST(HoldDepthSimActionExecutor, ExecutePropModuleTypeFail)
 {
@@ -72,13 +73,14 @@ TEST(HoldDepthSimActionExecutor, ExecuteAndCancel)
 
 	ros::Subscriber holdDepthSub = nh.subscribe<underwater_vehicle_msgs::GoToZ>("go_to_z", 10, holdDepth);
 
-    unsigned int holdDepthEnableCalls = 0;
-    auto holdDepthEnable = [&] (const ros::MessageEvent< std_msgs::Bool const >& enable) {holdDepthEnableCalls++;};
-	ros::Subscriber holdDepthEnableSub = nh.subscribe<std_msgs::Bool>("go_to_z_enable", 10, holdDepthEnable);
+    uint holdDepthEnableCalls = 0;
+    boost::function<bool (propulsion_controller::PropulsionControllerEnable::Request  &req, 
+                          propulsion_controller::PropulsionControllerEnable::Response &res)> propSrvFunction(boost::bind(&propEnable, _1, _2, &holdDepthEnableCalls));
 
-    ros::ServiceServer stateService = nh.advertiseService("get_propulsion_state", propState);
-    ros::ServiceClient propStateClient = nh.serviceClient<propulsion_controller::PropulsionControllerState>("get_propulsion_state");
-    while(!propStateClient.exists()) {ros::spinOnce();}
+    ros::ServiceServer propService = nh.advertiseService("go_to_z_enable", propSrvFunction);
+
+    ros::ServiceClient propServiceClient = nh.serviceClient<propulsion_controller::PropulsionControllerEnable>("go_to_z_enable");
+    while(!propServiceClient.exists()) {ros::spinOnce();}
 
     ros::AsyncSpinner spinner(1);
     spinner.start();
@@ -110,18 +112,6 @@ TEST(HoldDepthSimActionExecutor, ExecuteAndCancel)
         ros::spinOnce();
     }
     EXPECT_EQ(1u, holdDepthEnableCalls);
-
-    EXPECT_EQ(Action::State::INTERRUPTING, actionExecuteAndCancel->getState());
-    actionExecuteAndCancel->monitor(ros::Time::now().toSec());
-    EXPECT_EQ(Action::State::INTERRUPTING, actionExecuteAndCancel->getState());
-
-    zState = false;
-    actionExecuteAndCancel->monitor(ros::Time::now().toSec());
-
-    while(actionExecuteAndCancel->getState() != Action::State::INTERRUPTED)
-    {
-        ros::spinOnce();
-    }
     EXPECT_EQ(Action::State::INTERRUPTED, actionExecuteAndCancel->getState());
     spinner.stop();
 }
@@ -144,9 +134,17 @@ TEST(HoldDepthSimActionExecutor, ExecuteAndSucceed)
 
 	ros::Subscriber holdDepthSub = nh.subscribe<underwater_vehicle_msgs::GoToZ>("go_to_z", 10, holdDepth);
 
-    unsigned int holdDepthEnableCalls = 0;
-    auto holdDepthEnable = [&] (const ros::MessageEvent< std_msgs::Bool const >& enable) {holdDepthEnableCalls++;};
-	ros::Subscriber holdDepthEnableSub = nh.subscribe<std_msgs::Bool>("go_to_z_enable", 10, holdDepthEnable);
+    uint holdDepthEnableCalls = 0;
+    boost::function<bool (propulsion_controller::PropulsionControllerEnable::Request  &req, 
+                          propulsion_controller::PropulsionControllerEnable::Response &res)> propSrvFunction(boost::bind(&propEnable, _1, _2, &holdDepthEnableCalls));
+
+    ros::ServiceServer propService = nh.advertiseService("go_to_z_enable", propSrvFunction);
+
+    ros::ServiceClient propServiceClient = nh.serviceClient<propulsion_controller::PropulsionControllerEnable>("go_to_z_enable");
+    while(!propServiceClient.exists()) {ros::spinOnce();}
+
+    ros::AsyncSpinner spinner(1);
+    spinner.start();
 
     actionExecuteAndSucceed->execute(ros::Time::now().toSec());
 
@@ -177,7 +175,7 @@ TEST(HoldDepthSimActionExecutor, ExecuteAndSucceed)
         ros::spinOnce();
     }
     EXPECT_EQ(Action::State::COMPLETED, actionExecuteAndSucceed->getState());
-
+    spinner.stop();
 }
 
 TEST(YoYoSimActionExecutor, ExecuteAndOutOfRegion)
@@ -198,9 +196,17 @@ TEST(YoYoSimActionExecutor, ExecuteAndOutOfRegion)
 
     ros::Subscriber goToZSub = nh.subscribe<underwater_vehicle_msgs::GoToZ>("go_to_z", 10, goToZ);
 
-    unsigned int goToZEnableCalls = 0;
-    auto goToZEnable = [&] (const ros::MessageEvent< std_msgs::Bool const >& enable) {goToZEnableCalls++;};
-	ros::Subscriber goToZEnableSub = nh.subscribe<std_msgs::Bool>("go_to_z_enable", 10, goToZEnable);
+    uint holdDepthEnableCalls = 0;
+    boost::function<bool (propulsion_controller::PropulsionControllerEnable::Request  &req, 
+                          propulsion_controller::PropulsionControllerEnable::Response &res)> propSrvFunction(boost::bind(&propEnable, _1, _2, &holdDepthEnableCalls));
+
+    ros::ServiceServer propService = nh.advertiseService("go_to_z_enable", propSrvFunction);
+
+    ros::ServiceClient propServiceClient = nh.serviceClient<propulsion_controller::PropulsionControllerEnable>("go_to_z_enable");
+    while(!propServiceClient.exists()) {ros::spinOnce();}
+
+    ros::AsyncSpinner spinner(1);
+    spinner.start();
 
     actionExecuteAndOutOfRegion->execute(ros::Time::now().toSec());
     while(latestVelMsg == NULL)
@@ -234,6 +240,7 @@ TEST(YoYoSimActionExecutor, ExecuteAndOutOfRegion)
         ros::spinOnce();
     }
     EXPECT_EQ(Action::State::FAILED, actionExecuteAndOutOfRegion->getState());
+    spinner.stop();
 }
 
 TEST(HoldDepthSimActionExecutor, TimeReplan)
@@ -254,9 +261,17 @@ TEST(HoldDepthSimActionExecutor, TimeReplan)
 
 	ros::Subscriber holdDepthSub = nh.subscribe<underwater_vehicle_msgs::GoToZ>("go_to_z", 10, holdDepth);
 
-    unsigned int holdDepthEnableCalls = 0;
-    auto holdDepthEnable = [&] (const ros::MessageEvent< std_msgs::Bool const >& enable) {holdDepthEnableCalls++;};
-	ros::Subscriber holdDepthEnableSub = nh.subscribe<std_msgs::Bool>("go_to_z_enable", 10, holdDepthEnable);
+    uint holdDepthEnableCalls = 0;
+    boost::function<bool (propulsion_controller::PropulsionControllerEnable::Request  &req, 
+                          propulsion_controller::PropulsionControllerEnable::Response &res)> propSrvFunction(boost::bind(&propEnable, _1, _2, &holdDepthEnableCalls));
+
+    ros::ServiceServer propService = nh.advertiseService("go_to_z_enable", propSrvFunction);
+
+    ros::ServiceClient propServiceClient = nh.serviceClient<propulsion_controller::PropulsionControllerEnable>("go_to_z_enable");
+    while(!propServiceClient.exists()) {ros::spinOnce();}
+
+    ros::AsyncSpinner spinner(1);
+    spinner.start();
 
     actionTimeReplan->execute(ros::Time::now().toSec());
 
@@ -283,6 +298,7 @@ TEST(HoldDepthSimActionExecutor, TimeReplan)
     actionTimeReplan->monitor(ros::Time::now().toSec());
     EXPECT_TRUE(actionTimeReplan->triggerReplan());
     EXPECT_FALSE(actionTimeReplan->triggerReplan());
+    spinner.stop();
 }
 
 TEST(HoldDepthSimActionExecutor, DistanceReplan)
@@ -303,18 +319,17 @@ TEST(HoldDepthSimActionExecutor, DistanceReplan)
 
 	ros::Subscriber holdDepthSub = nh.subscribe<underwater_vehicle_msgs::GoToZ>("go_to_z", 10, holdDepth);
 
-    unsigned int holdDepthEnableCalls = 0;
-    auto holdDepthEnable = [&] (const ros::MessageEvent< std_msgs::Bool const >& enable) {holdDepthEnableCalls++;};
-	ros::Subscriber holdDepthEnableSub = nh.subscribe<std_msgs::Bool>("go_to_z_enable", 10, holdDepthEnable);
+    uint holdDepthEnableCalls = 0;
+    boost::function<bool (propulsion_controller::PropulsionControllerEnable::Request  &req, 
+                          propulsion_controller::PropulsionControllerEnable::Response &res)> propSrvFunction(boost::bind(&propEnable, _1, _2, &holdDepthEnableCalls));
 
-    std::shared_ptr<HoldDepthAction> action(new HoldDepthAction(5,
-                                                                1,
-                                                                100,
-                                                                100,
-                                                                NULL,
-                                                                HoldDepthAction::ReplanType::PERIODIC_DISTANCE,
-                                                                3));
+    ros::ServiceServer propService = nh.advertiseService("go_to_z_enable", propSrvFunction);
 
+    ros::ServiceClient propServiceClient = nh.serviceClient<propulsion_controller::PropulsionControllerEnable>("go_to_z_enable");
+    while(!propServiceClient.exists()) {ros::spinOnce();}
+
+    ros::AsyncSpinner spinner(1);
+    spinner.start();
 
     actionDistanceReplan->execute(ros::Time::now().toSec());
 
@@ -356,6 +371,7 @@ TEST(HoldDepthSimActionExecutor, DistanceReplan)
     }
     EXPECT_TRUE(replan);
     EXPECT_FALSE(actionDistanceReplan->triggerReplan());
+    spinner.stop();
 }
 
 //Had issues doing this in the roslaunch file for this test. Not sure why.

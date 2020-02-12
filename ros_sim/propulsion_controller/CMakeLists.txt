@@ -65,6 +65,8 @@ find_path(UNDERWATER_AUTONOMY_INCLUDE underwater_autonomy)
  add_service_files(
    FILES
    PropulsionControllerState.srv
+   PropulsionControllerEnable.srv
+
 #   Service2.srv
  )
 
