@@ -15,6 +15,7 @@
 
 #include "propulsion_controller/PropulsionLogicInterface.h"
 #include "propulsion_controller/PropulsionControllerState.h"
+#include "propulsion_controller/PropulsionControllerEnable.h"
 
 #include "underwater_vehicle_msgs/GetVehicleInfo.h"
 #include "underwater_vehicle_msgs/VehicleInfo.h"
@@ -46,17 +47,20 @@ private:
 
 	//Go To XY
 	void goToXYCallback(const underwater_vehicle_msgs::GoToXY parameters);
-	void goToXYEnableCallback(const std_msgs::Bool enable);
+	bool goToXYEnableCallback(propulsion_controller::PropulsionControllerEnable::Request  &req,
+                              propulsion_controller::PropulsionControllerEnable::Response &res);
 	void goToXYUpdate(void);
 
 	//Go To Z
 	void goToZCallback(const underwater_vehicle_msgs::GoToZ parameters);
-	void goToZEnableCallback(const std_msgs::Bool enable);
+	bool goToZEnableCallback(propulsion_controller::PropulsionControllerEnable::Request  &req,
+                             propulsion_controller::PropulsionControllerEnable::Response &res);
 	void goToZUpdate(void);
 
 	//Follow Heading
 	void followHeadingCallback(const underwater_vehicle_msgs::FollowHeading parameters);
-	void followHeadingEnableCallback(const std_msgs::Bool enable);
+	bool followHeadingEnableCallback(propulsion_controller::PropulsionControllerEnable::Request  &req,
+                                     propulsion_controller::PropulsionControllerEnable::Response &res);
 	void followHeadingUpdate(void);
 
 	bool getState(propulsion_controller::PropulsionControllerState::Request  &req,
@@ -72,20 +76,20 @@ private:
 
 	//GoToZ Topics and Parameters
 	ros::Subscriber goToZSub;
-	ros::Subscriber goToZEnableSub;
+	ros::ServiceServer goToZEnableService;
 	ros::Publisher goToZComplete;
 	bool goToZEnable;
 	bool goToZHoldDepth;
 
 	//GoToXY Topics and Parameters
 	ros::Subscriber goToXYSub;
-	ros::Subscriber goToXYEnableSub;
+	ros::ServiceServer goToXYEnableService;
 	ros::Publisher goToXYComplete;
 	bool goToXYEnable;
 
 	//FollowHeading Topics and Parameters
 	ros::Subscriber followHeadingSub;
-	ros::Subscriber followHeadingEnableSub;
+	ros::ServiceServer followHeadingEnableService;
 	bool followHeadingEnable;
 	
 	ros::Subscriber dataSub;

@@ -9,6 +9,7 @@
 #include "underwater_vehicle_msgs/FollowHeading.h"
 
 #include "propulsion_controller/PropulsionControllerState.h"
+#include "propulsion_controller/PropulsionControllerEnable.h"
 
 #include "tf2_geometry_msgs/tf2_geometry_msgs.h"
 
@@ -28,9 +29,7 @@ FollowHeadingSimActionExecutor::FollowHeadingSimActionExecutor(ros::NodeHandle& 
     poseSub = nh.subscribe("primary_navigation", 1, &FollowHeadingSimActionExecutor::navigationFilterCallback, this);
 
     followHeadingPub = nh.advertise<underwater_vehicle_msgs::FollowHeading>("follow_heading", 1000);
-    followHeadingEnablePub = nh.advertise<std_msgs::Bool>("follow_heading_enable", 1000);
-
-    propStateClient = nh.serviceClient<propulsion_controller::PropulsionControllerState>("get_propulsion_state");
+    followHeadingEnableClient = nh.serviceClient<propulsion_controller::PropulsionControllerEnable>("follow_heading_enable");
 }
 
 bool FollowHeadingSimActionExecutor::execute(underwater_autonomy::FollowHeadingAction& action)
@@ -84,9 +83,13 @@ bool FollowHeadingSimActionExecutor::execute(underwater_autonomy::FollowHeadingA
 
 void FollowHeadingSimActionExecutor::cancel(underwater_autonomy::FollowHeadingAction& action)
 {
-    std_msgs::Bool enableMsg;
-    enableMsg.data = false;
-    followHeadingEnablePub.publish(enableMsg);
+    propulsion_controller::PropulsionControllerEnable enableMsg;
+    enableMsg.request.enable = false;
+    if(followHeadingEnableClient.exists() &&
+       followHeadingEnableClient.call(enableMsg))
+    {
+        action.setState(Action::State::INTERRUPTED);
+    }
 }
 
 bool FollowHeadingSimActionExecutor::triggerReplan(underwater_autonomy::FollowHeadingAction& action)
@@ -110,9 +113,9 @@ void FollowHeadingSimActionExecutor::monitor(underwater_autonomy::FollowHeadingA
     {
         action.setState(Action::State::COMPLETED);
 
-        std_msgs::Bool enableMsg;
-        enableMsg.data = false;
-        followHeadingEnablePub.publish(enableMsg);
+        propulsion_controller::PropulsionControllerEnable enableMsg;    
+        enableMsg.request.enable = false;
+        followHeadingEnableClient.call(enableMsg);
     }
     else if((action.getState() == Action::State::DISPATCHED ||
              action.getState() == Action::State::EXECUTING ||
@@ -121,20 +124,18 @@ void FollowHeadingSimActionExecutor::monitor(underwater_autonomy::FollowHeadingA
     {
         action.setState(Action::State::FAILED);
 
-        std_msgs::Bool enableMsg;
-        enableMsg.data = false;
-        followHeadingEnablePub.publish(enableMsg);
+        propulsion_controller::PropulsionControllerEnable enableMsg;    
+        enableMsg.request.enable = false;
+        followHeadingEnableClient.call(enableMsg);
     }
     else if(action.getState() == Action::State::INTERRUPTING)
     {
-        if(propStateClient.exists())
+        propulsion_controller::PropulsionControllerEnable enableMsg;
+        enableMsg.request.enable = false;
+        if(followHeadingEnableClient.exists() &&
+        followHeadingEnableClient.call(enableMsg))
         {
-            propulsion_controller::PropulsionControllerState srv;
-            propStateClient.call(srv);
-            if(!srv.response.followHeadingEnabled)
-            {
-                action.setState(Action::State::INTERRUPTED);
-            }
+            action.setState(Action::State::INTERRUPTED);
         }
     }
 

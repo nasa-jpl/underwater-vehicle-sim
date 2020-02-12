@@ -12,6 +12,8 @@
 
 #include "propulsion_controller/PropulsionController.h"
 
+#include "propulsion_controller/PropulsionControllerEnable.h"
+
 #include "uth/UthPropulsionLogic.h"
 
 using namespace underwater_autonomy;
@@ -131,15 +133,19 @@ TEST(PropulsionController, goToZCancel)
     VehicleInfo info;
 
     ros::Publisher goToZPub = nh.advertise<underwater_vehicle_msgs::GoToZ>("go_to_z", 1000);
-    ros::Publisher goToZEnablePub = nh.advertise<std_msgs::Bool>("go_to_z_enable", 1000);
-
+    ros::ServiceClient goToZEnableClient = nh.serviceClient<propulsion_controller::PropulsionControllerEnable>("go_to_z_enable");
     std::unique_ptr<UthPropulsionLogic> uthLogic(new UthPropulsionLogic(info));
     UthPropulsionLogic* rawLogicPtr = uthLogic.get();
 
     std::unique_ptr<PropulsionLogicInterface> genLogic(std::move(uthLogic));
 
     PropulsionController controller(nh, info, std::move(genLogic));
-    
+
+    ros::AsyncSpinner spinner(1);
+    spinner.start();
+
+    goToZEnableClient.waitForExistence();
+
     underwater_vehicle_msgs::GoToZ goToZMsg;
     goToZMsg.depth = 100;
     goToZMsg.enable = true;
@@ -167,9 +173,9 @@ TEST(PropulsionController, goToZCancel)
     EXPECT_TRUE(rawLogicPtr->getZMovement());
 
     //Cancel Goal
-    std_msgs::Bool disableMsg;
-    disableMsg.data = false;
-    goToZEnablePub.publish(disableMsg);
+    propulsion_controller::PropulsionControllerEnable enableMsg;    
+    enableMsg.request.enable = false;
+    goToZEnableClient.call(enableMsg);
     ros::WallDuration(0.5).sleep();
     ros::spinOnce();
 
@@ -184,6 +190,7 @@ TEST(PropulsionController, goToZCancel)
     EXPECT_EQ(1, rawLogicPtr->getGoToZCalls());
     EXPECT_EQ(1, rawLogicPtr->getStopZCalls());
     EXPECT_TRUE(rawLogicPtr->getZMovement());
+    spinner.stop();
 }
 
 
@@ -328,7 +335,7 @@ TEST(PropulsionController, goToXYCancel)
     VehicleInfo info;
 
     ros::Publisher goToXYPub = nh.advertise<underwater_vehicle_msgs::GoToXY>("go_to_xy", 1000);
-    ros::Publisher goToXYEnablePub = nh.advertise<std_msgs::Bool>("go_to_xy_enable", 1000);
+    ros::ServiceClient goToXYEnableClient = nh.serviceClient<propulsion_controller::PropulsionControllerEnable>("go_to_xy_enable");
 
     std::unique_ptr<UthPropulsionLogic> uthLogic(new UthPropulsionLogic(info));
     UthPropulsionLogic* rawLogicPtr = uthLogic.get();
@@ -337,6 +344,11 @@ TEST(PropulsionController, goToXYCancel)
 
     PropulsionController controller(nh, info, std::move(genLogic));
     
+    ros::AsyncSpinner spinner(1);
+    spinner.start();
+
+    goToXYEnableClient.waitForExistence();
+
     rawLogicPtr->setAtXY(false);
 
     //Before Goal
@@ -368,9 +380,9 @@ TEST(PropulsionController, goToXYCancel)
     EXPECT_TRUE(rawLogicPtr->getZMovement());
 
     //Cancel Goal
-    std_msgs::Bool disableMsg;
-    disableMsg.data = false;
-    goToXYEnablePub.publish(disableMsg);
+    propulsion_controller::PropulsionControllerEnable enableMsg;    
+    enableMsg.request.enable = false;
+    goToXYEnableClient.call(enableMsg);
     ros::WallDuration(0.5).sleep();
     ros::spinOnce();
 
@@ -386,6 +398,7 @@ TEST(PropulsionController, goToXYCancel)
     EXPECT_EQ(1, rawLogicPtr->getStopXYCalls());
     EXPECT_FALSE(rawLogicPtr->getXYMovement());
     EXPECT_TRUE(rawLogicPtr->getZMovement());
+    spinner.stop();
 }
 
 TEST(PropulsionController, followHeadingCancel) 
@@ -394,7 +407,7 @@ TEST(PropulsionController, followHeadingCancel)
     VehicleInfo info;
 
     ros::Publisher followHeadingPub = nh.advertise<underwater_vehicle_msgs::FollowHeading>("follow_heading", 1000);
-    ros::Publisher followHeadingEnablePub = nh.advertise<std_msgs::Bool>("follow_heading_enable", 1000);
+    ros::ServiceClient followHeadingEnableClient = nh.serviceClient<propulsion_controller::PropulsionControllerEnable>("follow_heading_enable");
 
     std::unique_ptr<UthPropulsionLogic> uthLogic(new UthPropulsionLogic(info));
     UthPropulsionLogic* rawLogicPtr = uthLogic.get();
@@ -402,6 +415,11 @@ TEST(PropulsionController, followHeadingCancel)
     std::unique_ptr<PropulsionLogicInterface> genLogic(std::move(uthLogic));
 
     PropulsionController controller(nh, info, std::move(genLogic));
+    
+    ros::AsyncSpinner spinner(1);
+    spinner.start();
+
+    followHeadingEnableClient.waitForExistence();
     
     rawLogicPtr->setAtXY(false);
 
@@ -431,9 +449,9 @@ TEST(PropulsionController, followHeadingCancel)
     EXPECT_TRUE(rawLogicPtr->getZMovement());
 
     //Cancel Goal
-    std_msgs::Bool disableMsg;
-    disableMsg.data = false;
-    followHeadingEnablePub.publish(disableMsg);
+    propulsion_controller::PropulsionControllerEnable enableMsg;    
+    enableMsg.request.enable = false;
+    followHeadingEnableClient.call(enableMsg);
     ros::WallDuration(0.5).sleep();
     ros::spinOnce();
 
@@ -449,6 +467,7 @@ TEST(PropulsionController, followHeadingCancel)
     EXPECT_EQ(1, rawLogicPtr->getStopXYCalls());
     EXPECT_FALSE(rawLogicPtr->getXYMovement());
     EXPECT_TRUE(rawLogicPtr->getZMovement());
+    spinner.stop();
 }
 
 TEST(PropulsionController, xyInterruptHeading) 

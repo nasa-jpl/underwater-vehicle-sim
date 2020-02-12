@@ -16,7 +16,7 @@
 #include "underwater_vehicle_msgs/GoToXY.h"
 
 #include "ros_sim_plan_server/action_executors/PointPathSimActionExecutor.h"
-#include "propulsion_controller/PropulsionControllerState.h"
+#include "propulsion_controller/PropulsionControllerEnable.h"
 #include "underwater_autonomy/util/BoxOperationRegion.h"
 
 
@@ -30,18 +30,11 @@ std::shared_ptr<PointPathAction> actionTimeReplan;
 std::shared_ptr<PointPathAction> actionDistanceReplan;
 std::shared_ptr<PointPathAction> actionPointReachedReplan;
 
-bool xyStateCancel = true;
-bool propStateCancel(propulsion_controller::PropulsionControllerState::Request  &req, 
-               propulsion_controller::PropulsionControllerState::Response &res) 
+bool propEnable(propulsion_controller::PropulsionControllerEnable::Request  &req, 
+               propulsion_controller::PropulsionControllerEnable::Response &res,
+               uint* enable) 
 {
-    res.xyEnabled = xyStateCancel; 
-    return true;
-};
-
-bool propStateSucceed(propulsion_controller::PropulsionControllerState::Request  &req, 
-               propulsion_controller::PropulsionControllerState::Response &res) 
-{
-    res.xyEnabled = 0; 
+    (*enable)++;
     return true;
 };
 
@@ -75,13 +68,14 @@ TEST(PointPathSimActionExecutor, ExecuteAndCancel)
 
 	ros::Subscriber goToXYSub = nh.subscribe<underwater_vehicle_msgs::GoToXY>("go_to_xy", 10, goToXY);
 
-    unsigned int goToXYEnableCalls = 0;
-    auto goToXYEnable = [&] (const ros::MessageEvent< std_msgs::Bool const >& enable) {goToXYEnableCalls++;};
-	ros::Subscriber goToXYEnableSub = nh.subscribe<std_msgs::Bool>("go_to_xy_enable", 10, goToXYEnable);
+    uint goToXYEnableCalls = 0;
+    boost::function<bool (propulsion_controller::PropulsionControllerEnable::Request  &req, 
+                          propulsion_controller::PropulsionControllerEnable::Response &res)> propSrvFunction(boost::bind(&propEnable, _1, _2, &goToXYEnableCalls));
 
-    ros::ServiceServer stateService = nh.advertiseService("get_propulsion_state", propStateCancel);
-    ros::ServiceClient propStateClient = nh.serviceClient<propulsion_controller::PropulsionControllerState>("get_propulsion_state");
-    while(!propStateClient.exists()) {ros::spinOnce();}
+    ros::ServiceServer propService = nh.advertiseService("go_to_xy_enable", propSrvFunction);
+
+    ros::ServiceClient propServiceClient = nh.serviceClient<propulsion_controller::PropulsionControllerEnable>("go_to_xy_enable");
+    while(!propServiceClient.exists()) {ros::spinOnce();}
 
     ros::AsyncSpinner spinner(1);
     spinner.start();
@@ -110,23 +104,8 @@ TEST(PointPathSimActionExecutor, ExecuteAndCancel)
     EXPECT_EQ(2, y);
 
     actionExecuteAndCancel->cancel(ros::Time::now().toSec());
-    while(goToXYEnableCalls != 1)
-    {
-        ros::spinOnce();
-    }
+
     EXPECT_EQ(1, goToXYEnableCalls);
-
-    EXPECT_EQ(Action::State::INTERRUPTING, actionExecuteAndCancel->getState());
-    actionExecuteAndCancel->monitor(ros::Time::now().toSec());
-    EXPECT_EQ(Action::State::INTERRUPTING, actionExecuteAndCancel->getState());
-
-    xyStateCancel = false;
-    actionExecuteAndCancel->monitor(ros::Time::now().toSec());
-
-    while(actionExecuteAndCancel->getState() != Action::State::INTERRUPTED)
-    {
-        ros::spinOnce();
-    }
     EXPECT_EQ(Action::State::INTERRUPTED, actionExecuteAndCancel->getState());
     spinner.stop();
 }
@@ -151,15 +130,16 @@ TEST(PointPathSimActionExecutor, ExecuteAndSucceed)
 
 	ros::Subscriber goToXYSub = nh.subscribe<underwater_vehicle_msgs::GoToXY>("go_to_xy", 10, goToXY);
 
-    unsigned int goToXYEnableCalls = 0;
-    auto goToXYEnable = [&] (const ros::MessageEvent< std_msgs::Bool const >& enable) {goToXYEnableCalls++;};
-	ros::Subscriber goToXYEnableSub = nh.subscribe<std_msgs::Bool>("go_to_xy_enable", 10, goToXYEnable);
-
     ros::Publisher goToXYCompletePub = nh.advertise<underwater_vehicle_msgs::GoToXYComplete>("go_to_xy_complete", 2);
 
-    ros::ServiceServer stateService = nh.advertiseService("get_propulsion_state", propStateSucceed);
-    ros::ServiceClient propStateClient = nh.serviceClient<propulsion_controller::PropulsionControllerState>("get_propulsion_state");
-    while(!propStateClient.exists()) {ros::spinOnce();}
+    uint goToXYEnableCalls = 0;
+    boost::function<bool (propulsion_controller::PropulsionControllerEnable::Request  &req, 
+                          propulsion_controller::PropulsionControllerEnable::Response &res)> propSrvFunction(boost::bind(&propEnable, _1, _2, &goToXYEnableCalls));
+
+    ros::ServiceServer propService = nh.advertiseService("go_to_xy_enable", propSrvFunction);
+
+    ros::ServiceClient propServiceClient = nh.serviceClient<propulsion_controller::PropulsionControllerEnable>("go_to_xy_enable");
+    while(!propServiceClient.exists()) {ros::spinOnce();}
 
     ros::AsyncSpinner spinner(1);
     spinner.start();
@@ -215,16 +195,7 @@ TEST(PointPathSimActionExecutor, ExecuteAndSucceed)
 
     //Cancel Action
     actionExecuteAndSucceed->cancel(ros::Time::now().toSec());
-
-
-    
-    while(goToXYEnableCalls != 1)
-    {
-        ros::spinOnce();
-    }
     EXPECT_EQ(1, goToXYEnableCalls);
-
-    actionExecuteAndSucceed->monitor(ros::Time::now().toSec());
     EXPECT_EQ(Action::State::INTERRUPTED, actionExecuteAndSucceed->getState());
 
     //Restart Action
@@ -320,9 +291,17 @@ TEST(PointPathSimActionExecutor, ExecuteAndOutOfRegion)
 
 	ros::Subscriber goToXYSub = nh.subscribe<underwater_vehicle_msgs::GoToXY>("go_to_xy", 10, goToXY);
 
-    unsigned int goToXYEnableCalls = 0;
-    auto goToXYEnable = [&] (const ros::MessageEvent< std_msgs::Bool const >& enable) {goToXYEnableCalls++;};
-	ros::Subscriber goToXYEnableSub = nh.subscribe<std_msgs::Bool>("go_to_xy_enable", 10, goToXYEnable);
+    uint goToXYEnableCalls = 0;
+    boost::function<bool (propulsion_controller::PropulsionControllerEnable::Request  &req, 
+                          propulsion_controller::PropulsionControllerEnable::Response &res)> propSrvFunction(boost::bind(&propEnable, _1, _2, &goToXYEnableCalls));
+
+    ros::ServiceServer propService = nh.advertiseService("go_to_xy_enable", propSrvFunction);
+
+    ros::ServiceClient propServiceClient = nh.serviceClient<propulsion_controller::PropulsionControllerEnable>("go_to_xy_enable");
+    while(!propServiceClient.exists()) {ros::spinOnce();}
+
+    ros::AsyncSpinner spinner(1);
+    spinner.start();
 
     actionExecuteAndOutOfRegion->execute(ros::Time::now().toSec());
     while(latestVelMsg == NULL)
@@ -358,7 +337,7 @@ TEST(PointPathSimActionExecutor, ExecuteAndOutOfRegion)
         ros::spinOnce();
     }
     EXPECT_EQ(Action::State::FAILED, actionExecuteAndOutOfRegion->getState());
-
+    spinner.stop();
 }
 
 TEST(PointPathSimActionExecutor, TimeReplan)
@@ -381,12 +360,19 @@ TEST(PointPathSimActionExecutor, TimeReplan)
 
 	ros::Subscriber goToXYSub = nh.subscribe<underwater_vehicle_msgs::GoToXY>("go_to_xy", 10, goToXY);
 
-    unsigned int goToXYEnableCalls = 0;
-    auto goToXYEnable = [&] (const ros::MessageEvent< std_msgs::Bool const >& enable) {goToXYEnableCalls++;};
-	ros::Subscriber goToXYEnableSub = nh.subscribe<std_msgs::Bool>("go_to_xy_enable", 10, goToXYEnable);
+    uint goToXYEnableCalls = 0;
+    boost::function<bool (propulsion_controller::PropulsionControllerEnable::Request  &req, 
+                          propulsion_controller::PropulsionControllerEnable::Response &res)> propSrvFunction(boost::bind(&propEnable, _1, _2, &goToXYEnableCalls));
+
+    ros::ServiceServer propService = nh.advertiseService("go_to_xy_enable", propSrvFunction);
+
+    ros::ServiceClient propServiceClient = nh.serviceClient<propulsion_controller::PropulsionControllerEnable>("go_to_xy_enable");
+    while(!propServiceClient.exists()) {ros::spinOnce();}
 
     ros::Publisher goToXYCompletePub = nh.advertise<underwater_vehicle_msgs::GoToXYComplete>("go_to_xy_complete", 2);
 
+    ros::AsyncSpinner spinner(1);
+    spinner.start();
 
     actionTimeReplan->execute(ros::Time::now().toSec());
 
@@ -421,6 +407,7 @@ TEST(PointPathSimActionExecutor, TimeReplan)
     actionTimeReplan->monitor(ros::Time::now().toSec());
     EXPECT_TRUE(actionTimeReplan->triggerReplan());
     EXPECT_FALSE(actionTimeReplan->triggerReplan());
+    spinner.stop();
 }
 
 
@@ -444,11 +431,19 @@ TEST(PointPathSimActionExecutor, DistanceReplan)
 
 	ros::Subscriber goToXYSub = nh.subscribe<underwater_vehicle_msgs::GoToXY>("go_to_xy", 10, goToXY);
 
-    unsigned int goToXYEnableCalls = 0;
-    auto goToXYEnable = [&] (const ros::MessageEvent< std_msgs::Bool const >& enable) {goToXYEnableCalls++;};
-	ros::Subscriber goToXYEnableSub = nh.subscribe<std_msgs::Bool>("go_to_xy_enable", 10, goToXYEnable);
+    uint goToXYEnableCalls = 0;
+    boost::function<bool (propulsion_controller::PropulsionControllerEnable::Request  &req, 
+                          propulsion_controller::PropulsionControllerEnable::Response &res)> propSrvFunction(boost::bind(&propEnable, _1, _2, &goToXYEnableCalls));
+
+    ros::ServiceServer propService = nh.advertiseService("go_to_xy_enable", propSrvFunction);
+
+    ros::ServiceClient propServiceClient = nh.serviceClient<propulsion_controller::PropulsionControllerEnable>("go_to_xy_enable");
+    while(!propServiceClient.exists()) {ros::spinOnce();}
 
     ros::Publisher goToXYCompletePub = nh.advertise<underwater_vehicle_msgs::GoToXYComplete>("go_to_xy_complete", 2);
+
+    ros::AsyncSpinner spinner(1);
+    spinner.start();
 
     actionDistanceReplan->execute(ros::Time::now().toSec());
 
@@ -501,6 +496,7 @@ TEST(PointPathSimActionExecutor, DistanceReplan)
     }
     EXPECT_TRUE(replan);
     EXPECT_FALSE(actionDistanceReplan->triggerReplan());
+    spinner.stop();
 }
 
 TEST(PointPathSimActionExecutor, PointReachedReplan)
@@ -523,11 +519,20 @@ TEST(PointPathSimActionExecutor, PointReachedReplan)
 
 	ros::Subscriber goToXYSub = nh.subscribe<underwater_vehicle_msgs::GoToXY>("go_to_xy", 10, goToXY);
 
-    unsigned int goToXYEnableCalls = 0;
-    auto goToXYEnable = [&] (const ros::MessageEvent< std_msgs::Bool const >& enable) {goToXYEnableCalls++;};
-	ros::Subscriber goToXYEnableSub = nh.subscribe<std_msgs::Bool>("go_to_xy_enable", 10, goToXYEnable);
+    uint goToXYEnableCalls = 0;
+    boost::function<bool (propulsion_controller::PropulsionControllerEnable::Request  &req, 
+                          propulsion_controller::PropulsionControllerEnable::Response &res)> propSrvFunction(boost::bind(&propEnable, _1, _2, &goToXYEnableCalls));
+
+    ros::ServiceServer propService = nh.advertiseService("go_to_xy_enable", propSrvFunction);
+
+    ros::ServiceClient propServiceClient = nh.serviceClient<propulsion_controller::PropulsionControllerEnable>("go_to_xy_enable");
+    while(!propServiceClient.exists()) {ros::spinOnce();}
 
     ros::Publisher goToXYCompletePub = nh.advertise<underwater_vehicle_msgs::GoToXYComplete>("go_to_xy_complete", 2);
+
+    ros::AsyncSpinner spinner(1);
+    spinner.start();
+
 
     actionPointReachedReplan->execute(ros::Time::now().toSec());
 
@@ -572,6 +577,7 @@ TEST(PointPathSimActionExecutor, PointReachedReplan)
     }
     EXPECT_TRUE(replan);
     EXPECT_FALSE(actionPointReachedReplan->triggerReplan());
+    spinner.stop();
 }
 
 //Had issues doing this in the roslaunch file for this test. Not sure why.

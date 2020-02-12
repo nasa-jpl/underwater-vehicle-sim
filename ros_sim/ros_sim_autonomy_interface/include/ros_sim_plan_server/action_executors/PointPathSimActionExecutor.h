@@ -65,7 +65,7 @@ private:
     VehicleInfo vehicleInfo;
 
     ros::Publisher goToXYPub;
-    ros::Publisher goToXYEnablePub;
+    ros::ServiceClient goToXYEnableClient;
     ros::Subscriber goToXYComplete;
     
     bool replanNextUpdate;
@@ -74,8 +74,6 @@ private:
 
     ros::Publisher velPub;
     ros::Subscriber poseSub;
-
-    ros::ServiceClient propStateClient;
     
     underwater_autonomy::VehiclePose currentPose;
 

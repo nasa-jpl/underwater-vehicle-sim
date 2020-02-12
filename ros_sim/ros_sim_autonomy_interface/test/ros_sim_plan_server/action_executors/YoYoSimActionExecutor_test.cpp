@@ -17,7 +17,7 @@
 
 #include "ros_sim_plan_server/action_executors/YoYoSimActionExecutor.h"
 
-#include "propulsion_controller/PropulsionControllerState.h"
+#include "propulsion_controller/PropulsionControllerEnable.h"
 
 #include "underwater_autonomy/util/BoxOperationRegion.h"
 
@@ -31,11 +31,11 @@ std::shared_ptr<YoYoAction> actionTimeReplan;
 std::shared_ptr<YoYoAction> actionDistanceReplan;
 std::shared_ptr<YoYoAction> actionTurnReplan;
 
-bool zState = true;
-bool propState(propulsion_controller::PropulsionControllerState::Request  &req, 
-               propulsion_controller::PropulsionControllerState::Response &res) 
+bool propEnable(propulsion_controller::PropulsionControllerEnable::Request  &req, 
+               propulsion_controller::PropulsionControllerEnable::Response &res,
+               uint* enable) 
 {
-    res.zEnabled = zState; 
+    (*enable)++;
     return true;
 };
 
@@ -66,15 +66,16 @@ TEST(YoYoSimActionExecutor, ExecuteAndCancel)
 
 	ros::Subscriber goToZSub = nh.subscribe<underwater_vehicle_msgs::GoToZ>("go_to_z", 10, goToZ);
 
-    unsigned int goToZEnableCalls = 0;
-    auto goToZEnable = [&] (const ros::MessageEvent< std_msgs::Bool const >& enable) {goToZEnableCalls++;};
-	ros::Subscriber goToZEnableSub = nh.subscribe<std_msgs::Bool>("go_to_z_enable", 10, goToZEnable);
-
     ros::Publisher goToZCompletePub = nh.advertise<underwater_vehicle_msgs::GoToZComplete>("go_to_z_complete", 2);
 
-    ros::ServiceServer stateService = nh.advertiseService("get_propulsion_state", propState);
-    ros::ServiceClient propStateClient = nh.serviceClient<propulsion_controller::PropulsionControllerState>("get_propulsion_state");
-    while(!propStateClient.exists()) {ros::spinOnce();}
+    uint goToZEnableCalls = 0;
+    boost::function<bool (propulsion_controller::PropulsionControllerEnable::Request  &req, 
+                          propulsion_controller::PropulsionControllerEnable::Response &res)> propSrvFunction(boost::bind(&propEnable, _1, _2, &goToZEnableCalls));
+
+    ros::ServiceServer propService = nh.advertiseService("go_to_z_enable", propSrvFunction);
+
+    ros::ServiceClient propServiceClient = nh.serviceClient<propulsion_controller::PropulsionControllerEnable>("go_to_z_enable");
+    while(!propServiceClient.exists()) {ros::spinOnce();}
 
     ros::AsyncSpinner spinner(1);
     spinner.start();
@@ -109,11 +110,6 @@ TEST(YoYoSimActionExecutor, ExecuteAndCancel)
         ros::spinOnce();
     }
     EXPECT_EQ(1u, goToZEnableCalls);
-
-    while(actionExecuteAndCancel->getState() != Action::State::INTERRUPTED)
-    {
-        ros::spinOnce();
-    }
     EXPECT_EQ(Action::State::INTERRUPTED, actionExecuteAndCancel->getState());
     spinner.stop();
 }
@@ -136,9 +132,17 @@ TEST(YoYoSimActionExecutor, ExecuteAndSucceed)
 
 	ros::Subscriber goToZSub = nh.subscribe<underwater_vehicle_msgs::GoToZ>("go_to_z", 10, goToZ);
 
-    unsigned int goToZEnableCalls = 0;
-    auto goToZEnable = [&] (const ros::MessageEvent< std_msgs::Bool const >& enable) {goToZEnableCalls++;};
-	ros::Subscriber goToZEnableSub = nh.subscribe<std_msgs::Bool>("go_to_z_enable", 10, goToZEnable);
+    uint goToZEnableCalls = 0;
+    boost::function<bool (propulsion_controller::PropulsionControllerEnable::Request  &req, 
+                          propulsion_controller::PropulsionControllerEnable::Response &res)> propSrvFunction(boost::bind(&propEnable, _1, _2, &goToZEnableCalls));
+
+    ros::ServiceServer propService = nh.advertiseService("go_to_z_enable", propSrvFunction);
+
+    ros::ServiceClient propServiceClient = nh.serviceClient<propulsion_controller::PropulsionControllerEnable>("go_to_z_enable");
+    while(!propServiceClient.exists()) {ros::spinOnce();}
+
+    ros::AsyncSpinner spinner(1);
+    spinner.start();
 
     ros::Publisher goToZCompletePub = nh.advertise<underwater_vehicle_msgs::GoToZComplete>("go_to_z_complete", 2);
 
@@ -190,7 +194,7 @@ TEST(YoYoSimActionExecutor, ExecuteAndSucceed)
         ros::spinOnce();
     }
     EXPECT_EQ(Action::State::COMPLETED, actionExecuteAndSucceed->getState());
-
+    spinner.stop();
 }
 
 TEST(YoYoSimActionExecutor, ExecuteAndOutOfRegion)
@@ -211,9 +215,17 @@ TEST(YoYoSimActionExecutor, ExecuteAndOutOfRegion)
 
     ros::Subscriber goToZSub = nh.subscribe<underwater_vehicle_msgs::GoToZ>("go_to_z", 10, goToZ);
 
-    unsigned int goToZEnableCalls = 0;
-    auto goToZEnable = [&] (const ros::MessageEvent< std_msgs::Bool const >& enable) {goToZEnableCalls++;};
-	ros::Subscriber goToZEnableSub = nh.subscribe<std_msgs::Bool>("go_to_z_enable", 10, goToZEnable);
+    uint goToZEnableCalls = 0;
+    boost::function<bool (propulsion_controller::PropulsionControllerEnable::Request  &req, 
+                          propulsion_controller::PropulsionControllerEnable::Response &res)> propSrvFunction(boost::bind(&propEnable, _1, _2, &goToZEnableCalls));
+
+    ros::ServiceServer propService = nh.advertiseService("go_to_z_enable", propSrvFunction);
+
+    ros::ServiceClient propServiceClient = nh.serviceClient<propulsion_controller::PropulsionControllerEnable>("go_to_z_enable");
+    while(!propServiceClient.exists()) {ros::spinOnce();}
+
+    ros::AsyncSpinner spinner(1);
+    spinner.start();
 
     actionExecuteAndOutOfRegion->execute(ros::Time::now().toSec());
     while(latestVelMsg == NULL)
@@ -247,6 +259,7 @@ TEST(YoYoSimActionExecutor, ExecuteAndOutOfRegion)
         ros::spinOnce();
     }
     EXPECT_EQ(Action::State::FAILED, actionExecuteAndOutOfRegion->getState());
+    spinner.stop();
 }
 
 TEST(YoYoSimActionExecutor, TimeReplan)
@@ -267,9 +280,17 @@ TEST(YoYoSimActionExecutor, TimeReplan)
 
 	ros::Subscriber goToZSub = nh.subscribe<underwater_vehicle_msgs::GoToZ>("go_to_z", 10, goToZ);
 
-    unsigned int goToZEnableCalls = 0;
-    auto goToZEnable = [&] (const ros::MessageEvent< std_msgs::Bool const >& enable) {goToZEnableCalls++;};
-	ros::Subscriber goToZEnableSub = nh.subscribe<std_msgs::Bool>("go_to_z_enable", 10, goToZEnable);
+    uint goToZEnableCalls = 0;
+    boost::function<bool (propulsion_controller::PropulsionControllerEnable::Request  &req, 
+                          propulsion_controller::PropulsionControllerEnable::Response &res)> propSrvFunction(boost::bind(&propEnable, _1, _2, &goToZEnableCalls));
+
+    ros::ServiceServer propService = nh.advertiseService("go_to_z_enable", propSrvFunction);
+
+    ros::ServiceClient propServiceClient = nh.serviceClient<propulsion_controller::PropulsionControllerEnable>("go_to_z_enable");
+    while(!propServiceClient.exists()) {ros::spinOnce();}
+
+    ros::AsyncSpinner spinner(1);
+    spinner.start();
 
     actionTimeReplan->execute(ros::Time::now().toSec());
 
@@ -299,6 +320,7 @@ TEST(YoYoSimActionExecutor, TimeReplan)
     actionTimeReplan->monitor(ros::Time::now().toSec());
     EXPECT_TRUE(actionTimeReplan->triggerReplan());
     EXPECT_FALSE(actionTimeReplan->triggerReplan());
+    spinner.stop();
 }
 
 TEST(YoYoSimActionExecutor, DistanceReplan)
@@ -318,6 +340,18 @@ TEST(YoYoSimActionExecutor, DistanceReplan)
      goToZCalls++;};
 
 	ros::Subscriber goToZSub = nh.subscribe<underwater_vehicle_msgs::GoToZ>("go_to_z", 10, goToZ);
+
+    uint goToZEnableCalls = 0;
+    boost::function<bool (propulsion_controller::PropulsionControllerEnable::Request  &req, 
+                          propulsion_controller::PropulsionControllerEnable::Response &res)> propSrvFunction(boost::bind(&propEnable, _1, _2, &goToZEnableCalls));
+
+    ros::ServiceServer propService = nh.advertiseService("go_to_z_enable", propSrvFunction);
+
+    ros::ServiceClient propServiceClient = nh.serviceClient<propulsion_controller::PropulsionControllerEnable>("go_to_z_enable");
+    while(!propServiceClient.exists()) {ros::spinOnce();}
+
+    ros::AsyncSpinner spinner(1);
+    spinner.start();
 
     actionDistanceReplan->execute(ros::Time::now().toSec());
 
@@ -362,6 +396,7 @@ TEST(YoYoSimActionExecutor, DistanceReplan)
     }
     EXPECT_TRUE(replan);
     EXPECT_FALSE(actionDistanceReplan->triggerReplan());
+    spinner.stop();
 }
 
 TEST(YoYoSimActionExecutor, TurnReplan)
@@ -382,6 +417,18 @@ TEST(YoYoSimActionExecutor, TurnReplan)
 
 	ros::Subscriber goToZSub = nh.subscribe<underwater_vehicle_msgs::GoToZ>("go_to_z", 10, goToZ);
     ros::Publisher goToZCompletePub = nh.advertise<underwater_vehicle_msgs::GoToZComplete>("go_to_z_complete", 2);
+
+    uint goToZEnableCalls = 0;
+    boost::function<bool (propulsion_controller::PropulsionControllerEnable::Request  &req, 
+                          propulsion_controller::PropulsionControllerEnable::Response &res)> propSrvFunction(boost::bind(&propEnable, _1, _2, &goToZEnableCalls));
+
+    ros::ServiceServer propService = nh.advertiseService("go_to_z_enable", propSrvFunction);
+
+    ros::ServiceClient propServiceClient = nh.serviceClient<propulsion_controller::PropulsionControllerEnable>("go_to_z_enable");
+    while(!propServiceClient.exists()) {ros::spinOnce();}
+
+    ros::AsyncSpinner spinner(1);
+    spinner.start();
 
     actionTurnReplan->execute(ros::Time::now().toSec());
 
@@ -425,6 +472,7 @@ TEST(YoYoSimActionExecutor, TurnReplan)
 
     EXPECT_TRUE(actionTurnReplan->triggerReplan());
     EXPECT_FALSE(actionTurnReplan->triggerReplan());
+    spinner.stop();
 }
 
 //Had issues doing this in the roslaunch file for this test. Not sure why.

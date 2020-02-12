@@ -10,6 +10,7 @@
 #include "tf2_geometry_msgs/tf2_geometry_msgs.h"
 
 #include "propulsion_controller/PropulsionControllerState.h"
+#include "propulsion_controller/PropulsionControllerEnable.h"
 
 #include "underwater_autonomy/planner/actions/Action.h"
 
@@ -28,10 +29,9 @@ PointPathSimActionExecutor::PointPathSimActionExecutor(ros::NodeHandle& nh, Vehi
     poseSub = nh.subscribe("primary_navigation", 1, &PointPathSimActionExecutor::navigationFilterCallback, this);
 
     goToXYPub = nh.advertise<underwater_vehicle_msgs::GoToXY>("go_to_xy", 1000);
-    goToXYEnablePub = nh.advertise<std_msgs::Bool>("go_to_xy_enable", 1000);
-    goToXYComplete = nh.subscribe("go_to_xy_complete", 1, &PointPathSimActionExecutor::goToXYCompleteCallback, this);
-    
-    propStateClient = nh.serviceClient<propulsion_controller::PropulsionControllerState>("get_propulsion_state");
+    goToXYEnableClient = nh.serviceClient<propulsion_controller::PropulsionControllerEnable>("go_to_xy_enable");
+
+    goToXYComplete = nh.subscribe("go_to_xy_complete", 1, &PointPathSimActionExecutor::goToXYCompleteCallback, this);    
 }
 
 bool PointPathSimActionExecutor::execute(underwater_autonomy::PointPathAction& action)
@@ -115,22 +115,19 @@ void PointPathSimActionExecutor::monitor(underwater_autonomy::PointPathAction& a
     {
         action.setState(Action::State::FAILED);
 
-        std_msgs::Bool enableMsg;
-        enableMsg.data = false;
-        goToXYEnablePub.publish(enableMsg);
+        propulsion_controller::PropulsionControllerEnable enableMsg;
+        enableMsg.request.enable = false;
+        goToXYEnableClient.call(enableMsg);
     }
     else if(action.getState() == Action::State::INTERRUPTING)
     {
-        if(propStateClient.exists())
+        propulsion_controller::PropulsionControllerEnable enableMsg;
+        enableMsg.request.enable = false;
+        if(goToXYEnableClient.exists() &&
+        goToXYEnableClient.call(enableMsg))
         {
-            propulsion_controller::PropulsionControllerState srv;
-            propStateClient.call(srv);
-
-            if(!srv.response.xyEnabled)
-            {
-                action.setInterruptPoint(currentPose.getPosition());
-                action.setState(Action::State::INTERRUPTED);
-            }
+            action.setInterruptPoint(currentPose.getPosition());
+            action.setState(Action::State::INTERRUPTED);
         }
     }
     
@@ -144,9 +141,14 @@ void PointPathSimActionExecutor::monitor(underwater_autonomy::PointPathAction& a
 
 void PointPathSimActionExecutor::cancel(underwater_autonomy::PointPathAction& action)
 {
-    std_msgs::Bool enableMsg;
-    enableMsg.data = false;
-    goToXYEnablePub.publish(enableMsg);
+    propulsion_controller::PropulsionControllerEnable enableMsg;
+    enableMsg.request.enable = false;
+    if(goToXYEnableClient.exists() &&
+       goToXYEnableClient.call(enableMsg))
+    {
+        action.setInterruptPoint(currentPose.getPosition());
+        action.setState(Action::State::INTERRUPTED);
+    }
 
     ROS_INFO("point path action interrupted");
 }

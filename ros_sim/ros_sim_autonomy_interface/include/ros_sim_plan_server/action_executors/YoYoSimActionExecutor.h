@@ -66,10 +66,8 @@ private:
     VehicleInfo vehicleInfo;
 
     ros::Publisher goToZPub;
-    ros::Publisher goToZEnablePub;
+    ros::ServiceClient goToZEnableClient;
     ros::Subscriber goToZComplete;
-
-    ros::ServiceClient propStateClient;
     
     bool replanNextUpdate;
     ros::Time lastReplan;

@@ -12,6 +12,7 @@
 #include "underwater_vehicle_msgs/GoToZ.h"
 
 #include "propulsion_controller/PropulsionControllerState.h"
+#include "propulsion_controller/PropulsionControllerEnable.h"
 
 #include "underwater_autonomy/planner/actions/Action.h"
 #include "underwater_autonomy/planner/actions/YoYoAction.h"
@@ -29,10 +30,8 @@ YoYoSimActionExecutor::YoYoSimActionExecutor(ros::NodeHandle& nh, VehicleInfo& v
     poseSub = nh.subscribe("primary_navigation", 1, &YoYoSimActionExecutor::navigationFilterCallback, this);
 
     goToZPub = nh.advertise<underwater_vehicle_msgs::GoToZ>("go_to_z", 1000);
-    goToZEnablePub = nh.advertise<std_msgs::Bool>("go_to_z_enable", 1000);
+    goToZEnableClient = nh.serviceClient<propulsion_controller::PropulsionControllerEnable>("go_to_z_enable");
     goToZComplete = nh.subscribe("go_to_z_complete", 1, &YoYoSimActionExecutor::goToZCompleteCallback, this);
-
-    propStateClient = nh.serviceClient<propulsion_controller::PropulsionControllerState>("get_propulsion_state");
 }
 
 bool YoYoSimActionExecutor::execute(underwater_autonomy::YoYoAction& action)
@@ -83,11 +82,13 @@ bool YoYoSimActionExecutor::execute(underwater_autonomy::YoYoAction& action)
 
 void YoYoSimActionExecutor::cancel(underwater_autonomy::YoYoAction& action)
 {
-    std_msgs::Bool enableMsg;
-    enableMsg.data = false;
-    goToZEnablePub.publish(enableMsg);
-
-    action.setState(Action::State::INTERRUPTED);
+    propulsion_controller::PropulsionControllerEnable enableMsg;
+    enableMsg.request.enable = false;
+    if(goToZEnableClient.exists() &&
+       goToZEnableClient.call(enableMsg))
+    {
+        action.setState(Action::State::INTERRUPTED);
+    }
 }
 
 bool YoYoSimActionExecutor::triggerReplan(underwater_autonomy::YoYoAction& action)
@@ -118,10 +119,9 @@ void YoYoSimActionExecutor::monitor(underwater_autonomy::YoYoAction& action)
        !action.inOperationRegion(currentPose.getPosition()))
     {
         action.setState(Action::State::FAILED);
-
-        std_msgs::Bool enableMsg;
-        enableMsg.data = false;
-        goToZEnablePub.publish(enableMsg);
+        propulsion_controller::PropulsionControllerEnable enableMsg;
+        enableMsg.request.enable = false;
+        goToZEnableClient.call(enableMsg);
     }  
 
     if(action.getState() == Action::State::EXECUTING)
@@ -155,22 +155,19 @@ void YoYoSimActionExecutor::monitor(underwater_autonomy::YoYoAction& action)
         if(action.getYoYoTime() >= 0 && action.getTimeRunning() >= action.getYoYoTime())
         {
             action.setState(Action::State::COMPLETED);
-            std_msgs::Bool enableMsg;
-            enableMsg.data = false;
-            goToZEnablePub.publish(enableMsg);
+            propulsion_controller::PropulsionControllerEnable enableMsg;
+            enableMsg.request.enable = false;
+            goToZEnableClient.call(enableMsg);
         }
     }
     else if(action.getState() == Action::State::INTERRUPTING)
     {
-        if(propStateClient.exists())
+        propulsion_controller::PropulsionControllerEnable enableMsg;
+        enableMsg.request.enable = false;
+        if(goToZEnableClient.exists() &&
+        goToZEnableClient.call(enableMsg))
         {
-            propulsion_controller::PropulsionControllerState srv;
-            propStateClient.call(srv);
-
-            if(!srv.response.zEnabled)
-            {
-                action.setState(Action::State::INTERRUPTED);
-            }
+            action.setState(Action::State::INTERRUPTED);
         }
     }
 
