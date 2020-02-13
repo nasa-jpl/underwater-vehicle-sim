@@ -19,8 +19,6 @@
 
 #include "data_server/GetLatestData.h"
 
-#include "underwater_autonomy/planner/actions/CombinedMoveActionExecutor.h"
-
 #include "ros_sim_plan_server/action_executors/YoYoSimActionExecutor.h"
 #include "ros_sim_plan_server/action_executors/HoldDepthSimActionExecutor.h"
 #include "ros_sim_plan_server/action_executors/PointPathSimActionExecutor.h"
@@ -68,7 +66,6 @@ int main(int argc, char **argv)
 
     ROSSimVehicleInterface interface(info);
 
-    CombinedMoveAction::setExecutorCreateFunction(std::bind(&CombinedMoveActionExecutor::create, std::ref(interface)));
     YoYoAction::setExecutorCreateFunction(std::bind(&YoYoSimActionExecutor::create, nh, info));
     HoldDepthAction::setExecutorCreateFunction(std::bind(&HoldDepthSimActionExecutor::create, nh, info));
     PointPathAction::setExecutorCreateFunction(std::bind(&PointPathSimActionExecutor::create, nh, info));

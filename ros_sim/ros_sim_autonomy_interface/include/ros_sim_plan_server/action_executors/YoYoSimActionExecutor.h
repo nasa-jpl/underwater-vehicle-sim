@@ -39,7 +39,7 @@ public:
     /**
     * Executes the yoyo action in the ros simulation with the given parameters
     */
-    bool execute(underwater_autonomy::YoYoAction& action) override;
+    void execute(underwater_autonomy::YoYoAction& action) override;
     
     /**
     * Monitors and updates the state of the yoyo action in the ros simulation 
@@ -52,7 +52,7 @@ public:
     */
     bool triggerReplan(underwater_autonomy::YoYoAction& action) override;
 
-    void cancel(underwater_autonomy::YoYoAction& action) override;
+    void stop(underwater_autonomy::YoYoAction& action) override;
 
 private:
     void navigationFilterCallback(const nav_msgs::Odometry odo);

@@ -34,7 +34,7 @@ PointPathSimActionExecutor::PointPathSimActionExecutor(ros::NodeHandle& nh, Vehi
     goToXYComplete = nh.subscribe("go_to_xy_complete", 1, &PointPathSimActionExecutor::goToXYCompleteCallback, this);    
 }
 
-bool PointPathSimActionExecutor::execute(underwater_autonomy::PointPathAction& action)
+void PointPathSimActionExecutor::execute(underwater_autonomy::PointPathAction& action)
 {
     ROS_INFO("Execute point path action");
 
@@ -56,7 +56,7 @@ bool PointPathSimActionExecutor::execute(underwater_autonomy::PointPathAction& a
     }
     else //If the prop module is not known then this cannot be completed
     {
-        return false;
+        action.fail(ros::Time::now().toSec());
     }
 
     //Check that we have someone listening to us
@@ -65,24 +65,25 @@ bool PointPathSimActionExecutor::execute(underwater_autonomy::PointPathAction& a
           ros::WallTime::now() - time < ros::WallDuration(5)) {ros::WallDuration(1).sleep();}
     if(goToXYPub.getNumSubscribers() == 0)
     {
-        return false;
+        action.fail(ros::Time::now().toSec());
     }
+
 
     //Creates an action goal and sends it to the action server for point path movement
     if(!action.isDone())
     {
         sendNextGoToXYGoal(action);
-        action.setState(Action::State::EXECUTING);
+        action.dispatchDone();
     }
     else
     {
-        action.setState(Action::State::COMPLETED);
+        action.dispatchDone();
+        action.complete(ros::Time::now().toSec());
         ROS_INFO("Point path action completed");
     }
 
     lastReplan = ros::Time::now();
     distanceSinceReplan = 0;
-    return true;
 }
 
 void PointPathSimActionExecutor::monitor(underwater_autonomy::PointPathAction& action)
@@ -99,7 +100,7 @@ void PointPathSimActionExecutor::monitor(underwater_autonomy::PointPathAction& a
         action.reachedTargetPoint();
         if(action.isDone())
         {
-            action.setState(Action::State::COMPLETED);
+            action.complete(ros::Time::now().toSec());
             ROS_INFO("Point path action completed");
         }
         else
@@ -110,25 +111,15 @@ void PointPathSimActionExecutor::monitor(underwater_autonomy::PointPathAction& a
     }
     else if((action.getState() == Action::State::DISPATCHED ||
              action.getState() == Action::State::EXECUTING ||
-             action.getState() == Action::State::INTERRUPTING) && 
+             action.getState() == Action::State::PAUSING ||
+             action.getState() == Action::State::COMPLETING) && 
              !action.inOperationRegion(currentPose.getPosition()))
     {
-        action.setState(Action::State::FAILED);
-
-        propulsion_controller::PropulsionControllerEnable enableMsg;
-        enableMsg.request.enable = false;
-        goToXYEnableClient.call(enableMsg);
+        action.fail(ros::Time::now().toSec());
     }
-    else if(action.getState() == Action::State::INTERRUPTING)
+    else if(action.inStoppingState())
     {
-        propulsion_controller::PropulsionControllerEnable enableMsg;
-        enableMsg.request.enable = false;
-        if(goToXYEnableClient.exists() &&
-        goToXYEnableClient.call(enableMsg))
-        {
-            action.setInterruptPoint(currentPose.getPosition());
-            action.setState(Action::State::INTERRUPTED);
-        }
+        stop(action);
     }
     
     if(!replanNextUpdate)
@@ -139,7 +130,7 @@ void PointPathSimActionExecutor::monitor(underwater_autonomy::PointPathAction& a
     }
 }
 
-void PointPathSimActionExecutor::cancel(underwater_autonomy::PointPathAction& action)
+void PointPathSimActionExecutor::stop(underwater_autonomy::PointPathAction& action)
 {
     propulsion_controller::PropulsionControllerEnable enableMsg;
     enableMsg.request.enable = false;
@@ -147,10 +138,10 @@ void PointPathSimActionExecutor::cancel(underwater_autonomy::PointPathAction& ac
        goToXYEnableClient.call(enableMsg))
     {
         action.setInterruptPoint(currentPose.getPosition());
-        action.setState(Action::State::INTERRUPTED);
+        action.stopDone();
     }
 
-    ROS_INFO("point path action interrupted");
+    ROS_INFO("point path action stopped");
 }
 
 bool PointPathSimActionExecutor::triggerReplan(underwater_autonomy::PointPathAction& action)
