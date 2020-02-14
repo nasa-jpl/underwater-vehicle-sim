@@ -35,7 +35,7 @@ HoldDepthSimActionExecutor::HoldDepthSimActionExecutor(ros::NodeHandle& nh, Vehi
     goToZComplete = nh.subscribe("go_to_z_complete", 1, &HoldDepthSimActionExecutor::goToZCompleteCallback, this);    
 }
 
-bool HoldDepthSimActionExecutor::execute(underwater_autonomy::HoldDepthAction& action)
+void HoldDepthSimActionExecutor::execute(underwater_autonomy::HoldDepthAction& action)
 {
     ROS_INFO("Execute hold depth action");
 
@@ -58,7 +58,7 @@ bool HoldDepthSimActionExecutor::execute(underwater_autonomy::HoldDepthAction& a
     }
     else //If the prop module is not known then this cannot be completed
     {
-        return false;
+        action.fail(ros::Time::now().toSec());
     }
 
     //Check that we have someone listening to us
@@ -67,7 +67,7 @@ bool HoldDepthSimActionExecutor::execute(underwater_autonomy::HoldDepthAction& a
           ros::WallTime::now() - time < ros::WallDuration(5)) {ros::WallDuration(1).sleep();}
     if(goToZPub.getNumSubscribers() == 0)
     {
-        return false;
+        action.fail(ros::Time::now().toSec());
     }
 
     //Send message to Go To Z Controller
@@ -78,21 +78,20 @@ bool HoldDepthSimActionExecutor::execute(underwater_autonomy::HoldDepthAction& a
     goToZMsg.enable = true;
     goToZMsg.holdDepth = true;
     goToZPub.publish(goToZMsg);
-    action.setState(Action::State::EXECUTING);
+    action.dispatchDone();
     
     lastReplan = ros::Time::now();
     distanceSinceReplan = 0;
-    return true;
 }
 
-void HoldDepthSimActionExecutor::cancel(underwater_autonomy::HoldDepthAction& action)
+void HoldDepthSimActionExecutor::stop(underwater_autonomy::HoldDepthAction& action)
 {
     propulsion_controller::PropulsionControllerEnable enableMsg;
     enableMsg.request.enable = false;
     if(goToZEnableClient.exists() &&
        goToZEnableClient.call(enableMsg))
     {
-        action.setState(Action::State::INTERRUPTED);
+        action.stopDone();
     }
 }
 
@@ -120,14 +119,11 @@ void HoldDepthSimActionExecutor::monitor(underwater_autonomy::HoldDepthAction& a
 {
     if((action.getState() == Action::State::DISPATCHED ||
         action.getState() == Action::State::EXECUTING ||
-        action.getState() == Action::State::INTERRUPTING) &&
+        action.getState() == Action::State::PAUSING ||
+        action.getState() == Action::State::COMPLETING) &&
        !action.inOperationRegion(currentPose.getPosition()))
     {
-        action.setState(Action::State::FAILED);
-
-        propulsion_controller::PropulsionControllerEnable enableMsg;
-        enableMsg.request.enable = false;
-        goToZEnableClient.call(enableMsg);
+        action.fail(ros::Time::now().toSec());
     }
 
     if(action.getState() == Action::State::EXECUTING)
@@ -137,32 +133,16 @@ void HoldDepthSimActionExecutor::monitor(underwater_autonomy::HoldDepthAction& a
            completeCallbackHoldDepth)
         {
             gotCompleteCallback = false;
-
-            propulsion_controller::PropulsionControllerEnable enableMsg;
-            enableMsg.request.enable = false;
-            goToZEnableClient.call(enableMsg);
-
-            action.setState(Action::State::COMPLETED);
+            action.complete(ros::Time::now().toSec());
         }
         else if(action.getHoldDepthTime() >= 0 && action.getTimeRunning() >= action.getHoldDepthTime())
         {
-            action.setState(Action::State::COMPLETED);
-
-            propulsion_controller::PropulsionControllerEnable enableMsg;
-            enableMsg.request.enable = false;
-            goToZEnableClient.call(enableMsg);
-
+            action.complete(ros::Time::now().toSec());
         }
     }
-    else if(action.getState() == Action::State::INTERRUPTING)
+    else if(action.inStoppingState())
     {
-        propulsion_controller::PropulsionControllerEnable enableMsg;
-        enableMsg.request.enable = false;
-        if(goToZEnableClient.exists() &&
-        goToZEnableClient.call(enableMsg))
-        {
-            action.setState(Action::State::INTERRUPTED);
-        }
+        stop(action);
     }
 
     if(action.getState() == Action::State::EXECUTING && !replanNextUpdate)
