@@ -52,9 +52,8 @@ void ROSSimPlanServer::update()
         planDispatcher.setPlan(newPlan);
     }
 
-    if(planDispatcher.getState() == PlanDispatcher::PlanDispatcherState::WAITING_FOR_CANCEL_STOPPED ||
-       planDispatcher.getState() == PlanDispatcher::PlanDispatcherState::WAITING_FOR_CANCEL_RUNNING ||
-       planDispatcher.getState() == PlanDispatcher::PlanDispatcherState::WAITING_FOR_CANCEL_FAIL_ACTION )
+    if(planDispatcher.getState() == PlanDispatcher::PlanDispatcherState::WAITING_FOR_STOP_STOPPED ||
+       planDispatcher.getState() == PlanDispatcher::PlanDispatcherState::WAITING_FOR_STOP_RUNNING)
     {
         std_msgs::Float64 slowSim;
         slowSim.data = 1;

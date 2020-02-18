@@ -32,7 +32,7 @@ FollowHeadingSimActionExecutor::FollowHeadingSimActionExecutor(ros::NodeHandle& 
     followHeadingEnableClient = nh.serviceClient<propulsion_controller::PropulsionControllerEnable>("follow_heading_enable");
 }
 
-bool FollowHeadingSimActionExecutor::execute(underwater_autonomy::FollowHeadingAction& action)
+void FollowHeadingSimActionExecutor::execute(underwater_autonomy::FollowHeadingAction& action)
 {
     ROS_DEBUG("Execute follow heading action");
 
@@ -56,7 +56,7 @@ bool FollowHeadingSimActionExecutor::execute(underwater_autonomy::FollowHeadingA
     }
     else //If the prop module is not known then this cannot be completed
     {
-        return false;
+        action.fail(ros::Time::now().toSec());
     }
 
     //Check that we have someone listening to us
@@ -65,7 +65,7 @@ bool FollowHeadingSimActionExecutor::execute(underwater_autonomy::FollowHeadingA
           ros::WallTime::now() - time < ros::WallDuration(5)) {ros::WallDuration(1).sleep();}
     if(followHeadingPub.getNumSubscribers() == 0)
     {
-        return false;
+        action.fail(ros::Time::now().toSec());
     }
 
     //Send message to Follow Heading Controller
@@ -74,21 +74,20 @@ bool FollowHeadingSimActionExecutor::execute(underwater_autonomy::FollowHeadingA
     followHeadingMsg.heading = action.getHeading();
     followHeadingMsg.enable = true;
     followHeadingPub.publish(followHeadingMsg);
-    action.setState(Action::State::EXECUTING);
+    action.dispatchDone();
 
     lastReplan = ros::Time::now();
     distanceSinceReplan = 0;
-    return true;
 }
 
-void FollowHeadingSimActionExecutor::cancel(underwater_autonomy::FollowHeadingAction& action)
+void FollowHeadingSimActionExecutor::stop(underwater_autonomy::FollowHeadingAction& action)
 {
     propulsion_controller::PropulsionControllerEnable enableMsg;
     enableMsg.request.enable = false;
     if(followHeadingEnableClient.exists() &&
        followHeadingEnableClient.call(enableMsg))
     {
-        action.setState(Action::State::INTERRUPTED);
+        action.stopDone();
     }
 }
 
@@ -111,32 +110,19 @@ void FollowHeadingSimActionExecutor::monitor(underwater_autonomy::FollowHeadingA
        action.getTimeRunning() >= action.getFollowHeadingTime() &&
        action.getState() == Action::State::EXECUTING)
     {
-        action.setState(Action::State::COMPLETED);
-
-        propulsion_controller::PropulsionControllerEnable enableMsg;    
-        enableMsg.request.enable = false;
-        followHeadingEnableClient.call(enableMsg);
+        action.complete(ros::Time::now().toSec());
     }
     else if((action.getState() == Action::State::DISPATCHED ||
              action.getState() == Action::State::EXECUTING ||
-             action.getState() == Action::State::INTERRUPTING) &&
+             action.getState() == Action::State::PAUSING ||
+             action.getState() == Action::State::COMPLETING) &&
             !action.inOperationRegion(currentPose.getPosition()))
     {
-        action.setState(Action::State::FAILED);
-
-        propulsion_controller::PropulsionControllerEnable enableMsg;    
-        enableMsg.request.enable = false;
-        followHeadingEnableClient.call(enableMsg);
+        action.fail(ros::Time::now().toSec());
     }
-    else if(action.getState() == Action::State::INTERRUPTING)
+    else if(action.inStoppingState())
     {
-        propulsion_controller::PropulsionControllerEnable enableMsg;
-        enableMsg.request.enable = false;
-        if(followHeadingEnableClient.exists() &&
-        followHeadingEnableClient.call(enableMsg))
-        {
-            action.setState(Action::State::INTERRUPTED);
-        }
+        stop(action);
     }
 
     if(action.getState() == Action::State::EXECUTING && !replanNextUpdate)
