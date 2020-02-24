@@ -17,8 +17,6 @@
 
 #include "navigation_planner/GoldenSelectionHomingPlanner.h"
 
-#include "data_server/GetLatestData.h"
-
 #include "ros_sim_plan_server/action_executors/YoYoSimActionExecutor.h"
 #include "ros_sim_plan_server/action_executors/HoldDepthSimActionExecutor.h"
 #include "ros_sim_plan_server/action_executors/PointPathSimActionExecutor.h"

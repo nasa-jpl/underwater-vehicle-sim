@@ -18,8 +18,8 @@ detection_threshold = 0.5
 target_data = "plume"
 lawnmower_data_range = 10
 
-start_location.x = 6059.700214607569
-start_location.y = 18373.64982172867
+start_location.x = 30602.398908284584
+start_location.y = -30407.387827325514
 start_location.z = 0
 
 has_sim_target = true
