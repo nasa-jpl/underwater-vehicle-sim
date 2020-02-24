@@ -8,7 +8,7 @@ import sys, time
 import subprocess, shlex
 
 from std_msgs.msg import String
-import data_server.srv
+#import data_server.srv
 
 import argparse
 
