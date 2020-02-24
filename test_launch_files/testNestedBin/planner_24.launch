@@ -2,8 +2,8 @@
     <!--Simulation-->
     <node pkg="underwater_vehicle_sim" type="underwater_vehicle_sim_node" name="vehicle_sim" ns="v1">
         <rosparam param="sim_hertz">10</rosparam>
-        <rosparam param="start_x">-30413.713782450697</rosparam>
-        <rosparam param="start_y">-30048.99087942983</rosparam>
+        <rosparam param="start_x">-30016.75680083917</rosparam>
+        <rosparam param="start_y">-30560.30566575722</rosparam>
 
         <rosparam param="start_z">0</rosparam>
         <rosparam param="evect_by_currents">false</rosparam>
@@ -157,7 +157,7 @@
 
     <!--Autonomy-->
     <node pkg="ros_sim_autonomy_interface" type="ros_sim_plan_server_node" name="ros_sim_plan_server" ns="v1" output="screen">
-        <param name="planner_config_file" value="$(dirname)/planner_parameters/nested_bin_test.toml"/>
+        <param name="planner_config_file" value="$(dirname)/planner_parameters/config_24.toml"/>
 
         <rosparam param="hertz">1</rosparam>
         <rosparam param="fail_time">5011200</rosparam>
