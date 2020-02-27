@@ -1,31 +1,31 @@
 import rosbag
-import sys, math
+import sys, math, os
 import argparse
 
 from tqdm import tqdm
 
 # calc score from bag file
 # score is x,y distance from vent source
-def main(bagName, ventX = 0, ventY = 0):
-	bag = rosbag.Bag(bagName)
-	maxDye = 0
-	argmaxX = float('inf')
-	argmaxY = float('inf')
+def main(bagNames, ventX = 0, ventY = 0):
+	for bagName in bagNames:
+		print("Reading " + bagName)
+		bag = rosbag.Bag(bagName)
+		maxDye = 0
+		argmaxX = float('inf')
+		argmaxY = float('inf')
 
-	for topic, msg, t in tqdm(bag.read_messages(topics=['/v1/data_broadcaster/data'])):
-		if topic == '/v1/data_broadcaster/data':
-			if(msg.dye > maxDye):
-				maxDye = msg.dye
-				argmaxX = msg.x
-				argmaxY = msg.y
+		for topic, msg, t in tqdm(bag.read_messages(topics=['/v1/data_broadcaster/data'])):
+			if topic == '/v1/data_broadcaster/data':
+				if(msg.dye > maxDye):
+					maxDye = msg.dye
+					argmaxX = msg.x
+					argmaxY = msg.y
 
-	bag.close()
+		bag.close()
 
-	score = math.sqrt((argmaxX - ventX)**2 + (argmaxY - ventY)**2)
+		score = math.sqrt((argmaxX - ventX)**2 + (argmaxY - ventY)**2)
 
-	print("Dist from Source = " + str(score) + "m")
-
-	return score
+		print("Dist from Source = " + str(score) + "m")
 
 
 if __name__ == "__main__":
@@ -37,4 +37,12 @@ if __name__ == "__main__":
 
 	args = parser.parse_args()
 
-	main(args.bagName, args.ventX, args.ventY)
+	if os.path.isfile(args.bagName):
+		main([args.bagName], args.ventX, args.ventY)
+	else:
+		bagFiles = []
+
+		for (dirpath, _, filenames) in os.walk(args.bagName):
+			bagFiles.extend([os.path.join(dirpath, f) for f in filenames if f.endswith(".bag")])
+
+		main(bagFiles, args.ventX, args.ventY)
