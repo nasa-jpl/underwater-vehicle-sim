@@ -22,7 +22,7 @@
         <rosparam param="rudder_angle">[-45,0,45]</rosparam>
         <rosparam param="rudder_velocity">[-0.349066,0,0.349066]</rosparam>
 
-        <rosparam param="moduleNames">[data_broadcaster, imu, usbl, depth]</rosparam>
+        <rosparam param="moduleNames">[data_broadcaster, imu, usbl, depth, dvl]</rosparam>
         <rosparam param="data_broadcaster/type">DataBroadcaster</rosparam>
         <rosparam param="data_broadcaster/hertz">2.5</rosparam>
 
@@ -40,6 +40,9 @@
         <rosparam param="depth/depth_random_error">1</rosparam>
         <rosparam param="depth/depth_bias_error">0.5</rosparam>
         <rosparam param="depth/hertz">10</rosparam>
+
+        <rosparam param="dvl/type">DVL</rosparam>
+        <rosparam param="dvl/hertz">10</rosparam>
 
         <rosparam param="usbl/type">USBL</rosparam>
         <rosparam param="usbl/bearing_random_error">0.0174533</rosparam>

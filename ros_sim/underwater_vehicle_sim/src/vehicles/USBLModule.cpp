@@ -36,7 +36,7 @@ USBLModule::USBLModule(std::string name) :
 	{
 		generator.seed(randomSeed);
 	}
-	bearingDistribution = std::normal_distribution<double>(0, sqrt(bearingRandomError));
+	bearingDistribution = std::normal_distribution<double>(0, bearingRandomError);
 	badRangeRandom = std::uniform_real_distribution<double>(0, 1.0);
 	badRangeDistribution = std::uniform_real_distribution<double>(-badRangeError, badRangeError);
 
@@ -68,7 +68,7 @@ void USBLModule::update(const ros::Time& lastTime, VehicleState& vehicleState, M
 
 			if(rangeRandomError > 0)
 			{
-				std::normal_distribution<double> rangeDistribution(0, sqrt(range * rangeRandomError));
+				std::normal_distribution<double> rangeDistribution(0, range * rangeRandomError);
 				double rangeError = rangeDistribution(generator);
 				range += rangeError;
 			}

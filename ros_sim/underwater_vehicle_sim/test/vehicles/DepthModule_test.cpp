@@ -28,11 +28,11 @@ TEST(DepthModule, ErrorTest)
     ros::Subscriber dataSub = nh.subscribe("depth/data", 1, &imuNoErrorCallback);
 
     double depth = 150;
-    double depthVariance = 1;
+    double depthStdDev = 1;
     double depthBias = 2;
 
     std::default_random_engine generator(111);
-	std::normal_distribution<double> depthDistribution(0, sqrt(depthVariance));
+	std::normal_distribution<double> depthDistribution(0, depthStdDev);
     double depthError = depthDistribution(generator);
 
     state.setPositionNED(tf2::Vector3(10, -10, depth));

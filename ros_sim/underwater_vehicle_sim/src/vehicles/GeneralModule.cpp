@@ -8,6 +8,7 @@
 #include "vehicles/IMUModule.h"
 #include "vehicles/USBLModule.h"
 #include "vehicles/DepthModule.h"
+#include "vehicles/DVLModule.h"
 
 GeneralModule::GeneralModule(std::string name, std::string type) :
 	nh(name),
@@ -42,6 +43,12 @@ std::unique_ptr<GeneralModule> GeneralModule::makeGeneralModule(std::string modu
 		std::unique_ptr<GeneralModule> returnPtr(new DepthModule(moduleName));
 		return returnPtr;
 	}
+	else if(moduleType == "DVL")
+	{
+		std::unique_ptr<GeneralModule> returnPtr(new DVLModule(moduleName));
+		return returnPtr;
+	}
+
 
 	return NULL;
 }

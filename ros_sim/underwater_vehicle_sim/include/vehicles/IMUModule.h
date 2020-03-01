@@ -28,13 +28,13 @@ private:
 private:
 	ros::Publisher imu;
 
-	double angularVelocityVariance;
+	double angularVelocityStdDev;
 	std::vector<double> angularVelocityBiasError;
 
-	double headingVariance;
+	double headingStdDev;
 	double headingBiasError;
 
-	double rollPitchVariance;
+	double rollPitchStdDev;
 	double rollBiasError;
 	double pitchBiasError;
 

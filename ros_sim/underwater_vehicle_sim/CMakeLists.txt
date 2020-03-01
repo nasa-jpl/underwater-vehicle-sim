@@ -139,6 +139,7 @@ catkin_package(
    src/vehicles/DataBroadcasterModule.cpp
    src/vehicles/IMUModule.cpp
    src/vehicles/USBLModule.cpp
+   src/vehicles/DVLModule.cpp
    src/vehicles/DepthModule.cpp
    src/vehicles/VehicleState.cpp
  )

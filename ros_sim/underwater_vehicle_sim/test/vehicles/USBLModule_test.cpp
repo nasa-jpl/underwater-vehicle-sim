@@ -97,8 +97,8 @@ TEST(USBLModule, TestBiasAndRandomError)
     std::default_random_engine generator(111);
 
     std::uniform_real_distribution<double> badRangeRandom(0, 1.0);
-    std::normal_distribution<double> rangeDistribution(0, sqrt(7.07106781187 * 0.005));
-    std::normal_distribution<double> bearingDistribution(0, sqrt(0.0174533));
+    std::normal_distribution<double> rangeDistribution(0, 7.07106781187 * 0.005);
+    std::normal_distribution<double> bearingDistribution(0, 0.0174533);
 
     //Parameters
     double trueRange = 7.07106781187; //5 * sqrt(2)
@@ -139,8 +139,8 @@ TEST(USBLModule, TestBadRange){
 
     std::uniform_real_distribution<double> badRangeRandom(0, 1.0);
     std::uniform_real_distribution<double> badRangeDistribution(-100, 100);
-    std::normal_distribution<double> rangeDistribution(0, sqrt(trueRange * 0.005));
-    std::normal_distribution<double> bearingDistribution(0, sqrt(0.0174533));
+    std::normal_distribution<double> rangeDistribution(0, trueRange * 0.005);
+    std::normal_distribution<double> bearingDistribution(0, 0.0174533);
 
     //Re-create random number generation that should be used in the module
     badRangeRandom(generator);  //Here so random number gen follows the module

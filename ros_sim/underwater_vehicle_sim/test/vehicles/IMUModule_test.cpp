@@ -71,17 +71,17 @@ TEST(IMUModule, ErrorTest)
     double yaw = 0.1;
     std::vector<double> angularVel = {-0.01, 0.02, 0.03};
 
-    double angularVelRandomVariance = 0.09;
+    double angularVelRandomStdDev = 0.09;
     std::vector<double> angularVelBiasError = {-0.01, 0.02, 0.03};
-    double headingRandomVariance = 0.04;
+    double headingRandomStdDev = 0.04;
     double yawBiasError = 0.05;
-    double rollPitchRandomVariance = 0.06;
+    double rollPitchRandomStdDev = 0.06;
     double rollBiasError = 0.07;
     double pitchBiasError = 0.08;
 
-    std::normal_distribution<double> headingDist(0, sqrt(headingRandomVariance));
-	std::normal_distribution<double> tiltDist(0, sqrt(rollPitchRandomVariance));
-	std::normal_distribution<double> rotationDistribution(0, sqrt(angularVelRandomVariance));
+    std::normal_distribution<double> headingDist(0, headingRandomStdDev);
+	std::normal_distribution<double> tiltDist(0, rollPitchRandomStdDev);
+	std::normal_distribution<double> rotationDistribution(0, angularVelRandomStdDev);
 
     std::vector<double> angularVelRandomError;
     angularVelRandomError.push_back(rotationDistribution(generator));

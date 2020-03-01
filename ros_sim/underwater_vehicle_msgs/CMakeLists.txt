@@ -10,7 +10,8 @@ add_compile_options($<BUILD_INTERFACE:-Wall>)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED
              roscpp
-             message_generation)
+             message_generation
+             geometry_msgs)
 
 ################################################
 ## Declare ROS messages, services and actions ##
@@ -22,6 +23,7 @@ add_message_files(
     VehicleData.msg
     USBL.msg
     FloatMeasurement.msg
+    DVL.msg
     GoToZ.msg
     GoToXY.msg
     FollowHeading.msg
@@ -46,6 +48,7 @@ add_service_files(
  generate_messages(
    DEPENDENCIES
    std_msgs  # Or other packages containing msgs
+   geometry_msgs
  )
 
 ###################################

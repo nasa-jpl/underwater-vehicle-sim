@@ -10,6 +10,7 @@
 #include "sensor_msgs/Imu.h"
 #include "underwater_vehicle_msgs/USBL.h"
 #include "underwater_vehicle_msgs/FloatMeasurement.h"
+#include "underwater_vehicle_msgs/DVL.h"
 
 #include "underwater_autonomy/navigation/NavigationFilter.h"
 
@@ -33,9 +34,10 @@ private:
 
     void sendPoseToFilter();
 
-    void sendIMUToFilter(sensor_msgs::Imu imuData);
-    void sendDepthToFilter(underwater_vehicle_msgs::FloatMeasurement depthData);
-    void sendUSBLToFilter(underwater_vehicle_msgs::USBL usblData);
+    void sendIMUToFilter(sensor_msgs::Imu msgData);
+    void sendDepthToFilter(underwater_vehicle_msgs::FloatMeasurement msgData);
+    void sendUSBLToFilter(underwater_vehicle_msgs::USBL msgData);
+    void sendDVLToFilter(underwater_vehicle_msgs::DVL msgData);
 
     void sendForwardThruster(underwater_vehicle_msgs::FloatMeasurement forwardData);
     void sendLateralThruster(underwater_vehicle_msgs::FloatMeasurement lateralData);
@@ -55,6 +57,7 @@ private:
     ros::Subscriber imuData;
     ros::Subscriber usblData;
     ros::Subscriber depthData;
+    ros::Subscriber dvlData;
 
     ros::Subscriber forwardThrusterData;
     ros::Subscriber lateralThrusterData;

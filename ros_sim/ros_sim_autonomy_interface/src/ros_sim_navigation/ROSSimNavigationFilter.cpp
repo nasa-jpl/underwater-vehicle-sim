@@ -2,6 +2,7 @@
 
 #include "underwater_autonomy/navigation/TrueNavigationFilter.h"
 #include "underwater_autonomy/navigation/KalmanNavigationFilter.h"
+#include "underwater_autonomy/navigation/DeadReckoningNavigationFilter.h"
 
 #include "nav_msgs/Odometry.h"
 #include "underwater_vehicle_msgs/GetVehicleInfo.h"
@@ -67,6 +68,13 @@ void ROSSimNavigationFilter::initializeCallbacks(std::string& filterName, Vehicl
                                      &ROSSimNavigationFilter::sendDepthToFilter, 
                                      this);
         }
+        else if(moduleTypes[i] == "DVL")
+        {
+            dvlData = nh.subscribe("data",
+                                     100, 
+                                     &ROSSimNavigationFilter::sendDVLToFilter, 
+                                     this);
+        }
     }
 
     if(info.getPropModuleType() == "FourDOFPropulsion")
@@ -103,6 +111,11 @@ void ROSSimNavigationFilter::initializeNavFilter(std::string& filterName, Vehicl
     {
         VehiclePose startPose(Eigen::Vector3d(info.getStartX(), info.getStartY(), info.getStartZ()));
         filter.reset(new TrueNavigationFilter(startPose, ros::Time::now().toSec()));
+    }
+    else if(filterType == "DeadReckoning")
+    {
+        VehiclePose startPose(Eigen::Vector3d(info.getStartX(), info.getStartY(), info.getStartZ()));
+        filter.reset(new DeadReckoningNavigationFilter(startPose, ros::Time::now().toSec()));
     }
     else if(filterType == "KalmanFilter")
     {
@@ -298,53 +311,74 @@ void ROSSimNavigationFilter::sendPoseToFilter()
 	}   
 }
 
-void ROSSimNavigationFilter::sendIMUToFilter(sensor_msgs::Imu imuData)
+void ROSSimNavigationFilter::sendIMUToFilter(sensor_msgs::Imu msgData)
 {
     std::vector<double> filterHeadingData;
-    std::vector<double> filterRotVelData;
+    std::vector<double> filterVelData;
     std::vector<double> input;
 
-    tf2::Quaternion orientation(imuData.orientation.x,
-                                imuData.orientation.y,
-                                imuData.orientation.z,
-                                imuData.orientation.w);
+    tf2::Quaternion orientation(msgData.orientation.x,
+                                msgData.orientation.y,
+                                msgData.orientation.z,
+                                msgData.orientation.w);
     double roll, pitch, yaw;
     tf2::Matrix3x3(orientation).getRPY(roll, pitch, yaw);
     filterHeadingData.push_back(yaw);
 
-    filterRotVelData.push_back(imuData.angular_velocity.z);
+    filterVelData.push_back(msgData.angular_velocity.x);
+    filterVelData.push_back(msgData.angular_velocity.y);
+    filterVelData.push_back(msgData.angular_velocity.z);
 
-    filter->sensorMeasurement("heading", imuData.header.stamp.toSec(), filterHeadingData, input);
-    filter->sensorMeasurement("rot_vel", imuData.header.stamp.toSec(), filterRotVelData, input);
+    filter->sensorMeasurement("heading", msgData.header.stamp.toSec(), filterHeadingData, input);
+    filter->sensorMeasurement("angular_velocity", msgData.header.stamp.toSec(), filterVelData, input);
 }
 
-void ROSSimNavigationFilter::sendUSBLToFilter(underwater_vehicle_msgs::USBL usblData)
+void ROSSimNavigationFilter::sendUSBLToFilter(underwater_vehicle_msgs::USBL msgData)
 {
     std::vector<double> filterRangeData;
     std::vector<double> filterUSBLData;
     std::vector<double> input;
-    
-    input.push_back(usblData.beacon_x);
-    input.push_back(usblData.beacon_y);
-    input.push_back(usblData.beacon_z);
-    
-    filterRangeData.push_back(usblData.range);
 
-    filterUSBLData.push_back(usblData.range);
-    filterUSBLData.push_back(usblData.bearing);
+    input.push_back(msgData.beacon_x);
+    input.push_back(msgData.beacon_y);
+    input.push_back(msgData.beacon_z);
 
-    filter->sensorMeasurement("slant_range", usblData.header.stamp.toSec(), filterRangeData, input);
-    filter->sensorMeasurement("usbl", usblData.header.stamp.toSec(), filterUSBLData, input);
+    filterRangeData.push_back(msgData.range);
+
+    filterUSBLData.push_back(msgData.range);
+    filterUSBLData.push_back(msgData.bearing);
+
+    filter->sensorMeasurement("slant_range", msgData.header.stamp.toSec(), filterRangeData, input);
+    filter->sensorMeasurement("usbl", msgData.header.stamp.toSec(), filterUSBLData, input);
 }
 
-void ROSSimNavigationFilter::sendDepthToFilter(underwater_vehicle_msgs::FloatMeasurement depthData)
+void ROSSimNavigationFilter::sendDVLToFilter(underwater_vehicle_msgs::DVL msgData)
+{
+    std::vector<double> filterData;
+    std::vector<double> input;
+
+    filterData.push_back(msgData.velocity.x);
+    filterData.push_back(msgData.velocity.y);
+    filterData.push_back(msgData.velocity.z);
+
+    if(msgData.velocity_reference == msgData.VELOCITY_REFERENCE_WATER)
+    {
+        filter->sensorMeasurement("dvl_wrt_water", msgData.header.stamp.toSec(), filterData, input);
+    }
+    else if(msgData.velocity_reference == msgData.VELOCITY_REFERENCE_BOTTOM)
+    {
+        filter->sensorMeasurement("dvl_wrt_bottom", msgData.header.stamp.toSec(), filterData, input);
+    }
+}
+
+void ROSSimNavigationFilter::sendDepthToFilter(underwater_vehicle_msgs::FloatMeasurement msgData)
 {
     std::vector<double> filterDepthData;
     std::vector<double> input;
 
-    filterDepthData.push_back(depthData.data);
+    filterDepthData.push_back(msgData.data);
 
-    filter->sensorMeasurement("depth", depthData.header.stamp.toSec(), filterDepthData, input);
+    filter->sensorMeasurement("depth", msgData.header.stamp.toSec(), filterDepthData, input);
 }
 
 void ROSSimNavigationFilter::sendForwardThruster(underwater_vehicle_msgs::FloatMeasurement forwardData)
