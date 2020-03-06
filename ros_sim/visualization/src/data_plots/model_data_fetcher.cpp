@@ -44,7 +44,7 @@ int main(int argc,      // Number of strings in array argv
     }
     bag.open(argv[1]);  // BagMode is Read by default
 
-    int lower_limit = 2000;
+    int lower_limit = 2000; //2000
 
     int upper_limit = 100;
     std::string fileName = "out.csv";
@@ -99,13 +99,25 @@ int main(int argc,      // Number of strings in array argv
     // for all x,y,time tuples from bag, loop over and find the plume value (dye) at each z
     std::vector<std::vector<double> > dyeMatrix(xs.size(), std::vector<double>(zs.size()));
 
+	std::cout << "About to read from model\n";
     std::cout << xs.size() << "; " << ys.size() << "; " << zs.size() << "; " << times.size() << "\n";
     std::cout << dyeMatrix.size() << "; " << dyeMatrix[0].size() << "\n";
 
     std::stringstream outputStringStream;
 
+	std::cout << "Writing file\n";
+
+    std::ofstream outfile(fileName);
+    outfile << "x,y,z,time,dye\n";
+
     for(int i = 0; i<xs.size(); i++)
     {
+
+		if(i % 25000 == 0 && i > 0)
+		{
+			outfile << outputStringStream.rdbuf();
+			std::stringstream().swap(outputStringStream);
+		}
         for(int j = 0; j<zs.size(); j++)
         {
             try{
@@ -122,12 +134,10 @@ int main(int argc,      // Number of strings in array argv
         }
     }
 
-    std::cout << "Writing file\n";
 
-    std::ofstream outfile(fileName);
-
-    outfile << "x,y,z,time,dye\n";
     outfile << outputStringStream.rdbuf();
+
+	outfile.close();
 
     return 0;
 }

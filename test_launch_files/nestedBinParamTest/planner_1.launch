@@ -2,7 +2,7 @@
     <!--Simulation-->
     <node pkg="underwater_vehicle_sim" type="underwater_vehicle_sim_node" name="vehicle_sim" ns="v1">
         <rosparam param="sim_hertz">10</rosparam>
-        <rosparam param="start_x">15000</rosparam>
+        <rosparam param="start_x">-15013</rosparam>
         <rosparam param="start_y">15000</rosparam>
 
         <rosparam param="start_z">1</rosparam>
@@ -24,7 +24,7 @@
 
         <rosparam param="moduleNames">[data_broadcaster, imu, usbl, depth]</rosparam>
         <rosparam param="data_broadcaster/type">DataBroadcaster</rosparam>
-        <rosparam param="data_broadcaster/hertz">2.5</rosparam>
+        <rosparam param="data_broadcaster/hertz">1</rosparam>
 
         <rosparam param="imu/type">IMU</rosparam>
         <rosparam param="imu/angular_velocity_random_error">0.004363323</rosparam>
