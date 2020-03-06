@@ -40,10 +40,12 @@ void DataBroadcasterModule::update(const ros::Time& lastTime, VehicleState& vehi
 
 		float precisionPow = std::pow(10, 4); //Set precision of temperature reading to 4 decimal places
 		data->temp = std::round(modelData.temp * precisionPow) / precisionPow;
-		
+
 		data->salt = modelData.salt;
 		data->dye = modelData.dye;
 		data->sonarDepth = modelData.depth - nedPosition.getZ();
+		data->u = modelData.u;
+		data->v = modelData.v;
 
 		dataRecorder.publish(data);
 	}

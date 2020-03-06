@@ -7,3 +7,5 @@ time time
 float64 temp
 float64 salt
 float64 dye
+float64 u
+float64 v

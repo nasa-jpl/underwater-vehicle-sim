@@ -68,12 +68,12 @@ void USBLModule::update(const ros::Time& lastTime, VehicleState& vehicleState, M
 
 			if(rangeRandomError > 0)
 			{
-				std::normal_distribution<double> rangeDistribution(0, range * rangeRandomError);
+				std::normal_distribution<double> rangeDistribution(0, trueRange * rangeRandomError);
 				double rangeError = rangeDistribution(generator);
 				range += rangeError;
 			}
 
-			range += rangeBiasError;
+			range += trueRange * rangeBiasError;
 		}
 	}
 
