@@ -12,12 +12,12 @@ def outputFiles(launchTemplate, tomlTemplate, outputDir):
                 (-10000,-10000, 100)]
 
     replaceMap = {}
-    replaceMap[":RANGE_RANDOM_ERROR:"] = [0.01,0.05,0.1,0.2]
-    replaceMap[":RANGE_BIAS_ERROR:"] = [0.01,0.05,0.1,0.2]
+    replaceMap[":RANGE_RANDOM_ERROR:"] = [0.05]
+    replaceMap[":RANGE_BIAS_ERROR:"] = [0.05]
 
     replaceMap[":USBL_HERTZ:"] = [0.01666666666]
     replaceMap[":GYRO_RANDOM_ERROR:"] = [0.004363323]
-    replaceMap[":GYRO_BIAS:"] = [0.00008726646]
+    replaceMap[":GYRO_BIAS:"] = [0.00026179939]
 
     runNum = 0
 
@@ -33,9 +33,8 @@ def outputFiles(launchTemplate, tomlTemplate, outputDir):
 
         for v in itertools.product(*values):
             for sl in startLocations:
-                outFile = os.path.join(outputDir, "run_" + str(runNum), "golden_selection_homing_run_" + str(runNum) + ".launch")
+                outFile = os.path.join(outputDir, "golden_selection_homing_run_" + str(runNum) + ".launch")
 
-                os.mkdir(os.path.dirname(outFile))
                 runNum += 1
                 with open(launchTemplate, "rt") as fin:
                     with open(outFile, "wt") as fout:
