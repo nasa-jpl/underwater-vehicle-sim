@@ -64,12 +64,11 @@ private:
 private:
     VehicleInfo vehicleInfo;
 
-    ros::Publisher goToXYPub;
-    ros::ServiceClient goToXYEnableClient;
+    ros::ServiceClient goToXYClient;
     ros::Subscriber goToXYComplete;
     
     bool replanNextUpdate;
-    ros::Time lastReplan;
+    double lastReplanTime;
     double distanceSinceReplan;
 
     ros::Publisher velPub;

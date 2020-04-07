@@ -8,7 +8,6 @@
 #include <tf2_ros/static_transform_broadcaster.h>
 #include <geometry_msgs/TransformStamped.h>
 
-#include "data_server/GetData.h"
 #include "model_server/GetModelData.h"
 
 #include "underwater_vehicle_msgs/VehicleData.h"

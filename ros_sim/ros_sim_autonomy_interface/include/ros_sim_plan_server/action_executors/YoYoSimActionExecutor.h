@@ -65,12 +65,11 @@ private:
 private:
     VehicleInfo vehicleInfo;
 
-    ros::Publisher goToZPub;
-    ros::ServiceClient goToZEnableClient;
+    ros::ServiceClient goToZClient;
     ros::Subscriber goToZComplete;
     
     bool replanNextUpdate;
-    ros::Time lastReplan;
+    double lastReplanTime;
     double distanceSinceReplan;
 
     tf2::Vector3 lastLocation;

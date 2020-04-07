@@ -22,15 +22,14 @@ using namespace underwater_autonomy;
 YoYoSimActionExecutor::YoYoSimActionExecutor(ros::NodeHandle& nh, VehicleInfo& vehicleInfo) :
     vehicleInfo(vehicleInfo),
     replanNextUpdate(false),
-    lastReplan(ros::Time::now()),
+    lastReplanTime(0),
     distanceSinceReplan(0),
     gotCompleteCallback(false)
 {
     velPub = nh.advertise<geometry_msgs::Twist>("command_target_velocity", 1000, true);
     poseSub = nh.subscribe("primary_navigation", 1, &YoYoSimActionExecutor::navigationFilterCallback, this);
 
-    goToZPub = nh.advertise<underwater_vehicle_msgs::GoToZ>("go_to_z", 1000);
-    goToZEnableClient = nh.serviceClient<propulsion_controller::PropulsionControllerEnable>("go_to_z_enable");
+    goToZClient = nh.serviceClient<underwater_vehicle_msgs::GoToZ>("go_to_z");
     goToZComplete = nh.subscribe("go_to_z_complete", 1, &YoYoSimActionExecutor::goToZCompleteCallback, this);
 }
 
@@ -57,17 +56,19 @@ void YoYoSimActionExecutor::execute(underwater_autonomy::YoYoAction& action)
     }
     else //If the prop module is not known then this cannot be completed
     {
-        action.fail(ros::Time::now().toSec());
+        action.fail(action.getLatestTime());
+        return;
     }
 
 
     //Check that we have someone listening to us
     ros::WallTime time = ros::WallTime::now();
-    while(goToZPub.getNumSubscribers() == 0 &&
+    while(goToZClient.exists() &&
           ros::WallTime::now() - time < ros::WallDuration(5)) {ros::WallDuration(1).sleep();}
-    if(goToZPub.getNumSubscribers() == 0)
+    if(!goToZClient.exists())
     {
-        action.fail(ros::Time::now().toSec());
+        action.fail(action.getLatestTime());
+        return;
     }
 
 
@@ -75,16 +76,16 @@ void YoYoSimActionExecutor::execute(underwater_autonomy::YoYoAction& action)
     sendNewGoToZGoal(action);
     action.dispatchDone();
 
-    lastReplan = ros::Time::now();
+    lastReplanTime = action.getLatestTime();
     distanceSinceReplan = 0;
 }
 
 void YoYoSimActionExecutor::stop(underwater_autonomy::YoYoAction& action)
 {
-    propulsion_controller::PropulsionControllerEnable enableMsg;
+    underwater_vehicle_msgs::GoToZ enableMsg;
     enableMsg.request.enable = false;
-    if(goToZEnableClient.exists() &&
-       goToZEnableClient.call(enableMsg))
+    if(goToZClient.exists() &&
+       goToZClient.call(enableMsg))
     {
         action.stopDone();
     }
@@ -95,7 +96,7 @@ bool YoYoSimActionExecutor::triggerReplan(underwater_autonomy::YoYoAction& actio
     if(replanNextUpdate)
     {
         replanNextUpdate = false;
-        lastReplan = ros::Time::now();
+        lastReplanTime = action.getLatestTime();
         distanceSinceReplan = 0;
         return true;
     }
@@ -118,7 +119,7 @@ void YoYoSimActionExecutor::monitor(underwater_autonomy::YoYoAction& action)
         action.getState() == Action::State::COMPLETING) &&
        !action.inOperationRegion(currentPose.getPosition()))
     {
-        action.fail(ros::Time::now().toSec());
+        action.fail(action.getLatestTime());
     }  
 
     if(action.getState() == Action::State::EXECUTING)
@@ -140,19 +141,21 @@ void YoYoSimActionExecutor::monitor(underwater_autonomy::YoYoAction& action)
             gotCompleteCallback = false;
 
             action.setGoingUp(!action.getGoingUp());
-            if(!replanNextUpdate)
+            sendNewGoToZGoal(action);
+
+            if(action.getState() == Action::State::EXECUTING && !replanNextUpdate)
             {
-                replanNextUpdate = action.doReplan(true, (ros::Time::now() - lastReplan).toSec(),
+                replanNextUpdate = action.doReplan(true, action.getLatestTime() - lastReplanTime,
                                                     distanceSinceReplan);
             }
-
-            sendNewGoToZGoal(action);
         }
         
         if(action.getYoYoTime() >= 0 && action.getTimeRunning() >= action.getYoYoTime())
         {
-            action.complete(ros::Time::now().toSec());
+            action.complete(action.getLatestTime());
         }
+
+
     }
     else if(action.inStoppingState())
     {
@@ -161,7 +164,7 @@ void YoYoSimActionExecutor::monitor(underwater_autonomy::YoYoAction& action)
 
     if(action.getState() == Action::State::EXECUTING && !replanNextUpdate)
     {
-        replanNextUpdate = action.doReplan(false, (ros::Time::now() - lastReplan).toSec(),
+        replanNextUpdate = action.doReplan(false, action.getLatestTime() - lastReplanTime,
                                             distanceSinceReplan);
     }
 }
@@ -173,17 +176,17 @@ void YoYoSimActionExecutor::sendNewGoToZGoal(underwater_autonomy::YoYoAction& ac
     underwater_vehicle_msgs::GoToZ goToZMsg;
     if(action.getGoingUp())
     {
-        goToZMsg.depth = action.getUpperDepth();
+        goToZMsg.request.depth = action.getUpperDepth();
     }
     else
     {
-        goToZMsg.depth = action.getLowerDepth();
+        goToZMsg.request.depth = action.getLowerDepth();
     }
 
-    goToZMsg.enable = true;
-    goToZMsg.holdDepth = false;
+    goToZMsg.request.enable = true;
+    goToZMsg.request.holdDepth = false;
 
-    goToZPub.publish(goToZMsg);
+    goToZClient.call(goToZMsg);
 }
 
 void YoYoSimActionExecutor::navigationFilterCallback(const nav_msgs::Odometry odo)

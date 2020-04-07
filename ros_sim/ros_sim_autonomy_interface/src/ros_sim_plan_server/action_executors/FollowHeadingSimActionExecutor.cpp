@@ -9,7 +9,6 @@
 #include "underwater_vehicle_msgs/FollowHeading.h"
 
 #include "propulsion_controller/PropulsionControllerState.h"
-#include "propulsion_controller/PropulsionControllerEnable.h"
 
 #include "tf2_geometry_msgs/tf2_geometry_msgs.h"
 
@@ -28,8 +27,7 @@ FollowHeadingSimActionExecutor::FollowHeadingSimActionExecutor(ros::NodeHandle& 
     velPub = nh.advertise<geometry_msgs::Twist>("command_target_velocity", 1000, true);
     poseSub = nh.subscribe("primary_navigation", 1, &FollowHeadingSimActionExecutor::navigationFilterCallback, this);
 
-    followHeadingPub = nh.advertise<underwater_vehicle_msgs::FollowHeading>("follow_heading", 1000);
-    followHeadingEnableClient = nh.serviceClient<propulsion_controller::PropulsionControllerEnable>("follow_heading_enable");
+    followHeadingClient = nh.serviceClient<underwater_vehicle_msgs::FollowHeading>("follow_heading");
 }
 
 void FollowHeadingSimActionExecutor::execute(underwater_autonomy::FollowHeadingAction& action)
@@ -57,23 +55,25 @@ void FollowHeadingSimActionExecutor::execute(underwater_autonomy::FollowHeadingA
     else //If the prop module is not known then this cannot be completed
     {
         action.fail(ros::Time::now().toSec());
+        return;
     }
 
     //Check that we have someone listening to us
     ros::WallTime time = ros::WallTime::now();
-    while(followHeadingPub.getNumSubscribers() == 0 &&
+    while(!followHeadingClient.exists() &&
           ros::WallTime::now() - time < ros::WallDuration(5)) {ros::WallDuration(1).sleep();}
-    if(followHeadingPub.getNumSubscribers() == 0)
+    if(!followHeadingClient.exists())
     {
         action.fail(ros::Time::now().toSec());
+        return;
     }
 
     //Send message to Follow Heading Controller
     //Reset complete callback
     underwater_vehicle_msgs::FollowHeading followHeadingMsg;
-    followHeadingMsg.heading = action.getHeading();
-    followHeadingMsg.enable = true;
-    followHeadingPub.publish(followHeadingMsg);
+    followHeadingMsg.request.heading = action.getHeading();
+    followHeadingMsg.request.enable = true;
+    followHeadingClient.call(followHeadingMsg);
     action.dispatchDone();
 
     lastReplan = ros::Time::now();
@@ -82,10 +82,10 @@ void FollowHeadingSimActionExecutor::execute(underwater_autonomy::FollowHeadingA
 
 void FollowHeadingSimActionExecutor::stop(underwater_autonomy::FollowHeadingAction& action)
 {
-    propulsion_controller::PropulsionControllerEnable enableMsg;
+    underwater_vehicle_msgs::FollowHeading enableMsg;
     enableMsg.request.enable = false;
-    if(followHeadingEnableClient.exists() &&
-       followHeadingEnableClient.call(enableMsg))
+    if(followHeadingClient.exists() &&
+       followHeadingClient.call(enableMsg))
     {
         action.stopDone();
     }

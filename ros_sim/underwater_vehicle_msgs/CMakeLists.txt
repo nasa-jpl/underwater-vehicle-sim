@@ -24,9 +24,6 @@ add_message_files(
     USBL.msg
     FloatMeasurement.msg
     DVL.msg
-    GoToZ.msg
-    GoToXY.msg
-    FollowHeading.msg
     GoToZComplete.msg
     GoToXYComplete.msg
 )
@@ -34,6 +31,9 @@ add_message_files(
 ## Generate services in the 'srv' folder
 add_service_files(
     FILES
+    GoToXY.srv
+    GoToZ.srv
+    FollowHeading.srv
     GetVehicleInfo.srv
 )
 

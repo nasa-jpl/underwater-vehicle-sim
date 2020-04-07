@@ -4,7 +4,6 @@
 #include "tf2_geometry_msgs/tf2_geometry_msgs.h"
 #include "underwater_vehicle_msgs/GetVehicleInfo.h"
 
-
 PropulsionController::PropulsionController(VehicleInfo& info, std::unique_ptr<PropulsionLogicInterface> logicController) :
     PropulsionController(ros::NodeHandle(), info, std::move(logicController))
 {}
@@ -30,18 +29,15 @@ PropulsionController::PropulsionController(ros::NodeHandle nh, VehicleInfo& info
     poseSub = nh.subscribe("primary_navigation", 1, &PropulsionController::navigationFilterCallback, this);
 
     //Go To Z Topics
-    goToZSub = nh.subscribe("go_to_z", 10, &PropulsionController::goToZCallback, this);
-    goToZEnableService = nh.advertiseService("go_to_z_enable", &PropulsionController::goToZEnableCallback, this);
+    goToZService = nh.advertiseService("go_to_z", &PropulsionController::goToZCallback, this);
     goToZComplete = nh.advertise<underwater_vehicle_msgs::GoToZComplete>("go_to_z_complete", 1000);
 
     //Go To XY Topics
-    goToXYSub = nh.subscribe("go_to_xy", 10, &PropulsionController::goToXYCallback, this);
-    goToXYEnableService = nh.advertiseService("go_to_xy_enable", &PropulsionController::goToXYEnableCallback, this);
+    goToXYService = nh.advertiseService("go_to_xy", &PropulsionController::goToXYCallback, this);
     goToXYComplete = nh.advertise<underwater_vehicle_msgs::GoToXYComplete>("go_to_xy_complete", 1000);
 
     //Follow Heading Topics
-    followHeadingSub = nh.subscribe("follow_heading", 10, &PropulsionController::followHeadingCallback, this);
-    followHeadingEnableService = nh.advertiseService("follow_heading_enable", &PropulsionController::followHeadingEnableCallback, this);
+    followHeadingService = nh.advertiseService("follow_heading", &PropulsionController::followHeadingCallback, this);
 
     stateService = nh.advertiseService("get_state", &PropulsionController::getState, this);
 }
@@ -78,23 +74,12 @@ void PropulsionController::update(void)
     }
 }
 
-void PropulsionController::goToXYCallback(const underwater_vehicle_msgs::GoToXY parameters)
+bool PropulsionController::goToXYCallback(underwater_vehicle_msgs::GoToXY::Request  &req,
+                                          underwater_vehicle_msgs::GoToXY::Response &res)
 {
-    ROS_INFO("GO TO XY: x=%f, y=%f", parameters.x, parameters.y);
-    logicController->setTargetXY(parameters.x, parameters.y);
-    goToXYEnable = parameters.enable;
-    if(goToXYEnable)
-    {
-        followHeadingEnable = false;
-    }
-}
-
-bool PropulsionController::goToXYEnableCallback(propulsion_controller::PropulsionControllerEnable::Request  &req,
-                                                propulsion_controller::PropulsionControllerEnable::Response &res)
-{
-    ROS_INFO("GO TO XY ENABLE: %d", req.enable);
     if(req.enable)
     {
+        logicController->setTargetXY(req.x, req.y);
         goToXYEnable = true;
         followHeadingEnable = false;
     }
@@ -126,23 +111,14 @@ void PropulsionController::goToXYUpdate(void)
     }
 }
 
-void PropulsionController::followHeadingCallback(const underwater_vehicle_msgs::FollowHeading parameters)
-{
-    followHeadingEnable = parameters.enable;
-    if(followHeadingEnable)
-    {
-        goToXYEnable = false;
-    }
-    logicController->setFollowHeading(parameters.heading);
-}
-
-bool PropulsionController::followHeadingEnableCallback(propulsion_controller::PropulsionControllerEnable::Request  &req,
-                                                propulsion_controller::PropulsionControllerEnable::Response &res)
+bool PropulsionController::followHeadingCallback(underwater_vehicle_msgs::FollowHeading::Request  &req,
+                                                underwater_vehicle_msgs::FollowHeading::Response &res)
 {
     if(req.enable)
     {
         followHeadingEnable = true;
         goToXYEnable = false;
+        logicController->setFollowHeading(req.heading);
     }
     else
     {
@@ -157,19 +133,14 @@ void PropulsionController::followHeadingUpdate(void)
     logicController->followHeading(currentPose);
 }
 
-void PropulsionController::goToZCallback(const underwater_vehicle_msgs::GoToZ parameters)
-{
-    goToZHoldDepth = parameters.holdDepth;
-    goToZEnable = parameters.enable;
-    logicController->setTargetZ(parameters.depth);
-}
-
-bool PropulsionController::goToZEnableCallback(propulsion_controller::PropulsionControllerEnable::Request  &req,
-                                                propulsion_controller::PropulsionControllerEnable::Response &res)
+bool PropulsionController::goToZCallback(underwater_vehicle_msgs::GoToZ::Request  &req,
+                                         underwater_vehicle_msgs::GoToZ::Response &res)
 {
     if(req.enable)
     {
         goToZEnable = true;
+        goToZHoldDepth = req.holdDepth;
+        logicController->setTargetZ(req.depth);
     }
     else
     {

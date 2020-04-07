@@ -10,7 +10,6 @@
 #include "tf2_geometry_msgs/tf2_geometry_msgs.h"
 
 #include "propulsion_controller/PropulsionControllerState.h"
-#include "propulsion_controller/PropulsionControllerEnable.h"
 
 #include "underwater_autonomy/planner/actions/Action.h"
 
@@ -22,14 +21,13 @@ using namespace underwater_autonomy;
 PointPathSimActionExecutor::PointPathSimActionExecutor(ros::NodeHandle& nh, VehicleInfo& vehicleInfo) :
     vehicleInfo(vehicleInfo),
     replanNextUpdate(false),
-    lastReplan(ros::Time::now()),
+    lastReplanTime(0),
     distanceSinceReplan(0)
 {
     velPub = nh.advertise<geometry_msgs::Twist>("command_target_velocity", 1000, true);
     poseSub = nh.subscribe("primary_navigation", 1, &PointPathSimActionExecutor::navigationFilterCallback, this);
 
-    goToXYPub = nh.advertise<underwater_vehicle_msgs::GoToXY>("go_to_xy", 1000);
-    goToXYEnableClient = nh.serviceClient<propulsion_controller::PropulsionControllerEnable>("go_to_xy_enable");
+    goToXYClient = nh.serviceClient<underwater_vehicle_msgs::GoToXY>("go_to_xy");
 
     goToXYComplete = nh.subscribe("go_to_xy_complete", 1, &PointPathSimActionExecutor::goToXYCompleteCallback, this);    
 }
@@ -56,16 +54,18 @@ void PointPathSimActionExecutor::execute(underwater_autonomy::PointPathAction& a
     }
     else //If the prop module is not known then this cannot be completed
     {
-        action.fail(ros::Time::now().toSec());
+        action.fail(action.getLatestTime());
+        return;
     }
 
     //Check that we have someone listening to us
     ros::WallTime time = ros::WallTime::now();
-    while(goToXYPub.getNumSubscribers() == 0 &&
+    while(!goToXYClient.exists() &&
           ros::WallTime::now() - time < ros::WallDuration(5)) {ros::WallDuration(1).sleep();}
-    if(goToXYPub.getNumSubscribers() == 0)
+    if(!goToXYClient.exists())
     {
-        action.fail(ros::Time::now().toSec());
+        action.fail(action.getLatestTime());
+        return;
     }
 
 
@@ -78,11 +78,11 @@ void PointPathSimActionExecutor::execute(underwater_autonomy::PointPathAction& a
     else
     {
         action.dispatchDone();
-        action.complete(ros::Time::now().toSec());
+        action.complete(action.getLatestTime());
         ROS_INFO("Point path action completed");
     }
 
-    lastReplan = ros::Time::now();
+    lastReplanTime = action.getLatestTime();
     distanceSinceReplan = 0;
 }
 
@@ -100,7 +100,7 @@ void PointPathSimActionExecutor::monitor(underwater_autonomy::PointPathAction& a
         action.reachedTargetPoint();
         if(action.isDone())
         {
-            action.complete(ros::Time::now().toSec());
+            action.complete(action.getLatestTime());
             ROS_INFO("Point path action completed");
         }
         else
@@ -115,7 +115,8 @@ void PointPathSimActionExecutor::monitor(underwater_autonomy::PointPathAction& a
              action.getState() == Action::State::COMPLETING) && 
              !action.inOperationRegion(currentPose.getPosition()))
     {
-        action.fail(ros::Time::now().toSec());
+        action.fail(action.getLatestTime());
+        return;
     }
     else if(action.inStoppingState())
     {
@@ -125,17 +126,17 @@ void PointPathSimActionExecutor::monitor(underwater_autonomy::PointPathAction& a
     if(!replanNextUpdate)
     {
         replanNextUpdate = action.doReplan(pointReached,
-                                            (ros::Time::now() - lastReplan).toSec(),
+                                            action.getLatestTime() - lastReplanTime,
                                             distanceSinceReplan);
     }
 }
 
 void PointPathSimActionExecutor::stop(underwater_autonomy::PointPathAction& action)
 {
-    propulsion_controller::PropulsionControllerEnable enableMsg;
+    underwater_vehicle_msgs::GoToXY enableMsg;
     enableMsg.request.enable = false;
-    if(goToXYEnableClient.exists() &&
-       goToXYEnableClient.call(enableMsg))
+    if(goToXYClient.exists() &&
+       goToXYClient.call(enableMsg))
     {
         action.setInterruptPoint(currentPose.getPosition());
         action.stopDone();
@@ -149,7 +150,7 @@ bool PointPathSimActionExecutor::triggerReplan(underwater_autonomy::PointPathAct
     if(replanNextUpdate)
     {
         replanNextUpdate = false;
-        lastReplan = ros::Time::now();
+        lastReplanTime = action.getLatestTime();
         distanceSinceReplan = 0;
         return true;
     }
@@ -171,11 +172,11 @@ void PointPathSimActionExecutor::sendNextGoToXYGoal(underwater_autonomy::PointPa
 
     Eigen::Vector3d point = action.getCurrentTargetPoint();
     underwater_vehicle_msgs::GoToXY goToXYMsg;
-    goToXYMsg.x = point[0];
-    goToXYMsg.y = point[1];
-    goToXYMsg.enable = true;
+    goToXYMsg.request.x = point[0];
+    goToXYMsg.request.y = point[1];
+    goToXYMsg.request.enable = true;
     
-    goToXYPub.publish(goToXYMsg);
+    goToXYClient.call(goToXYMsg);
 }
 
 void PointPathSimActionExecutor::navigationFilterCallback(const nav_msgs::Odometry odo)

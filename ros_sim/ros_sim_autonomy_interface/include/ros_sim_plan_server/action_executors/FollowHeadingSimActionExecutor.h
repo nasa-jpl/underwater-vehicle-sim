@@ -58,8 +58,7 @@ private:
 private:
     VehicleInfo vehicleInfo;
 
-    ros::Publisher followHeadingPub;
-    ros::ServiceClient followHeadingEnableClient;
+    ros::ServiceClient followHeadingClient;
     ros::Subscriber followHeadingComplete;
     
     bool replanNextUpdate;
