@@ -20,10 +20,10 @@
 #include "ros_sim_plan_server/action_executors/SimActionExecutorFactoryMethod.h"
 
 class FollowHeadingSimActionExecutor : public underwater_autonomy::ActionExecutor<underwater_autonomy::FollowHeadingAction>,
-                                       public SimActionExecutorFactoryMethod<FollowHeadingSimActionExecutor>
+                                       public SimActionExecutorFactoryMethod<FollowHeadingSimActionExecutor, underwater_autonomy::FollowHeadingAction>
 {
 public:
-    FollowHeadingSimActionExecutor(ros::NodeHandle& nh, VehicleInfo& vehicleInfo);
+    FollowHeadingSimActionExecutor(underwater_autonomy::FollowHeadingAction& action, ros::NodeHandle& nh, VehicleInfo& vehicleInfo);
 
     FollowHeadingSimActionExecutor(const FollowHeadingSimActionExecutor&&) = delete;
     FollowHeadingSimActionExecutor(const FollowHeadingSimActionExecutor&) = delete;
@@ -36,20 +36,20 @@ public:
     /**
     * Executes the yoyo action in the ros simulation with the given parameters
     */
-    void execute(underwater_autonomy::FollowHeadingAction& action) override;
+    void execute() override;
     
     /**
     * Monitors and updates the state of the yoyo action in the ros simulation 
     * All monitoring is done with action callbacks so this method is not used here
     */
-    void monitor(underwater_autonomy::FollowHeadingAction& action) override;
+    void monitor() override;
 
     /**
     * Allows the yoyo action to trigger a replan in the ros simulation 
     */
-    bool triggerReplan(underwater_autonomy::FollowHeadingAction& action) override;
+    bool triggerReplan() override;
 
-    void stop(underwater_autonomy::FollowHeadingAction& action) override;
+    void stop() override;
 
 private:
     void navigationFilterCallback(const nav_msgs::Odometry odo);

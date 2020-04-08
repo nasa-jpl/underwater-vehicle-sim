@@ -19,21 +19,19 @@
 
 using namespace underwater_autonomy;
 
-HoldDepthSimActionExecutor::HoldDepthSimActionExecutor(ros::NodeHandle& nh, VehicleInfo& vehicleInfo) :
+HoldDepthSimActionExecutor::HoldDepthSimActionExecutor(underwater_autonomy::HoldDepthAction& action, ros::NodeHandle& nh, VehicleInfo& vehicleInfo) :
+    ActionExecutor(action),
     vehicleInfo(vehicleInfo),
     replanNextUpdate(false),
     lastReplanTime(0),
-    distanceSinceReplan(0),
-    gotCompleteCallback(false)
+    distanceSinceReplan(0)
 {
     velPub = nh.advertise<geometry_msgs::Twist>("command_target_velocity", 1000, true);
     poseSub = nh.subscribe("primary_navigation", 1, &HoldDepthSimActionExecutor::navigationFilterCallback, this);
-
     goToZClient = nh.serviceClient<underwater_vehicle_msgs::GoToZ>("go_to_z");
-    goToZComplete = nh.subscribe("go_to_z_complete", 1, &HoldDepthSimActionExecutor::goToZCompleteCallback, this);    
 }
 
-void HoldDepthSimActionExecutor::execute(underwater_autonomy::HoldDepthAction& action)
+void HoldDepthSimActionExecutor::execute()
 {
     ROS_INFO("Execute hold depth action");
 
@@ -61,19 +59,15 @@ void HoldDepthSimActionExecutor::execute(underwater_autonomy::HoldDepthAction& a
     }
 
     //Check that we have someone listening to us
-    ros::WallTime time = ros::WallTime::now();
-    while(!goToZClient.exists() &&
-          ros::WallTime::now() - time < ros::WallDuration(5)) {ros::WallDuration(1).sleep();}
-
+    goToZClient.waitForExistence(ros::Duration(10));
     if(!goToZClient.exists())
     {
         action.fail(action.getLatestTime());
         return;
     }
 
+    
     //Send message to Go To Z Controller
-    //Reset complete callback
-    gotCompleteCallback = false;
     underwater_vehicle_msgs::GoToZ goToZMsg;
     goToZMsg.request.depth = action.getDepth();
     goToZMsg.request.enable = true;
@@ -85,7 +79,7 @@ void HoldDepthSimActionExecutor::execute(underwater_autonomy::HoldDepthAction& a
     distanceSinceReplan = 0;
 }
 
-void HoldDepthSimActionExecutor::stop(underwater_autonomy::HoldDepthAction& action)
+void HoldDepthSimActionExecutor::stop()
 {
     underwater_vehicle_msgs::GoToZ enableMsg;
     enableMsg.request.enable = false;
@@ -96,7 +90,7 @@ void HoldDepthSimActionExecutor::stop(underwater_autonomy::HoldDepthAction& acti
     }
 }
 
-bool HoldDepthSimActionExecutor::triggerReplan(underwater_autonomy::HoldDepthAction& action)
+bool HoldDepthSimActionExecutor::triggerReplan()
 {
     if(replanNextUpdate)
     {        
@@ -109,14 +103,7 @@ bool HoldDepthSimActionExecutor::triggerReplan(underwater_autonomy::HoldDepthAct
     return false;
 }
 
-void HoldDepthSimActionExecutor::goToZCompleteCallback(const underwater_vehicle_msgs::GoToZComplete complete)
-{
-    gotCompleteCallback = true;
-    completeCallbackZ = complete.depth;
-    completeCallbackHoldDepth = complete.holdDepth;
-}
-
-void HoldDepthSimActionExecutor::monitor(underwater_autonomy::HoldDepthAction& action)
+void HoldDepthSimActionExecutor::monitor()
 {
     if((action.getState() == Action::State::DISPATCHED ||
         action.getState() == Action::State::EXECUTING ||
@@ -129,21 +116,14 @@ void HoldDepthSimActionExecutor::monitor(underwater_autonomy::HoldDepthAction& a
 
     if(action.getState() == Action::State::EXECUTING)
     {
-        if(gotCompleteCallback && 
-           doubleEq(action.getDepth(), completeCallbackZ) &&
-           completeCallbackHoldDepth)
-        {
-            gotCompleteCallback = false;
-            action.complete(action.getLatestTime());
-        }
-        else if(action.getHoldDepthTime() >= 0 && action.getTimeRunning() >= action.getHoldDepthTime())
+        if(action.getHoldDepthTime() >= 0 && action.getTimeRunning() >= action.getHoldDepthTime())
         {
             action.complete(action.getLatestTime());
         }
     }
     else if(action.inStoppingState())
     {
-        stop(action);
+        stop();
     }
 
     if(action.getState() == Action::State::EXECUTING && !replanNextUpdate)

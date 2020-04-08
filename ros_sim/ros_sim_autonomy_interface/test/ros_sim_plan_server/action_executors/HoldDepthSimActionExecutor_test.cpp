@@ -108,7 +108,7 @@ TEST(HoldDepthSimActionExecutor, ExecutePropModuleTypeFail)
     spinner.stop();
 }
 
-TEST(HoldDepthSimActionExecutor, ExecuteAndCancel)
+TEST(HoldDepthSimActionExecutor, ExecuteAndPause)
 {
     ros::NodeHandle nh("ExecuteAndPause");
 
@@ -320,7 +320,7 @@ int main(int argc, char** argv){
     VehicleInfo info(infoMsg);
 
     ros::NodeHandle nhExecutePropModuleTypeFail("ExecutePropModuleTypeFail");
-    HoldDepthAction::setExecutorCreateFunction(std::bind(&HoldDepthSimActionExecutor::create, nhExecutePropModuleTypeFail, invalidInfo));
+    HoldDepthAction::setExecutorCreateFunction(std::bind(&HoldDepthSimActionExecutor::create, std::placeholders::_1,  nhExecutePropModuleTypeFail, invalidInfo));
     actionExecutePropModuleTypeFail = std::shared_ptr<HoldDepthAction>(new HoldDepthAction(0,
                                                                                         0,
                                                                                         0,
@@ -328,9 +328,10 @@ int main(int argc, char** argv){
                                                                                         std::unique_ptr<OperationRegion>(new BoxOperationRegion()),
                                                                                         HoldDepthAction::ReplanType::NONE,
                                                                                         0));
+    actionExecutePropModuleTypeFail->initActionExecutor();
 
     ros::NodeHandle nhExecuteAndPause("ExecuteAndPause");
-    HoldDepthAction::setExecutorCreateFunction(std::bind(&HoldDepthSimActionExecutor::create, nhExecuteAndPause, info));
+    HoldDepthAction::setExecutorCreateFunction(std::bind(&HoldDepthSimActionExecutor::create, std::placeholders::_1,  nhExecuteAndPause, info));
     actionExecuteAndPause = std::shared_ptr<HoldDepthAction>(new HoldDepthAction(5,
                                                                                 1,
                                                                                 2,
@@ -338,9 +339,10 @@ int main(int argc, char** argv){
                                                                                 std::unique_ptr<OperationRegion>(new BoxOperationRegion()),
                                                                                 HoldDepthAction::ReplanType::NONE,
                                                                                 4));
+    actionExecuteAndPause->initActionExecutor();
 
     ros::NodeHandle nhExecuteAndSucceed("ExecuteAndSucceed");
-    HoldDepthAction::setExecutorCreateFunction(std::bind(&HoldDepthSimActionExecutor::create, nhExecuteAndSucceed, info));
+    HoldDepthAction::setExecutorCreateFunction(std::bind(&HoldDepthSimActionExecutor::create, std::placeholders::_1,  nhExecuteAndSucceed, info));
     actionExecuteAndSucceed = std::shared_ptr<HoldDepthAction>(new HoldDepthAction(5,
                                                                                 1,
                                                                                 2,
@@ -348,9 +350,10 @@ int main(int argc, char** argv){
                                                                                 std::unique_ptr<OperationRegion>(new BoxOperationRegion()),
                                                                                 HoldDepthAction::ReplanType::NONE,
                                                                                 4));
+    actionExecuteAndSucceed->initActionExecutor();
 
     ros::NodeHandle nhExecuteAndOutOfRegion("ExecuteAndOutOfRegion");
-    HoldDepthAction::setExecutorCreateFunction(std::bind(&HoldDepthSimActionExecutor::create, nhExecuteAndOutOfRegion, info));
+    HoldDepthAction::setExecutorCreateFunction(std::bind(&HoldDepthSimActionExecutor::create, std::placeholders::_1,  nhExecuteAndOutOfRegion, info));
     actionExecuteAndOutOfRegion = std::shared_ptr<HoldDepthAction>(new HoldDepthAction(5,
                                                                                 1,
                                                                                 100,
@@ -358,8 +361,10 @@ int main(int argc, char** argv){
                                                                                 std::unique_ptr<OperationRegion>(new BoxOperationRegion(0, 0, 0, 100, 100, 100)),
                                                                                 HoldDepthAction::ReplanType::PERIODIC_DISTANCE,
                                                                                 3));
+    actionExecuteAndOutOfRegion->initActionExecutor();
+
     ros::NodeHandle nhTimeReplan("TimeReplan");
-    HoldDepthAction::setExecutorCreateFunction(std::bind(&HoldDepthSimActionExecutor::create, nhTimeReplan, info));
+    HoldDepthAction::setExecutorCreateFunction(std::bind(&HoldDepthSimActionExecutor::create, std::placeholders::_1,  nhTimeReplan, info));
     actionTimeReplan = std::shared_ptr<HoldDepthAction>(new HoldDepthAction(5,
                                                                             1,
                                                                             100,
@@ -367,9 +372,10 @@ int main(int argc, char** argv){
                                                                             std::unique_ptr<OperationRegion>(new BoxOperationRegion()),
                                                                             HoldDepthAction::ReplanType::PERIODIC_TIME,
                                                                             3));
+    actionTimeReplan->initActionExecutor();
 
     ros::NodeHandle nhDistanceReplan("DistanceReplan");
-    HoldDepthAction::setExecutorCreateFunction(std::bind(&HoldDepthSimActionExecutor::create, nhDistanceReplan, info));
+    HoldDepthAction::setExecutorCreateFunction(std::bind(&HoldDepthSimActionExecutor::create, std::placeholders::_1,  nhDistanceReplan, info));
     actionDistanceReplan = std::shared_ptr<HoldDepthAction>(new HoldDepthAction(5,
                                                                                 1,
                                                                                 100,
@@ -377,6 +383,7 @@ int main(int argc, char** argv){
                                                                                 std::unique_ptr<OperationRegion>(new BoxOperationRegion()),
                                                                                 HoldDepthAction::ReplanType::PERIODIC_DISTANCE,
                                                                                 3));
+    actionDistanceReplan->initActionExecutor();
 
     return RUN_ALL_TESTS();
 }

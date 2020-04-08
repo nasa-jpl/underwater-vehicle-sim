@@ -64,10 +64,10 @@ int main(int argc, char **argv)
 
     ROSSimVehicleInterface interface(info);
 
-    YoYoAction::setExecutorCreateFunction(std::bind(&YoYoSimActionExecutor::create, nh, info));
-    HoldDepthAction::setExecutorCreateFunction(std::bind(&HoldDepthSimActionExecutor::create, nh, info));
-    PointPathAction::setExecutorCreateFunction(std::bind(&PointPathSimActionExecutor::create, nh, info));
-    FollowHeadingAction::setExecutorCreateFunction(std::bind(&FollowHeadingSimActionExecutor::create, nh, info));
+    YoYoAction::setExecutorCreateFunction(std::bind(&YoYoSimActionExecutor::create, std::placeholders::_1, nh, info));
+    HoldDepthAction::setExecutorCreateFunction(std::bind(&HoldDepthSimActionExecutor::create, std::placeholders::_1, nh, info));
+    PointPathAction::setExecutorCreateFunction(std::bind(&PointPathSimActionExecutor::create, std::placeholders::_1, nh, info));
+    FollowHeadingAction::setExecutorCreateFunction(std::bind(&FollowHeadingSimActionExecutor::create, std::placeholders::_1, nh, info));
 
 
     std::string configFilename;

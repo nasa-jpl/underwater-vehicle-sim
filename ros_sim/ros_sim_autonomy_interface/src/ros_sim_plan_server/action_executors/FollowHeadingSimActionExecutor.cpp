@@ -18,7 +18,8 @@
 
 using namespace underwater_autonomy;
 
-FollowHeadingSimActionExecutor::FollowHeadingSimActionExecutor(ros::NodeHandle& nh, VehicleInfo& vehicleInfo) :
+FollowHeadingSimActionExecutor::FollowHeadingSimActionExecutor(underwater_autonomy::FollowHeadingAction& action, ros::NodeHandle& nh, VehicleInfo& vehicleInfo) :
+    ActionExecutor(action),
     vehicleInfo(vehicleInfo),
     replanNextUpdate(false),
     lastReplan(ros::Time::now()),
@@ -30,7 +31,7 @@ FollowHeadingSimActionExecutor::FollowHeadingSimActionExecutor(ros::NodeHandle& 
     followHeadingClient = nh.serviceClient<underwater_vehicle_msgs::FollowHeading>("follow_heading");
 }
 
-void FollowHeadingSimActionExecutor::execute(underwater_autonomy::FollowHeadingAction& action)
+void FollowHeadingSimActionExecutor::execute()
 {
     ROS_DEBUG("Execute follow heading action");
 
@@ -59,9 +60,7 @@ void FollowHeadingSimActionExecutor::execute(underwater_autonomy::FollowHeadingA
     }
 
     //Check that we have someone listening to us
-    ros::WallTime time = ros::WallTime::now();
-    while(!followHeadingClient.exists() &&
-          ros::WallTime::now() - time < ros::WallDuration(5)) {ros::WallDuration(1).sleep();}
+    followHeadingClient.waitForExistence(ros::Duration(10));
     if(!followHeadingClient.exists())
     {
         action.fail(ros::Time::now().toSec());
@@ -80,7 +79,7 @@ void FollowHeadingSimActionExecutor::execute(underwater_autonomy::FollowHeadingA
     distanceSinceReplan = 0;
 }
 
-void FollowHeadingSimActionExecutor::stop(underwater_autonomy::FollowHeadingAction& action)
+void FollowHeadingSimActionExecutor::stop()
 {
     underwater_vehicle_msgs::FollowHeading enableMsg;
     enableMsg.request.enable = false;
@@ -91,7 +90,7 @@ void FollowHeadingSimActionExecutor::stop(underwater_autonomy::FollowHeadingActi
     }
 }
 
-bool FollowHeadingSimActionExecutor::triggerReplan(underwater_autonomy::FollowHeadingAction& action)
+bool FollowHeadingSimActionExecutor::triggerReplan()
 {
     if(replanNextUpdate)
     {
@@ -104,7 +103,7 @@ bool FollowHeadingSimActionExecutor::triggerReplan(underwater_autonomy::FollowHe
     return false;
 }
 
-void FollowHeadingSimActionExecutor::monitor(underwater_autonomy::FollowHeadingAction& action)
+void FollowHeadingSimActionExecutor::monitor()
 {
     if(action.getFollowHeadingTime() >= 0 && 
        action.getTimeRunning() >= action.getFollowHeadingTime() &&
@@ -122,7 +121,7 @@ void FollowHeadingSimActionExecutor::monitor(underwater_autonomy::FollowHeadingA
     }
     else if(action.inStoppingState())
     {
-        stop(action);
+        stop();
     }
 
     if(action.getState() == Action::State::EXECUTING && !replanNextUpdate)

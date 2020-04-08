@@ -24,8 +24,7 @@ add_message_files(
     USBL.msg
     FloatMeasurement.msg
     DVL.msg
-    GoToZComplete.msg
-    GoToXYComplete.msg
+    PropulsionControllerState.msg
 )
 
 ## Generate services in the 'srv' folder

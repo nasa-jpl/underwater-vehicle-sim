@@ -18,21 +18,21 @@
 
 using namespace underwater_autonomy;
 
-PointPathSimActionExecutor::PointPathSimActionExecutor(ros::NodeHandle& nh, VehicleInfo& vehicleInfo) :
+PointPathSimActionExecutor::PointPathSimActionExecutor(underwater_autonomy::PointPathAction& action, ros::NodeHandle& nh, VehicleInfo& vehicleInfo) :
+    ActionExecutor(action),
     vehicleInfo(vehicleInfo),
     replanNextUpdate(false),
     lastReplanTime(0),
-    distanceSinceReplan(0)
+    distanceSinceReplan(0),
+    statePropSetup(false)
 {
+    propStateSub = nh.subscribe("prop_state", 10, &PointPathSimActionExecutor::propStateCallback, this);
     velPub = nh.advertise<geometry_msgs::Twist>("command_target_velocity", 1000, true);
     poseSub = nh.subscribe("primary_navigation", 1, &PointPathSimActionExecutor::navigationFilterCallback, this);
-
     goToXYClient = nh.serviceClient<underwater_vehicle_msgs::GoToXY>("go_to_xy");
-
-    goToXYComplete = nh.subscribe("go_to_xy_complete", 1, &PointPathSimActionExecutor::goToXYCompleteCallback, this);    
 }
 
-void PointPathSimActionExecutor::execute(underwater_autonomy::PointPathAction& action)
+void PointPathSimActionExecutor::execute()
 {
     ROS_INFO("Execute point path action");
 
@@ -59,20 +59,20 @@ void PointPathSimActionExecutor::execute(underwater_autonomy::PointPathAction& a
     }
 
     //Check that we have someone listening to us
-    ros::WallTime time = ros::WallTime::now();
-    while(!goToXYClient.exists() &&
-          ros::WallTime::now() - time < ros::WallDuration(5)) {ros::WallDuration(1).sleep();}
+    goToXYClient.waitForExistence(ros::Duration(10));
     if(!goToXYClient.exists())
     {
         action.fail(action.getLatestTime());
         return;
     }
 
+    //Wait for the propulsion controller state subscriber to be setup
+    waitForPropStateSetup();
 
     //Creates an action goal and sends it to the action server for point path movement
     if(!action.isDone())
     {
-        sendNextGoToXYGoal(action);
+        sendNextGoToXYGoal();
         action.dispatchDone();
     }
     else
@@ -86,17 +86,16 @@ void PointPathSimActionExecutor::execute(underwater_autonomy::PointPathAction& a
     distanceSinceReplan = 0;
 }
 
-void PointPathSimActionExecutor::monitor(underwater_autonomy::PointPathAction& action)
+void PointPathSimActionExecutor::monitor()
 {
     Eigen::Vector3d currentTargetPoint = action.getCurrentTargetPoint();
 
     bool pointReached = false;
-    if(gotCompleteCallback && 
-       doubleEq(currentTargetPoint[0], completeCallbackX) &&
-       doubleEq(currentTargetPoint[1], completeCallbackY) &&
+    if(xyCompleteState && 
+       doubleEq(currentTargetPoint[0], xyXState) &&
+       doubleEq(currentTargetPoint[1], xyYState) &&
        action.getState() == Action::State::EXECUTING)
     {
-        gotCompleteCallback = false;
         action.reachedTargetPoint();
         if(action.isDone())
         {
@@ -105,7 +104,7 @@ void PointPathSimActionExecutor::monitor(underwater_autonomy::PointPathAction& a
         }
         else
         {
-            sendNextGoToXYGoal(action);
+            sendNextGoToXYGoal();
         }
         pointReached = true;
     }
@@ -120,9 +119,9 @@ void PointPathSimActionExecutor::monitor(underwater_autonomy::PointPathAction& a
     }
     else if(action.inStoppingState())
     {
-        stop(action);
+        stop();
     }
-    
+
     if(!replanNextUpdate)
     {
         replanNextUpdate = action.doReplan(pointReached,
@@ -131,7 +130,7 @@ void PointPathSimActionExecutor::monitor(underwater_autonomy::PointPathAction& a
     }
 }
 
-void PointPathSimActionExecutor::stop(underwater_autonomy::PointPathAction& action)
+void PointPathSimActionExecutor::stop()
 {
     underwater_vehicle_msgs::GoToXY enableMsg;
     enableMsg.request.enable = false;
@@ -145,7 +144,7 @@ void PointPathSimActionExecutor::stop(underwater_autonomy::PointPathAction& acti
     ROS_INFO("point path action stopped");
 }
 
-bool PointPathSimActionExecutor::triggerReplan(underwater_autonomy::PointPathAction& action)
+bool PointPathSimActionExecutor::triggerReplan()
 {
     if(replanNextUpdate)
     {
@@ -158,17 +157,38 @@ bool PointPathSimActionExecutor::triggerReplan(underwater_autonomy::PointPathAct
     return false;
 }
 
-void PointPathSimActionExecutor::goToXYCompleteCallback(const underwater_vehicle_msgs::GoToXYComplete complete)
+void PointPathSimActionExecutor::propStateCallback(const underwater_vehicle_msgs::PropulsionControllerState state)
 {
-    gotCompleteCallback = true;
-    completeCallbackX = complete.x;
-    completeCallbackY = complete.y;
+    if(!statePropSetup) {
+        statePropSetup = true;
+        prevXYSeqNum = state.xySeqNum;
+    }
+
+    if(state.xyComplete && (prevXYSeqNum != state.xySeqNum))
+    {
+        xyCompleteState = true;
+        xyXState = state.x;
+        xyYState = state.y;
+        xySeqNumState = state.xySeqNum;
+    }
 }
 
-void PointPathSimActionExecutor::sendNextGoToXYGoal(underwater_autonomy::PointPathAction& action)
+void PointPathSimActionExecutor::waitForPropStateSetup()
 {
-    //Reset the gotCompleteCallback as this might have tripped on previous actions
-    gotCompleteCallback = false;
+    while(!statePropSetup) {
+        ros::spinOnce();
+    }
+}
+
+void PointPathSimActionExecutor::sendNextGoToXYGoal()
+{
+    //Update the previous sequence number to the current one so we can use it again
+    //for the next command
+    prevXYSeqNum = xySeqNumState;
+
+    //Reset the xyCompleteState as this might have tripped on previous actions
+    xyCompleteState = false;
+
 
     Eigen::Vector3d point = action.getCurrentTargetPoint();
     underwater_vehicle_msgs::GoToXY goToXYMsg;

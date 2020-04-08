@@ -22,8 +22,7 @@
 #include "underwater_vehicle_msgs/GoToZ.h"
 #include "underwater_vehicle_msgs/GoToXY.h"
 #include "underwater_vehicle_msgs/FollowHeading.h"
-#include "underwater_vehicle_msgs/GoToZComplete.h"
-#include "underwater_vehicle_msgs/GoToXYComplete.h"
+#include "underwater_vehicle_msgs/PropulsionControllerState.h"
 
 #include "underwater_autonomy/util/VehiclePose.h"
 
@@ -70,16 +69,20 @@ private:
 
 	std::unique_ptr<PropulsionLogicInterface> logicController;
 
+	ros::Publisher statePub;
+
 	//GoToZ Topics and Parameters
 	ros::ServiceServer goToZService;
-	ros::Publisher goToZComplete;
 	bool goToZEnable;
+	long zSeqNum;
+	bool goToZComplete;
 	bool goToZHoldDepth;
 
 	//GoToXY Topics and Parameters
 	ros::ServiceServer goToXYService;
-	ros::Publisher goToXYComplete;
 	bool goToXYEnable;
+	long xySeqNum;
+	bool goToXYComplete;
 
 	//FollowHeading Topics and Parameters
 	ros::ServiceServer followHeadingService;
@@ -89,8 +92,6 @@ private:
 
 	ros::Subscriber velSub;
 	ros::Subscriber poseSub;
-
-	ros::ServiceServer stateService;
 
 	underwater_autonomy::VehiclePose currentPose;
 };

@@ -12,7 +12,7 @@
 #include "nav_msgs/Odometry.h"
 #include "std_msgs/Bool.h"
 
-#include "underwater_vehicle_msgs/GoToZComplete.h"
+#include "underwater_vehicle_msgs/PropulsionControllerState.h"
 #include "underwater_vehicle_msgs/VehicleInfo.h"
 
 #include "underwater_autonomy/planner/ActionExecutor.h"
@@ -22,10 +22,10 @@
 #include "ros_sim_plan_server/action_executors/SimActionExecutorFactoryMethod.h"
 
 class HoldDepthSimActionExecutor : public underwater_autonomy::ActionExecutor<underwater_autonomy::HoldDepthAction>,
-                                   public SimActionExecutorFactoryMethod<HoldDepthSimActionExecutor>
+                                   public SimActionExecutorFactoryMethod<HoldDepthSimActionExecutor, underwater_autonomy::HoldDepthAction>
 {
 public:
-    HoldDepthSimActionExecutor(ros::NodeHandle& nh, VehicleInfo& vehicleInfo);
+    HoldDepthSimActionExecutor(underwater_autonomy::HoldDepthAction& action, ros::NodeHandle& nh, VehicleInfo& vehicleInfo);
 
     HoldDepthSimActionExecutor(const HoldDepthSimActionExecutor&&) = delete;
     HoldDepthSimActionExecutor(const HoldDepthSimActionExecutor&) = delete;
@@ -38,24 +38,23 @@ public:
     /**
     * Executes the yoyo action in the ros simulation with the given parameters
     */
-    void execute(underwater_autonomy::HoldDepthAction& action) override;
+    void execute() override;
     
     /**
     * Monitors and updates the state of the yoyo action in the ros simulation 
     * All monitoring is done with action callbacks so this method is not used here
     */
-    void monitor(underwater_autonomy::HoldDepthAction& action) override;
+    void monitor() override;
 
     /**
     * Allows the yoyo action to trigger a replan in the ros simulation 
     */
-    bool triggerReplan(underwater_autonomy::HoldDepthAction& action) override;
+    bool triggerReplan() override;
 
-    void stop(underwater_autonomy::HoldDepthAction& action) override;
+    void stop() override;
 
 private:
     void navigationFilterCallback(const nav_msgs::Odometry odo);
-    void goToZCompleteCallback(const underwater_vehicle_msgs::GoToZComplete complete);
 
     bool doubleEq(double d1, double d2);
 
@@ -63,7 +62,8 @@ private:
     VehicleInfo vehicleInfo;
 
     ros::ServiceClient goToZClient;
-    ros::Subscriber goToZComplete;
+    ros::Subscriber propState;
+    bool propStateSetup;
 
     bool replanNextUpdate;
     double lastReplanTime;
@@ -73,10 +73,6 @@ private:
     ros::Publisher velPub;
     ros::Subscriber poseSub;
     underwater_autonomy::VehiclePose currentPose;
-
-    bool gotCompleteCallback;
-    double completeCallbackZ;
-    bool completeCallbackHoldDepth;
 };
 
 #endif

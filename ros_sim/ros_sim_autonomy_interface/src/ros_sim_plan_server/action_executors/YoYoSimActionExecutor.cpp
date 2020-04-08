@@ -11,29 +11,28 @@
 #include "geometry_msgs/Twist.h"
 #include "underwater_vehicle_msgs/GoToZ.h"
 
-#include "propulsion_controller/PropulsionControllerState.h"
-#include "propulsion_controller/PropulsionControllerEnable.h"
+#include "underwater_vehicle_msgs/PropulsionControllerState.h"
 
 #include "underwater_autonomy/planner/actions/Action.h"
 #include "underwater_autonomy/planner/actions/YoYoAction.h"
 
 using namespace underwater_autonomy;
 
-YoYoSimActionExecutor::YoYoSimActionExecutor(ros::NodeHandle& nh, VehicleInfo& vehicleInfo) :
+YoYoSimActionExecutor::YoYoSimActionExecutor(underwater_autonomy::YoYoAction& action, ros::NodeHandle& nh, VehicleInfo& vehicleInfo) :
+    ActionExecutor(action),
     vehicleInfo(vehicleInfo),
     replanNextUpdate(false),
     lastReplanTime(0),
     distanceSinceReplan(0),
-    gotCompleteCallback(false)
+    zCompleteState(false)
 {
+    propStateSub = nh.subscribe("prop_state", 1, &YoYoSimActionExecutor::propStateCallback, this);
     velPub = nh.advertise<geometry_msgs::Twist>("command_target_velocity", 1000, true);
     poseSub = nh.subscribe("primary_navigation", 1, &YoYoSimActionExecutor::navigationFilterCallback, this);
-
     goToZClient = nh.serviceClient<underwater_vehicle_msgs::GoToZ>("go_to_z");
-    goToZComplete = nh.subscribe("go_to_z_complete", 1, &YoYoSimActionExecutor::goToZCompleteCallback, this);
 }
 
-void YoYoSimActionExecutor::execute(underwater_autonomy::YoYoAction& action)
+void YoYoSimActionExecutor::execute()
 {
     ROS_INFO("Execute yoyo action");
 
@@ -60,11 +59,10 @@ void YoYoSimActionExecutor::execute(underwater_autonomy::YoYoAction& action)
         return;
     }
 
-
+    waitForPropStateSetup();
+    
     //Check that we have someone listening to us
-    ros::WallTime time = ros::WallTime::now();
-    while(goToZClient.exists() &&
-          ros::WallTime::now() - time < ros::WallDuration(5)) {ros::WallDuration(1).sleep();}
+    goToZClient.waitForExistence(ros::Duration(10));
     if(!goToZClient.exists())
     {
         action.fail(action.getLatestTime());
@@ -73,14 +71,14 @@ void YoYoSimActionExecutor::execute(underwater_autonomy::YoYoAction& action)
 
 
     //Creates an action goal and sends it to the action server for point path movement
-    sendNewGoToZGoal(action);
+    sendNewGoToZGoal();
     action.dispatchDone();
 
     lastReplanTime = action.getLatestTime();
     distanceSinceReplan = 0;
 }
 
-void YoYoSimActionExecutor::stop(underwater_autonomy::YoYoAction& action)
+void YoYoSimActionExecutor::stop()
 {
     underwater_vehicle_msgs::GoToZ enableMsg;
     enableMsg.request.enable = false;
@@ -91,7 +89,7 @@ void YoYoSimActionExecutor::stop(underwater_autonomy::YoYoAction& action)
     }
 }
 
-bool YoYoSimActionExecutor::triggerReplan(underwater_autonomy::YoYoAction& action)
+bool YoYoSimActionExecutor::triggerReplan()
 {
     if(replanNextUpdate)
     {
@@ -104,14 +102,30 @@ bool YoYoSimActionExecutor::triggerReplan(underwater_autonomy::YoYoAction& actio
     return false;
 }
 
-void YoYoSimActionExecutor::goToZCompleteCallback(const underwater_vehicle_msgs::GoToZComplete complete)
+void YoYoSimActionExecutor::propStateCallback(const underwater_vehicle_msgs::PropulsionControllerState state)
 {    
-    gotCompleteCallback = true;
-    completeCallbackZ = complete.depth;
-    completeCallbackHoldDepth = complete.holdDepth;
+    if(!statePropSetup) {
+        statePropSetup = true;
+        prevZSeqNum = state.zSeqNum;
+    }
+
+    if(state.zComplete && (prevZSeqNum != state.zSeqNum))
+    {
+        zCompleteState = true;
+        zState = state.z;
+        holdDepthState = state.holdDepth;
+        zSeqNumState = state.zSeqNum;
+    }
 }
 
-void YoYoSimActionExecutor::monitor(underwater_autonomy::YoYoAction& action)
+void YoYoSimActionExecutor::waitForPropStateSetup()
+{
+    while(!statePropSetup) {
+        ros::spinOnce();
+    }
+}
+
+void YoYoSimActionExecutor::monitor()
 {
     if((action.getState() == Action::State::DISPATCHED ||
         action.getState() == Action::State::EXECUTING ||
@@ -134,14 +148,12 @@ void YoYoSimActionExecutor::monitor(underwater_autonomy::YoYoAction& action)
             targetDepth = action.getLowerDepth();
         }
 
-        if(gotCompleteCallback && 
-           doubleEq(targetDepth, completeCallbackZ) &&
-           !completeCallbackHoldDepth)
+        if(zCompleteState && 
+           doubleEq(targetDepth, zState) &&
+           !holdDepthState)
         {
-            gotCompleteCallback = false;
-
             action.setGoingUp(!action.getGoingUp());
-            sendNewGoToZGoal(action);
+            sendNewGoToZGoal();
 
             if(action.getState() == Action::State::EXECUTING && !replanNextUpdate)
             {
@@ -159,7 +171,7 @@ void YoYoSimActionExecutor::monitor(underwater_autonomy::YoYoAction& action)
     }
     else if(action.inStoppingState())
     {
-        stop(action);
+        stop();
     }
 
     if(action.getState() == Action::State::EXECUTING && !replanNextUpdate)
@@ -169,10 +181,16 @@ void YoYoSimActionExecutor::monitor(underwater_autonomy::YoYoAction& action)
     }
 }
 
-void YoYoSimActionExecutor::sendNewGoToZGoal(underwater_autonomy::YoYoAction& action)
+void YoYoSimActionExecutor::sendNewGoToZGoal()
 {
-    //Reset got complete callback
-    gotCompleteCallback = false;
+
+    //Update the previous sequence number to the current one so we can use it again
+    //for the next command
+    prevZSeqNum = zSeqNumState;
+
+    //Reset the xyCompleteState as this might have tripped on previous actions
+    zCompleteState = false;
+
     underwater_vehicle_msgs::GoToZ goToZMsg;
     if(action.getGoingUp())
     {
