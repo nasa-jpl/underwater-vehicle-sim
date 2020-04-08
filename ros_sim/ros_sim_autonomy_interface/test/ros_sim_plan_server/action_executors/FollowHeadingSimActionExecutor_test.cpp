@@ -72,7 +72,7 @@ void setupCallbacks(ros::NodeHandle& nh, CallbackInfo& callbackInfo)
 void waitForState(Action& action, Action::State state) {
     while(action.getState() != state)
     {
-        action.monitor(ros::Time::now().toSec());
+        action.monitor(3);
         ros::spinOnce();
     }
 }
@@ -87,10 +87,8 @@ TEST(FollowHeadingSimActionExecutor, ExecutePropModuleTypeFail)
     CallbackInfo callbackInfo;
     setupCallbacks(nh, callbackInfo);
 
-    actionExecutePropModuleTypeFail->execute(ros::Time::now().toSec());
+    actionExecutePropModuleTypeFail->execute(0);
     EXPECT_EQ(Action::State::FAILED, actionExecutePropModuleTypeFail->getState());
-
-    spinner.stop();
 }
 
 
@@ -105,7 +103,7 @@ TEST(FollowHeadingSimActionExecutor, ExecuteAndPause)
     setupCallbacks(nh, callbackInfo);
 
     //Execute action
-    actionExecuteAndPause->execute(ros::Time::now().toSec());
+    actionExecuteAndPause->execute(0);
 
     while(callbackInfo.latestVelMsg == NULL)
     {
@@ -121,10 +119,9 @@ TEST(FollowHeadingSimActionExecutor, ExecuteAndPause)
     EXPECT_EQ(Action::State::EXECUTING, actionExecuteAndPause->getState());
 
     //Cancel action
-    actionExecuteAndPause->pause(ros::Time::now().toSec());
+    actionExecuteAndPause->pause(3);
     EXPECT_EQ(2u, callbackInfo.followHeadingCalls);
     EXPECT_EQ(Action::State::PAUSED, actionExecuteAndPause->getState());
-    spinner.stop();
 }
 
 
@@ -153,7 +150,6 @@ TEST(FollowHeadingSimActionExecutor, ExecuteAndSucceed)
     actionExecuteAndSucceed->monitor(2);
 
     EXPECT_EQ(Action::State::COMPLETED, actionExecuteAndSucceed->getState());
-    spinner.stop();
 }
 
 TEST(FollowHeadingSimActionExecutor, ExecuteAndOutOfRegion)
@@ -168,7 +164,7 @@ TEST(FollowHeadingSimActionExecutor, ExecuteAndOutOfRegion)
 
     ros::Publisher posePub = nh.advertise<nav_msgs::Odometry>("primary_navigation", 2);
 
-    actionExecuteAndOutOfRegion->execute(ros::Time::now().toSec());
+    actionExecuteAndOutOfRegion->execute(0);
     while(callbackInfo.latestVelMsg == NULL)
     {
         ros::spinOnce();
@@ -190,7 +186,6 @@ TEST(FollowHeadingSimActionExecutor, ExecuteAndOutOfRegion)
     
     waitForState(*actionExecuteAndOutOfRegion, Action::State::FAILED);
     EXPECT_EQ(Action::State::FAILED, actionExecuteAndOutOfRegion->getState());
-    spinner.stop();
 }
 
 TEST(FollowHeadingSimActionExecutor, TimeReplan)
@@ -204,7 +199,7 @@ TEST(FollowHeadingSimActionExecutor, TimeReplan)
     CallbackInfo callbackInfo;
     setupCallbacks(nh, callbackInfo);
 
-    actionTimeReplan->execute(ros::Time::now().toSec());
+    actionTimeReplan->execute(0);
     while(callbackInfo.latestVelMsg == NULL)
     {
         ros::spinOnce();
@@ -219,11 +214,10 @@ TEST(FollowHeadingSimActionExecutor, TimeReplan)
 
     bool replan = false;
     while(!(replan = actionTimeReplan->triggerReplan())) {
-        actionTimeReplan->monitor(3);
+        actionTimeReplan->monitor(3.1);
     }
     EXPECT_TRUE(replan);
     EXPECT_FALSE(actionTimeReplan->triggerReplan());
-    spinner.stop();
 }
 
 TEST(FollowHeadingSimActionExecutor, DistanceReplan)
@@ -237,7 +231,7 @@ TEST(FollowHeadingSimActionExecutor, DistanceReplan)
     CallbackInfo callbackInfo;
     setupCallbacks(nh, callbackInfo);
 
-    actionDistanceReplan->execute(ros::Time::now().toSec());
+    actionDistanceReplan->execute(0);
 
     while(callbackInfo.latestVelMsg == NULL)
     {
@@ -261,13 +255,12 @@ TEST(FollowHeadingSimActionExecutor, DistanceReplan)
     bool replan = false;
     while(!replan)
     {
-        actionDistanceReplan->monitor(ros::Time::now().toSec());
+        actionDistanceReplan->monitor(3.1);
         replan = actionDistanceReplan->triggerReplan();
         ros::spinOnce();
     }
     EXPECT_TRUE(replan);
     EXPECT_FALSE(actionDistanceReplan->triggerReplan());
-    spinner.stop();
 }
 
 //Had issues doing this in the roslaunch file for this test. Not sure why.

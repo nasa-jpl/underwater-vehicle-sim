@@ -72,9 +72,17 @@ void HoldDepthSimActionExecutor::execute()
     goToZMsg.request.depth = action.getDepth();
     goToZMsg.request.enable = true;
     goToZMsg.request.holdDepth = true;
-    goToZClient.call(goToZMsg);
-    action.dispatchDone();
-    
+
+    if(goToZClient.call(goToZMsg))
+    {
+        action.dispatchDone();
+    }
+    else
+    {
+        action.fail(action.getLatestTime());
+        return;
+    }   
+
     lastReplanTime = action.getLatestTime();
     distanceSinceReplan = 0;
 }
@@ -88,6 +96,8 @@ void HoldDepthSimActionExecutor::stop()
     {
         action.stopDone();
     }
+
+    ROS_INFO("Stop hold depth action");
 }
 
 bool HoldDepthSimActionExecutor::triggerReplan()
@@ -105,31 +115,16 @@ bool HoldDepthSimActionExecutor::triggerReplan()
 
 void HoldDepthSimActionExecutor::monitor()
 {
-    if((action.getState() == Action::State::DISPATCHED ||
-        action.getState() == Action::State::EXECUTING ||
-        action.getState() == Action::State::PAUSING ||
-        action.getState() == Action::State::COMPLETING) &&
-       !action.inOperationRegion(currentPose.getPosition()))
+    if(action.getState() == Action::State::EXECUTING &&
+       action.getHoldDepthTime() >= 0 &&
+       action.getTimeRunning() >= action.getHoldDepthTime())
     {
-        action.fail(action.getLatestTime());
+        action.complete(action.getLatestTime());
+        ROS_INFO("Complete hold depth action");
     }
-
-    if(action.getState() == Action::State::EXECUTING)
+    else if(action.doReplan(action.getLatestTime() - lastReplanTime, distanceSinceReplan))
     {
-        if(action.getHoldDepthTime() >= 0 && action.getTimeRunning() >= action.getHoldDepthTime())
-        {
-            action.complete(action.getLatestTime());
-        }
-    }
-    else if(action.inStoppingState())
-    {
-        stop();
-    }
-
-    if(action.getState() == Action::State::EXECUTING && !replanNextUpdate)
-    {
-        replanNextUpdate = action.doReplan(action.getLatestTime() - lastReplanTime,
-                                             distanceSinceReplan);
+        replanNextUpdate = true;
     }
 }
 
@@ -186,6 +181,15 @@ void HoldDepthSimActionExecutor::navigationFilterCallback(const nav_msgs::Odomet
     currentPose.setLinearVelocity(linearVelocity);
     currentPose.setAngularVelocity(angularVelocity);
     currentPose.setTwistCovariance(twistCovariance);
+
+    if((action.getState() == Action::State::DISPATCHED ||
+        action.getState() == Action::State::EXECUTING ||
+        action.getState() == Action::State::PAUSING ||
+        action.getState() == Action::State::COMPLETING) &&
+        !action.inOperationRegion(currentPose.getPosition()))
+    {
+        action.fail(action.getLatestTime());
+    }
 }
 
 bool HoldDepthSimActionExecutor::doubleEq(double d1, double d2)

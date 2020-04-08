@@ -98,8 +98,6 @@ TEST(PointPathSimActionExecutor, ExecutePropModuleTypeFail)
 
     actionExecutePropModuleTypeFail->execute(0);
     EXPECT_EQ(Action::State::FAILED, actionExecutePropModuleTypeFail->getState());
-
-    spinner.stop();
 }
 
 TEST(PointPathSimActionExecutor, ExecuteAndPause)
@@ -138,7 +136,6 @@ TEST(PointPathSimActionExecutor, ExecuteAndPause)
 
     EXPECT_EQ(2u, callbackInfo.goToXYCalls);
     EXPECT_EQ(Action::State::PAUSED, actionExecuteAndPause->getState());
-    spinner.stop();
 }
 
 TEST(PointPathSimActionExecutor, ExecuteAndSucceed)
@@ -255,8 +252,9 @@ TEST(PointPathSimActionExecutor, ExecuteAndSucceed)
     ros::WallDuration(0.5).sleep();
     ros::spinOnce();
     actionExecuteAndSucceed->monitor(ros::Time::now().toSec());
+
+    waitForState(*actionExecuteAndSucceed, Action::State::COMPLETED);
     EXPECT_EQ(Action::State::COMPLETED, actionExecuteAndSucceed->getState());
-    spinner.stop();
 }
 
 TEST(PointPathSimActionExecutor, ExecuteAndOutOfRegion)
@@ -298,7 +296,6 @@ TEST(PointPathSimActionExecutor, ExecuteAndOutOfRegion)
 
     waitForState(*actionExecuteAndOutOfRegion, Action::State::FAILED);
     EXPECT_EQ(Action::State::FAILED, actionExecuteAndOutOfRegion->getState());
-    spinner.stop();
 }
 
 TEST(PointPathSimActionExecutor, TimeReplan)
@@ -347,7 +344,6 @@ TEST(PointPathSimActionExecutor, TimeReplan)
     }
     EXPECT_TRUE(replan);
     EXPECT_FALSE(actionTimeReplan->triggerReplan());
-    spinner.stop();
 }
 
 TEST(PointPathSimActionExecutor, DistanceReplan)
@@ -411,7 +407,6 @@ TEST(PointPathSimActionExecutor, DistanceReplan)
     }
     EXPECT_TRUE(replan);
     EXPECT_FALSE(actionDistanceReplan->triggerReplan());
-    spinner.stop();
 }
 
 TEST(PointPathSimActionExecutor, PointReachedReplan)
@@ -466,7 +461,6 @@ TEST(PointPathSimActionExecutor, PointReachedReplan)
     }
     EXPECT_TRUE(replan);
     EXPECT_FALSE(actionPointReachedReplan->triggerReplan());
-    spinner.stop();
 }
 
 //Had issues doing this in the roslaunch file for this test. Not sure why.

@@ -104,8 +104,6 @@ TEST(HoldDepthSimActionExecutor, ExecutePropModuleTypeFail)
     actionExecutePropModuleTypeFail->execute(ros::Time::now().toSec());
 
     EXPECT_EQ(Action::State::FAILED, actionExecutePropModuleTypeFail->getState());
-
-    spinner.stop();
 }
 
 TEST(HoldDepthSimActionExecutor, ExecuteAndPause)
@@ -137,8 +135,6 @@ TEST(HoldDepthSimActionExecutor, ExecuteAndPause)
     EXPECT_EQ(2u, callbackInfo.goToZCalls);
     EXPECT_FALSE(callbackInfo.enable);
     EXPECT_EQ(Action::State::PAUSED, actionExecuteAndPause->getState());
-
-    spinner.stop();
 }
 
 TEST(HoldDepthSimActionExecutor, ExecuteAndSucceed)
@@ -170,7 +166,6 @@ TEST(HoldDepthSimActionExecutor, ExecuteAndSucceed)
         ros::spinOnce();
     }
     EXPECT_EQ(Action::State::COMPLETED, actionExecuteAndSucceed->getState());
-    spinner.stop();
 }
 
 TEST(YoYoSimActionExecutor, ExecuteAndOutOfRegion)
@@ -204,7 +199,6 @@ TEST(YoYoSimActionExecutor, ExecuteAndOutOfRegion)
 
     waitForState(*actionExecuteAndOutOfRegion, Action::State::FAILED);
     EXPECT_EQ(Action::State::FAILED, actionExecuteAndOutOfRegion->getState());
-    spinner.stop();
 }
 
 TEST(HoldDepthSimActionExecutor, TimeReplan)
@@ -233,7 +227,6 @@ TEST(HoldDepthSimActionExecutor, TimeReplan)
     actionTimeReplan->monitor(3.1);
     EXPECT_TRUE(actionTimeReplan->triggerReplan());
     EXPECT_FALSE(actionTimeReplan->triggerReplan());
-    spinner.stop();
 }
 
 TEST(HoldDepthSimActionExecutor, DistanceReplan)
@@ -278,8 +271,6 @@ TEST(HoldDepthSimActionExecutor, DistanceReplan)
     }
     EXPECT_TRUE(replan);
     EXPECT_FALSE(actionDistanceReplan->triggerReplan());
-
-    spinner.stop();
 }
 
 //Had issues doing this in the roslaunch file for this test. Not sure why.

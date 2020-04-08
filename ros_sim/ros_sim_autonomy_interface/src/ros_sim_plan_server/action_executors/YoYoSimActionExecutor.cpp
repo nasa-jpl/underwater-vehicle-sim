@@ -23,8 +23,7 @@ YoYoSimActionExecutor::YoYoSimActionExecutor(underwater_autonomy::YoYoAction& ac
     vehicleInfo(vehicleInfo),
     replanNextUpdate(false),
     lastReplanTime(0),
-    distanceSinceReplan(0),
-    zCompleteState(false)
+    distanceSinceReplan(0)
 {
     propStateSub = nh.subscribe("prop_state", 1, &YoYoSimActionExecutor::propStateCallback, this);
     velPub = nh.advertise<geometry_msgs::Twist>("command_target_velocity", 1000, true);
@@ -60,7 +59,7 @@ void YoYoSimActionExecutor::execute()
     }
 
     waitForPropStateSetup();
-    
+
     //Check that we have someone listening to us
     goToZClient.waitForExistence(ros::Duration(10));
     if(!goToZClient.exists())
@@ -71,8 +70,10 @@ void YoYoSimActionExecutor::execute()
 
 
     //Creates an action goal and sends it to the action server for point path movement
-    sendNewGoToZGoal();
-    action.dispatchDone();
+    if(sendNewGoToZGoal())
+    {
+        action.dispatchDone();
+    }
 
     lastReplanTime = action.getLatestTime();
     distanceSinceReplan = 0;
@@ -87,6 +88,8 @@ void YoYoSimActionExecutor::stop()
     {
         action.stopDone();
     }
+
+    ROS_INFO("Stop yoyo action");
 }
 
 bool YoYoSimActionExecutor::triggerReplan()
@@ -109,12 +112,29 @@ void YoYoSimActionExecutor::propStateCallback(const underwater_vehicle_msgs::Pro
         prevZSeqNum = state.zSeqNum;
     }
 
-    if(state.zComplete && (prevZSeqNum != state.zSeqNum))
+    double targetDepth = 0;
+    if(action.getGoingUp())
     {
-        zCompleteState = true;
-        zState = state.z;
-        holdDepthState = state.holdDepth;
-        zSeqNumState = state.zSeqNum;
+        targetDepth = action.getUpperDepth();
+    }
+    else
+    {
+        targetDepth = action.getLowerDepth();
+    }
+
+    if(state.zComplete && 
+       doubleEq(targetDepth, state.z) &&
+       !state.holdDepth &&
+       prevZSeqNum != state.zSeqNum)
+    {
+        prevZSeqNum = state.zSeqNum;
+        action.setGoingUp(!action.getGoingUp());
+        sendNewGoToZGoal();
+
+        if(action.doReplan(true, action.getLatestTime() - lastReplanTime, distanceSinceReplan)) 
+        {
+            replanNextUpdate = true;
+        }
     }
 }
 
@@ -127,70 +147,21 @@ void YoYoSimActionExecutor::waitForPropStateSetup()
 
 void YoYoSimActionExecutor::monitor()
 {
-    if((action.getState() == Action::State::DISPATCHED ||
-        action.getState() == Action::State::EXECUTING ||
-        action.getState() == Action::State::PAUSING ||
-        action.getState() == Action::State::COMPLETING) &&
-       !action.inOperationRegion(currentPose.getPosition()))
+    if(action.getState() == Action::State::EXECUTING && 
+       action.getYoYoTime() >= 0 && 
+       action.getTimeRunning() >= action.getYoYoTime())
     {
-        action.fail(action.getLatestTime());
-    }  
-
-    if(action.getState() == Action::State::EXECUTING)
-    {
-        double targetDepth = 0;
-        if(action.getGoingUp())
-        {
-            targetDepth = action.getUpperDepth();
-        }
-        else
-        {
-            targetDepth = action.getLowerDepth();
-        }
-
-        if(zCompleteState && 
-           doubleEq(targetDepth, zState) &&
-           !holdDepthState)
-        {
-            action.setGoingUp(!action.getGoingUp());
-            sendNewGoToZGoal();
-
-            if(action.getState() == Action::State::EXECUTING && !replanNextUpdate)
-            {
-                replanNextUpdate = action.doReplan(true, action.getLatestTime() - lastReplanTime,
-                                                    distanceSinceReplan);
-            }
-        }
-        
-        if(action.getYoYoTime() >= 0 && action.getTimeRunning() >= action.getYoYoTime())
-        {
-            action.complete(action.getLatestTime());
-        }
-
-
+        action.complete(action.getLatestTime());
+        ROS_INFO("Complete yoyo action");
     }
-    else if(action.inStoppingState())
+    else if(action.doReplan(false, action.getLatestTime() - lastReplanTime, distanceSinceReplan))
     {
-        stop();
-    }
-
-    if(action.getState() == Action::State::EXECUTING && !replanNextUpdate)
-    {
-        replanNextUpdate = action.doReplan(false, action.getLatestTime() - lastReplanTime,
-                                            distanceSinceReplan);
+        replanNextUpdate = true;
     }
 }
 
-void YoYoSimActionExecutor::sendNewGoToZGoal()
+bool YoYoSimActionExecutor::sendNewGoToZGoal()
 {
-
-    //Update the previous sequence number to the current one so we can use it again
-    //for the next command
-    prevZSeqNum = zSeqNumState;
-
-    //Reset the xyCompleteState as this might have tripped on previous actions
-    zCompleteState = false;
-
     underwater_vehicle_msgs::GoToZ goToZMsg;
     if(action.getGoingUp())
     {
@@ -204,7 +175,13 @@ void YoYoSimActionExecutor::sendNewGoToZGoal()
     goToZMsg.request.enable = true;
     goToZMsg.request.holdDepth = false;
 
-    goToZClient.call(goToZMsg);
+    if(!goToZClient.call(goToZMsg))
+    {
+        action.fail(action.getLatestTime());
+        return false;
+    }
+
+    return true;
 }
 
 void YoYoSimActionExecutor::navigationFilterCallback(const nav_msgs::Odometry odo)
@@ -260,6 +237,15 @@ void YoYoSimActionExecutor::navigationFilterCallback(const nav_msgs::Odometry od
     currentPose.setLinearVelocity(linearVelocity);
     currentPose.setAngularVelocity(angularVelocity);
     currentPose.setTwistCovariance(twistCovariance);
+
+    if((action.getState() == Action::State::DISPATCHED ||
+        action.getState() == Action::State::EXECUTING ||
+        action.getState() == Action::State::PAUSING ||
+        action.getState() == Action::State::COMPLETING) &&
+        !action.inOperationRegion(currentPose.getPosition()))
+    {
+        action.fail(action.getLatestTime());
+    }  
 }
 
 bool YoYoSimActionExecutor::doubleEq(double d1, double d2)

@@ -62,7 +62,7 @@ private:
     ros::Subscriber followHeadingComplete;
     
     bool replanNextUpdate;
-    ros::Time lastReplan;
+    double lastReplanTime;
     double distanceSinceReplan;
     
     tf2::Vector3 lastLocation;

@@ -57,7 +57,7 @@ private:
 
     void waitForPropStateSetup();
 
-    void sendNextGoToXYGoal();
+    bool sendNextGoToXYGoal();
 
     bool doubleEq(double d1, double d2);
     
@@ -77,11 +77,7 @@ private:
     underwater_autonomy::VehiclePose currentPose;
 
     bool statePropSetup;
-    bool xyCompleteState;
-    double xyXState;
-    double xyYState;
     long prevXYSeqNum;
-    long xySeqNumState;
 };
 
 #endif

@@ -98,8 +98,6 @@ TEST(YoYoSimActionExecutor, ExecutePropModuleTypeFail)
 
     actionExecutePropModuleTypeFail->execute(0);
     EXPECT_EQ(Action::State::FAILED, actionExecutePropModuleTypeFail->getState());
-
-    spinner.stop();
 }
 
 TEST(YoYoSimActionExecutor, ExecuteAndPause)
@@ -140,7 +138,6 @@ TEST(YoYoSimActionExecutor, ExecuteAndPause)
     EXPECT_FALSE(callbackInfo.enable);
 
     EXPECT_EQ(Action::State::PAUSED, actionExecuteAndPause->getState());
-    spinner.stop();
 }
 
 TEST(YoYoSimActionExecutor, ExecuteAndSucceed)
@@ -185,10 +182,7 @@ TEST(YoYoSimActionExecutor, ExecuteAndSucceed)
     callbackInfo.propStatePub.publish(state);
     callbackInfo.propStatePub.publish(state);
 
-    while(callbackInfo.goToZCalls != 2)
-    {
-        actionExecuteAndSucceed->monitor(1);
-    }
+    while(callbackInfo.goToZCalls != 2) {ros::spinOnce();}
 
     EXPECT_EQ(2u, callbackInfo.goToZCalls);
     EXPECT_TRUE(callbackInfo.enable);
@@ -199,7 +193,6 @@ TEST(YoYoSimActionExecutor, ExecuteAndSucceed)
     
     waitForState(*actionExecuteAndSucceed, Action::State::COMPLETED);
     EXPECT_EQ(Action::State::COMPLETED, actionExecuteAndSucceed->getState());
-    spinner.stop();
 }
 
 TEST(YoYoSimActionExecutor, ExecuteAndOutOfRegion)
@@ -240,7 +233,6 @@ TEST(YoYoSimActionExecutor, ExecuteAndOutOfRegion)
     
     waitForState(*actionExecuteAndOutOfRegion, Action::State::FAILED);
     EXPECT_EQ(Action::State::FAILED, actionExecuteAndOutOfRegion->getState());
-    spinner.stop();
 }
 
 TEST(YoYoSimActionExecutor, TimeReplan)
@@ -278,7 +270,6 @@ TEST(YoYoSimActionExecutor, TimeReplan)
     actionTimeReplan->monitor(3.1);
     EXPECT_TRUE(actionTimeReplan->triggerReplan());
     EXPECT_FALSE(actionTimeReplan->triggerReplan());
-    spinner.stop();
 }
 
 TEST(YoYoSimActionExecutor, DistanceReplan)
@@ -333,7 +324,6 @@ TEST(YoYoSimActionExecutor, DistanceReplan)
     }
     EXPECT_TRUE(replan);
     EXPECT_FALSE(actionDistanceReplan->triggerReplan());
-    spinner.stop();
 }
 
 TEST(YoYoSimActionExecutor, TurnReplan)
@@ -378,7 +368,7 @@ TEST(YoYoSimActionExecutor, TurnReplan)
 
     while(callbackInfo.goToZCalls != 2)
     {
-        actionTurnReplan->monitor(1);
+        ros::spinOnce();
     }
     EXPECT_EQ(2u, callbackInfo.goToZCalls);
     EXPECT_EQ(2, callbackInfo.depth);
@@ -386,9 +376,14 @@ TEST(YoYoSimActionExecutor, TurnReplan)
 
     EXPECT_EQ(Action::State::EXECUTING, actionTurnReplan->getState());
 
-    EXPECT_TRUE(actionTurnReplan->triggerReplan());
+    bool replan = false;
+    while(!replan)
+    {
+        replan = actionTurnReplan->triggerReplan();
+        ros::spinOnce();
+    }
+    EXPECT_TRUE(replan);
     EXPECT_FALSE(actionTurnReplan->triggerReplan());
-    spinner.stop();
 }
 
 //Had issues doing this in the roslaunch file for this test. Not sure why.

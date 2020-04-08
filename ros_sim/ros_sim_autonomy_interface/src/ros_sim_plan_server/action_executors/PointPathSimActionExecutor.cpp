@@ -72,8 +72,10 @@ void PointPathSimActionExecutor::execute()
     //Creates an action goal and sends it to the action server for point path movement
     if(!action.isDone())
     {
-        sendNextGoToXYGoal();
-        action.dispatchDone();
+        if(sendNextGoToXYGoal())
+        {
+            action.dispatchDone();
+        }
     }
     else
     {
@@ -88,45 +90,9 @@ void PointPathSimActionExecutor::execute()
 
 void PointPathSimActionExecutor::monitor()
 {
-    Eigen::Vector3d currentTargetPoint = action.getCurrentTargetPoint();
-
-    bool pointReached = false;
-    if(xyCompleteState && 
-       doubleEq(currentTargetPoint[0], xyXState) &&
-       doubleEq(currentTargetPoint[1], xyYState) &&
-       action.getState() == Action::State::EXECUTING)
+    if(action.doReplan(false, action.getLatestTime() - lastReplanTime, distanceSinceReplan)) 
     {
-        action.reachedTargetPoint();
-        if(action.isDone())
-        {
-            action.complete(action.getLatestTime());
-            ROS_INFO("Point path action completed");
-        }
-        else
-        {
-            sendNextGoToXYGoal();
-        }
-        pointReached = true;
-    }
-    else if((action.getState() == Action::State::DISPATCHED ||
-             action.getState() == Action::State::EXECUTING ||
-             action.getState() == Action::State::PAUSING ||
-             action.getState() == Action::State::COMPLETING) && 
-             !action.inOperationRegion(currentPose.getPosition()))
-    {
-        action.fail(action.getLatestTime());
-        return;
-    }
-    else if(action.inStoppingState())
-    {
-        stop();
-    }
-
-    if(!replanNextUpdate)
-    {
-        replanNextUpdate = action.doReplan(pointReached,
-                                            action.getLatestTime() - lastReplanTime,
-                                            distanceSinceReplan);
+        replanNextUpdate = true;
     }
 }
 
@@ -164,12 +130,30 @@ void PointPathSimActionExecutor::propStateCallback(const underwater_vehicle_msgs
         prevXYSeqNum = state.xySeqNum;
     }
 
-    if(state.xyComplete && (prevXYSeqNum != state.xySeqNum))
+    Eigen::Vector3d currentTargetPoint = action.getCurrentTargetPoint();
+    if(state.xyComplete && 
+       doubleEq(currentTargetPoint[0], state.x) &&
+       doubleEq(currentTargetPoint[1], state.y) &&
+       action.getState() == Action::State::EXECUTING &&
+       (prevXYSeqNum != state.xySeqNum))
     {
-        xyCompleteState = true;
-        xyXState = state.x;
-        xyYState = state.y;
-        xySeqNumState = state.xySeqNum;
+        prevXYSeqNum = state.xySeqNum;
+
+        action.reachedTargetPoint();
+        if(!action.isDone())
+        {
+            sendNextGoToXYGoal();
+
+            if(action.doReplan(true, action.getLatestTime() - lastReplanTime, distanceSinceReplan)) 
+            {
+                replanNextUpdate = true;
+            }
+        }    
+        else
+        {
+            action.complete(action.getLatestTime());
+            ROS_INFO("Point Path Action Complete");
+        }
     }
 }
 
@@ -180,23 +164,20 @@ void PointPathSimActionExecutor::waitForPropStateSetup()
     }
 }
 
-void PointPathSimActionExecutor::sendNextGoToXYGoal()
+bool PointPathSimActionExecutor::sendNextGoToXYGoal()
 {
-    //Update the previous sequence number to the current one so we can use it again
-    //for the next command
-    prevXYSeqNum = xySeqNumState;
-
-    //Reset the xyCompleteState as this might have tripped on previous actions
-    xyCompleteState = false;
-
-
     Eigen::Vector3d point = action.getCurrentTargetPoint();
     underwater_vehicle_msgs::GoToXY goToXYMsg;
     goToXYMsg.request.x = point[0];
     goToXYMsg.request.y = point[1];
     goToXYMsg.request.enable = true;
     
-    goToXYClient.call(goToXYMsg);
+    if(!goToXYClient.call(goToXYMsg)) {
+        action.fail(action.getLatestTime());
+        return false;
+    }
+
+    return true;
 }
 
 void PointPathSimActionExecutor::navigationFilterCallback(const nav_msgs::Odometry odo)
@@ -250,6 +231,16 @@ void PointPathSimActionExecutor::navigationFilterCallback(const nav_msgs::Odomet
     currentPose.setLinearVelocity(linearVelocity);
     currentPose.setAngularVelocity(angularVelocity);
     currentPose.setTwistCovariance(twistCovariance);
+
+    //Check if out of region
+    if((action.getState() == Action::State::DISPATCHED ||
+        action.getState() == Action::State::EXECUTING ||
+        action.getState() == Action::State::PAUSING ||
+        action.getState() == Action::State::COMPLETING) && 
+        !action.inOperationRegion(currentPose.getPosition()))
+    {
+        action.fail(action.getLatestTime());
+    }
 }
 
 bool PointPathSimActionExecutor::doubleEq(double d1, double d2)

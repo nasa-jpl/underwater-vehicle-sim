@@ -58,7 +58,7 @@ private:
     void navigationFilterCallback(const nav_msgs::Odometry odo);
     void propStateCallback(const underwater_vehicle_msgs::PropulsionControllerState state);
     void waitForPropStateSetup();
-    void sendNewGoToZGoal();
+    bool sendNewGoToZGoal();
 
     bool doubleEq(double d1, double d2);
 
@@ -78,11 +78,7 @@ private:
     underwater_autonomy::VehiclePose currentPose;
 
     bool statePropSetup;
-    bool zCompleteState;
-    double zState;
-    bool holdDepthState;
     long prevZSeqNum;
-    long zSeqNumState;
 };
 
 #endif

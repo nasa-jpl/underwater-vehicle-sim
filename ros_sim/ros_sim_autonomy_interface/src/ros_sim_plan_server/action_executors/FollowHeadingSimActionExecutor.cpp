@@ -22,7 +22,7 @@ FollowHeadingSimActionExecutor::FollowHeadingSimActionExecutor(underwater_autono
     ActionExecutor(action),
     vehicleInfo(vehicleInfo),
     replanNextUpdate(false),
-    lastReplan(ros::Time::now()),
+    lastReplanTime(0),
     distanceSinceReplan(0)
 {
     velPub = nh.advertise<geometry_msgs::Twist>("command_target_velocity", 1000, true);
@@ -33,7 +33,7 @@ FollowHeadingSimActionExecutor::FollowHeadingSimActionExecutor(underwater_autono
 
 void FollowHeadingSimActionExecutor::execute()
 {
-    ROS_DEBUG("Execute follow heading action");
+    ROS_INFO("Execute follow heading action");
 
     if(vehicleInfo.getPropModuleType() == "FourDOFPropulsion")
     {
@@ -55,7 +55,7 @@ void FollowHeadingSimActionExecutor::execute()
     }
     else //If the prop module is not known then this cannot be completed
     {
-        action.fail(ros::Time::now().toSec());
+        action.fail(action.getLatestTime());
         return;
     }
 
@@ -63,7 +63,7 @@ void FollowHeadingSimActionExecutor::execute()
     followHeadingClient.waitForExistence(ros::Duration(10));
     if(!followHeadingClient.exists())
     {
-        action.fail(ros::Time::now().toSec());
+        action.fail(action.getLatestTime());
         return;
     }
 
@@ -72,10 +72,18 @@ void FollowHeadingSimActionExecutor::execute()
     underwater_vehicle_msgs::FollowHeading followHeadingMsg;
     followHeadingMsg.request.heading = action.getHeading();
     followHeadingMsg.request.enable = true;
-    followHeadingClient.call(followHeadingMsg);
-    action.dispatchDone();
 
-    lastReplan = ros::Time::now();
+    if(followHeadingClient.call(followHeadingMsg)) 
+    {
+        action.dispatchDone();
+    } 
+    else 
+    {
+        action.fail(action.getLatestTime());
+        return;
+    }
+
+    lastReplanTime = action.getLatestTime();
     distanceSinceReplan = 0;
 }
 
@@ -88,6 +96,7 @@ void FollowHeadingSimActionExecutor::stop()
     {
         action.stopDone();
     }
+    ROS_INFO("Stop follow heading action");
 }
 
 bool FollowHeadingSimActionExecutor::triggerReplan()
@@ -95,7 +104,7 @@ bool FollowHeadingSimActionExecutor::triggerReplan()
     if(replanNextUpdate)
     {
         replanNextUpdate = false;
-        lastReplan = ros::Time::now();
+        lastReplanTime = action.getLatestTime();
         distanceSinceReplan = 0;
         return true;
     }
@@ -109,29 +118,14 @@ void FollowHeadingSimActionExecutor::monitor()
        action.getTimeRunning() >= action.getFollowHeadingTime() &&
        action.getState() == Action::State::EXECUTING)
     {
-        action.complete(ros::Time::now().toSec());
+        action.complete(action.getLatestTime());
+        ROS_INFO("Complete follow heading action");
     }
-    else if((action.getState() == Action::State::DISPATCHED ||
-             action.getState() == Action::State::EXECUTING ||
-             action.getState() == Action::State::PAUSING ||
-             action.getState() == Action::State::COMPLETING) &&
-            !action.inOperationRegion(currentPose.getPosition()))
+    else if(action.doReplan(action.getLatestTime() - lastReplanTime, distanceSinceReplan))
     {
-        action.fail(ros::Time::now().toSec());
-    }
-    else if(action.inStoppingState())
-    {
-        stop();
-    }
-
-    if(action.getState() == Action::State::EXECUTING && !replanNextUpdate)
-    {
-        replanNextUpdate = action.doReplan((ros::Time::now() - lastReplan).toSec(),
-                                            distanceSinceReplan);
+        replanNextUpdate = true;
     }
 }
-
-
 
 void FollowHeadingSimActionExecutor::navigationFilterCallback(const nav_msgs::Odometry odo)
 {    
@@ -184,4 +178,13 @@ void FollowHeadingSimActionExecutor::navigationFilterCallback(const nav_msgs::Od
     currentPose.setLinearVelocity(linearVelocity);
     currentPose.setAngularVelocity(angularVelocity);
     currentPose.setTwistCovariance(twistCovariance);
+
+    if((action.getState() == Action::State::DISPATCHED ||
+        action.getState() == Action::State::EXECUTING ||
+        action.getState() == Action::State::PAUSING ||
+        action.getState() == Action::State::COMPLETING) &&
+        !action.inOperationRegion(currentPose.getPosition()))
+    {
+        action.fail(action.getLatestTime());
+    }
 }
