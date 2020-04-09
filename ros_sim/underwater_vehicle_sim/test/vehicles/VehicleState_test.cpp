@@ -222,6 +222,63 @@ TEST(VehicleState, LowerBoundTest){
     EXPECT_NEAR(endPosition.getZ(), state.getPositionNED().getZ(), 0.00000000001);
 }
 
+TEST(VehicleState, GetLinearVelocity)
+{
+    VehicleState state;
+    tf2::Vector3 linearVelocity(1, 2, 3);
+    state.setLinearVelocityNED(linearVelocity);
+
+    tf2::Quaternion startRotation;
+    startRotation.setRPY(0, 0, M_PI / 2);
+    state.setRotationNED(startRotation);
+
+    ModelData data;
+    data.u = 1.2; //eastward
+    data.v = 2.4; //northward
+    data.w = 4.8; //upward
+    state.updateModelData(data);
+
+    tf2::Vector3 withoutCurrents = state.getLinearVelocityNED(false);
+    tf2::Vector3 withCurrents = state.getLinearVelocityNED(true);
+
+    EXPECT_NEAR(linearVelocity.getX(), withoutCurrents.getX(), 0.00000000001);
+    EXPECT_NEAR(linearVelocity.getY(), withoutCurrents.getY(), 0.00000000001);
+    EXPECT_NEAR(linearVelocity.getZ(), withoutCurrents.getZ(), 0.00000000001);
+
+    EXPECT_NEAR(linearVelocity.getX() + data.u, withCurrents.getX(), 0.00000000001);
+    EXPECT_NEAR(linearVelocity.getY() - data.v, withCurrents.getY(), 0.00000000001);
+    EXPECT_NEAR(linearVelocity.getZ() - data.w, withCurrents.getZ(), 0.00000000001);
+
+    tf2::Quaternion nextRotation;
+    nextRotation.setRPY(0, 0, M_PI);
+    state.setRotationNED(nextRotation);
+
+    withoutCurrents = state.getLinearVelocityNED(false);
+    withCurrents = state.getLinearVelocityNED(true);
+
+    EXPECT_NEAR(linearVelocity.getX(), withoutCurrents.getX(), 0.00000000001);
+    EXPECT_NEAR(linearVelocity.getY(), withoutCurrents.getY(), 0.00000000001);
+    EXPECT_NEAR(linearVelocity.getZ(), withoutCurrents.getZ(), 0.00000000001);
+
+    EXPECT_NEAR(linearVelocity.getX() - data.v, withCurrents.getX(), 0.00000000001);
+    EXPECT_NEAR(linearVelocity.getY() - data.u, withCurrents.getY(), 0.00000000001);
+    EXPECT_NEAR(linearVelocity.getZ() - data.w, withCurrents.getZ(), 0.00000000001);
+
+    nextRotation.setRPY(0, 0, -M_PI / 2);
+    state.setRotationNED(nextRotation);
+
+    withoutCurrents = state.getLinearVelocityNED(false);
+    withCurrents = state.getLinearVelocityNED(true);
+
+    EXPECT_NEAR(linearVelocity.getX(), withoutCurrents.getX(), 0.00000000001);
+    EXPECT_NEAR(linearVelocity.getY(), withoutCurrents.getY(), 0.00000000001);
+    EXPECT_NEAR(linearVelocity.getZ(), withoutCurrents.getZ(), 0.00000000001);
+
+    EXPECT_NEAR(linearVelocity.getX() - data.u, withCurrents.getX(), 0.00000000001);
+    EXPECT_NEAR(linearVelocity.getY() + data.v, withCurrents.getY(), 0.00000000001);
+    EXPECT_NEAR(linearVelocity.getZ() - data.w, withCurrents.getZ(), 0.00000000001);
+}
+
 TEST(VehicleState, EvectByCurrentsTest)
 {
     //Initalize ROS node handle
@@ -230,7 +287,7 @@ TEST(VehicleState, EvectByCurrentsTest)
 
     VehicleState state;
 
-    tf2::Vector3 linearVelocity(0.26, -0.16, 1);
+    tf2::Vector3 linearVelocity(0, 0, 0);
     tf2::Vector3 angularVelocity(0, 0, 0);
 
     ModelData data;
@@ -239,10 +296,11 @@ TEST(VehicleState, EvectByCurrentsTest)
     data.w = 0.5; //upward
 
     tf2::Vector3 startPosition(0, 0, 20);
-    tf2::Vector3 endPosition(0.06, -0.02, 19.75);//NED (northward, eastward, downward)
+    tf2::Vector3 endPosition1(0.06, -0.02, 19.75);//NED (northward, eastward, downward)
 
+    //rotation shoudn't change current evection so these can be whatever.
     tf2::Quaternion startRotation;
-    startRotation.setRPY(0, 0, 0);
+    startRotation.setRPY(M_PI/4, M_PI/2, -M_PI / 2);
     
     state.setPositionNED(startPosition);
     state.setRotationNED(startRotation);
@@ -255,12 +313,29 @@ TEST(VehicleState, EvectByCurrentsTest)
     EXPECT_EQ(linearVelocity, state.getLinearVelocityNED());
     EXPECT_EQ(angularVelocity, state.getAngularVelocityNED());
 
-    state.evectByCurrents(data, deltaTime);
+    state.updateModelData(data);
+    state.updatePose(currentTime, deltaTime);
 
     //After movement
-    EXPECT_NEAR(endPosition.getX(), state.getPositionNED().getX(), 0.00000000001);
-    EXPECT_NEAR(endPosition.getY(), state.getPositionNED().getY(), 0.00000000001);
-    EXPECT_NEAR(endPosition.getZ(), state.getPositionNED().getZ(), 0.00000000001);
+    EXPECT_NEAR(endPosition1.getX(), state.getPositionNED().getX(), 0.00000000001);
+    EXPECT_NEAR(endPosition1.getY(), state.getPositionNED().getY(), 0.00000000001);
+    EXPECT_NEAR(endPosition1.getZ(), state.getPositionNED().getZ(), 0.00000000001);
+
+    //Second movement when we are rotated
+    //rotation shoudn't change current evection so these can be whatever.
+    tf2::Quaternion newRotation;
+    newRotation.setRPY(M_PI * 1.5, -M_PI/5, M_PI / 2);
+    state.setRotationNED(newRotation);
+    EXPECT_EQ(newRotation, state.getRotationNED());
+
+    state.updatePose(currentTime, deltaTime);
+    
+    tf2::Vector3 endPosition2(0.12, -0.04, 19.50);//NED (northward, eastward, downward)
+
+    //After movement
+    EXPECT_NEAR(endPosition2.getX(), state.getPositionNED().getX(), 0.00000000001);
+    EXPECT_NEAR(endPosition2.getY(), state.getPositionNED().getY(), 0.00000000001);
+    EXPECT_NEAR(endPosition2.getZ(), state.getPositionNED().getZ(), 0.00000000001);
 }
 
 //Had issues doing this in the roslaunch file for this test. Not sure why.

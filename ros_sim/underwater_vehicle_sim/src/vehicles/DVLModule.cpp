@@ -45,7 +45,7 @@ void DVLModule::update(const ros::Time& lastTime, VehicleState& vehicleState, Mo
     dvlMsg->header.stamp = lastTime;
     dvlMsg->name = name;
 
-    tf2::Vector3 linearVelocity = vehicleState.getLinearVelocityNED();
+    tf2::Vector3 linearVelocity = vehicleState.getLinearVelocityNED(false);
 
     //Calculate bottom range
     double rangeReading = modelData.depth - vehicleState.getPositionNED().getZ();

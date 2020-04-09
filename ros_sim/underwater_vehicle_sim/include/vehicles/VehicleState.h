@@ -39,11 +39,10 @@ public:
     bool seafloorCollision(ocean_models::ModelData& data);
 
     /**
-     * Update the vehicle state based on the currents
-     * @data Model data containing currents are the current location and time
-     * @deltaTime The time since the last update
-     */
-    void evectByCurrents(ocean_models::ModelData& data, const ros::Duration deltaTime);
+    * Update the most recent model data for the vehicle
+    * @data Model data containing currents are the current location and time
+    */
+    void updateModelData(ocean_models::ModelData& data);
 
     /**
      * Get the position of the vehicle in the NED frame.
@@ -93,13 +92,21 @@ public:
      */
     void setRotationENU(const tf2::Quaternion rotation);
 
-    tf2::Vector3 getLinearVelocityNED() const;
+    /**
+    * Returns the linear velocity of the vehicle in the NED coordinate frame
+    * @param withCurrents When true this will return the linear velocity with 
+                          currents added. Otherwise without currents added.
+    */
+    tf2::Vector3 getLinearVelocityNED(bool withCurrents) const;
+
     tf2::Vector3 getAngularVelocityNED() const;
     void setLinearVelocityNED(const tf2::Vector3 velocity);
     void setAngularVelocityNED(const tf2::Vector3 velocity);
     	
     double getPowerCapacity();
     double getDataCapacity();
+private:
+    tf2::Vector3 modelCurrentsToBodyFrame() const;
 private:
 	/**
 	* Current vehicle position espressed as a tf vector
@@ -130,6 +137,11 @@ private:
 	* Tracks data storage remaining for this vehicle
 	*/
 	double dataCapacity;
+
+    /**
+    * Stores the latest model data at the vehicles location
+    */
+    ocean_models::ModelData latestModelData;
 
     tf2::Transform ENUtoNED;
     tf2::Transform NEDtoENU;

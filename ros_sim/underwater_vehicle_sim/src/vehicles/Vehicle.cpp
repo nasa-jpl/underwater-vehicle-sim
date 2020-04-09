@@ -115,10 +115,6 @@ void Vehicle::update()
 
 	//Update the transform
 	vehicleState.updatePose(currentTime, deltaTime);
-	if(evectByCurrents)
-	{
-		vehicleState.evectByCurrents(dataAtLastTransform, deltaTime);
-	}
 
 	//Update time and data
 	lastTransformTime = currentTime;
@@ -128,6 +124,11 @@ void Vehicle::update()
 	if(vehicleState.seafloorCollision(dataAtLastTransform))
 	{
 		dataAtLastTransform = getModelData();
+	}
+
+	if(evectByCurrents)
+	{
+		vehicleState.updateModelData(dataAtLastTransform);
 	}
 
 	//Broadcast the latest transform
@@ -191,8 +192,6 @@ ModelData Vehicle::getModelData()
 			data.depth = std::numeric_limits<double>::quiet_NaN();
 		}
 	}
-
-	
 
 	return data;
 }
