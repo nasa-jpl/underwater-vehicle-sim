@@ -24,7 +24,7 @@
         <rosparam param="error_usbl/bearing_bias_error">0.0872665</rosparam>
 
         <rosparam param="error_usbl/range_random_error">0.005</rosparam>
-        <rosparam param="error_usbl/range_bias_error">5</rosparam>
+        <rosparam param="error_usbl/range_bias_error">0.05</rosparam>
 
         <rosparam param="error_usbl/valid_bearing_distance">100</rosparam>
         <rosparam param="error_usbl/valid_range_distance">200</rosparam>
@@ -44,7 +44,7 @@
         <rosparam param="bad_range_usbl/bearing_bias_error">0.0872665</rosparam>
 
         <rosparam param="bad_range_usbl/range_random_error">0.005</rosparam>
-        <rosparam param="bad_range_usbl/range_bias_error">5</rosparam>
+        <rosparam param="bad_range_usbl/range_bias_error">0.05</rosparam>
 
         <rosparam param="bad_range_usbl/valid_bearing_distance">100</rosparam>
         <rosparam param="bad_range_usbl/valid_range_distance">200</rosparam>

@@ -27,7 +27,7 @@ void badRangeCallback(const underwater_vehicle_msgs::USBLPtr& vel)
 {
     badRangeMessages.push_back(*vel);
 }
-/*
+
 TEST(USBLModule, TestValidRange)
 {
     USBLModule module("valid_range_usbl");
@@ -67,7 +67,7 @@ TEST(USBLModule, TestValidRange)
     module.update(lastTime, state, modelData);
     ros::spinOnce();
 
-    ASSERT_EQ(5, validRangeMessages.size());
+    ASSERT_EQ(5u, validRangeMessages.size());
     EXPECT_FALSE(std::isnan(validRangeMessages[0].range));
     EXPECT_FALSE(std::isnan(validRangeMessages[0].bearing));
 
@@ -104,7 +104,7 @@ TEST(USBLModule, TestBiasAndRandomError)
     double trueRange = 7.07106781187; //5 * sqrt(2)
     double bearing45 = 0.78539816339; //45 degrees in rad
     double bearingBias = 0.0872665;
-    double rangeBias = 5;
+    double rangeBias = 0.05;
 
     //Re-create random number generation that should be used in the module
     double badRangeProp = badRangeRandom(generator);
@@ -115,11 +115,11 @@ TEST(USBLModule, TestBiasAndRandomError)
     module.update(lastTime, state, modelData);
     ros::spinOnce();
 
-    ASSERT_EQ(1, biasAndRandomErrorMessages.size());
-    EXPECT_FLOAT_EQ(trueRange + rangeBias + rangeError, biasAndRandomErrorMessages[0].range);
+    ASSERT_EQ(1u, biasAndRandomErrorMessages.size());
+    EXPECT_FLOAT_EQ(trueRange + (trueRange * rangeBias) + rangeError, biasAndRandomErrorMessages[0].range);
     EXPECT_FLOAT_EQ(bearing45 + bearingBias + bearingError, biasAndRandomErrorMessages[0].bearing);
 }
-*/
+
 TEST(USBLModule, TestBadRange){
     USBLModule module("bad_range_usbl");
     ModelData modelData;
@@ -135,7 +135,7 @@ TEST(USBLModule, TestBadRange){
     double trueRange = 7.07106781187; //5 * sqrt(2)
     double bearing45 = 0.78539816339; //45 degrees in rad
     double bearingBias = 0.0872665;
-    double rangeBias = 5;
+    double rangeBias = 0.05;
 
     std::uniform_real_distribution<double> badRangeRandom(0, 1.0);
     std::uniform_real_distribution<double> badRangeDistribution(-100, 100);
@@ -163,7 +163,7 @@ TEST(USBLModule, TestBadRange){
     EXPECT_FLOAT_EQ(trueRange + badRangeError1, badRangeMessages[0].range); //Bias not applied when bad range
     EXPECT_FLOAT_EQ(bearing45 + bearingBias + bearingError1, badRangeMessages[0].bearing); //Bearing bias still a
 
-    EXPECT_FLOAT_EQ(trueRange + rangeBias + rangeError2, badRangeMessages[1].range);
+    EXPECT_FLOAT_EQ(trueRange + (trueRange * rangeBias) + rangeError2, badRangeMessages[1].range);
     EXPECT_FLOAT_EQ(-bearing45 + bearingBias + bearingError2, badRangeMessages[1].bearing);
 
 }
