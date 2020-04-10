@@ -27,15 +27,15 @@ private:
     *Error in velocity measurment with respect to the water
     */
     double waterVelocityRandomError;
-    double waterVelocityPercentError;
-    double waterVelocityBiasError;
+    double waterVelocityScaleError;
+    std::vector<double> waterVelocityBiasError;
 
     /**
     *Error in velocity measurment with respect to the bottom
     */
     double bottomVelocityRandomError;
-    double bottomVelocityPercentError;
-    double bottomVelocityBiasError;
+    double bottomVelocityScaleError;
+    std::vector<double> bottomVelocityBiasError;
 
     /**
     *Error in bottom range measurment
@@ -47,6 +47,9 @@ private:
 
     std::default_random_engine generator;
     std::normal_distribution<double> bottomRangeDistribution;
+    std::normal_distribution<double> waterVelocityDistribution;
+    std::normal_distribution<double> bottomVelocityDistribution;
+
 };
 
 #endif

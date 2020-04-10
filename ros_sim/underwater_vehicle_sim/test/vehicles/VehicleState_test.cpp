@@ -137,7 +137,7 @@ TEST(VehicleState, UpdateTest){
     //Before movement
     EXPECT_EQ(startPosition, state.getPositionNED());
     EXPECT_EQ(startRotation, state.getRotationNED());
-    EXPECT_EQ(linearVelocity, state.getLinearVelocityNED());
+    EXPECT_EQ(linearVelocity, state.getLinearVelocityNED(false));
     EXPECT_EQ(angularVelocity, state.getAngularVelocityNED());
 
     state.updatePose(currentTime, deltaTime);
@@ -173,7 +173,7 @@ TEST(VehicleState, UpperBoundTest){
     //Before movement
     EXPECT_EQ(startPosition, state.getPositionNED());
     EXPECT_EQ(startRotation, state.getRotationNED());
-    EXPECT_EQ(linearVelocity, state.getLinearVelocityNED());
+    EXPECT_EQ(linearVelocity, state.getLinearVelocityNED(false));
     EXPECT_EQ(angularVelocity, state.getAngularVelocityNED());
 
     state.updatePose(currentTime, deltaTime);
@@ -208,7 +208,7 @@ TEST(VehicleState, LowerBoundTest){
     //Before movement
     EXPECT_EQ(startPosition, state.getPositionNED());
     EXPECT_EQ(startRotation, state.getRotationNED());
-    EXPECT_EQ(linearVelocity, state.getLinearVelocityNED());
+    EXPECT_EQ(linearVelocity, state.getLinearVelocityNED(false));
     EXPECT_EQ(angularVelocity, state.getAngularVelocityNED());
 
     state.updatePose(currentTime, deltaTime);
@@ -310,7 +310,7 @@ TEST(VehicleState, EvectByCurrentsTest)
     //Before movement
     EXPECT_EQ(startPosition, state.getPositionNED());
     EXPECT_EQ(startRotation, state.getRotationNED());
-    EXPECT_EQ(linearVelocity, state.getLinearVelocityNED());
+    EXPECT_EQ(linearVelocity, state.getLinearVelocityNED(false));
     EXPECT_EQ(angularVelocity, state.getAngularVelocityNED());
 
     state.updateModelData(data);
