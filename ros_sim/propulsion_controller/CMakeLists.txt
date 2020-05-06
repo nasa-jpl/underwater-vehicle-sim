@@ -62,13 +62,10 @@ find_path(UNDERWATER_AUTONOMY_INCLUDE underwater_autonomy)
  )
 
 ## Generate services in the 'srv' folder
- add_service_files(
-   FILES
-   PropulsionControllerState.srv
-   PropulsionControllerEnable.srv
-
+# add_service_files(
+#   FILES
 #   Service2.srv
- )
+# )
 
 ## Generate added messages and services with any dependencies listed here
  generate_messages(

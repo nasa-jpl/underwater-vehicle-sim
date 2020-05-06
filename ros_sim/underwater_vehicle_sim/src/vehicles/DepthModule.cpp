@@ -15,7 +15,7 @@ DepthModule::DepthModule(std::string name) :
 	GeneralModule(name, "Depth")
 {
 	ros::NodeHandle nhPriv("~/" + name);
-	nhPriv.param("depth_random_error", depthRandomError, 0.0);
+	nhPriv.param("depth_random_error", depthStdDev, 0.0);
 	nhPriv.param("depth_bias_error", depthBiasError, 0.0);
 	
 	int randomSeed;
@@ -24,7 +24,7 @@ DepthModule::DepthModule(std::string name) :
 		generator.seed(randomSeed);
 	}
 
-	depthDistribution = std::normal_distribution<double>(depthBiasError, sqrt(depthRandomError));
+	depthDistribution = std::normal_distribution<double>(depthBiasError, depthStdDev);
 
 	depth = nh.advertise<underwater_vehicle_msgs::FloatMeasurement>("data", 1000);
 }
@@ -34,7 +34,7 @@ void DepthModule::update(const ros::Time& lastTime, VehicleState& vehicleState, 
 	double depthReading = vehicleState.getPositionNED().getZ();
 	
 	//Only apply error if the std dev of the distribution is positive
-	if(depthRandomError > 0)
+	if(depthStdDev > 0)
 	{
 		depthReading += depthDistribution(generator);
 	}
@@ -44,7 +44,7 @@ void DepthModule::update(const ros::Time& lastTime, VehicleState& vehicleState, 
 	depthMsg->header.frame_id = "world_ned";
 	depthMsg->header.stamp = lastTime;
 	depthMsg->data = depthReading;
-	depthMsg->variance = depthRandomError;
+	depthMsg->variance = depthStdDev * depthStdDev;
 
 	depth.publish(depthMsg);
 }

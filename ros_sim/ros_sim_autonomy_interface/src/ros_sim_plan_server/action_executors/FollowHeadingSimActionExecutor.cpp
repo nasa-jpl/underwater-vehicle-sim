@@ -9,7 +9,6 @@
 #include "underwater_vehicle_msgs/FollowHeading.h"
 
 #include "propulsion_controller/PropulsionControllerState.h"
-#include "propulsion_controller/PropulsionControllerEnable.h"
 
 #include "tf2_geometry_msgs/tf2_geometry_msgs.h"
 
@@ -19,22 +18,22 @@
 
 using namespace underwater_autonomy;
 
-FollowHeadingSimActionExecutor::FollowHeadingSimActionExecutor(ros::NodeHandle& nh, VehicleInfo& vehicleInfo) :
+FollowHeadingSimActionExecutor::FollowHeadingSimActionExecutor(underwater_autonomy::FollowHeadingAction& action, ros::NodeHandle& nh, VehicleInfo& vehicleInfo) :
+    ActionExecutor(action),
     vehicleInfo(vehicleInfo),
     replanNextUpdate(false),
-    lastReplan(ros::Time::now()),
+    lastReplanTime(0),
     distanceSinceReplan(0)
 {
     velPub = nh.advertise<geometry_msgs::Twist>("command_target_velocity", 1000, true);
     poseSub = nh.subscribe("primary_navigation", 1, &FollowHeadingSimActionExecutor::navigationFilterCallback, this);
 
-    followHeadingPub = nh.advertise<underwater_vehicle_msgs::FollowHeading>("follow_heading", 1000);
-    followHeadingEnableClient = nh.serviceClient<propulsion_controller::PropulsionControllerEnable>("follow_heading_enable");
+    followHeadingClient = nh.serviceClient<underwater_vehicle_msgs::FollowHeading>("follow_heading");
 }
 
-void FollowHeadingSimActionExecutor::execute(underwater_autonomy::FollowHeadingAction& action)
+void FollowHeadingSimActionExecutor::execute()
 {
-    ROS_DEBUG("Execute follow heading action");
+    ROS_INFO("Execute follow heading action");
 
     if(vehicleInfo.getPropModuleType() == "FourDOFPropulsion")
     {
@@ -56,47 +55,56 @@ void FollowHeadingSimActionExecutor::execute(underwater_autonomy::FollowHeadingA
     }
     else //If the prop module is not known then this cannot be completed
     {
-        action.fail(ros::Time::now().toSec());
+        action.fail(action.getLatestTime());
+        return;
     }
 
     //Check that we have someone listening to us
-    ros::WallTime time = ros::WallTime::now();
-    while(followHeadingPub.getNumSubscribers() == 0 &&
-          ros::WallTime::now() - time < ros::WallDuration(5)) {ros::WallDuration(1).sleep();}
-    if(followHeadingPub.getNumSubscribers() == 0)
+    followHeadingClient.waitForExistence(ros::Duration(10));
+    if(!followHeadingClient.exists())
     {
-        action.fail(ros::Time::now().toSec());
+        action.fail(action.getLatestTime());
+        return;
     }
 
     //Send message to Follow Heading Controller
     //Reset complete callback
     underwater_vehicle_msgs::FollowHeading followHeadingMsg;
-    followHeadingMsg.heading = action.getHeading();
-    followHeadingMsg.enable = true;
-    followHeadingPub.publish(followHeadingMsg);
-    action.dispatchDone();
+    followHeadingMsg.request.heading = action.getHeading();
+    followHeadingMsg.request.enable = true;
 
-    lastReplan = ros::Time::now();
+    if(followHeadingClient.call(followHeadingMsg)) 
+    {
+        action.dispatchDone();
+    } 
+    else 
+    {
+        action.fail(action.getLatestTime());
+        return;
+    }
+
+    lastReplanTime = action.getLatestTime();
     distanceSinceReplan = 0;
 }
 
-void FollowHeadingSimActionExecutor::stop(underwater_autonomy::FollowHeadingAction& action)
+void FollowHeadingSimActionExecutor::stop()
 {
-    propulsion_controller::PropulsionControllerEnable enableMsg;
+    underwater_vehicle_msgs::FollowHeading enableMsg;
     enableMsg.request.enable = false;
-    if(followHeadingEnableClient.exists() &&
-       followHeadingEnableClient.call(enableMsg))
+    if(followHeadingClient.exists() &&
+       followHeadingClient.call(enableMsg))
     {
         action.stopDone();
     }
+    ROS_INFO("Stop follow heading action");
 }
 
-bool FollowHeadingSimActionExecutor::triggerReplan(underwater_autonomy::FollowHeadingAction& action)
+bool FollowHeadingSimActionExecutor::triggerReplan()
 {
     if(replanNextUpdate)
     {
         replanNextUpdate = false;
-        lastReplan = ros::Time::now();
+        lastReplanTime = action.getLatestTime();
         distanceSinceReplan = 0;
         return true;
     }
@@ -104,35 +112,20 @@ bool FollowHeadingSimActionExecutor::triggerReplan(underwater_autonomy::FollowHe
     return false;
 }
 
-void FollowHeadingSimActionExecutor::monitor(underwater_autonomy::FollowHeadingAction& action)
+void FollowHeadingSimActionExecutor::monitor()
 {
     if(action.getFollowHeadingTime() >= 0 && 
        action.getTimeRunning() >= action.getFollowHeadingTime() &&
        action.getState() == Action::State::EXECUTING)
     {
-        action.complete(ros::Time::now().toSec());
+        action.complete(action.getLatestTime());
+        ROS_INFO("Complete follow heading action");
     }
-    else if((action.getState() == Action::State::DISPATCHED ||
-             action.getState() == Action::State::EXECUTING ||
-             action.getState() == Action::State::PAUSING ||
-             action.getState() == Action::State::COMPLETING) &&
-            !action.inOperationRegion(currentPose.getPosition()))
+    else if(action.doReplan(action.getLatestTime() - lastReplanTime, distanceSinceReplan))
     {
-        action.fail(ros::Time::now().toSec());
-    }
-    else if(action.inStoppingState())
-    {
-        stop(action);
-    }
-
-    if(action.getState() == Action::State::EXECUTING && !replanNextUpdate)
-    {
-        replanNextUpdate = action.doReplan((ros::Time::now() - lastReplan).toSec(),
-                                            distanceSinceReplan);
+        replanNextUpdate = true;
     }
 }
-
-
 
 void FollowHeadingSimActionExecutor::navigationFilterCallback(const nav_msgs::Odometry odo)
 {    
@@ -185,4 +178,13 @@ void FollowHeadingSimActionExecutor::navigationFilterCallback(const nav_msgs::Od
     currentPose.setLinearVelocity(linearVelocity);
     currentPose.setAngularVelocity(angularVelocity);
     currentPose.setTwistCovariance(twistCovariance);
+
+    if((action.getState() == Action::State::DISPATCHED ||
+        action.getState() == Action::State::EXECUTING ||
+        action.getState() == Action::State::PAUSING ||
+        action.getState() == Action::State::COMPLETING) &&
+        !action.inOperationRegion(currentPose.getPosition()))
+    {
+        action.fail(action.getLatestTime());
+    }
 }

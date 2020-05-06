@@ -7,14 +7,14 @@
 
 #include "underwater_autonomy/planner/ActionExecutor.h"
 
-template <class T>
+template <class T1, class T2>
 class SimActionExecutorFactoryMethod
 {
 public:
 
-    static std::unique_ptr<T> create(ros::NodeHandle& nh, VehicleInfo& info)
+    static std::unique_ptr<T1> create(T2& action, ros::NodeHandle& nh, VehicleInfo& info)
     {
-        return std::unique_ptr<T>(new T(nh, info));
+        return std::unique_ptr<T1>(new T1(action, nh, info));
     }
 };
 

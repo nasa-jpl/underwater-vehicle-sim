@@ -2,6 +2,7 @@ import rosbag
 import sys
 import matplotlib.pyplot as plt
 import math
+import numpy as np
 
 # phase should be "SPIRAL", "LAWNMOWER", "DYNAMIC_LAWNMOWER", "OTHER", or "UNSET" (if unimplemented)
 def main(bagName, phase = "None"):
@@ -9,6 +10,7 @@ def main(bagName, phase = "None"):
 	x = []
 	time = []
 	y = []
+	dye = []
 	inPhase = False
 	takeAll = False
 
@@ -25,19 +27,21 @@ def main(bagName, phase = "None"):
 			if takeAll or inPhase:
 				x.append(msg.y)
 				y.append(msg.x)
+				dye.append(msg.dye)
 				time.append(msg.time.to_sec())
 
 	bag.close()
-	
+
 #	plt.scatter(x, y, linewidth=0)
 	plt.scatter(x, y, c=time, linewidth=0, cmap="plasma")
+#	plt.scatter(x, y, c=np.log(dye), linewidth=0, cmap="plasma")
 	plt.show()
 
 if __name__ == "__main__":
 	if len(sys.argv) > 2:
 		phase = sys.argv[2]
-		if (phase != "SPIRAL" and phase != "LAWNMOWER" and 
-			phase != "DYNAMIC_LAWNMOWER" and 
+		if (phase != "SPIRAL" and phase != "LAWNMOWER" and
+			phase != "DYNAMIC_LAWNMOWER" and
 			phase != "GRADIENT" and
 			phase != "WAYPOINTS" and
 			phase != "LINE0" and phase != "LINE1" and

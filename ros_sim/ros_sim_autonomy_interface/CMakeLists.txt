@@ -14,7 +14,6 @@ find_package(catkin REQUIRED
              tf2
              tf2_ros
              tf2_geometry_msgs
-             underwater_vehicle_sim
              underwater_vehicle_msgs
              propulsion_controller
              nav_msgs)
@@ -69,7 +68,7 @@ find_package (Eigen3 3.3 REQUIRED NO_MODULE)
 ## Generate actions in the 'action' folder
 # add_action_files(
 #   FILES
-#   DynamicLawnmowerRos.action  
+#   DynamicLawnmowerRos.action
 #   PointPathRos.action
 # )
 
@@ -131,7 +130,7 @@ include_directories(
 ## Declare a C++ library
 add_library(${PROJECT_NAME}
     src/ros_sim_navigation/ROSSimNavigationFilter.cpp
-    src/ros_sim_plan_server/RosSimPlanServer.cpp  
+    src/ros_sim_plan_server/RosSimPlanServer.cpp
     src/ros_sim_plan_server/ROSSimVehicleInterface.cpp
     src/ros_sim_plan_server/action_executors/PointPathSimActionExecutor.cpp
     src/ros_sim_plan_server/action_executors/FollowHeadingSimActionExecutor.cpp
@@ -227,24 +226,24 @@ if (CATKIN_ENABLE_TESTING)
 
  add_rostest_gtest(ros_sim_navigation_filter_test test/ros_sim_navigation/ROSSimNavigationFilter.test test/ros_sim_navigation/ROSSimNavigationFilter_test.cpp)
  target_link_libraries(ros_sim_navigation_filter_test ros_sim_autonomy_interface ${catkin_LIBRARIES} )
- 
- add_rostest_gtest(follow_heading_sim_action_executor_test 
-                   test/ros_sim_plan_server/action_executors/FollowHeadingSimActionExecutor.test 
+
+ add_rostest_gtest(follow_heading_sim_action_executor_test
+                   test/ros_sim_plan_server/action_executors/FollowHeadingSimActionExecutor.test
                    test/ros_sim_plan_server/action_executors/FollowHeadingSimActionExecutor_test.cpp)
  target_link_libraries(follow_heading_sim_action_executor_test ros_sim_autonomy_interface ${catkin_LIBRARIES} )
 
- add_rostest_gtest(hold_depth_sim_action_executor_test 
-                   test/ros_sim_plan_server/action_executors/HoldDepthSimActionExecutor.test 
+ add_rostest_gtest(hold_depth_sim_action_executor_test
+                   test/ros_sim_plan_server/action_executors/HoldDepthSimActionExecutor.test
                    test/ros_sim_plan_server/action_executors/HoldDepthSimActionExecutor_test.cpp)
  target_link_libraries(hold_depth_sim_action_executor_test ros_sim_autonomy_interface ${catkin_LIBRARIES} )
 
- add_rostest_gtest(yoyo_sim_action_executor_test 
-                   test/ros_sim_plan_server/action_executors/YoYoSimActionExecutor.test 
+ add_rostest_gtest(yoyo_sim_action_executor_test
+                   test/ros_sim_plan_server/action_executors/YoYoSimActionExecutor.test
                    test/ros_sim_plan_server/action_executors/YoYoSimActionExecutor_test.cpp)
  target_link_libraries(yoyo_sim_action_executor_test ros_sim_autonomy_interface ${catkin_LIBRARIES} )
 
- add_rostest_gtest(point_path_sim_action_executor_test 
-                   test/ros_sim_plan_server/action_executors/PointPathSimActionExecutor.test 
+ add_rostest_gtest(point_path_sim_action_executor_test
+                   test/ros_sim_plan_server/action_executors/PointPathSimActionExecutor.test
                    test/ros_sim_plan_server/action_executors/PointPathSimActionExecutor_test.cpp)
  target_link_libraries(point_path_sim_action_executor_test ros_sim_autonomy_interface ${catkin_LIBRARIES} )
 

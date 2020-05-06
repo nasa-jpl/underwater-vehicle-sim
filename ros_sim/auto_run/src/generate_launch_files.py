@@ -45,34 +45,42 @@ def main(argv):
         while dimY <= maxDistanceFromCenter:
             randomX = random.uniform(-randomizedFactor, randomizedFactor)
             randomY = random.uniform(-randomizedFactor, randomizedFactor)
-            files.append(replaceStartLocation(exampleFile, dimX + randomX, dimY + randomY, 0))
-            configFiles.append(replaceStartLocation(exampleTomlFile, dimX + randomX, dimY + randomY, 0))
-            plotX.append(dimX + randomX)
-            plotY.append(dimY + randomY)
+            startX = dimX + randomX
+            startY = dimY + randomY
+            files.append(replaceStartLocation(exampleFile, startX, startY, 0))
+            configFiles.append(replaceStartLocation(exampleTomlFile, startX, startY, 0))
+            plotX.append(startX)
+            plotY.append(startY)
 
             if dimY != 0:
                 randomX = random.uniform(-randomizedFactor, randomizedFactor)
                 randomY = random.uniform(-randomizedFactor, randomizedFactor)
-                files.append(replaceStartLocation(exampleFile, dimX + randomX, -dimY + randomY, 0))
-                configFiles.append(replaceStartLocation(exampleTomlFile, dimX + randomX, dimY + randomY, 0))
-                plotX.append(dimX + randomX)
-                plotY.append(-dimY + randomY)
+                startX = dimX + randomX
+                startY = -dimY + randomY
+                files.append(replaceStartLocation(exampleFile, startX, startY, 0))
+                configFiles.append(replaceStartLocation(exampleTomlFile, startX, startY, 0))
+                plotX.append(startX)
+                plotY.append(startY)
 
             if dimX != 0:
                 randomX = random.uniform(-randomizedFactor, randomizedFactor)
                 randomY = random.uniform(-randomizedFactor, randomizedFactor)
-                files.append(replaceStartLocation(exampleFile, -dimX + randomX, dimY + randomY, 0))
-                configFiles.append(replaceStartLocation(exampleTomlFile, dimX + randomX, dimY + randomY, 0))
-                plotX.append(-dimX + randomX)
-                plotY.append(dimY + randomY)
+                startX = -dimX + randomX
+                startY = dimY + randomY
+                files.append(replaceStartLocation(exampleFile, startX, startY, 0))
+                configFiles.append(replaceStartLocation(exampleTomlFile, startX, startY, 0))
+                plotX.append(startX)
+                plotY.append(startY)
 
                 if dimY != 0:
                     randomX = random.uniform(-randomizedFactor, randomizedFactor)
                     randomY = random.uniform(-randomizedFactor, randomizedFactor)
-                    files.append(replaceStartLocation(exampleFile, -dimX + randomX, -dimY + randomY, 0))
-                    configFiles.append(replaceStartLocation(exampleTomlFile, dimX + randomX, dimY + randomY, 0))
-                    plotX.append(-dimX + randomX)
-                    plotY.append(-dimY + randomY)
+                    startX = -dimX + randomX
+                    startY = -dimY + randomY
+                    files.append(replaceStartLocation(exampleFile, startX, startY, 0))
+                    configFiles.append(replaceStartLocation(exampleTomlFile, startX, startY, 0))
+                    plotX.append(startX)
+                    plotY.append(startY)
 
 
             dimY += spacing

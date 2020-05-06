@@ -106,9 +106,9 @@ TEST(FourDOFPropulsion, SendCommand) {
     ros::spinOnce();
     module.update();
 
-    EXPECT_DOUBLE_EQ(1, state.getLinearVelocityNED().x());
-    EXPECT_DOUBLE_EQ(0, state.getLinearVelocityNED().y());
-    EXPECT_DOUBLE_EQ(0, state.getLinearVelocityNED().z());
+    EXPECT_DOUBLE_EQ(1, state.getLinearVelocityNED(false).x());
+    EXPECT_DOUBLE_EQ(0, state.getLinearVelocityNED(false).y());
+    EXPECT_DOUBLE_EQ(0, state.getLinearVelocityNED(false).z());
     EXPECT_DOUBLE_EQ(0, state.getAngularVelocityNED().x());
     EXPECT_DOUBLE_EQ(0, state.getAngularVelocityNED().y());
     EXPECT_DOUBLE_EQ(0, state.getAngularVelocityNED().z());
@@ -119,9 +119,9 @@ TEST(FourDOFPropulsion, SendCommand) {
     ros::spinOnce();
     module.update();
 
-    EXPECT_DOUBLE_EQ(1, state.getLinearVelocityNED().x());
-    EXPECT_DOUBLE_EQ(-0.25, state.getLinearVelocityNED().y());
-    EXPECT_DOUBLE_EQ(0, state.getLinearVelocityNED().z());
+    EXPECT_DOUBLE_EQ(1, state.getLinearVelocityNED(false).x());
+    EXPECT_DOUBLE_EQ(-0.25, state.getLinearVelocityNED(false).y());
+    EXPECT_DOUBLE_EQ(0, state.getLinearVelocityNED(false).z());
     EXPECT_DOUBLE_EQ(0, state.getAngularVelocityNED().x());
     EXPECT_DOUBLE_EQ(0, state.getAngularVelocityNED().y());
     EXPECT_DOUBLE_EQ(0, state.getAngularVelocityNED().z());
@@ -132,9 +132,9 @@ TEST(FourDOFPropulsion, SendCommand) {
     ros::spinOnce();
     module.update();
 
-    EXPECT_DOUBLE_EQ(1, state.getLinearVelocityNED().x());
-    EXPECT_DOUBLE_EQ(-0.25, state.getLinearVelocityNED().y());
-    EXPECT_DOUBLE_EQ(1, state.getLinearVelocityNED().z());
+    EXPECT_DOUBLE_EQ(1, state.getLinearVelocityNED(false).x());
+    EXPECT_DOUBLE_EQ(-0.25, state.getLinearVelocityNED(false).y());
+    EXPECT_DOUBLE_EQ(1, state.getLinearVelocityNED(false).z());
     EXPECT_DOUBLE_EQ(0, state.getAngularVelocityNED().x());
     EXPECT_DOUBLE_EQ(0, state.getAngularVelocityNED().y());
     EXPECT_DOUBLE_EQ(0, state.getAngularVelocityNED().z());
@@ -144,9 +144,9 @@ TEST(FourDOFPropulsion, SendCommand) {
     ros::spinOnce();
     module.update();
 
-    EXPECT_DOUBLE_EQ(1, state.getLinearVelocityNED().x());
-    EXPECT_DOUBLE_EQ(-0.25, state.getLinearVelocityNED().y());
-    EXPECT_DOUBLE_EQ(1, state.getLinearVelocityNED().z());
+    EXPECT_DOUBLE_EQ(1, state.getLinearVelocityNED(false).x());
+    EXPECT_DOUBLE_EQ(-0.25, state.getLinearVelocityNED(false).y());
+    EXPECT_DOUBLE_EQ(1, state.getLinearVelocityNED(false).z());
     EXPECT_DOUBLE_EQ(0, state.getAngularVelocityNED().x());
     EXPECT_DOUBLE_EQ(0, state.getAngularVelocityNED().y());
     EXPECT_DOUBLE_EQ(-5, state.getAngularVelocityNED().z());
@@ -192,9 +192,9 @@ TEST(FourDOFPropulsion, SendCommand) {
     module.update();
 
 
-    EXPECT_DOUBLE_EQ(1, state.getLinearVelocityNED().x());
-    EXPECT_DOUBLE_EQ(-0.25, state.getLinearVelocityNED().y());
-    EXPECT_DOUBLE_EQ(1, state.getLinearVelocityNED().z());
+    EXPECT_DOUBLE_EQ(1, state.getLinearVelocityNED(false).x());
+    EXPECT_DOUBLE_EQ(-0.25, state.getLinearVelocityNED(false).y());
+    EXPECT_DOUBLE_EQ(1, state.getLinearVelocityNED(false).z());
     EXPECT_DOUBLE_EQ(0, state.getAngularVelocityNED().x());
     EXPECT_DOUBLE_EQ(0, state.getAngularVelocityNED().y());
     EXPECT_DOUBLE_EQ(-5, state.getAngularVelocityNED().z());

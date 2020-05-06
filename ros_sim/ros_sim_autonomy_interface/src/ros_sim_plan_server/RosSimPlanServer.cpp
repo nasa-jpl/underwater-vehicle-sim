@@ -52,19 +52,19 @@ void ROSSimPlanServer::update()
         planDispatcher.setPlan(newPlan);
     }
 
-    if(planDispatcher.getState() == PlanDispatcher::PlanDispatcherState::WAITING_FOR_STOP_STOPPED ||
-       planDispatcher.getState() == PlanDispatcher::PlanDispatcherState::WAITING_FOR_STOP_RUNNING)
-    {
-        std_msgs::Float64 slowSim;
-        slowSim.data = 1;
-        clockSpeedPub.publish(slowSim);
-    } 
-    else 
+    if(planDispatcher.currentActionState() != NULL && *planDispatcher.currentActionState() == Action::State::EXECUTING)
     {
         std_msgs::Float64 startSim;
         startSim.data = speedUpFactor;
         clockSpeedPub.publish(startSim);
     }
+    else
+    {
+        std_msgs::Float64 slowSim;
+        slowSim.data = 1;
+        clockSpeedPub.publish(slowSim);
+    } 
+    
 
     plannerStatus = planner->getPlannerStatus();
 }

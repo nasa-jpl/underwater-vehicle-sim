@@ -11,30 +11,27 @@
 #include "geometry_msgs/Twist.h"
 #include "underwater_vehicle_msgs/GoToZ.h"
 
-#include "propulsion_controller/PropulsionControllerState.h"
-#include "propulsion_controller/PropulsionControllerEnable.h"
+#include "underwater_vehicle_msgs/PropulsionControllerState.h"
 
 #include "underwater_autonomy/planner/actions/Action.h"
 #include "underwater_autonomy/planner/actions/YoYoAction.h"
 
 using namespace underwater_autonomy;
 
-YoYoSimActionExecutor::YoYoSimActionExecutor(ros::NodeHandle& nh, VehicleInfo& vehicleInfo) :
+YoYoSimActionExecutor::YoYoSimActionExecutor(underwater_autonomy::YoYoAction& action, ros::NodeHandle& nh, VehicleInfo& vehicleInfo) :
+    ActionExecutor(action),
     vehicleInfo(vehicleInfo),
     replanNextUpdate(false),
-    lastReplan(ros::Time::now()),
-    distanceSinceReplan(0),
-    gotCompleteCallback(false)
+    lastReplanTime(0),
+    distanceSinceReplan(0)
 {
+    propStateSub = nh.subscribe("prop_state", 1, &YoYoSimActionExecutor::propStateCallback, this);
     velPub = nh.advertise<geometry_msgs::Twist>("command_target_velocity", 1000, true);
     poseSub = nh.subscribe("primary_navigation", 1, &YoYoSimActionExecutor::navigationFilterCallback, this);
-
-    goToZPub = nh.advertise<underwater_vehicle_msgs::GoToZ>("go_to_z", 1000);
-    goToZEnableClient = nh.serviceClient<propulsion_controller::PropulsionControllerEnable>("go_to_z_enable");
-    goToZComplete = nh.subscribe("go_to_z_complete", 1, &YoYoSimActionExecutor::goToZCompleteCallback, this);
+    goToZClient = nh.serviceClient<underwater_vehicle_msgs::GoToZ>("go_to_z");
 }
 
-void YoYoSimActionExecutor::execute(underwater_autonomy::YoYoAction& action)
+void YoYoSimActionExecutor::execute()
 {
     ROS_INFO("Execute yoyo action");
 
@@ -57,45 +54,50 @@ void YoYoSimActionExecutor::execute(underwater_autonomy::YoYoAction& action)
     }
     else //If the prop module is not known then this cannot be completed
     {
-        action.fail(ros::Time::now().toSec());
+        action.fail(action.getLatestTime());
+        return;
     }
 
+    waitForPropStateSetup();
 
     //Check that we have someone listening to us
-    ros::WallTime time = ros::WallTime::now();
-    while(goToZPub.getNumSubscribers() == 0 &&
-          ros::WallTime::now() - time < ros::WallDuration(5)) {ros::WallDuration(1).sleep();}
-    if(goToZPub.getNumSubscribers() == 0)
+    goToZClient.waitForExistence(ros::Duration(10));
+    if(!goToZClient.exists())
     {
-        action.fail(ros::Time::now().toSec());
+        action.fail(action.getLatestTime());
+        return;
     }
 
 
     //Creates an action goal and sends it to the action server for point path movement
-    sendNewGoToZGoal(action);
-    action.dispatchDone();
+    if(sendNewGoToZGoal())
+    {
+        action.dispatchDone();
+    }
 
-    lastReplan = ros::Time::now();
+    lastReplanTime = action.getLatestTime();
     distanceSinceReplan = 0;
 }
 
-void YoYoSimActionExecutor::stop(underwater_autonomy::YoYoAction& action)
+void YoYoSimActionExecutor::stop()
 {
-    propulsion_controller::PropulsionControllerEnable enableMsg;
+    underwater_vehicle_msgs::GoToZ enableMsg;
     enableMsg.request.enable = false;
-    if(goToZEnableClient.exists() &&
-       goToZEnableClient.call(enableMsg))
+    if(goToZClient.exists() &&
+       goToZClient.call(enableMsg))
     {
         action.stopDone();
     }
+
+    ROS_INFO("Stop yoyo action");
 }
 
-bool YoYoSimActionExecutor::triggerReplan(underwater_autonomy::YoYoAction& action)
+bool YoYoSimActionExecutor::triggerReplan()
 {
     if(replanNextUpdate)
     {
         replanNextUpdate = false;
-        lastReplan = ros::Time::now();
+        lastReplanTime = action.getLatestTime();
         distanceSinceReplan = 0;
         return true;
     }
@@ -103,87 +105,83 @@ bool YoYoSimActionExecutor::triggerReplan(underwater_autonomy::YoYoAction& actio
     return false;
 }
 
-void YoYoSimActionExecutor::goToZCompleteCallback(const underwater_vehicle_msgs::GoToZComplete complete)
+void YoYoSimActionExecutor::propStateCallback(const underwater_vehicle_msgs::PropulsionControllerState state)
 {    
-    gotCompleteCallback = true;
-    completeCallbackZ = complete.depth;
-    completeCallbackHoldDepth = complete.holdDepth;
-}
-
-void YoYoSimActionExecutor::monitor(underwater_autonomy::YoYoAction& action)
-{
-    if((action.getState() == Action::State::DISPATCHED ||
-        action.getState() == Action::State::EXECUTING ||
-        action.getState() == Action::State::PAUSING ||
-        action.getState() == Action::State::COMPLETING) &&
-       !action.inOperationRegion(currentPose.getPosition()))
-    {
-        action.fail(ros::Time::now().toSec());
-    }  
-
-    if(action.getState() == Action::State::EXECUTING)
-    {
-        double targetDepth = 0;
-        if(action.getGoingUp())
-        {
-            targetDepth = action.getUpperDepth();
-        }
-        else
-        {
-            targetDepth = action.getLowerDepth();
-        }
-
-        if(gotCompleteCallback && 
-           doubleEq(targetDepth, completeCallbackZ) &&
-           !completeCallbackHoldDepth)
-        {
-            gotCompleteCallback = false;
-
-            action.setGoingUp(!action.getGoingUp());
-            if(!replanNextUpdate)
-            {
-                replanNextUpdate = action.doReplan(true, (ros::Time::now() - lastReplan).toSec(),
-                                                    distanceSinceReplan);
-            }
-
-            sendNewGoToZGoal(action);
-        }
-        
-        if(action.getYoYoTime() >= 0 && action.getTimeRunning() >= action.getYoYoTime())
-        {
-            action.complete(ros::Time::now().toSec());
-        }
-    }
-    else if(action.inStoppingState())
-    {
-        stop(action);
+    if(!statePropSetup) {
+        statePropSetup = true;
+        prevZSeqNum = state.zSeqNum;
     }
 
-    if(action.getState() == Action::State::EXECUTING && !replanNextUpdate)
-    {
-        replanNextUpdate = action.doReplan(false, (ros::Time::now() - lastReplan).toSec(),
-                                            distanceSinceReplan);
-    }
-}
-
-void YoYoSimActionExecutor::sendNewGoToZGoal(underwater_autonomy::YoYoAction& action)
-{
-    //Reset got complete callback
-    gotCompleteCallback = false;
-    underwater_vehicle_msgs::GoToZ goToZMsg;
+    double targetDepth = 0;
     if(action.getGoingUp())
     {
-        goToZMsg.depth = action.getUpperDepth();
+        targetDepth = action.getUpperDepth();
     }
     else
     {
-        goToZMsg.depth = action.getLowerDepth();
+        targetDepth = action.getLowerDepth();
     }
 
-    goToZMsg.enable = true;
-    goToZMsg.holdDepth = false;
+    if(state.zComplete && 
+       doubleEq(targetDepth, state.z) &&
+       !state.holdDepth &&
+       prevZSeqNum != state.zSeqNum)
+    {
+        prevZSeqNum = state.zSeqNum;
+        action.setGoingUp(!action.getGoingUp());
+        sendNewGoToZGoal();
 
-    goToZPub.publish(goToZMsg);
+        if(action.doReplan(true, action.getLatestTime() - lastReplanTime, distanceSinceReplan)) 
+        {
+            replanNextUpdate = true;
+        }
+    }
+}
+
+void YoYoSimActionExecutor::waitForPropStateSetup()
+{
+    while(!statePropSetup) {
+        ros::spinOnce();
+    }
+}
+
+void YoYoSimActionExecutor::monitor()
+{
+    if(action.getState() == Action::State::EXECUTING && 
+       action.getYoYoTime() >= 0 && 
+       action.getTimeRunning() >= action.getYoYoTime())
+    {
+        action.complete(action.getLatestTime());
+        ROS_INFO("Complete yoyo action");
+    }
+    else if(action.doReplan(false, action.getLatestTime() - lastReplanTime, distanceSinceReplan))
+    {
+        replanNextUpdate = true;
+    }
+}
+
+bool YoYoSimActionExecutor::sendNewGoToZGoal()
+{
+    underwater_vehicle_msgs::GoToZ goToZMsg;
+    if(action.getGoingUp())
+    {
+        goToZMsg.request.depth = action.getUpperDepth();
+    }
+    else
+    {
+        goToZMsg.request.depth = action.getLowerDepth();
+    }
+
+    goToZMsg.request.enable = true;
+    goToZMsg.request.holdDepth = false;
+
+    if(!goToZClient.call(goToZMsg))
+    {
+        action.fail(action.getLatestTime());
+        return false;
+    }
+
+    return true;
 }
 
 void YoYoSimActionExecutor::navigationFilterCallback(const nav_msgs::Odometry odo)
@@ -239,6 +237,15 @@ void YoYoSimActionExecutor::navigationFilterCallback(const nav_msgs::Odometry od
     currentPose.setLinearVelocity(linearVelocity);
     currentPose.setAngularVelocity(angularVelocity);
     currentPose.setTwistCovariance(twistCovariance);
+
+    if((action.getState() == Action::State::DISPATCHED ||
+        action.getState() == Action::State::EXECUTING ||
+        action.getState() == Action::State::PAUSING ||
+        action.getState() == Action::State::COMPLETING) &&
+        !action.inOperationRegion(currentPose.getPosition()))
+    {
+        action.fail(action.getLatestTime());
+    }  
 }
 
 bool YoYoSimActionExecutor::doubleEq(double d1, double d2)

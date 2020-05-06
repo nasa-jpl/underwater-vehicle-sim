@@ -26,7 +26,7 @@ private:
 	/**
 	*Error in depth measurment
 	*/
-	double depthRandomError;
+	double depthStdDev;
 	double depthBiasError;
 	
 	std::default_random_engine generator;

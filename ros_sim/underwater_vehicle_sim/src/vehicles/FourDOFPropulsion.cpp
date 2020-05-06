@@ -206,7 +206,7 @@ void FourDOFPropulsion::rudderCallback(const std_msgs::Float64::ConstPtr& val)
 
 void FourDOFPropulsion::updateTwist()
 {
-    tf2::Vector3 updatedLinearVelocity = vehicleState.getLinearVelocityNED();
+    tf2::Vector3 updatedLinearVelocity = vehicleState.getLinearVelocityNED(false);
     tf2::Vector3 updatedAngularVelocity = vehicleState.getAngularVelocityNED();
 
     if(std::isfinite(forwardThrust))
