@@ -19,9 +19,14 @@ public:
 	void update(const ros::Time& lastTime, VehicleState& vehicleState, ocean_models::ModelData& modelData);
 
 private:
-	
+	enum Type {Standard, Inverted};
 private:
 	ros::Publisher usbl;
+
+	/**
+	*The orientation of the usbl reciever and transducer
+	*/
+	Type usblType;
 
 	/**
 	*Error in bearing measurment
