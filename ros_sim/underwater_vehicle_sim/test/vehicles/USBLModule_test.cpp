@@ -9,9 +9,15 @@
 
 using namespace ocean_models;
 
+std::vector<underwater_vehicle_msgs::USBL> invertedUSBLMessages;
 std::vector<underwater_vehicle_msgs::USBL> validRangeMessages;
 std::vector<underwater_vehicle_msgs::USBL> biasAndRandomErrorMessages;
 std::vector<underwater_vehicle_msgs::USBL> badRangeMessages;
+
+void invertedUSBLCallback(const underwater_vehicle_msgs::USBLPtr& vel)
+{
+    invertedUSBLMessages.push_back(*vel);
+}
 
 void validRangeCallback(const underwater_vehicle_msgs::USBLPtr& vel)
 {
@@ -26,6 +32,43 @@ void biasAndRandomErrorCallback(const underwater_vehicle_msgs::USBLPtr& vel)
 void badRangeCallback(const underwater_vehicle_msgs::USBLPtr& vel)
 {
     badRangeMessages.push_back(*vel);
+}
+
+TEST(USBLModule, TestInvertedUSBL)
+{
+    USBLModule module("inverted_usbl");
+    ModelData modelData;
+    ros::Time lastTime(0);
+    VehicleState state;
+
+    ros::NodeHandle nh;
+    ros::Subscriber dataSub = nh.subscribe("inverted_usbl/data", 1, &invertedUSBLCallback);
+
+    //Valid Range and Bearing
+    state.setPositionNED(tf2::Vector3(5, 0, 0));
+
+    float yaw = -M_PI/4;
+    tf2::Quaternion rotation;
+
+    for(int i = 0; i < 8; i++) {
+        rotation.setRPY(0,0,yaw);
+        state.setRotationNED(rotation);
+        module.update(lastTime, state, modelData);
+        ros::spinOnce();
+        yaw += M_PI/4;
+    }
+
+    ASSERT_EQ(8u, invertedUSBLMessages.size());
+
+    float expectedAz = 0;
+    for(int i = 0; i < 8; i++) {
+        EXPECT_FLOAT_EQ(21.213203, invertedUSBLMessages[i].range);
+        EXPECT_NEAR(expectedAz, invertedUSBLMessages[i].bearing,0.000001);
+        expectedAz -= M_PI/4;
+        if(expectedAz < -M_PI) {
+            expectedAz += M_PI*2;
+        }
+    }
 }
 
 TEST(USBLModule, TestValidRange)

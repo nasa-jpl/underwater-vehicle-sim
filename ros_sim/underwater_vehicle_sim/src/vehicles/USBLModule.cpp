@@ -15,6 +15,19 @@ USBLModule::USBLModule(std::string name) :
 	GeneralModule(name, "USBL")
 {
 	ros::NodeHandle nhPriv("~/" + name);
+		nhPriv.param("bearing_random_error", bearingRandomError, 0.0174533); //default is 1 deg in radians
+
+	std::string typeStr = "standard";
+	nhPriv.getParam("type", typeStr);
+
+	if(typeStr == "standard") {
+		usblType = USBLModule::Type::Standard;
+	} else if(typeStr == "inverted") {
+		usblType = USBLModule::Type::Inverted;
+	} else {
+		ROS_WARN("USBL Module has invalid parameter for Type. Defaulting to Standard.");
+		usblType = USBLModule::Type::Standard;
+	}
 	nhPriv.param("bearing_random_error", bearingRandomError, 0.0174533); //default is 1 deg in radians
 	nhPriv.param("bearing_bias_error", bearingBiasError, 0.0); //default is 0 deg in rad
 
@@ -79,7 +92,19 @@ void USBLModule::update(const ros::Time& lastTime, VehicleState& vehicleState, M
 
 	if(trueRange <= validBearingDistance)
 	{
-		bearing = atan2(yDiff, xDiff);
+		if(usblType == USBLModule::Type::Standard) {
+			bearing = atan2(yDiff, xDiff);
+		} else {
+			tf2::Matrix3x3 rotMatrix(vehicleState.getRotationNED());
+			double roll,pitch,yaw;
+			rotMatrix.getRPY(roll, pitch, yaw);
+			yaw = -yaw;
+
+			//transform point to vehicle frame
+			double beaconXRot = (-xDiff) * cos(yaw) - (-yDiff) * sin(yaw);
+			double beaconYRot = (-xDiff) * sin(yaw) + (-yDiff) * cos(yaw);	
+			bearing = atan2(beaconYRot, beaconXRot);
+		}
 		bearing += bearingBiasError;
 
 		if(bearingRandomError > 0)
