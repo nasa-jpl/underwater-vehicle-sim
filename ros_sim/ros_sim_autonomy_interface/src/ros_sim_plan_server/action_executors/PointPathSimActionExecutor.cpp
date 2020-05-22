@@ -27,7 +27,6 @@ PointPathSimActionExecutor::PointPathSimActionExecutor(underwater_autonomy::Poin
     statePropSetup(false)
 {
     propStateSub = nh.subscribe("prop_state", 10, &PointPathSimActionExecutor::propStateCallback, this);
-    velPub = nh.advertise<geometry_msgs::Twist>("command_target_velocity", 1000, true);
     poseSub = nh.subscribe("primary_navigation", 1, &PointPathSimActionExecutor::navigationFilterCallback, this);
     goToXYClient = nh.serviceClient<underwater_vehicle_msgs::GoToXY>("go_to_xy");
 }
@@ -35,28 +34,6 @@ PointPathSimActionExecutor::PointPathSimActionExecutor(underwater_autonomy::Poin
 void PointPathSimActionExecutor::execute()
 {
     ROS_INFO("Execute point path action");
-
-    if(vehicleInfo.getPropModuleType() == "FourDOFPropulsion")
-    {
-        //Send target velocities command
-        geometry_msgs::Twist velMsg;
-
-        velMsg.linear.x = action.getTargetHorizontalVelocity();
-        velMsg.linear.y = 0;
-        //Calculate the target vertical velocity based on target horizontal velocity and target slope
-        velMsg.linear.z = std::numeric_limits<double>::quiet_NaN();
-
-        velMsg.angular.x = 0;
-        velMsg.angular.y = 0;
-        velMsg.angular.z = action.getTargetRotationalVelocity();
-    
-        velPub.publish(velMsg);
-    }
-    else //If the prop module is not known then this cannot be completed
-    {
-        action.fail(action.getLatestTime());
-        return;
-    }
 
     //Check that we have someone listening to us
     goToXYClient.waitForExistence(ros::Duration(10));
@@ -171,6 +148,9 @@ bool PointPathSimActionExecutor::sendNextGoToXYGoal()
     goToXYMsg.request.x = point[0];
     goToXYMsg.request.y = point[1];
     goToXYMsg.request.enable = true;
+
+    goToXYMsg.request.xLinearVelocity = action.getTargetHorizontalVelocity();
+    goToXYMsg.request.zAngularVelocity = action.getTargetRotationalVelocity();
     
     if(!goToXYClient.call(goToXYMsg)) {
         action.fail(action.getLatestTime());

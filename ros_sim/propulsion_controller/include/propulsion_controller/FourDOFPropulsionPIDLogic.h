@@ -30,7 +30,6 @@ public:
 	bool isAtXY(underwater_autonomy::VehiclePose& pose);
 	bool isAtZ(underwater_autonomy::VehiclePose& pose);
 
-	void setTargetVelocity(const geometry_msgs::Twist vel) override;
 	void processNewData(const underwater_vehicle_msgs::VehicleData data) override;
 
 private:

@@ -71,7 +71,6 @@ private:
     double lastReplanTime;
     double distanceSinceReplan;
 
-    ros::Publisher velPub;
     ros::Subscriber poseSub;
     
     underwater_autonomy::VehiclePose currentPose;

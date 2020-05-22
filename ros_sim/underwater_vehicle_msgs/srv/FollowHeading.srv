@@ -1,3 +1,5 @@
 float64 heading
+float64 xLinearVelocity
+float64 zAngularVelocity
 bool enable
 ---

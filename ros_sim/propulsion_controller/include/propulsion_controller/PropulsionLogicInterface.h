@@ -24,7 +24,6 @@ public:
 	PropulsionLogicInterface(VehicleInfo& vehicleInfo);
 	virtual ~PropulsionLogicInterface() {}
 
-	virtual void setTargetVelocity(const geometry_msgs::Twist vel)=0;
 	virtual void processNewData(const underwater_vehicle_msgs::VehicleData data)=0;
 
 	/**
@@ -68,6 +67,16 @@ public:
 	void setTargetZ(double z);
 
 	/**
+	* Sets the velocity in the xy direction
+	*/
+	void setVelocityXY(double xLinearVelocity, double yLinearVelocity, double zAngularVelocity);
+
+	/**
+	* Sets the velocity in the z direction
+	*/
+	void setVelocityZ(double zLinearVelocity);
+
+	/**
 	* Sets the target heading for followHeading
 	*/
 	virtual void setFollowHeading(double heading);
@@ -105,6 +114,9 @@ public:
 protected:
 	ros::NodeHandle vehicleNode;
 	VehicleInfo& vehicleInfo;
+
+	tf2::Vector3 targetLinearVelocity;
+	tf2::Vector3 targetAngularVelocity;
 
 	double targetX;
 	double targetY;

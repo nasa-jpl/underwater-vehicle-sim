@@ -26,7 +26,6 @@ HoldDepthSimActionExecutor::HoldDepthSimActionExecutor(underwater_autonomy::Hold
     lastReplanTime(0),
     distanceSinceReplan(0)
 {
-    velPub = nh.advertise<geometry_msgs::Twist>("command_target_velocity", 1000, true);
     poseSub = nh.subscribe("primary_navigation", 1, &HoldDepthSimActionExecutor::navigationFilterCallback, this);
     goToZClient = nh.serviceClient<underwater_vehicle_msgs::GoToZ>("go_to_z");
 }
@@ -34,29 +33,6 @@ HoldDepthSimActionExecutor::HoldDepthSimActionExecutor(underwater_autonomy::Hold
 void HoldDepthSimActionExecutor::execute()
 {
     ROS_INFO("Execute hold depth action");
-
-    if(vehicleInfo.getPropModuleType() == "FourDOFPropulsion")
-    {
-        //Send target velocities command
-        geometry_msgs::Twist velMsg;
-
-        //xy is set to nan as we do not want to modify it
-        velMsg.linear.x = std::numeric_limits<double>::quiet_NaN();
-        velMsg.linear.y = std::numeric_limits<double>::quiet_NaN();
-
-        velMsg.linear.z = action.getTargetVerticalVelocity();
-
-        velMsg.angular.x = std::numeric_limits<double>::quiet_NaN();
-        velMsg.angular.y = std::numeric_limits<double>::quiet_NaN();
-        velMsg.angular.z = std::numeric_limits<double>::quiet_NaN();
-    
-        velPub.publish(velMsg);
-    }
-    else //If the prop module is not known then this cannot be completed
-    {
-        action.fail(action.getLatestTime());
-        return;
-    }
 
     //Check that we have someone listening to us
     goToZClient.waitForExistence(ros::Duration(10));
@@ -66,12 +42,12 @@ void HoldDepthSimActionExecutor::execute()
         return;
     }
 
-    
     //Send message to Go To Z Controller
     underwater_vehicle_msgs::GoToZ goToZMsg;
     goToZMsg.request.depth = action.getDepth();
     goToZMsg.request.enable = true;
     goToZMsg.request.holdDepth = true;
+    goToZMsg.request.zLinearVelocity = action.getTargetVerticalVelocity();
 
     if(goToZClient.call(goToZMsg))
     {

@@ -35,7 +35,6 @@ public:
 	bool isAtXY(underwater_autonomy::VehiclePose& pose);
 	bool isAtZ(underwater_autonomy::VehiclePose& pose);
 
-	void setTargetVelocity(const geometry_msgs::Twist vel) override;
 	void processNewData(const underwater_vehicle_msgs::VehicleData data) override;
 
 private:
@@ -67,9 +66,6 @@ private:
 	double horizontalErrorScale;
 	double verticalErrorScale;
 	double angleErrorScale;
-
-	tf2::Vector3 targetLinearVelocity;
-	tf2::Vector3 targetAngularVelocity;
 
 	geometry_msgs::Vector3 lastLinearVelocity;
     geometry_msgs::Vector3 lastAngularVelocity;

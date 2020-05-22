@@ -1,7 +1,6 @@
 #include "ros_sim_navigation/ROSSimNavigationFilter.h"
 
 #include "underwater_autonomy/navigation/TrueNavigationFilter.h"
-#include "underwater_autonomy/navigation/KalmanNavigationFilter.h"
 #include "underwater_autonomy/navigation/DeadReckoningNavigationFilter.h"
 
 #include "nav_msgs/Odometry.h"
@@ -116,72 +115,6 @@ void ROSSimNavigationFilter::initializeNavFilter(std::string& filterName, Vehicl
     {
         VehiclePose startPose(Eigen::Vector3d(info.getStartX(), info.getStartY(), info.getStartZ()));
         filter.reset(new DeadReckoningNavigationFilter(startPose, ros::Time::now().toSec()));
-    }
-    else if(filterType == "KalmanFilter")
-    {
-        KalmanNavigationFilter::Parameters parameters;
-        filterNhPriv.param<std::vector<double>>("system_noise_mu", parameters.systemNoiseMu, {0,0,0,0,0,0});
-        filterNhPriv.param<std::vector<double>>("prior", parameters.prior, {0,0,0,0,0,0});
-
-        filterNhPriv.param<double>("sigma_meas_noise_heading", parameters.sigmaMeasNoiseHeading, 0.0174533);
-        filterNhPriv.param<double>("sigma_meas_noise_rot_vel", parameters.sigmaMeasNoiseRotVel, 0.0174533);
-        filterNhPriv.param<double>("sigma_meas_noise_forward_vel", parameters.sigmaMeasNoiseForwardVel, 0.1);
-        filterNhPriv.param<double>("sigma_meas_noise_lateral_vel", parameters.sigmaMeasNoiseLateralVel, 0.1);
-        filterNhPriv.param<double>("sigma_meas_noise_range", parameters.sigmaMeasNoiseRange, 5);
-        filterNhPriv.param<double>("sigma_meas_noise_x_vel", parameters.sigmaMeasNoiseXVel, 0.1);
-        filterNhPriv.param<double>("sigma_meas_noise_y_vel", parameters.sigmaMeasNoiseYVel, 0.1);
-        parameters.systemCovariance = get2dArrayParam(filterNhPriv, "system_covariance", {{0,0,0,0,0,0},
-                                                                                          {0,0,0,0,0,0},
-                                                                                          {0,0,0,0,0,0},
-                                                                                          {0,0,0,0,0,0},
-                                                                                          {0,0,0,0,0,0},
-                                                                                          {0,0,0,0,0,0}});
-        
-        parameters.priorCovariance = get2dArrayParam(filterNhPriv, "prior_covariance", {{0,0,0,0,0,0},
-                                                                                        {0,0,0,0,0,0},
-                                                                                        {0,0,0,0,0,0},
-                                                                                        {0,0,0,0,0,0},
-                                                                                        {0,0,0,0,0,0},
-                                                                                        {0,0,0,0,0,0}});
-        
-        std::vector<double> forwardThrust;
-        std::vector<double> forwardVelocity;
-        filterNhPriv.getParam("forward_thruster_thrust_model", forwardThrust);
-        filterNhPriv.getParam("forward_thruster_velocity_model", forwardVelocity);
-
-        if(forwardThrust.size() == forwardVelocity.size())
-        {
-            if(forwardThrust.size() != 0)
-            {
-                std::vector<LinearPiecewise::Point> points;
-                for(unsigned int i = 0; i < forwardThrust.size(); i++)
-                {
-                    points.push_back({forwardThrust[i], forwardVelocity[i]});
-                }
-                parameters.forwardThrustToVelocity = LinearPiecewise(points);
-            }
-        }
-
-
-        std::vector<double> lateralThrust;
-        std::vector<double> lateralVelocity;
-        filterNhPriv.getParam("lateral_thruster_thrust_model", lateralThrust);
-        filterNhPriv.getParam("lateral_thruster_velocity_model", lateralVelocity);
-
-        if(lateralThrust.size() == lateralVelocity.size())
-        {
-            if(lateralThrust.size() != 0)
-            {
-                std::vector<LinearPiecewise::Point> points;
-                for(unsigned int i = 0; i < lateralThrust.size(); i++)
-                {
-                    points.push_back({lateralThrust[i], lateralVelocity[i]});
-                }
-                parameters.lateralThrustToVelocity = LinearPiecewise(points);
-            }
-        }
-
-        filter.reset(new KalmanNavigationFilter(parameters, ros::Time::now().toSec()));
     }
 
 }

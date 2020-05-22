@@ -1,4 +1,5 @@
 float64 depth
+float64 zLinearVelocity
 bool holdDepth
 bool enable
 ---

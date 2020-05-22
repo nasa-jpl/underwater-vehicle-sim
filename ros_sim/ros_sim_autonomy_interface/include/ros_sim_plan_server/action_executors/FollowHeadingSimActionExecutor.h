@@ -66,7 +66,6 @@ private:
     double distanceSinceReplan;
     
     tf2::Vector3 lastLocation;
-    ros::Publisher velPub;
     ros::Subscriber poseSub;
     underwater_autonomy::VehiclePose currentPose;
 };

@@ -25,10 +25,9 @@ PropulsionController::PropulsionController(ros::NodeHandle nh, VehicleInfo& info
     if(dataModuleNames.size() > 0)
     {
         //default to using first module of type DataBroadcaster if more than 1 exists
-        dataSub = nh.subscribe(dataModuleNames[0] + "/data", 1, &PropulsionController::getVehicleData, this);
+        dataSub = nh.subscribe(dataModuleNames[0] + "/data", 10, &PropulsionController::getVehicleData, this);
     }
 
-    velSub = nh.subscribe("command_target_velocity", 10, &PropulsionController::getTargetVelocityCommand, this);
     poseSub = nh.subscribe("primary_navigation", 1, &PropulsionController::navigationFilterCallback, this);
 
     //Go To Z Topics
@@ -41,11 +40,6 @@ PropulsionController::PropulsionController(ros::NodeHandle nh, VehicleInfo& info
     followHeadingService = nh.advertiseService("follow_heading", &PropulsionController::followHeadingCallback, this);
 
     statePub = nh.advertise<underwater_vehicle_msgs::PropulsionControllerState>("prop_state", 1000);
-}
-
-void PropulsionController::getTargetVelocityCommand(const geometry_msgs::Twist vel)
-{
-    logicController->setTargetVelocity(vel);
 }
 
 void PropulsionController::getVehicleData(const underwater_vehicle_msgs::VehicleData data)
@@ -86,6 +80,7 @@ bool PropulsionController::goToXYCallback(underwater_vehicle_msgs::GoToXY::Reque
     if(req.enable)
     {
         logicController->setTargetXY(req.x, req.y);
+        logicController->setVelocityXY(req.xLinearVelocity, 0, req.zAngularVelocity);
         goToXYEnable = true;
         followHeadingEnable = false;
 
@@ -126,7 +121,7 @@ bool PropulsionController::followHeadingCallback(underwater_vehicle_msgs::Follow
         followHeadingEnable = true;
         goToXYEnable = false;
         logicController->setFollowHeading(req.heading);
-
+        logicController->setVelocityXY(req.xLinearVelocity, 0, req.zAngularVelocity);
     }
     else
     {
@@ -152,7 +147,7 @@ bool PropulsionController::goToZCallback(underwater_vehicle_msgs::GoToZ::Request
         goToZEnable = true;
         goToZHoldDepth = req.holdDepth;
         logicController->setTargetZ(req.depth);
-
+        logicController->setVelocityZ(req.zLinearVelocity);
     }
     else
     {
@@ -231,11 +226,13 @@ void PropulsionController::publishState()
 {
     underwater_vehicle_msgs::PropulsionControllerState stateMsg;
 
+    stateMsg.xyEnable = goToXYEnable;
     stateMsg.xyComplete = goToXYComplete;
     stateMsg.xySeqNum = xySeqNum;
     stateMsg.x = logicController->getTargetX();
     stateMsg.y = logicController->getTargetY();
 
+    stateMsg.zEnable = goToZEnable;
     stateMsg.zComplete = goToZComplete;
     stateMsg.zSeqNum = zSeqNum;
     stateMsg.z = logicController->getTargetZ();

@@ -29,9 +29,7 @@ FourDOFPropulsionLogic::FourDOFPropulsionLogic(VehicleInfo& vehicleInfo,
     minSeafloorDistance(3.0),
     horizontalErrorScale(25),
     verticalErrorScale(15),
-    angleErrorScale(3.14159265359), //180 degrees
-    targetLinearVelocity(0,0,0),
-    targetAngularVelocity(0,0,0)
+    angleErrorScale(3.14159265359) //180 degrees
 {
     ros::NodeHandle nh;
 
@@ -61,7 +59,7 @@ void FourDOFPropulsionLogic::goToXY(VehiclePose& pose)
         data.data = forwardThruster.getY(targetForwardVelocity).y;
         forwardThrustPub.publish(data);
     }
-    
+
     if(std::isfinite(angle))
     {
         std_msgs::Float64 data;
@@ -152,29 +150,6 @@ void FourDOFPropulsionLogic::stopZ(void)
     std_msgs::Float64 data;
     data.data = 0;
     verticalThrustPub.publish(data);
-}
-
-void FourDOFPropulsionLogic::setTargetVelocity(const geometry_msgs::Twist vel)
-{
-    tf2::Vector3 messageLinearVelocity;
-	tf2::Vector3 messageAngularVelocity;
-
-    tf2::fromMsg(vel.linear, messageLinearVelocity);
-    tf2::fromMsg(vel.angular, messageAngularVelocity);
-
-    for(unsigned int i = 0; i < 3; i++)
-    {
-        if(!std::isnan(messageLinearVelocity[i]))
-        {
-            targetLinearVelocity[i] = messageLinearVelocity[i];
-        }
-
-        if(!std::isnan(messageAngularVelocity[i]))
-        {
-            targetAngularVelocity[i] = messageAngularVelocity[i];
-        }
-    }
-
 }
 
 bool FourDOFPropulsionLogic::isAtXY(underwater_autonomy::VehiclePose& pose)
