@@ -1,6 +1,6 @@
 <launch>
     <test test-name="usbl_module_test" pkg="underwater_vehicle_sim" ns="v1" type="usbl_module_test">
-        <rosparam param="valid_range_usbl/type">standard</rosparam>
+        <rosparam param="valid_range_usbl/configuration">standard</rosparam>
         <rosparam param="valid_range_usbl/bearing_random_error">0</rosparam>
         <rosparam param="valid_range_usbl/bearing_bias_error">0</rosparam>
 
@@ -19,7 +19,7 @@
 
         <rosparam param="valid_range_usbl/random_seed">111</rosparam>
 
-        <rosparam param="inverted_usbl/type">inverted</rosparam>
+        <rosparam param="inverted_usbl/configuration">inverted</rosparam>
         <rosparam param="inverted_usbl/bearing_random_error">0</rosparam>
         <rosparam param="inverted_usbl/bearing_bias_error">0</rosparam>
 
@@ -39,7 +39,7 @@
         <rosparam param="inverted_usbl/random_seed">111</rosparam>
 
 
-        <rosparam param="error_usbl/type">standard</rosparam>
+        <rosparam param="error_usbl/configuration">standard</rosparam>
         <rosparam param="error_usbl/bearing_random_error">0.0174533</rosparam>
         <rosparam param="error_usbl/bearing_bias_error">0.0872665</rosparam>
 
@@ -59,7 +59,7 @@
         <rosparam param="error_usbl/random_seed">111</rosparam>
 
 
-        <rosparam param="bad_range_usbl/type">standard</rosparam>
+        <rosparam param="bad_range_usbl/configuration">standard</rosparam>
         <rosparam param="bad_range_usbl/bearing_random_error">0.0174533</rosparam>
         <rosparam param="bad_range_usbl/bearing_bias_error">0.0872665</rosparam>
 

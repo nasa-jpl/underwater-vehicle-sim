@@ -18,14 +18,14 @@ USBLModule::USBLModule(std::string name) :
 		nhPriv.param("bearing_random_error", bearingRandomError, 0.0174533); //default is 1 deg in radians
 
 	std::string typeStr = "standard";
-	nhPriv.getParam("type", typeStr);
+	nhPriv.getParam("configuration", typeStr);
 
 	if(typeStr == "standard") {
 		usblType = USBLModule::Type::Standard;
 	} else if(typeStr == "inverted") {
 		usblType = USBLModule::Type::Inverted;
 	} else {
-		ROS_WARN("USBL Module has invalid parameter for Type. Defaulting to Standard.");
+		ROS_WARN("USBL Module has invalid parameter for 'configuration'. Defaulting to Standard.");
 		usblType = USBLModule::Type::Standard;
 	}
 	nhPriv.param("bearing_random_error", bearingRandomError, 0.0174533); //default is 1 deg in radians
