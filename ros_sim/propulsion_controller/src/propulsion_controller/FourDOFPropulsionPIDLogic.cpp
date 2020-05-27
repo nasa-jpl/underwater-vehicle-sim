@@ -23,8 +23,6 @@ FourDOFPropulsionPIDLogic::FourDOFPropulsionPIDLogic(VehicleInfo& vehicleInfo) :
     minSeafloorDistance(3.0),
     horizontalScaleError(25),
     verticalErrorScale(15),
-    targetLinearVelocity(0,0,0),
-    targetAngularVelocity(0,0,0),
     xyEnabled(false),
     zEnabled(false)
 {
@@ -258,29 +256,6 @@ void FourDOFPropulsionPIDLogic::stopZ(void)
     std_msgs::Float64 msg;
     msg.data = 0;
     verticalThrustPub.publish(msg);
-}
-
-void FourDOFPropulsionPIDLogic::setTargetVelocity(const geometry_msgs::Twist vel)
-{
-    tf2::Vector3 messageLinearVelocity;
-	tf2::Vector3 messageAngularVelocity;
-
-    tf2::fromMsg(vel.linear, messageLinearVelocity);
-    tf2::fromMsg(vel.angular, messageAngularVelocity);
-
-    for(unsigned int i = 0; i < 3; i++)
-    {
-        if(!std::isnan(messageLinearVelocity[i]))
-        {
-            targetLinearVelocity[i] = messageLinearVelocity[i];
-        }
-
-        if(!std::isnan(messageAngularVelocity[i]))
-        {
-            targetAngularVelocity[i] = messageAngularVelocity[i];
-        }
-    }
-
 }
 
 bool FourDOFPropulsionPIDLogic::isAtXY(underwater_autonomy::VehiclePose& pose)

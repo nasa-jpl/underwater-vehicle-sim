@@ -34,6 +34,7 @@ struct CallbackInfo {
     bool enable;
     bool holdDepth;
     double depth;
+    double zLinearVelocity;
     ros::ServiceServer goToZServer;
 
     geometry_msgs::Twist::ConstPtr latestVelMsg = NULL;
@@ -47,19 +48,17 @@ bool propEnable(underwater_vehicle_msgs::GoToZ::Request  &req,
                uint* goToZCalls,
                bool* enable,
                bool* holdDepth,
-               double* depth)
+               double* depth,
+               double* zLinearVelocity)
 {
     (*goToZCalls)++;
     *enable = req.enable;
     *holdDepth = req.holdDepth;
     *depth = req.depth;
+    *zLinearVelocity = req.zLinearVelocity;
 
     return true;
 };
-
-void velCallback(geometry_msgs::Twist::ConstPtr val, geometry_msgs::Twist::ConstPtr *latestVelMsg) {
-    *latestVelMsg = val;
-}
 
 void setupCallbacks(ros::NodeHandle& nh, CallbackInfo& callbackInfo)
 {
@@ -67,10 +66,9 @@ void setupCallbacks(ros::NodeHandle& nh, CallbackInfo& callbackInfo)
                           underwater_vehicle_msgs::GoToZ::Response &res)> propSrvFunction(boost::bind(&propEnable, _1, _2, &callbackInfo.goToZCalls, 
                                                                                                                            &callbackInfo.enable,
                                                                                                                            &callbackInfo.holdDepth,
-                                                                                                                           &callbackInfo.depth));
+                                                                                                                           &callbackInfo.depth,
+                                                                                                                           &callbackInfo.zLinearVelocity));
     callbackInfo.goToZServer = nh.advertiseService("go_to_z", propSrvFunction);
-
-    callbackInfo.velSub = nh.subscribe<geometry_msgs::Twist>("command_target_velocity", 1, boost::bind(&velCallback, _1, &callbackInfo.latestVelMsg));
 
     callbackInfo.propStatePub = nh.advertise<underwater_vehicle_msgs::PropulsionControllerState>("prop_state", 2);
 
@@ -84,20 +82,6 @@ void waitForState(Action& action, Action::State state) {
         action.monitor(ros::Time::now().toSec());
         ros::spinOnce();
     }
-}
-
-TEST(YoYoSimActionExecutor, ExecutePropModuleTypeFail)
-{
-    ros::NodeHandle nh("ExecutePropModuleTypeFail");
-
-    ros::AsyncSpinner spinner(1);
-    spinner.start();
-
-    CallbackInfo callbackInfo;
-    setupCallbacks(nh, callbackInfo);
-
-    actionExecutePropModuleTypeFail->execute(0);
-    EXPECT_EQ(Action::State::FAILED, actionExecutePropModuleTypeFail->getState());
 }
 
 TEST(YoYoSimActionExecutor, ExecuteAndPause)
@@ -117,15 +101,7 @@ TEST(YoYoSimActionExecutor, ExecuteAndPause)
 
     actionExecuteAndPause->execute(ros::Time::now().toSec());
 
-    while(callbackInfo.latestVelMsg == NULL)
-    {
-        ros::spinOnce();
-    }
-
-    EXPECT_TRUE(std::isnan(callbackInfo.latestVelMsg->linear.x));
-    EXPECT_TRUE(std::isnan(callbackInfo.latestVelMsg->angular.z));
-    EXPECT_EQ(3, callbackInfo.latestVelMsg->linear.z);
-
+    EXPECT_EQ(3, callbackInfo.zLinearVelocity);
 
     EXPECT_EQ(1u, callbackInfo.goToZCalls);
     EXPECT_TRUE(callbackInfo.enable);
@@ -157,13 +133,7 @@ TEST(YoYoSimActionExecutor, ExecuteAndSucceed)
 
     actionExecuteAndSucceed->execute(0);
 
-    while(callbackInfo.latestVelMsg == NULL)
-    {
-        ros::spinOnce();
-    }
-    EXPECT_TRUE(std::isnan(callbackInfo.latestVelMsg->linear.x));
-    EXPECT_TRUE(std::isnan(callbackInfo.latestVelMsg->angular.z));
-    EXPECT_EQ(3, callbackInfo.latestVelMsg->linear.z);
+    EXPECT_EQ(3, callbackInfo.zLinearVelocity);
 
     EXPECT_EQ(1u, callbackInfo.goToZCalls);
     EXPECT_TRUE(callbackInfo.enable);
@@ -213,11 +183,7 @@ TEST(YoYoSimActionExecutor, ExecuteAndOutOfRegion)
     callbackInfo.propStatePub.publish(state);
 
     actionExecuteAndOutOfRegion->execute(ros::Time::now().toSec());
-    while(callbackInfo.latestVelMsg == NULL)
-    {
-        ros::spinOnce();
-    }
-    EXPECT_EQ(3, callbackInfo.latestVelMsg->linear.z);
+    EXPECT_EQ(3, callbackInfo.zLinearVelocity);
 
     EXPECT_EQ(1u, callbackInfo.goToZCalls);
     EXPECT_TRUE(callbackInfo.enable);
@@ -253,14 +219,7 @@ TEST(YoYoSimActionExecutor, TimeReplan)
     ros::Publisher posePub = nh.advertise<nav_msgs::Odometry>("primary_navigation", 2);
 
     actionTimeReplan->execute(0);
-
-    while(callbackInfo.latestVelMsg == NULL)
-    {
-        ros::spinOnce();
-    }
-    EXPECT_TRUE(std::isnan(callbackInfo.latestVelMsg->linear.x));
-    EXPECT_TRUE(std::isnan(callbackInfo.latestVelMsg->angular.z));
-    EXPECT_EQ(3, callbackInfo.latestVelMsg->linear.z);
+    EXPECT_EQ(3, callbackInfo.zLinearVelocity);
 
     EXPECT_EQ(1u, callbackInfo.goToZCalls);
     EXPECT_EQ(1, callbackInfo.depth);
@@ -291,13 +250,7 @@ TEST(YoYoSimActionExecutor, DistanceReplan)
 
     actionDistanceReplan->execute(ros::Time::now().toSec());
 
-    while(callbackInfo.latestVelMsg == NULL)
-    {
-        ros::spinOnce();
-    }
-    EXPECT_TRUE(std::isnan(callbackInfo.latestVelMsg->linear.x));
-    EXPECT_TRUE(std::isnan(callbackInfo.latestVelMsg->angular.z));
-    EXPECT_EQ(3, callbackInfo.latestVelMsg->linear.z);
+    EXPECT_EQ(3, callbackInfo.zLinearVelocity);
 
     EXPECT_EQ(1u, callbackInfo.goToZCalls);
     EXPECT_EQ(1, callbackInfo.depth);
@@ -343,13 +296,7 @@ TEST(YoYoSimActionExecutor, TurnReplan)
 
     actionTurnReplan->execute(0);
 
-    while(callbackInfo.latestVelMsg == NULL)
-    {
-        ros::spinOnce();
-    }
-    EXPECT_TRUE(std::isnan(callbackInfo.latestVelMsg->linear.x));
-    EXPECT_TRUE(std::isnan(callbackInfo.latestVelMsg->angular.z));
-    EXPECT_EQ(3, callbackInfo.latestVelMsg->linear.z);
+    EXPECT_EQ(3, callbackInfo.zLinearVelocity);
 
     EXPECT_EQ(1u, callbackInfo.goToZCalls);
     EXPECT_EQ(1, callbackInfo.depth);
@@ -422,18 +369,6 @@ int main(int argc, char** argv){
     underwater_vehicle_msgs::GetVehicleInfo infoMsg;
     infoMsg.response.propModuleType = "FourDOFPropulsion";
     VehicleInfo info(infoMsg);
-
-    ros::NodeHandle nhExecutePropModuleTypeFail("ExecutePropModuleTypeFail");
-    YoYoAction::setExecutorCreateFunction(std::bind(&YoYoSimActionExecutor::create, std::placeholders::_1,  nhExecutePropModuleTypeFail, invalidInfo));
-    actionExecutePropModuleTypeFail = std::shared_ptr<YoYoAction>(new YoYoAction(0,
-                                                                                0,
-                                                                                0,
-                                                                                0,
-                                                                                0,
-                                                                                std::unique_ptr<OperationRegion>(new BoxOperationRegion()),
-                                                                                YoYoAction::ReplanType::NONE,
-                                                                                0)); 
-    actionExecutePropModuleTypeFail->initActionExecutor();
 
     ros::NodeHandle nhExecuteAndPause("ExecuteAndPause");
     YoYoAction::setExecutorCreateFunction(std::bind(&YoYoSimActionExecutor::create, std::placeholders::_1,  nhExecuteAndPause, info));

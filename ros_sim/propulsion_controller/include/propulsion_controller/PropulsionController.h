@@ -40,7 +40,6 @@ public:
 
 private:
 	void navigationFilterCallback(const nav_msgs::Odometry odo);
-	void getTargetVelocityCommand(const geometry_msgs::Twist vel);
 	void getVehicleData(const underwater_vehicle_msgs::VehicleData data);
 
 	//Go To XY
@@ -90,7 +89,6 @@ private:
 	
 	ros::Subscriber dataSub;
 
-	ros::Subscriber velSub;
 	ros::Subscriber poseSub;
 
 	underwater_autonomy::VehiclePose currentPose;

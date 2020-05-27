@@ -75,11 +75,6 @@ bool UthPropulsionLogic::isAtZ(VehiclePose& pose)
     return atZ;
 }
 
-void UthPropulsionLogic::setTargetVelocity(const geometry_msgs::Twist vel)
-{
-    targetVelocity = vel;
-}
-
 void UthPropulsionLogic::processNewData(const underwater_vehicle_msgs::VehicleData data)
 {
     newData = data;
@@ -97,7 +92,5 @@ int UthPropulsionLogic::getStopZCalls() {return stopZCalls;}
 
 void UthPropulsionLogic::setAtXY(bool atXY) {this->atXY = atXY;}
 void UthPropulsionLogic::setAtZ(bool atZ) {this->atZ = atZ;}
-
-geometry_msgs::Twist UthPropulsionLogic::getTargetVelocity() {return targetVelocity;}
 
 underwater_vehicle_msgs::VehicleData UthPropulsionLogic::getNewData() {return newData;}

@@ -30,7 +30,6 @@ public:
 	bool isAtXY(underwater_autonomy::VehiclePose& pose) override;
 	bool isAtZ(underwater_autonomy::VehiclePose& pose) override;
 
-	void setTargetVelocity(const geometry_msgs::Twist vel) override;
 	void processNewData(const underwater_vehicle_msgs::VehicleData data) override;
 
 	bool getXYMovement();
@@ -45,8 +44,6 @@ public:
 
 	void setAtXY(bool atXY);
 	void setAtZ(bool atZ);
-
-	geometry_msgs::Twist getTargetVelocity();
 
 	underwater_vehicle_msgs::VehicleData getNewData();
 
@@ -73,8 +70,6 @@ private:
 
 	bool atXY;
 	bool atZ;
-
-	geometry_msgs::Twist targetVelocity;
 
 	underwater_vehicle_msgs::VehicleData newData;
 };

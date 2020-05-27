@@ -35,6 +35,7 @@ struct CallbackInfo {
     bool enable;
     bool holdDepth;
     double depth;
+    double zLinearVelocity;
     ros::ServiceServer goToZServer;
 
     geometry_msgs::Twist::ConstPtr latestVelMsg = NULL;
@@ -46,19 +47,16 @@ bool propEnable(underwater_vehicle_msgs::GoToZ::Request  &req,
                uint* goToZCalls,
                bool* enable,
                bool* holdDepth,
-               double* depth)
+               double* depth,
+               double* zLinearVelocity)
 {
     (*goToZCalls)++;
     *enable = req.enable;
     *holdDepth = req.holdDepth;
     *depth = req.depth;
-
+    *zLinearVelocity = req.zLinearVelocity;
     return true;
 };
-
-void velCallback(geometry_msgs::Twist::ConstPtr val, geometry_msgs::Twist::ConstPtr *latestVelMsg) {
-    *latestVelMsg = val;
-}
 
 void setupCallbacks(ros::NodeHandle& nh, CallbackInfo& callbackInfo)
 {
@@ -66,10 +64,9 @@ void setupCallbacks(ros::NodeHandle& nh, CallbackInfo& callbackInfo)
                           underwater_vehicle_msgs::GoToZ::Response &res)> propSrvFunction(boost::bind(&propEnable, _1, _2, &callbackInfo.goToZCalls, 
                                                                                                                            &callbackInfo.enable,
                                                                                                                            &callbackInfo.holdDepth,
-                                                                                                                           &callbackInfo.depth));
+                                                                                                                           &callbackInfo.depth,
+                                                                                                                           &callbackInfo.zLinearVelocity));
     callbackInfo.goToZServer = nh.advertiseService("go_to_z", propSrvFunction);
-
-    callbackInfo.velSub = nh.subscribe<geometry_msgs::Twist>("command_target_velocity", 1, boost::bind(&velCallback, _1, &callbackInfo.latestVelMsg));
 
     ros::ServiceClient propServiceClient = nh.serviceClient<underwater_vehicle_msgs::GoToZ>("go_to_z");
     propServiceClient.waitForExistence();
@@ -81,29 +78,6 @@ void waitForState(Action& action, Action::State state) {
         action.monitor(ros::Time::now().toSec());
         ros::spinOnce();
     }
-}
-
-TEST(HoldDepthSimActionExecutor, ExecutePropModuleTypeFail)
-{
-    ros::NodeHandle nh("ExecutePropModuleTypeFail");
-
-    ros::AsyncSpinner spinner(1);
-    spinner.start();
-
-    CallbackInfo callbackInfo;
-    setupCallbacks(nh, callbackInfo);
-
-    std::shared_ptr<HoldDepthAction> action(new HoldDepthAction(0,
-                                                                0,
-                                                                0,
-                                                                0,
-                                                                NULL,
-                                                                HoldDepthAction::ReplanType::NONE,
-                                                                0)); 
-
-    actionExecutePropModuleTypeFail->execute(ros::Time::now().toSec());
-
-    EXPECT_EQ(Action::State::FAILED, actionExecutePropModuleTypeFail->getState());
 }
 
 TEST(HoldDepthSimActionExecutor, ExecuteAndPause)
@@ -120,12 +94,7 @@ TEST(HoldDepthSimActionExecutor, ExecuteAndPause)
 
     actionExecuteAndPause->execute(ros::Time::now().toSec());
 
-    while(callbackInfo.latestVelMsg == NULL)
-    {
-        ros::spinOnce();
-    }
-
-    EXPECT_EQ(1, callbackInfo.latestVelMsg->linear.z);
+    EXPECT_EQ(1, callbackInfo.zLinearVelocity);
     EXPECT_EQ(1u, callbackInfo.goToZCalls);
     EXPECT_TRUE(callbackInfo.enable);
     EXPECT_EQ(5, callbackInfo.depth);
@@ -151,11 +120,7 @@ TEST(HoldDepthSimActionExecutor, ExecuteAndSucceed)
 
     actionExecuteAndSucceed->execute(0);
 
-    while(callbackInfo.latestVelMsg == NULL)
-    {
-        ros::spinOnce();
-    }
-    EXPECT_EQ(1, callbackInfo.latestVelMsg->linear.z);
+    EXPECT_EQ(1, callbackInfo.zLinearVelocity);
     EXPECT_EQ(1u, callbackInfo.goToZCalls);
     EXPECT_EQ(Action::State::EXECUTING, actionExecuteAndSucceed->getState());
     EXPECT_EQ(5, callbackInfo.depth);
@@ -181,11 +146,7 @@ TEST(YoYoSimActionExecutor, ExecuteAndOutOfRegion)
     ros::Publisher posePub = nh.advertise<nav_msgs::Odometry>("primary_navigation", 2);
 
     actionExecuteAndOutOfRegion->execute(ros::Time::now().toSec());
-    while(callbackInfo.latestVelMsg == NULL)
-    {
-        ros::spinOnce();
-    }
-    EXPECT_EQ(1, callbackInfo.latestVelMsg->linear.z);
+    EXPECT_EQ(1, callbackInfo.zLinearVelocity);
     EXPECT_EQ(1u, callbackInfo.goToZCalls);
     EXPECT_EQ(Action::State::EXECUTING, actionExecuteAndOutOfRegion->getState());
 
@@ -214,11 +175,7 @@ TEST(HoldDepthSimActionExecutor, TimeReplan)
     ros::Publisher posePub = nh.advertise<nav_msgs::Odometry>("primary_navigation", 2);
     actionTimeReplan->execute(0);
 
-    while(callbackInfo.latestVelMsg == NULL)
-    {
-        ros::spinOnce();
-    }
-    EXPECT_EQ(1, callbackInfo.latestVelMsg->linear.z);
+    EXPECT_EQ(1, callbackInfo.zLinearVelocity);
     EXPECT_EQ(1u, callbackInfo.goToZCalls);
     EXPECT_TRUE(callbackInfo.enable);
     EXPECT_EQ(5, callbackInfo.depth);
@@ -242,11 +199,7 @@ TEST(HoldDepthSimActionExecutor, DistanceReplan)
 
     actionDistanceReplan->execute(ros::Time::now().toSec());
 
-    while(callbackInfo.latestVelMsg == NULL)
-    {
-        ros::spinOnce();
-    }
-    EXPECT_EQ(1, callbackInfo.latestVelMsg->linear.z);
+    EXPECT_EQ(1, callbackInfo.zLinearVelocity);
     EXPECT_EQ(1u, callbackInfo.goToZCalls);
     EXPECT_TRUE(callbackInfo.enable);
     EXPECT_EQ(5, callbackInfo.depth);
@@ -309,17 +262,6 @@ int main(int argc, char** argv){
     underwater_vehicle_msgs::GetVehicleInfo infoMsg;
     infoMsg.response.propModuleType = "FourDOFPropulsion";
     VehicleInfo info(infoMsg);
-
-    ros::NodeHandle nhExecutePropModuleTypeFail("ExecutePropModuleTypeFail");
-    HoldDepthAction::setExecutorCreateFunction(std::bind(&HoldDepthSimActionExecutor::create, std::placeholders::_1,  nhExecutePropModuleTypeFail, invalidInfo));
-    actionExecutePropModuleTypeFail = std::shared_ptr<HoldDepthAction>(new HoldDepthAction(0,
-                                                                                        0,
-                                                                                        0,
-                                                                                        0,
-                                                                                        std::unique_ptr<OperationRegion>(new BoxOperationRegion()),
-                                                                                        HoldDepthAction::ReplanType::NONE,
-                                                                                        0));
-    actionExecutePropModuleTypeFail->initActionExecutor();
 
     ros::NodeHandle nhExecuteAndPause("ExecuteAndPause");
     HoldDepthAction::setExecutorCreateFunction(std::bind(&HoldDepthSimActionExecutor::create, std::placeholders::_1,  nhExecuteAndPause, info));

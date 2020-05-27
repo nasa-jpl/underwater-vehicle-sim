@@ -25,7 +25,6 @@ FollowHeadingSimActionExecutor::FollowHeadingSimActionExecutor(underwater_autono
     lastReplanTime(0),
     distanceSinceReplan(0)
 {
-    velPub = nh.advertise<geometry_msgs::Twist>("command_target_velocity", 1000, true);
     poseSub = nh.subscribe("primary_navigation", 1, &FollowHeadingSimActionExecutor::navigationFilterCallback, this);
 
     followHeadingClient = nh.serviceClient<underwater_vehicle_msgs::FollowHeading>("follow_heading");
@@ -34,30 +33,6 @@ FollowHeadingSimActionExecutor::FollowHeadingSimActionExecutor(underwater_autono
 void FollowHeadingSimActionExecutor::execute()
 {
     ROS_INFO("Execute follow heading action");
-
-    if(vehicleInfo.getPropModuleType() == "FourDOFPropulsion")
-    {
-        //Send target velocities command
-        geometry_msgs::Twist velMsg;
-
-        velMsg.linear.x = action.getTargetHorizontalVelocity();
-        velMsg.linear.y = 0;
-
-        //z is set to nan as we do not want to modify it
-        velMsg.linear.z = std::numeric_limits<double>::quiet_NaN();
-
-        velMsg.angular.x = 0;
-        velMsg.angular.y = 0;
-        velMsg.angular.z = action.getTargetRotationalVelocity();
-    
-        velPub.publish(velMsg);
-
-    }
-    else //If the prop module is not known then this cannot be completed
-    {
-        action.fail(action.getLatestTime());
-        return;
-    }
 
     //Check that we have someone listening to us
     followHeadingClient.waitForExistence(ros::Duration(10));
@@ -72,6 +47,8 @@ void FollowHeadingSimActionExecutor::execute()
     underwater_vehicle_msgs::FollowHeading followHeadingMsg;
     followHeadingMsg.request.heading = action.getHeading();
     followHeadingMsg.request.enable = true;
+    followHeadingMsg.request.xLinearVelocity = action.getTargetHorizontalVelocity();
+    followHeadingMsg.request.zAngularVelocity = action.getTargetRotationalVelocity();
 
     if(followHeadingClient.call(followHeadingMsg)) 
     {

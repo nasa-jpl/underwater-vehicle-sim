@@ -26,7 +26,6 @@ YoYoSimActionExecutor::YoYoSimActionExecutor(underwater_autonomy::YoYoAction& ac
     distanceSinceReplan(0)
 {
     propStateSub = nh.subscribe("prop_state", 1, &YoYoSimActionExecutor::propStateCallback, this);
-    velPub = nh.advertise<geometry_msgs::Twist>("command_target_velocity", 1000, true);
     poseSub = nh.subscribe("primary_navigation", 1, &YoYoSimActionExecutor::navigationFilterCallback, this);
     goToZClient = nh.serviceClient<underwater_vehicle_msgs::GoToZ>("go_to_z");
 }
@@ -34,31 +33,6 @@ YoYoSimActionExecutor::YoYoSimActionExecutor(underwater_autonomy::YoYoAction& ac
 void YoYoSimActionExecutor::execute()
 {
     ROS_INFO("Execute yoyo action");
-
-    if(vehicleInfo.getPropModuleType() == "FourDOFPropulsion")
-    {
-        //Send target velocities command
-        geometry_msgs::Twist velMsg;
-
-        //xy is set to nan as we do not want to modify it
-        velMsg.linear.x = std::numeric_limits<double>::quiet_NaN();
-        velMsg.linear.y = std::numeric_limits<double>::quiet_NaN();
-
-        velMsg.linear.z = action.getTargetVerticalVelocity();
-
-        velMsg.angular.x = std::numeric_limits<double>::quiet_NaN();
-        velMsg.angular.y = std::numeric_limits<double>::quiet_NaN();
-        velMsg.angular.z = std::numeric_limits<double>::quiet_NaN();
-    
-        velPub.publish(velMsg);
-    }
-    else //If the prop module is not known then this cannot be completed
-    {
-        action.fail(action.getLatestTime());
-        return;
-    }
-
-    waitForPropStateSetup();
 
     //Check that we have someone listening to us
     goToZClient.waitForExistence(ros::Duration(10));
@@ -68,6 +42,7 @@ void YoYoSimActionExecutor::execute()
         return;
     }
 
+    waitForPropStateSetup();
 
     //Creates an action goal and sends it to the action server for point path movement
     if(sendNewGoToZGoal())
@@ -174,7 +149,7 @@ bool YoYoSimActionExecutor::sendNewGoToZGoal()
 
     goToZMsg.request.enable = true;
     goToZMsg.request.holdDepth = false;
-
+    goToZMsg.request.zLinearVelocity = action.getTargetVerticalVelocity();
     if(!goToZClient.call(goToZMsg))
     {
         action.fail(action.getLatestTime());

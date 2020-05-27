@@ -1,7 +1,9 @@
 #include "propulsion_controller/PropulsionLogicInterface.h"
 
 PropulsionLogicInterface::PropulsionLogicInterface(VehicleInfo& vehicleInfo) :
-	vehicleInfo(vehicleInfo)
+	vehicleInfo(vehicleInfo),
+    targetLinearVelocity(0,0,0),
+    targetAngularVelocity(0,0,0)
 {}
 
 void PropulsionLogicInterface::setTargetXY(double x, double y)
@@ -38,4 +40,14 @@ double PropulsionLogicInterface::getFollowHeading()
 void PropulsionLogicInterface::setFollowHeading(double heading)
 {
     targetHeading = heading;
+}
+
+void PropulsionLogicInterface::setVelocityXY(double xLinearVelocity, double yLinearVelocity, double zAngularVelocity) {
+    targetLinearVelocity[0] = xLinearVelocity;
+    targetLinearVelocity[1] = yLinearVelocity;
+    targetAngularVelocity[2] = zAngularVelocity;
+}
+
+void PropulsionLogicInterface::setVelocityZ(double zLinearVelocity) {
+    targetLinearVelocity[2] = zLinearVelocity;
 }

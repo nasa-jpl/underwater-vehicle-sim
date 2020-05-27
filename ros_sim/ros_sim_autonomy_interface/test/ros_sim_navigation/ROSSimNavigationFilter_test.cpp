@@ -180,7 +180,7 @@ TEST(ROSSimNavigationFilter, TrueNavigation)
     //Body frame angular velocity between pose 1 and pose 2
     targetPoses[2].setAngularVelocity(Eigen::Vector3d(0, 0, (M_PI / 4) / (transformStamped2.header.stamp.toSec() - transformStamped1.header.stamp.toSec())));
 
-    ASSERT_EQ(3, poses.size());
+    ASSERT_EQ(3u, poses.size());
     EXPECT_TRUE(targetPoses[0] == poses[0]);
     //pose 1 is not checked becuase we do not know the twist as we do not know when the filter was initialized
 
