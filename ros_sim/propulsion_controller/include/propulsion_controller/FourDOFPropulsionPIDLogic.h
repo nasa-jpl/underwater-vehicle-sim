@@ -56,9 +56,6 @@ private:
 	double horizontalScaleError;
 	double verticalErrorScale;
 
-	tf2::Vector3 targetLinearVelocity;
-	tf2::Vector3 targetAngularVelocity;
-
 	geometry_msgs::Vector3 lastLinearVelocity;
     geometry_msgs::Vector3 lastAngularVelocity;
 

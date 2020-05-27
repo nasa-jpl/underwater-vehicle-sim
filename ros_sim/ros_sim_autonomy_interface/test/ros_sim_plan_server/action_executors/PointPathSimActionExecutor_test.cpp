@@ -34,10 +34,12 @@ struct CallbackInfo {
     bool enable;
     double x;
     double y;
+    double xLinearVelocity;
+    double zAngularVelocity;
+
     ros::ServiceServer goToXYServer;
 
     geometry_msgs::Twist::ConstPtr latestVelMsg = NULL;
-    ros::Subscriber velSub;
 
     ros::Publisher propStatePub;
 };
@@ -47,19 +49,19 @@ bool propEnable(underwater_vehicle_msgs::GoToXY::Request  &req,
                uint* goToXYCalls,
                bool* enable,
                double* x,
-               double* y) 
+               double* y,
+               double* xLinearVelocity,
+               double* zAngularVelocity) 
 {
     (*goToXYCalls)++;
     *enable = req.enable;
     *x = req.x;
     *y = req.y;
+    *xLinearVelocity = req.xLinearVelocity;
+    *zAngularVelocity = req.zAngularVelocity;
 
     return true;
 };
-
-void velCallback(geometry_msgs::Twist::ConstPtr val, geometry_msgs::Twist::ConstPtr *latestVelMsg) {
-    *latestVelMsg = val;
-}
 
 void setupCallbacks(ros::NodeHandle& nh, CallbackInfo& callbackInfo)
 {
@@ -67,10 +69,10 @@ void setupCallbacks(ros::NodeHandle& nh, CallbackInfo& callbackInfo)
                           underwater_vehicle_msgs::GoToXY::Response &res)> propSrvFunction(boost::bind(&propEnable, _1, _2, &callbackInfo.goToXYCalls, 
                                                                                                                            &callbackInfo.enable,
                                                                                                                            &callbackInfo.x,
-                                                                                                                           &callbackInfo.y));
+                                                                                                                           &callbackInfo.y,
+                                                                                                                           &callbackInfo.xLinearVelocity,
+                                                                                                                           &callbackInfo.zAngularVelocity));
     callbackInfo.goToXYServer = nh.advertiseService("go_to_xy", propSrvFunction);
-
-    callbackInfo.velSub = nh.subscribe<geometry_msgs::Twist>("command_target_velocity", 1, boost::bind(&velCallback, _1, &callbackInfo.latestVelMsg));
 
     callbackInfo.propStatePub = nh.advertise<underwater_vehicle_msgs::PropulsionControllerState>("prop_state", 2);
 
@@ -84,20 +86,6 @@ void waitForState(Action& action, Action::State state) {
         action.monitor(ros::Time::now().toSec());
         ros::spinOnce();
     }
-}
-
-TEST(PointPathSimActionExecutor, ExecutePropModuleTypeFail)
-{
-    ros::NodeHandle nh("ExecutePropModuleTypeFail");
-
-    ros::AsyncSpinner spinner(1);
-    spinner.start();
-
-    CallbackInfo callbackInfo;
-    setupCallbacks(nh, callbackInfo);
-
-    actionExecutePropModuleTypeFail->execute(0);
-    EXPECT_EQ(Action::State::FAILED, actionExecutePropModuleTypeFail->getState());
 }
 
 TEST(PointPathSimActionExecutor, ExecuteAndPause)
@@ -119,12 +107,8 @@ TEST(PointPathSimActionExecutor, ExecuteAndPause)
 
     actionExecuteAndPause->execute(ros::Time::now().toSec());
 
-    while(callbackInfo.latestVelMsg == NULL)
-    {
-        ros::spinOnce();
-    }
-    EXPECT_EQ(1, callbackInfo.latestVelMsg->linear.x);
-    EXPECT_EQ(2, callbackInfo.latestVelMsg->angular.z);
+    EXPECT_EQ(1, callbackInfo.xLinearVelocity);
+    EXPECT_EQ(2, callbackInfo.zAngularVelocity);
 
     EXPECT_EQ(1u, callbackInfo.goToXYCalls);
     EXPECT_EQ(1, callbackInfo.x);
@@ -158,12 +142,8 @@ TEST(PointPathSimActionExecutor, ExecuteAndSucceed)
     //Execute Action
     actionExecuteAndSucceed->execute(ros::Time::now().toSec());
 
-    while(callbackInfo.latestVelMsg == NULL)
-    {
-        ros::spinOnce();
-    }
-    EXPECT_EQ(1, callbackInfo.latestVelMsg->linear.x);
-    EXPECT_EQ(2, callbackInfo.latestVelMsg->angular.z);
+    EXPECT_EQ(1, callbackInfo.xLinearVelocity);
+    EXPECT_EQ(2, callbackInfo.zAngularVelocity);
     EXPECT_EQ(1u, callbackInfo.goToXYCalls);
     EXPECT_EQ(1, callbackInfo.x);
     EXPECT_EQ(2, callbackInfo.y);
@@ -275,12 +255,8 @@ TEST(PointPathSimActionExecutor, ExecuteAndOutOfRegion)
     callbackInfo.propStatePub.publish(state);
 
     actionExecuteAndOutOfRegion->execute(ros::Time::now().toSec());
-    while(callbackInfo.latestVelMsg == NULL)
-    {
-        ros::spinOnce();
-    }
-    EXPECT_EQ(1, callbackInfo.latestVelMsg->linear.x);
-    EXPECT_EQ(2, callbackInfo.latestVelMsg->angular.z);
+    EXPECT_EQ(1, callbackInfo.xLinearVelocity);
+    EXPECT_EQ(2, callbackInfo.zAngularVelocity);
 
     EXPECT_EQ(1u, callbackInfo.goToXYCalls);
     EXPECT_TRUE(callbackInfo.enable);
@@ -317,12 +293,8 @@ TEST(PointPathSimActionExecutor, TimeReplan)
 
     actionTimeReplan->execute(0);
 
-    while(callbackInfo.latestVelMsg == NULL)
-    {
-        ros::spinOnce();
-    }
-    EXPECT_EQ(1, callbackInfo.latestVelMsg->linear.x);
-    EXPECT_EQ(2, callbackInfo.latestVelMsg->angular.z);
+    EXPECT_EQ(1, callbackInfo.xLinearVelocity);
+    EXPECT_EQ(2, callbackInfo.zAngularVelocity);
 
     EXPECT_EQ(1u, callbackInfo.goToXYCalls);
     EXPECT_EQ(1, callbackInfo.x);
@@ -366,12 +338,8 @@ TEST(PointPathSimActionExecutor, DistanceReplan)
 
     actionDistanceReplan->execute(0);
 
-    while(callbackInfo.latestVelMsg == NULL)
-    {
-        ros::spinOnce();
-    }
-    EXPECT_EQ(1, callbackInfo.latestVelMsg->linear.x);
-    EXPECT_EQ(2, callbackInfo.latestVelMsg->angular.z);
+    EXPECT_EQ(1, callbackInfo.xLinearVelocity);
+    EXPECT_EQ(2, callbackInfo.zAngularVelocity);
     EXPECT_EQ(1u, callbackInfo.goToXYCalls);
 
     EXPECT_EQ(1, callbackInfo.x);
@@ -428,12 +396,8 @@ TEST(PointPathSimActionExecutor, PointReachedReplan)
 
     actionPointReachedReplan->execute(ros::Time::now().toSec());
 
-    while(callbackInfo.latestVelMsg == NULL)
-    {
-        ros::spinOnce();
-    }
-    EXPECT_EQ(1, callbackInfo.latestVelMsg->linear.x);
-    EXPECT_EQ(2, callbackInfo.latestVelMsg->angular.z);
+    EXPECT_EQ(1, callbackInfo.xLinearVelocity);
+    EXPECT_EQ(2, callbackInfo.zAngularVelocity);
     EXPECT_EQ(1u, callbackInfo.goToXYCalls);
     EXPECT_EQ(1, callbackInfo.x);
     EXPECT_EQ(2, callbackInfo.y);
@@ -505,16 +469,6 @@ int main(int argc, char** argv){
     points.push_back(Eigen::Vector3d(1,2,3));
     points.push_back(Eigen::Vector3d(2,3,4));
     points.push_back(Eigen::Vector3d(3,4,5));
-
-    PointPathAction::setExecutorCreateFunction(std::bind(&PointPathSimActionExecutor::create, std::placeholders::_1,  nhExecutePropModuleTypeFail, invalidInfo));
-    actionExecutePropModuleTypeFail = std::shared_ptr<PointPathAction>(new PointPathAction(points,
-                                                                                            0,
-                                                                                            0,
-                                                                                            0,
-                                                                                            std::unique_ptr<OperationRegion>(new BoxOperationRegion()),
-                                                                                            PointPathAction::ReplanType::NONE,
-                                                                                            0));
-    actionExecutePropModuleTypeFail->initActionExecutor();
 
     ros::NodeHandle nhExecuteAndPause("ExecuteAndPause");
     PointPathAction::setExecutorCreateFunction(std::bind(&PointPathSimActionExecutor::create, std::placeholders::_1,  nhExecuteAndPause, info));

@@ -182,37 +182,38 @@ void runSetTargetVelocityTest()
     logic.setTargetXY(10000,1000);
     logic.setTargetZ(1000);
 
-    logic.setTargetVelocity(vel1);
+    logic.setVelocityXY(1, 0, 0);
+    logic.setVelocityZ(-1);
     logic.goToXY(zeroPose);
     logic.goToZ(zeroPose);
     ros::spinOnce();
  
-    logic.setTargetVelocity(vel2);
+    logic.setVelocityXY(2, 0, 0);
+    logic.setVelocityZ(-1);
     logic.goToXY(zeroPose);
     logic.goToZ(zeroPose);
     ros::spinOnce();
  
-    logic.setTargetVelocity(vel3);
-    logic.goToXY(zeroPose);
-    logic.goToZ(zeroPose);
+    logic.setVelocityXY(std::numeric_limits<double>::infinity(), 0, std::numeric_limits<double>::infinity());
+    logic.setVelocityZ(std::numeric_limits<double>::infinity());
     ros::Duration(1.0).sleep(); //Allows messages to propogate through the ROS system
     ros::spinOnce();
 
-    ASSERT_EQ(1, forwardEnables.size());
+    ASSERT_EQ(1u, forwardEnables.size());
     EXPECT_TRUE(forwardEnables[0].data);
 
-    ASSERT_EQ(1, verticalEnables.size());
+    ASSERT_EQ(1u, verticalEnables.size());
     EXPECT_TRUE(verticalEnables[0].data);
 
-    ASSERT_EQ(1, rudderEnables.size());
+    ASSERT_EQ(1u, rudderEnables.size());
     EXPECT_TRUE(rudderEnables[0].data);
 
 
-    ASSERT_EQ(2, forwardSetpoints.size());
+    ASSERT_EQ(2u, forwardSetpoints.size());
     EXPECT_NEAR(1, forwardSetpoints[0].data, 0.00000001);
     EXPECT_NEAR(2, forwardSetpoints[1].data, 0.00000001);
 
-    ASSERT_EQ(2, verticalSetpoints.size());
+    ASSERT_EQ(2u, verticalSetpoints.size());
     EXPECT_NEAR(-1, verticalSetpoints[0].data, 0.00000001);
     EXPECT_NEAR(-1, verticalSetpoints[1].data, 0.00000001);
     
@@ -239,8 +240,8 @@ void runGoToXYTest()
     vel1.angular.y = 0;
     vel1.angular.z = 0;
         
-    logic.setTargetVelocity(vel1);
-
+    logic.setVelocityXY(1, 0, 0);
+    logic.setVelocityZ(1);
 
     logic.setTargetXY(1000, 1000);
     logic.goToXY(zeroPose);
@@ -292,7 +293,8 @@ void runGoToZTest()
     vel1.linear.y = 0;
     vel1.linear.z = 1;
         
-    logic.setTargetVelocity(vel1);
+    logic.setVelocityXY(1, 0, 0);
+    logic.setVelocityZ(1);
 
     logic.setTargetZ(1000);
     logic.goToZ(zeroPose);
@@ -336,8 +338,8 @@ void runFollowHeadingTest()
     vel1.angular.y = 0;
     vel1.angular.z = 0;
         
-    logic.setTargetVelocity(vel1);
-
+    logic.setVelocityXY(1, 0, 0);
+    logic.setVelocityZ(-1);
 
     logic.setFollowHeading(M_PI / 4);
     logic.followHeading(zeroPose);
@@ -389,7 +391,8 @@ void runAvoidSeafloorTest()
     vel1.angular.y = 0;
     vel1.angular.z = 0;
         
-    logic.setTargetVelocity(vel1);
+    logic.setVelocityXY(1, 0, 0);
+    logic.setVelocityZ(1);
 
     underwater_vehicle_msgs::VehicleData data1;
     data1.sonarDepth = 100;
