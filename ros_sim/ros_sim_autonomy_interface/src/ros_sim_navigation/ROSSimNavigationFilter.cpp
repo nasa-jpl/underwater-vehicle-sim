@@ -4,6 +4,9 @@
 #include "underwater_autonomy/navigation/DeadReckoningNavigationFilter.h"
 
 #include "nav_msgs/Odometry.h"
+#include "std_msgs/Float64MultiArray.h"
+#include "std_msgs/MultiArrayDimension.h"
+
 #include "underwater_vehicle_msgs/GetVehicleInfo.h"
 #include "underwater_vehicle_msgs/VehicleInfo.h"
 
@@ -17,7 +20,9 @@ ROSSimNavigationFilter::ROSSimNavigationFilter(std::string filterName, VehicleIn
     initializeNavFilter(filterName, info);
 
     ros::NodeHandle filterNh("nav_filters");
-    posePublisher = filterNh.advertise<nav_msgs::Odometry>(filterName, 1);
+    posePublisher = filterNh.advertise<nav_msgs::Odometry>(filterName + "/pose", 10);
+    statePublisher = filterNh.advertise<std_msgs::Float64MultiArray>(filterName + "/state", 10);
+    covariancePublisher = filterNh.advertise<std_msgs::Float64MultiArray>(filterName + "/covariance", 10);
 
     initializeCallbacks(filterName, info);    
 }
@@ -27,6 +32,8 @@ ROSSimNavigationFilter::ROSSimNavigationFilter(ROSSimNavigationFilter&& other) :
     filterName(std::move(other.filterName)),
     listener(buffer),
     posePublisher(std::move(other.posePublisher)),
+    statePublisher(std::move(other.statePublisher)),
+    covariancePublisher(std::move(other.covariancePublisher)),
     filter(std::move(other.filter)),
     imuData(std::move(other.imuData)),
     usblData(std::move(other.usblData)),
@@ -213,6 +220,56 @@ void ROSSimNavigationFilter::publishPose()
     }
 
     posePublisher.publish(odoMsg);
+}
+
+void ROSSimNavigationFilter::publishState()
+{
+    std::vector<double> state = filter->getStateVector();
+    std_msgs::Float64MultiArray msg;
+    std_msgs::MultiArrayDimension dim0;
+
+    msg.data.resize(state.size());
+    msg.data = state;
+
+    dim0.label = "dim0";
+    dim0.size = state.size();
+    dim0.stride = state.size();
+    msg.layout.dim.push_back(dim0);
+    msg.layout.data_offset = 0;
+
+    statePublisher.publish(msg);
+}
+
+void ROSSimNavigationFilter::publishStateCovariance()
+{
+    std::vector<std::vector<double>> covar = filter->getCovarianceMatrix();
+    std_msgs::Float64MultiArray msg;
+    std_msgs::MultiArrayDimension dim0;
+    std_msgs::MultiArrayDimension dim1;
+
+    if(covar.size() > 0) {
+        
+        std::vector<double> flattenedCovar;
+        for(std::vector<double> a : covar) {
+            flattenedCovar.insert(flattenedCovar.end(), a.begin(), a.end());
+        }
+
+        msg.data.resize(flattenedCovar.size());
+        msg.data = flattenedCovar;
+
+        dim0.label = "dim0";
+        dim0.size = covar.size();
+        dim0.stride = covar.size() * covar.size();
+        dim1.label = "dim1";
+        dim1.size = covar.size();
+        dim1.stride = covar.size();
+
+        msg.layout.dim.push_back(dim0);
+        msg.layout.dim.push_back(dim1);
+        msg.layout.data_offset = 0;
+
+        covariancePublisher.publish(msg);
+    }
 }
 
 void ROSSimNavigationFilter::sendPoseToFilter()

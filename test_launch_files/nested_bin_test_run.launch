@@ -69,7 +69,7 @@
         <rosparam param="rudder_angle">[-45,0,45]</rosparam>
         <rosparam param="rudder_velocity">[-0.349066,0,0.349066]</rosparam>
 
-        <remap from="primary_navigation" to="nav_filters/true_nav" />
+        <remap from="primary_navigation" to="nav_filters/true_nav/pose" />
         <remap from="get_state" to="get_propulsion_state" />
         <remap from="state" to="prop_state" />
 
@@ -155,7 +155,7 @@
         <rosparam param="filter_names">[true_nav]</rosparam>
         <rosparam param="filter/true_nav/type">TrueNavigation</rosparam>
 
-        <remap from="primary_navigation" to="nav_filters/true_nav" />
+        <remap from="primary_navigation" to="nav_filters/true_nav/pose" />
     </node>
 
     <!--Autonomy-->
@@ -166,7 +166,7 @@
         <rosparam param="fail_time">5011200</rosparam>
         <rosparam param="cancel_timeout">60</rosparam>
 
-        <remap from="primary_navigation" to="nav_filters/true_nav" />
+        <remap from="primary_navigation" to="nav_filters/true_nav/pose" />
     </node>
 
     <param name="use_sim_time" value="true" />

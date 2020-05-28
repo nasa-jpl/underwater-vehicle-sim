@@ -27,6 +27,8 @@ public:
 
     void update();
     void publishPose();
+    void publishState();
+    void publishStateCovariance();
 
 private:
     void initializeCallbacks(std::string& filterName, VehicleInfo& info);
@@ -52,6 +54,9 @@ private:
 
     
     ros::Publisher posePublisher;
+    ros::Publisher statePublisher;
+    ros::Publisher covariancePublisher;
+
     std::unique_ptr<underwater_autonomy::NavigationFilter> filter;
 
     ros::Subscriber imuData;

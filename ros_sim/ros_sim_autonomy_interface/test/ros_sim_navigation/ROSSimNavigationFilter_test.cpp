@@ -79,7 +79,7 @@ TEST(ROSSimNavigationFilter, TrueNavigation)
     ros::NodeHandle nhRoot;
 
     std::vector<VehiclePose> targetPoses;
-    ros::Subscriber poseSub = nhRoot.subscribe("/v1/nav_filters/true_nav", 10, &filterPoseCallback);
+    ros::Subscriber poseSub = nhRoot.subscribe("/v1/nav_filters/true_nav/pose", 10, &filterPoseCallback);
 
 
     underwater_vehicle_msgs::GetVehicleInfo infoSrv;
@@ -168,7 +168,6 @@ TEST(ROSSimNavigationFilter, TrueNavigation)
     while(poses.size() != 3)
     {
         ros::Duration(1).sleep();
-        ros::spinOnce();
         ros::spinOnce();
     }
    
