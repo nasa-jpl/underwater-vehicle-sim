@@ -14,7 +14,6 @@
 #include "tf2_ros/transform_listener.h"
 
 #include "propulsion_controller/PropulsionLogicInterface.h"
-#include "propulsion_controller/PropulsionControllerState.h"
 
 #include "underwater_vehicle_msgs/GetVehicleInfo.h"
 #include "underwater_vehicle_msgs/VehicleInfo.h"
@@ -57,8 +56,6 @@ private:
                                underwater_vehicle_msgs::FollowHeading::Response &res);
 	void followHeadingUpdate(void);
 
-	bool getState(propulsion_controller::PropulsionControllerState::Request  &req,
-                  propulsion_controller::PropulsionControllerState::Response &res);
 	void publishState();
 private:
 

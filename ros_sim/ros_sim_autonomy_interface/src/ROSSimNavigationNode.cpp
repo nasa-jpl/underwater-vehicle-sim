@@ -51,13 +51,15 @@ int main(int argc, char **argv)
         exit(1);
     }
     
+    underwater_vehicle_msgs::GetVehicleInfo getInfo;
+    vehicleInfoClient.call(getInfo);
+    VehicleInfo info(getInfo);
+
+    std::shared_ptr<ROSSimVehicleInterface> interface = std::make_shared<ROSSimVehicleInterface>(info);
+
     for(std::string filterName : filterNames)
     {
-        underwater_vehicle_msgs::GetVehicleInfo getInfo;
-        vehicleInfoClient.call(getInfo);
-        VehicleInfo info(getInfo);
-
-        vehicleFilters.emplace_back(filterName, info);
+        vehicleFilters.emplace_back(filterName, interface);
     }
 
     ros::Timer timer = nh.createTimer(ros::Duration(1/loopHertz), timerCallback);

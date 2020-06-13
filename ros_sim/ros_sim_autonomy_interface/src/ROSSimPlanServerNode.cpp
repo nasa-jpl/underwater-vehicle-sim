@@ -1,19 +1,21 @@
 #include "ros/ros.h"
 
+#include "std_msgs/String.h"
+
 #include "underwater_autonomy/planner/Planner.h"
 #include "underwater_autonomy/planner/PlanDispatcher.h"
 #include "underwater_autonomy/util/BoxOperationRegion.h"
 #include "underwater_autonomy/planner/SingleActionPlanner.h"
 #include "underwater_autonomy/planner/ConfigurationFile.h"
 #include "underwater_autonomy/planner/PlannerFactory.h"
-#include "underwater_autonomy/planner/WaypointsPlanner.h"
 
 #include "ros_sim_plan_server/ROSSimPlanServer.h"
-#include "ros_sim_plan_server/ROSSimVehicleInterface.cpp"
+#include "ROSSimVehicleInterface.h"
 
 #include "vent_planner/NestedBinVentPlanner.h"
 #include "vent_planner/SurfaceGradientVentPlanner.h"
 #include "vent_planner/DirectionSetVentPlanner.h"
+#include "vent_planner/WaypointsPlanner.h"
 
 #include "navigation_planner/GoldenSelectionHomingPlanner.h"
 
@@ -62,7 +64,7 @@ int main(int argc, char **argv)
     vehicleInfoClient.call(getInfo);
     VehicleInfo info(getInfo);
 
-    ROSSimVehicleInterface interface(info);
+    std::shared_ptr<ROSSimVehicleInterface> interface = std::make_shared<ROSSimVehicleInterface>(info);
 
     YoYoAction::setExecutorCreateFunction(std::bind(&YoYoSimActionExecutor::create, std::placeholders::_1, nh, info));
     HoldDepthAction::setExecutorCreateFunction(std::bind(&HoldDepthSimActionExecutor::create, std::placeholders::_1, nh, info));

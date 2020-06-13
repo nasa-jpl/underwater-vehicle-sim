@@ -1,7 +1,7 @@
 #ifndef ROS_SIM_PLAN_SERVER_H
 #define ROS_SIM_PLAN_SERVER_H
 
-#include "ros_sim_plan_server/ROSSimVehicleInterface.h"
+#include "ROSSimVehicleInterface.h"
 
 #include "underwater_autonomy/planner/Planner.h"
 #include "underwater_autonomy/planner/PlanDispatcher.h"
@@ -12,7 +12,7 @@ class ROSSimPlanServer
 {
 public:
     ROSSimPlanServer(std::unique_ptr<underwater_autonomy::Planner> planner,
-                     ROSSimVehicleInterface& vehicleInterface,
+                     std::shared_ptr<ROSSimVehicleInterface> vehicleInterface,
                      int cancelTimeout);
     ROSSimPlanServer(ROSSimPlanServer&& other);
     ~ROSSimPlanServer() {}
@@ -23,7 +23,7 @@ public:
 
 private:
     std::unique_ptr<underwater_autonomy::Planner> planner;
-    ROSSimVehicleInterface& vehicleInterface;
+    std::shared_ptr<ROSSimVehicleInterface> vehicleInterface;
 
     underwater_autonomy::PlanDispatcher planDispatcher;
 

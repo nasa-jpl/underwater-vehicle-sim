@@ -7,20 +7,17 @@
 #include "tf2/LinearMath/Transform.h"
 #include "tf2_ros/transform_listener.h"
 
-#include "sensor_msgs/Imu.h"
-#include "underwater_vehicle_msgs/USBL.h"
-#include "underwater_vehicle_msgs/FloatMeasurement.h"
-#include "underwater_vehicle_msgs/DVL.h"
-
 #include "underwater_autonomy/navigation/NavigationFilter.h"
 
 #include "underwater_vehicle_msgs/VehicleInfo.h"
+
+#include "ROSSimVehicleInterface.h"
 
 class ROSSimNavigationFilter
 {
 public:
 
-    ROSSimNavigationFilter(std::string filterName, VehicleInfo info);
+    ROSSimNavigationFilter(std::string filterName, std::shared_ptr<ROSSimVehicleInterface> interface);
     ROSSimNavigationFilter(ROSSimNavigationFilter&& other);
     
     ~ROSSimNavigationFilter() {}
@@ -31,22 +28,10 @@ public:
     void publishStateCovariance();
 
 private:
-    void initializeCallbacks(std::string& filterName, VehicleInfo& info);
-    void initializeNavFilter(std::string& filterName, VehicleInfo& info);
-
-    void sendPoseToFilter();
-
-    void sendIMUToFilter(sensor_msgs::Imu msgData);
-    void sendDepthToFilter(underwater_vehicle_msgs::FloatMeasurement msgData);
-    void sendUSBLToFilter(underwater_vehicle_msgs::USBL msgData);
-    void sendDVLToFilter(underwater_vehicle_msgs::DVL msgData);
-
-    void sendForwardThruster(underwater_vehicle_msgs::FloatMeasurement forwardData);
-    void sendLateralThruster(underwater_vehicle_msgs::FloatMeasurement lateralData);
-
+    void initializeNavFilter(std::string& filterName);
     static std::vector<std::vector<double>> get2dArrayParam(ros::NodeHandle nh, std::string name, std::vector<std::vector<double>> defaultVal);
 private:
-    VehicleInfo info;
+    std::shared_ptr<ROSSimVehicleInterface> interface;
     std::string filterName;
 
     tf2_ros::Buffer buffer;
@@ -58,14 +43,6 @@ private:
     ros::Publisher covariancePublisher;
 
     std::unique_ptr<underwater_autonomy::NavigationFilter> filter;
-
-    ros::Subscriber imuData;
-    ros::Subscriber usblData;
-    ros::Subscriber depthData;
-    ros::Subscriber dvlData;
-
-    ros::Subscriber forwardThrusterData;
-    ros::Subscriber lateralThrusterData;
 };
 
 #endif
