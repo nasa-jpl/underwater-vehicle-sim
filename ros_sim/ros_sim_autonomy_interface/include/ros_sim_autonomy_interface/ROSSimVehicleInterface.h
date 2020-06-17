@@ -7,7 +7,6 @@
 
 #include "underwater_vehicle_msgs/VehicleInfo.h"
 #include "underwater_vehicle_msgs/VehicleData.h"
-#include "underwater_vehicle_msgs/USBL.h"
 
 #include "sensor_msgs/Imu.h"
 #include "underwater_vehicle_msgs/USBL.h"
@@ -35,7 +34,7 @@ public:
 private:
     void initializeCallbacks();
 
-    void receiveData(const underwater_vehicle_msgs::VehicleData::ConstPtr& msg);
+    void receiveModelData(const underwater_vehicle_msgs::VehicleData::ConstPtr& msg);
     void receivePose(const ros::TimerEvent& event);
     void receiveIMU(sensor_msgs::Imu msgData);
     void receiveDepth(underwater_vehicle_msgs::FloatMeasurement msgData);
@@ -53,8 +52,6 @@ private:
 
     tf2_ros::Buffer buffer;
     tf2_ros::TransformListener listener;
-
-    std::vector<std::function<void(const underwater_autonomy::PlannerData&)>> dataCallbacks;
 
     ros::Publisher goalPub;
     ros::Subscriber dataSub;

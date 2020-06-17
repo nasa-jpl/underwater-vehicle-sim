@@ -175,7 +175,7 @@
     <rosparam param="model/depth">200</rosparam>
 -->
     <rosparam param="model_type">fvcom</rosparam>
-    <rosparam param="model/fvcom_directory" subst_value="True">/home/dev/Documents/model-data/axial/</rosparam>
+    <rosparam param="model/fvcom_directory" subst_value="True">/home/dev/proj/axial/</rosparam>
     <!--<rosparam param="model/fvcom_directory" subst_value="True">/home/dev/proj/axial/</rosparam>-->
 
     <!--This is in ENU reference frame so x in East and y in North-->

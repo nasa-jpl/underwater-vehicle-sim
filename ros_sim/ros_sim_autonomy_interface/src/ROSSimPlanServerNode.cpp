@@ -10,7 +10,7 @@
 #include "underwater_autonomy/planner/PlannerFactory.h"
 
 #include "ros_sim_plan_server/ROSSimPlanServer.h"
-#include "ROSSimVehicleInterface.h"
+#include "ros_sim_autonomy_interface/ROSSimVehicleInterface.h"
 
 #include "vent_planner/NestedBinVentPlanner.h"
 #include "vent_planner/SurfaceGradientVentPlanner.h"

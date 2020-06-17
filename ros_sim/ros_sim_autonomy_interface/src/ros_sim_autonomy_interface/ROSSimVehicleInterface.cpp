@@ -1,4 +1,4 @@
-#include "ROSSimVehicleInterface.h"
+#include "ros_sim_autonomy_interface/ROSSimVehicleInterface.h"
 
 #include <limits>
 
@@ -16,27 +16,14 @@ ROSSimVehicleInterface::ROSSimVehicleInterface(VehicleInfo info) :
     listener(buffer)
 {
     ros::NodeHandle nh;
-    std::vector<std::string> data = info.getModuleNamesOfType("DataBroadcaster");
-    if(data.size() > 0)
-    {
-        dataSub = nh.subscribe(data[0] + "/data", 1, &ROSSimVehicleInterface::receiveData, this);
-    }
-    else
-    {
-        ROS_FATAL("No DataBroadcaster module in vehicle");
-    }
-
-    std::vector<std::string> usblData = info.getModuleNamesOfType("USBL");
-    if(usblData.size() > 0)
-    {
-        usblSub = nh.subscribe(usblData[0] + "/data", 1, &ROSSimVehicleInterface::receiveUSBL, this);
-    }
 
     poseSub = nh.subscribe("primary_navigation", 1, &ROSSimVehicleInterface::navigationFilterCallback, this);
     goalPub = nh.advertise<std_msgs::String>("goal", 1, true);
 
     tfTimer = nh.createTimer(ros::Duration(0.25), &ROSSimVehicleInterface::receivePose, this);
     lastTFTime = std::numeric_limits<double>::quiet_NaN();
+
+    initializeCallbacks();
 }
 
 void ROSSimVehicleInterface::sendPlannerStatus(PlannerStatus status)
@@ -98,26 +85,6 @@ void ROSSimVehicleInterface::log(LogLevel level, std::string string)
 double ROSSimVehicleInterface::getTime() const
 {
     return ros::Time::now().toSec();
-}
-
-void ROSSimVehicleInterface::receiveData(const underwater_vehicle_msgs::VehicleData::ConstPtr& msg)
-{
-    double time = msg->time.toSec();
-    VehiclePose pose(Eigen::Vector3d(msg->x, msg->y, msg->h));
-    std::map<std::string, double> data;
-
-    data["sonar_depth"] = msg->sonarDepth;
-    data["temp"] = msg->temp;
-    data["salt"] = msg->salt;
-    data["dye"] = msg->dye;
-    data["plume"] = msg->dye;
-
-    PlannerData plannerData(time, pose, data);
-
-    for(std::function<void(const PlannerData&)> cb : dataCallbacks)
-    {
-        cb(plannerData);
-    }
 }
 
 VehiclePose ROSSimVehicleInterface::getPosition() const
@@ -182,13 +149,13 @@ void ROSSimVehicleInterface::initializeCallbacks() {
     for(unsigned int i = 0; i < moduleNames.size(); i++)
     {
         ros::NodeHandle nh(moduleNames[i]);
-
         if(moduleTypes[i] == "IMU")
         {
             imuSub = nh.subscribe("data", 
                                        100, 
                                        &ROSSimVehicleInterface::receiveIMU, 
                                        this);
+
         }
         else if(moduleTypes[i] == "USBL")
         {
@@ -210,6 +177,13 @@ void ROSSimVehicleInterface::initializeCallbacks() {
                                      100, 
                                      &ROSSimVehicleInterface::receiveDVL, 
                                      this);
+        } 
+        else if (moduleTypes[i] == "DataBroadcaster") 
+        {
+            dataSub = nh.subscribe("data", 
+                                   100, 
+                                   &ROSSimVehicleInterface::receiveModelData, 
+                                   this);
         }
     }
 
@@ -240,7 +214,6 @@ void ROSSimVehicleInterface::receivePose(const ros::TimerEvent& event)
         {
             transformMsg = buffer.lookupTransform("world_ned", vehicleName, ros::Time(0));
 
-            VehiclePose pose;
             Eigen::Vector3d position (transformMsg.transform.translation.x,
                                       transformMsg.transform.translation.y,
                                       transformMsg.transform.translation.z);
@@ -249,39 +222,71 @@ void ROSSimVehicleInterface::receivePose(const ros::TimerEvent& event)
                                            transformMsg.transform.rotation.y,
                                            transformMsg.transform.rotation.z);
 
+
             if(std::isnan(lastTFTime)) {
-                lastTfPose = pose;
+                lastTfPose.setPosition(position);
+                lastTfPose.setOrientation(orientation);
                 lastTFTime = transformMsg.header.stamp.toSec();
             }
 
             double timeDelta = transformMsg.header.stamp.toSec() - lastTFTime;
-            //Extract new lateral velocity
-            Eigen::Vector3d linearVelocity = (position - lastTfPose.getPosition()) / timeDelta;
-            linearVelocity = orientation.inverse() * linearVelocity; //Rotate linear velocity into body frame from world frame
-            
-            //Extract new rotational velocity
-            Eigen::Quaterniond rotation = orientation  * lastTfPose.getOrientation().inverse();
+            if(timeDelta > 0) {
+                VehiclePose pose;
 
-            Eigen::AngleAxisd rotationAA(rotation);
-            Eigen::Vector3d angularVelocity = rotationAA.axis() * (rotationAA.angle() / timeDelta);
-            angularVelocity = orientation.inverse() * angularVelocity; //Rotate angular velocity into body frame from world frame
-            
-            
-            pose.setPosition(position);
-            pose.setOrientation(orientation);    
-            pose.setLinearVelocity(linearVelocity);
-            pose.setAngularVelocity(angularVelocity);
+                //Extract new lateral velocity
+                Eigen::Vector3d linearVelocity = (position - lastTfPose.getPosition()) / timeDelta;
+                linearVelocity = orientation.inverse() * linearVelocity; //Rotate linear velocity into body frame from world frame
 
-            publishDataToCallbacks<VehiclePose>("true_pose", pose);
+                //Extract new rotational velocity
+                Eigen::Quaterniond rotation = orientation  * lastTfPose.getOrientation().inverse();
 
-            lastTfPose = pose;
-            lastTFTime = transformMsg.header.stamp.toSec();
+                Eigen::AngleAxisd rotationAA(rotation);
+                Eigen::Vector3d angularVelocity = rotationAA.axis() * (rotationAA.angle() / timeDelta);
+                angularVelocity = orientation.inverse() * angularVelocity; //Rotate angular velocity into body frame from world frame
+
+                pose.setPosition(position);
+                pose.setOrientation(orientation);    
+                pose.setLinearVelocity(linearVelocity);
+                pose.setAngularVelocity(angularVelocity);
+
+                publishDataToCallbacks<VehiclePose>("true_pose", pose);
+
+                lastTfPose = pose;
+                lastTFTime = transformMsg.header.stamp.toSec();
+            } 
+
         }
 	}
 	catch(tf2::TransformException ex)
 	{
 		throw std::move(ex);
 	}   
+}
+
+void ROSSimVehicleInterface::receiveModelData(const underwater_vehicle_msgs::VehicleData::ConstPtr& msg)
+{
+    DoubleSensorData sonarDepth;
+    DoubleSensorData temp;
+    DoubleSensorData salt;
+    DoubleSensorData dye;
+
+    sonarDepth.data = msg->sonarDepth;
+    sonarDepth.time = msg->time.toSec();
+
+    temp.data = msg->temp;
+    temp.time = msg->time.toSec();
+
+    salt.data = msg->salt;
+    salt.time = msg->time.toSec();
+
+    dye.data = msg->dye;
+    dye.time = msg->time.toSec();
+
+    publishDataToCallbacks<DoubleSensorData>("sonar_depth", sonarDepth);
+    publishDataToCallbacks<DoubleSensorData>("temp", temp);
+    publishDataToCallbacks<DoubleSensorData>("salt", salt);
+    publishDataToCallbacks<DoubleSensorData>("dye", dye);
+    publishDataToCallbacks<DoubleSensorData>("plume", dye);
 }
 
 void ROSSimVehicleInterface::receiveIMU(sensor_msgs::Imu msgData)

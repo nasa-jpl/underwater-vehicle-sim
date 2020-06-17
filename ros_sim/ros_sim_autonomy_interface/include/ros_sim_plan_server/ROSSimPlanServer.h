@@ -1,7 +1,7 @@
 #ifndef ROS_SIM_PLAN_SERVER_H
 #define ROS_SIM_PLAN_SERVER_H
 
-#include "ROSSimVehicleInterface.h"
+#include "ros_sim_autonomy_interface/ROSSimVehicleInterface.h"
 
 #include "underwater_autonomy/planner/Planner.h"
 #include "underwater_autonomy/planner/PlanDispatcher.h"

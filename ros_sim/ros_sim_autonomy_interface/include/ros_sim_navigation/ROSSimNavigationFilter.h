@@ -11,7 +11,7 @@
 
 #include "underwater_vehicle_msgs/VehicleInfo.h"
 
-#include "ROSSimVehicleInterface.h"
+#include "ros_sim_autonomy_interface/ROSSimVehicleInterface.h"
 
 class ROSSimNavigationFilter
 {
@@ -29,7 +29,7 @@ public:
 
 private:
     void initializeNavFilter(std::string& filterName);
-    static std::vector<std::vector<double>> get2dArrayParam(ros::NodeHandle nh, std::string name, std::vector<std::vector<double>> defaultVal);
+
 private:
     std::shared_ptr<ROSSimVehicleInterface> interface;
     std::string filterName;

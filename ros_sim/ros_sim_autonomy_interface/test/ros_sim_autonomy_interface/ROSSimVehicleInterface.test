@@ -1,0 +1,5 @@
+<launch>
+ 
+ <test test-name="ros_sim_vehicle_interface_test" pkg="ros_sim_autonomy_interface" type="ros_sim_vehicle_interface_test" ns="v1">
+ </test>
+</launch>

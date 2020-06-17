@@ -131,7 +131,7 @@ include_directories(
 add_library(${PROJECT_NAME}
     src/ros_sim_navigation/ROSSimNavigationFilter.cpp
     src/ros_sim_plan_server/RosSimPlanServer.cpp
-    src/ROSSimVehicleInterface.cpp
+    src/ros_sim_autonomy_interface/ROSSimVehicleInterface.cpp
     src/ros_sim_plan_server/action_executors/PointPathSimActionExecutor.cpp
     src/ros_sim_plan_server/action_executors/FollowHeadingSimActionExecutor.cpp
     src/ros_sim_plan_server/action_executors/HoldDepthSimActionExecutor.cpp
@@ -246,6 +246,11 @@ if (CATKIN_ENABLE_TESTING)
                    test/ros_sim_plan_server/action_executors/PointPathSimActionExecutor.test
                    test/ros_sim_plan_server/action_executors/PointPathSimActionExecutor_test.cpp)
  target_link_libraries(point_path_sim_action_executor_test ros_sim_autonomy_interface ${catkin_LIBRARIES} )
+
+ add_rostest_gtest(ros_sim_vehicle_interface_test
+                   test/ros_sim_autonomy_interface/ROSSimVehicleInterface.test
+                   test/ros_sim_autonomy_interface/ROSSimVehicleInterface_test.cpp)
+ target_link_libraries(ros_sim_vehicle_interface_test ros_sim_autonomy_interface ${catkin_LIBRARIES} )
 
 endif()
 

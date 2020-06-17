@@ -1,5 +1,5 @@
 #include "ros_sim_navigation/ROSSimNavigationFilter.h"
-#include "ROSSimVehicleInterface.h"
+#include "ros_sim_autonomy_interface/ROSSimVehicleInterface.h"
 
 #include "underwater_autonomy/navigation/TrueNavigationFilter.h"
 #include "underwater_autonomy/navigation/DeadReckoningNavigationFilter.h"
@@ -60,43 +60,6 @@ void ROSSimNavigationFilter::initializeNavFilter(std::string& filterName)
         filter.reset(new DeadReckoningNavigationFilter(interface));
     }
     filter->setPose(startPose);
-
-}
-
-std::vector<std::vector<double>> ROSSimNavigationFilter::get2dArrayParam(ros::NodeHandle nh, std::string name, std::vector<std::vector<double>> defaultVal)
-{
-    std::vector<std::vector<double>> returnList;
-
-    XmlRpc::XmlRpcValue list;
-    if(nh.getParam(name, list))
-    {
-        ROS_ASSERT(list.getType() == XmlRpc::XmlRpcValue::TypeArray);
-
-        for(int i = 0; i < list.size(); i++)
-        {
-            ROS_ASSERT(list[i].getType() == XmlRpc::XmlRpcValue::TypeArray);
-            returnList.push_back({});
-            for(int j = 0; j < list[i].size(); j++)
-            {
-                ROS_ASSERT(list[i][j].getType() == XmlRpc::XmlRpcValue::TypeDouble ||
-                           list[i][j].getType() == XmlRpc::XmlRpcValue::TypeInt);
-                if(list[i][j].getType() == XmlRpc::XmlRpcValue::TypeDouble)
-                {
-                    returnList[i].push_back(static_cast<double>(list[i][j]));
-                }
-                else if(list[i][j].getType() == XmlRpc::XmlRpcValue::TypeInt)
-                {
-                    returnList[i].push_back(static_cast<int>(list[i][j]));
-                }
-            }
-        }
-    }
-    else
-    {
-        returnList = defaultVal;
-    
-    }
-    return returnList;
 }
 
 void ROSSimNavigationFilter::update()

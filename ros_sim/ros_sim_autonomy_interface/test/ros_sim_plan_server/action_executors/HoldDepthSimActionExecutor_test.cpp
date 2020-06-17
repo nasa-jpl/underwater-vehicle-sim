@@ -16,7 +16,6 @@
 #include "underwater_vehicle_msgs/GoToZ.h"
 
 #include "ros_sim_plan_server/action_executors/HoldDepthSimActionExecutor.h"
-#include "propulsion_controller/PropulsionControllerEnable.h"
 
 #include "underwater_autonomy/util/BoxOperationRegion.h"
 
