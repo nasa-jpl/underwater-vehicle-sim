@@ -74,7 +74,7 @@
         <rosparam param="rudder_angle">[-45,0,45]</rosparam>
         <rosparam param="rudder_velocity">[-0.349066,0,0.349066]</rosparam>
 
-        <remap from="primary_navigation" to="nav_filters/dead_reckon" />
+        <remap from="primary_navigation" to="nav_filters/dead_reckon/pose" />
         <remap from="get_state" to="get_propulsion_state" />
         <remap from="state" to="prop_state" />
     </node>
