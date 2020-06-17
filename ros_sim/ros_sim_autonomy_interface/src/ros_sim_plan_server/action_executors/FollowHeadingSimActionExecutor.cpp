@@ -8,7 +8,7 @@
 #include "geometry_msgs/Twist.h"
 #include "underwater_vehicle_msgs/FollowHeading.h"
 
-#include "propulsion_controller/PropulsionControllerState.h"
+#include "underwater_vehicle_msgs/PropulsionControllerState.h"
 
 #include "tf2_geometry_msgs/tf2_geometry_msgs.h"
 

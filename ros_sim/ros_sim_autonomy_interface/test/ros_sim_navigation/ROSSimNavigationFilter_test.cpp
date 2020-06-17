@@ -79,7 +79,7 @@ TEST(ROSSimNavigationFilter, TrueNavigation)
     ros::NodeHandle nhRoot;
 
     std::vector<VehiclePose> targetPoses;
-    ros::Subscriber poseSub = nhRoot.subscribe("/v1/nav_filters/true_nav", 10, &filterPoseCallback);
+    ros::Subscriber poseSub = nhRoot.subscribe("/v1/nav_filters/true_nav/pose", 10, &filterPoseCallback);
 
 
     underwater_vehicle_msgs::GetVehicleInfo infoSrv;
@@ -91,8 +91,10 @@ TEST(ROSSimNavigationFilter, TrueNavigation)
     infoSrv.response.startZ = 10.5;
 
     VehicleInfo info(infoSrv);
+
+    std::shared_ptr<ROSSimVehicleInterface> interface = std::make_shared<ROSSimVehicleInterface>(info);
     std::string filterName = "true_nav";
-    ROSSimNavigationFilter filter(filterName, info);
+    ROSSimNavigationFilter filter(filterName, interface);
 
 
     Eigen::Matrix3d m0;
@@ -121,7 +123,7 @@ TEST(ROSSimNavigationFilter, TrueNavigation)
     filter.publishPose();
 
     geometry_msgs::TransformStamped transformStamped1;
-	transformStamped1.header.stamp = ros::Time::now();
+	transformStamped1.header.stamp = ros::Time(0);
   	transformStamped1.header.frame_id = "world_ned";
   	transformStamped1.child_frame_id = "v1";
 
@@ -136,15 +138,15 @@ TEST(ROSSimNavigationFilter, TrueNavigation)
 	transformStamped1.transform.rotation.z = rotation1.z();
 	transformStamped1.transform.rotation.w = rotation1.w();
   	br.sendTransform(transformStamped1);
+
+    ros::spinOnce();
+    ros::Duration(1).sleep();
     ros::spinOnce();
 
-    filter.update();
     filter.publishPose();
 
-    ros::Duration(1).sleep();
-
     geometry_msgs::TransformStamped transformStamped2;
-	transformStamped2.header.stamp = ros::Time::now();
+	transformStamped2.header.stamp = ros::Time(1);
   	transformStamped2.header.frame_id = "world_ned";
   	transformStamped2.child_frame_id = "v1";
 
@@ -159,16 +161,17 @@ TEST(ROSSimNavigationFilter, TrueNavigation)
 	transformStamped2.transform.rotation.z = rotation2.z();
 	transformStamped2.transform.rotation.w = rotation2.w();
   	br.sendTransform(transformStamped2);
+
+    ros::spinOnce();
+    ros::Duration(1).sleep();
     ros::spinOnce();
 
-    filter.update();
     filter.publishPose();
 
     //Wait for the poses to be sent over the ros topic
     while(poses.size() != 3)
     {
         ros::Duration(1).sleep();
-        ros::spinOnce();
         ros::spinOnce();
     }
    

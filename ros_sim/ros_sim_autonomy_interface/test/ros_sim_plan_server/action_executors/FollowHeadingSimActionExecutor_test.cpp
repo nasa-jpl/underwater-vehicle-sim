@@ -16,8 +16,6 @@
 #include "underwater_vehicle_msgs/FollowHeading.h"
 
 #include "ros_sim_plan_server/action_executors/FollowHeadingSimActionExecutor.h"
-#include "propulsion_controller/PropulsionControllerState.h"
-#include "propulsion_controller/PropulsionControllerEnable.h"
 
 #include "underwater_autonomy/util/BoxOperationRegion.h"
 

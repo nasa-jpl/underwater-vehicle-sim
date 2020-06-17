@@ -15,6 +15,17 @@
 std::vector<ROSSimNavigationFilter> vehicleFilters;
 ros::ServiceClient vehicleInfoClient;
 
+void timerCallback(const ros::TimerEvent&) {
+    for(ROSSimNavigationFilter& vehicleFilter : vehicleFilters)
+    {
+        vehicleFilter.update();
+        vehicleFilter.publishPose();
+        vehicleFilter.publishState();
+        vehicleFilter.publishStateCovariance();
+
+    }
+}
+
 int main(int argc, char **argv)
 {
     ros::init(argc, argv, "ros_sim_navigation");
@@ -40,27 +51,19 @@ int main(int argc, char **argv)
         exit(1);
     }
     
+    underwater_vehicle_msgs::GetVehicleInfo getInfo;
+    vehicleInfoClient.call(getInfo);
+    VehicleInfo info(getInfo);
+
+    std::shared_ptr<ROSSimVehicleInterface> interface = std::make_shared<ROSSimVehicleInterface>(info);
+
     for(std::string filterName : filterNames)
     {
-        underwater_vehicle_msgs::GetVehicleInfo getInfo;
-        vehicleInfoClient.call(getInfo);
-        VehicleInfo info(getInfo);
-
-        vehicleFilters.emplace_back(filterName, info);
+        vehicleFilters.emplace_back(filterName, interface);
     }
 
-    ros::Rate r(loopHertz);
-    while(ros::ok())
-    {
-        for(ROSSimNavigationFilter& vehicleFilter : vehicleFilters)
-        {
-            vehicleFilter.update();
-            vehicleFilter.publishPose();
-        }
+    ros::Timer timer = nh.createTimer(ros::Duration(1/loopHertz), timerCallback);
 
-        ros::spinOnce();
-        r.sleep();
-    }
-
+    ros::spin();
     return 0;
 }

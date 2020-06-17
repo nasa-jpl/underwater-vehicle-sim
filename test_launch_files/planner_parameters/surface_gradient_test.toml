@@ -12,7 +12,7 @@ leg_length = 1000
 
 yoyo_during_spiral = true
 yoyo_min_depth = 100
-yoyo_max_depth = 2000
+yoyo_max_depth = 3000
 target_vertical_velocity_spiral = 0.25
 target_vertical_velocity_gd_yoyo = 0.25
 target_horizontal_velocity = 0.5

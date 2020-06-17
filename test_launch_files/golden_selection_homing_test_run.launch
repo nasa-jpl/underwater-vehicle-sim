@@ -74,7 +74,7 @@
         <rosparam param="rudder_angle">[-45,0,45]</rosparam>
         <rosparam param="rudder_velocity">[-0.349066,0,0.349066]</rosparam>
 
-        <remap from="primary_navigation" to="nav_filters/dead_reckon" />
+        <remap from="primary_navigation" to="nav_filters/dead_reckon/pose" />
         <remap from="get_state" to="get_propulsion_state" />
         <remap from="state" to="prop_state" />
     </node>
@@ -158,7 +158,7 @@
 
         <rosparam param="filter/dead_reckon/type">DeadReckoning</rosparam>
 
-        <remap from="primary_navigation" to="nav_filters/dead_reckon" />
+        <remap from="primary_navigation" to="nav_filters/dead_reckon/pose" />
     </node>
 
     <!--Autonomy-->
@@ -167,7 +167,7 @@
         <rosparam param="fail_time">5011200</rosparam>
         <rosparam param="cancel_timeout">60</rosparam>
         <rosparam param="hertz">1</rosparam>
-        <remap from="primary_navigation" to="nav_filters/dead_reckon" />
+        <remap from="primary_navigation" to="nav_filters/dead_reckon/pose" />
     </node>
 
     <param name="use_sim_time" value="true" />
