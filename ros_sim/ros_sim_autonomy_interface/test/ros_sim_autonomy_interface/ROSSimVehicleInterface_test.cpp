@@ -38,14 +38,14 @@ TEST(ROSSimNavigationFilter, IMUCallback)
     bool gotHeading = false;
     DoubleSensorData lastHeading;
     bool gotAngVel = false;
-    Vector3DSensorData lastAngularVelocity;
+    Vector3dData lastAngularVelocity;
 
     std::function<void(const DoubleSensorData&)> headingCB = [&](const DoubleSensorData& data) { lastHeading = data; 
                                                                                                  gotHeading = true; };
-    std::function<void(const Vector3DSensorData&)> angVelCB = [&](const Vector3DSensorData& data) { lastAngularVelocity = data; 
+    std::function<void(const Vector3dData&)> angVelCB = [&](const Vector3dData& data) { lastAngularVelocity = data; 
                                                                                                     gotAngVel = true; };
     interface.registerDataCallback<DoubleSensorData>("heading", headingCB);
-    interface.registerDataCallback<Vector3DSensorData>("angular_velocity", angVelCB);
+    interface.registerDataCallback<Vector3dData>("angular_velocity", angVelCB);
 
     ros::NodeHandle nh;
     ros::Publisher headingPub = nh.advertise<sensor_msgs::Imu>("imu/data", 1, true);
@@ -74,9 +74,9 @@ TEST(ROSSimNavigationFilter, IMUCallback)
     EXPECT_DOUBLE_EQ(M_PI, lastHeading.data);
 
     EXPECT_DOUBLE_EQ(10, lastAngularVelocity.time);
-    EXPECT_DOUBLE_EQ(1, lastAngularVelocity.x);
-    EXPECT_DOUBLE_EQ(2, lastAngularVelocity.y);
-    EXPECT_DOUBLE_EQ(3, lastAngularVelocity.z);
+    EXPECT_DOUBLE_EQ(1, lastAngularVelocity.data[0]);
+    EXPECT_DOUBLE_EQ(2, lastAngularVelocity.data[1]);
+    EXPECT_DOUBLE_EQ(3, lastAngularVelocity.data[2]);
 }
 
 TEST(ROSSimNavigationFilter, USBLCallback)
