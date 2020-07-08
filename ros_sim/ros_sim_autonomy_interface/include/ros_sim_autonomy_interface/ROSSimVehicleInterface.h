@@ -35,7 +35,6 @@ private:
     void initializeCallbacks();
 
     void receiveModelData(const underwater_vehicle_msgs::VehicleData::ConstPtr& msg);
-    void receivePose(const ros::TimerEvent& event);
     void receiveIMU(sensor_msgs::Imu msgData);
     void receiveDepth(underwater_vehicle_msgs::FloatMeasurement msgData);
     void receiveUSBL(underwater_vehicle_msgs::USBL msgData);
@@ -50,24 +49,17 @@ private:
 private:
     VehicleInfo info;
 
-    tf2_ros::Buffer buffer;
-    tf2_ros::TransformListener listener;
-
     ros::Publisher goalPub;
     ros::Subscriber dataSub;
-    ros::Subscriber poseSub;
     ros::Subscriber imuSub;
     ros::Subscriber usblSub;
+    ros::Subscriber poseSub;
     ros::Subscriber depthSub;
     ros::Subscriber dvlSub;
     ros::Subscriber forwardThrusterSub;
     ros::Subscriber lateralThrusterSub;
 
     underwater_autonomy::VehiclePose currentPose;
-
-    ros::Timer tfTimer;
-    double lastTFTime;
-    underwater_autonomy::VehiclePose lastTfPose;
 };
 
 #endif

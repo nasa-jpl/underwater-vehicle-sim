@@ -12,16 +12,12 @@
 using namespace underwater_autonomy;
 
 ROSSimVehicleInterface::ROSSimVehicleInterface(VehicleInfo info) :
-    info(info),
-    listener(buffer)
+    info(info)
 {
     ros::NodeHandle nh;
 
     poseSub = nh.subscribe("primary_navigation", 1, &ROSSimVehicleInterface::navigationFilterCallback, this);
     goalPub = nh.advertise<std_msgs::String>("goal", 1, true);
-
-    tfTimer = nh.createTimer(ros::Duration(0.25), &ROSSimVehicleInterface::receivePose, this);
-    lastTFTime = std::numeric_limits<double>::quiet_NaN();
 
     initializeCallbacks();
 }
@@ -203,66 +199,6 @@ void ROSSimVehicleInterface::initializeCallbacks() {
     }
 }
 
-void ROSSimVehicleInterface::receivePose(const ros::TimerEvent& event)
-{
-    geometry_msgs::TransformStamped transformMsg;
-    ros::NodeHandle nh;
-    std::string vehicleName = nh.getNamespace().substr(1);
-	try
-    {
-        if(buffer.canTransform("world_ned", vehicleName, ros::Time(0), ros::Duration(1.0)))
-        {
-            transformMsg = buffer.lookupTransform("world_ned", vehicleName, ros::Time(0));
-
-            Eigen::Vector3d position (transformMsg.transform.translation.x,
-                                      transformMsg.transform.translation.y,
-                                      transformMsg.transform.translation.z);
-            Eigen::Quaterniond orientation(transformMsg.transform.rotation.w,
-                                           transformMsg.transform.rotation.x,
-                                           transformMsg.transform.rotation.y,
-                                           transformMsg.transform.rotation.z);
-
-
-            if(std::isnan(lastTFTime)) {
-                lastTfPose.setPosition(position);
-                lastTfPose.setOrientation(orientation);
-                lastTFTime = transformMsg.header.stamp.toSec();
-            }
-
-            double timeDelta = transformMsg.header.stamp.toSec() - lastTFTime;
-            if(timeDelta > 0) {
-                VehiclePose pose;
-
-                //Extract new lateral velocity
-                Eigen::Vector3d linearVelocity = (position - lastTfPose.getPosition()) / timeDelta;
-                linearVelocity = orientation.inverse() * linearVelocity; //Rotate linear velocity into body frame from world frame
-
-                //Extract new rotational velocity
-                Eigen::Quaterniond rotation = orientation  * lastTfPose.getOrientation().inverse();
-
-                Eigen::AngleAxisd rotationAA(rotation);
-                Eigen::Vector3d angularVelocity = rotationAA.axis() * (rotationAA.angle() / timeDelta);
-                angularVelocity = orientation.inverse() * angularVelocity; //Rotate angular velocity into body frame from world frame
-
-                pose.setPosition(position);
-                pose.setOrientation(orientation);    
-                pose.setLinearVelocity(linearVelocity);
-                pose.setAngularVelocity(angularVelocity);
-
-                publishDataToCallbacks<VehiclePose>("true_pose", pose);
-
-                lastTfPose = pose;
-                lastTFTime = transformMsg.header.stamp.toSec();
-            } 
-
-        }
-	}
-	catch(tf2::TransformException ex)
-	{
-		throw std::move(ex);
-	}   
-}
-
 void ROSSimVehicleInterface::receiveModelData(const underwater_vehicle_msgs::VehicleData::ConstPtr& msg)
 {
     DoubleSensorData sonarDepth;
@@ -292,7 +228,7 @@ void ROSSimVehicleInterface::receiveModelData(const underwater_vehicle_msgs::Veh
 void ROSSimVehicleInterface::receiveIMU(sensor_msgs::Imu msgData)
 {
     DoubleSensorData heading;
-    Vector3DSensorData angularVelocity;
+    Vector3dData angularVelocity;
 
     tf2::Quaternion orientation(msgData.orientation.x,
                                 msgData.orientation.y,
@@ -303,13 +239,13 @@ void ROSSimVehicleInterface::receiveIMU(sensor_msgs::Imu msgData)
     heading.data = yaw;
     heading.time = msgData.header.stamp.toSec();
 
-    angularVelocity.x = msgData.angular_velocity.x;
-    angularVelocity.y = msgData.angular_velocity.y;
-    angularVelocity.z = msgData.angular_velocity.z;
+    angularVelocity.data[0] = msgData.angular_velocity.x;
+    angularVelocity.data[1] = msgData.angular_velocity.y;
+    angularVelocity.data[2] = msgData.angular_velocity.z;
     angularVelocity.time = msgData.header.stamp.toSec();
 
     publishDataToCallbacks<DoubleSensorData>("heading", heading);
-    publishDataToCallbacks<Vector3DSensorData>("angular_velocity", angularVelocity);
+    publishDataToCallbacks<Vector3dData>("angular_velocity", angularVelocity);
 }
 
 void ROSSimVehicleInterface::receiveUSBL(underwater_vehicle_msgs::USBL msgData)

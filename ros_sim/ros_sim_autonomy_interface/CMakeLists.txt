@@ -18,6 +18,8 @@ find_package(catkin REQUIRED
              propulsion_controller
              nav_msgs)
 
+find_package (Eigen3 3.3 REQUIRED NO_MODULE)
+
 find_library(UNDERWATER_AUTONOMY_LIB underwater_autonomy)
 find_path(UNDERWATER_AUTONOMY_INCLUDE underwater_autonomy)
 find_library(VENT_PLANNER_LIB vent_planner)
@@ -129,7 +131,6 @@ include_directories(
 
 ## Declare a C++ library
 add_library(${PROJECT_NAME}
-    src/ros_sim_navigation/ROSSimNavigationFilter.cpp
     src/ros_sim_plan_server/RosSimPlanServer.cpp
     src/ros_sim_autonomy_interface/ROSSimVehicleInterface.cpp
     src/ros_sim_plan_server/action_executors/PointPathSimActionExecutor.cpp
@@ -154,9 +155,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC /usr/local/include/bfl)
 
 ## Declare a C++ executable
  add_executable(ros_sim_plan_server_node src/ROSSimPlanServerNode.cpp)
-
 # set_target_properties(ros_sim_plan_server_node PROPERTIES OUTPUT_NAME node PREFIX "")
-
  add_dependencies(ros_sim_plan_server_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
  target_include_directories(ros_sim_plan_server_node PRIVATE ${NAVIGATION_PLANNER_INCLUDE} ${VENT_PLANNER_INCLUDE} ${UNDERWATER_AUTONOMY_INCLUDE})
  target_link_libraries(ros_sim_plan_server_node
@@ -167,19 +166,27 @@ target_include_directories(${PROJECT_NAME} PUBLIC /usr/local/include/bfl)
    ${catkin_LIBRARIES}
  )
 
-  add_executable(ros_sim_navigation_node src/ROSSimNavigationNode.cpp)
-
-# set_target_properties(ros_sim_navigation_node PROPERTIES OUTPUT_NAME node PREFIX "")
-
- add_dependencies(ros_sim_navigation_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
- target_include_directories(ros_sim_navigation_node PRIVATE ${NAVIGATION_PLANNER_INCLUDE} ${VENT_PLANNER_INCLUDE} ${UNDERWATER_AUTONOMY_INCLUDE})
- target_link_libraries(ros_sim_navigation_node
-   ros_sim_autonomy_interface
-   ${UNDERWATER_AUTONOMY_LIB}
-   ${VENT_PLANNER_LIB}
-   ${NAVIGATION_PLANNER_LIB}
+  add_executable(ros_sim_true_navigation_node src/ros_sim_navigation/ROSSimTrueNavigationNode.cpp)
+# set_target_properties(ros_sim_true_navigation_node PROPERTIES OUTPUT_NAME node PREFIX "")
+ add_dependencies(ros_sim_true_navigation_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+  target_include_directories(ros_sim_true_navigation_node PRIVATE ${EIGEN3_INCLUDE_DIR})
+ target_link_libraries(ros_sim_true_navigation_node
+   underwater_vehicle_msgs
    ${catkin_LIBRARIES}
  )
+
+  add_executable(ros_sim_dr_navigation_node src/ros_sim_navigation/ROSSimDRNavigationNode.cpp)
+# set_target_properties(ros_sim_dr_navigation_node PROPERTIES OUTPUT_NAME node PREFIX "")
+ add_dependencies(ros_sim_dr_navigation_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+  target_include_directories(ros_sim_dr_navigation_node PRIVATE  ${UNDERWATER_AUTONOMY_INCLUDE})
+ target_link_libraries(ros_sim_dr_navigation_node
+   ros_sim_autonomy_interface
+   underwater_vehicle_msgs
+   ${UNDERWATER_AUTONOMY_LIB}
+   ${catkin_LIBRARIES}
+ )
+
+
 
 #############
 ## Install ##
@@ -223,9 +230,6 @@ target_include_directories(${PROJECT_NAME} PUBLIC /usr/local/include/bfl)
 ## Add gtest based cpp test target and link libraries
 if (CATKIN_ENABLE_TESTING)
  find_package(rostest REQUIRED)
-
- add_rostest_gtest(ros_sim_navigation_filter_test test/ros_sim_navigation/ROSSimNavigationFilter.test test/ros_sim_navigation/ROSSimNavigationFilter_test.cpp)
- target_link_libraries(ros_sim_navigation_filter_test ros_sim_autonomy_interface ${catkin_LIBRARIES} )
 
  add_rostest_gtest(follow_heading_sim_action_executor_test
                    test/ros_sim_plan_server/action_executors/FollowHeadingSimActionExecutor.test

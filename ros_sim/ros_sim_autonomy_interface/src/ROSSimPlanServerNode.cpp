@@ -8,6 +8,7 @@
 #include "underwater_autonomy/planner/SingleActionPlanner.h"
 #include "underwater_autonomy/planner/ConfigurationFile.h"
 #include "underwater_autonomy/planner/PlannerFactory.h"
+#include "underwater_autonomy/planner/WaypointsPlanner.h"
 
 #include "ros_sim_plan_server/ROSSimPlanServer.h"
 #include "ros_sim_autonomy_interface/ROSSimVehicleInterface.h"
@@ -15,7 +16,6 @@
 #include "vent_planner/NestedBinVentPlanner.h"
 #include "vent_planner/SurfaceGradientVentPlanner.h"
 #include "vent_planner/DirectionSetVentPlanner.h"
-#include "vent_planner/WaypointsPlanner.h"
 
 #include "navigation_planner/GoldenSelectionHomingPlanner.h"
 
