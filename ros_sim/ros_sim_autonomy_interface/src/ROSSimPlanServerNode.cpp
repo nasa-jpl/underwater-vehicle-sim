@@ -6,7 +6,7 @@
 #include "underwater_autonomy/planner/PlanDispatcher.h"
 #include "underwater_autonomy/util/BoxOperationRegion.h"
 #include "underwater_autonomy/planner/SingleActionPlanner.h"
-#include "underwater_autonomy/planner/ConfigurationFile.h"
+#include "underwater_autonomy/util/ConfigurationFile.h"
 #include "underwater_autonomy/planner/PlannerFactory.h"
 #include "underwater_autonomy/planner/WaypointsPlanner.h"
 
