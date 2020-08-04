@@ -75,8 +75,20 @@ def plot(data):
         circle_x = (np.sin(theta) * r) + x
         circle_y = (np.cos(theta) * r) + y
 
-        plt.plot(circle_y, circle_x, c='r')
+    #    plt.plot(circle_y, circle_x, c='r')
    # plt.scatter(range(len(v1_yaw)), v1_yaw)
+    plt.show()
+
+def plot_distance_vs_accuracy(data):
+    beacon_loc = (0,0)
+    accuracy = []
+    distance = []
+    
+    for x,y,vx,vy in zip(data['beacon_world_x'],data['beacon_world_y'], data["beacon_vx"], data["beacon_vy"]):
+        accuracy.append(math.sqrt(math.pow(beacon_loc[0] - x,2) + math.pow(beacon_loc[1] - y,2)))
+        distance.append(math.sqrt(math.pow(vx - x,2) + math.pow(vy - y,2)))
+
+    plt.scatter(distance, accuracy)
     plt.show()
 
 def calc_stats(data):
@@ -95,6 +107,7 @@ def main(argv):
     data = extract_data(argv[1])
     print(calc_stats(data))
     plot(data)
+    #plot_distance_vs_accuracy(data)
 
 if __name__ == "__main__":
     main(sys.argv)

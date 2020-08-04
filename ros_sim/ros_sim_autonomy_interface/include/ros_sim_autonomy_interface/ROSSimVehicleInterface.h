@@ -12,6 +12,7 @@
 #include "underwater_vehicle_msgs/USBL.h"
 #include "underwater_vehicle_msgs/FloatMeasurement.h"
 #include "underwater_vehicle_msgs/DVL.h"
+#include "underwater_vehicle_msgs/PropulsionControllerState.h"
 
 #include "tf2_ros/transform_listener.h"
 
@@ -40,8 +41,8 @@ private:
     void receiveUSBL(underwater_vehicle_msgs::USBL msgData);
     void receiveDVL(underwater_vehicle_msgs::DVL msgData);
 
-    void receiveForwardThruster(underwater_vehicle_msgs::FloatMeasurement forwardData);
-    void receiveLateralThruster(underwater_vehicle_msgs::FloatMeasurement lateralData);
+    void receiveCommandedFowardVelocity(underwater_vehicle_msgs::FloatMeasurement commandedForwardVelocity);
+    void receiveCommandedVerticalVelocity(underwater_vehicle_msgs::FloatMeasurement commandedVerticalVelocity);
 
     void navigationFilterCallback(const nav_msgs::Odometry odo);
     
@@ -56,8 +57,8 @@ private:
     ros::Subscriber poseSub;
     ros::Subscriber depthSub;
     ros::Subscriber dvlSub;
-    ros::Subscriber forwardThrusterSub;
-    ros::Subscriber lateralThrusterSub;
+    ros::Subscriber forwardVelSub;
+    ros::Subscriber verticalVelSub;
 
     underwater_autonomy::VehiclePose currentPose;
 };

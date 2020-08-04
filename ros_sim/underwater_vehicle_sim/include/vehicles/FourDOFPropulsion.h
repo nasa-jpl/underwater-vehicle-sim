@@ -71,14 +71,6 @@ private:
 	ros::Subscriber rudderSub;
 
 	/*
-	*Publishes sensors for actual thrust and rudder values
-	*/
-	ros::Publisher forwardThrusterPub;
-	ros::Publisher lateralThrusterPub;
-	ros::Publisher verticalThrusterPub;
-	ros::Publisher rudderPub;
-
-	/*
 	*Functions defining thrust to velocity
 	*/
 	underwater_autonomy::LinearPiecewise forwardThrusterFunc;
@@ -98,10 +90,8 @@ private:
 	*Random distributions for sensor measurements
 	*/
 	std::default_random_engine generator;
-	std::normal_distribution<double> thrustSensorDistribution;
-	std::normal_distribution<double> rudderSensorDistribution;
-	double thrustSensorRandomNoise;
-	double rudderSensorRandomNoise;
+	std::normal_distribution<double> thrustDistribution;
+	double thrustStdDev;
 };
 
 

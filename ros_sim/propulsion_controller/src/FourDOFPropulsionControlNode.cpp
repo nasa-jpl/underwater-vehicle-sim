@@ -7,6 +7,16 @@
 
 #include "underwater_autonomy/util/LinearPiecewise.h"
 
+#include "underwater_vehicle_msgs/FloatMeasurement.h"
+
+using namespace underwater_autonomy;
+
+underwater_autonomy::LinearPiecewise forwardThruster;
+underwater_autonomy::LinearPiecewise verticalThruster;
+
+ros::Publisher forwardVelocityPub;
+ros::Publisher verticalVelocityPub;
+
 underwater_autonomy::LinearPiecewise loadForwardThruster() {
     ros::NodeHandle nhPriv("~");
 
@@ -136,6 +146,36 @@ underwater_autonomy::LinearPiecewise loadRudder() {
     return underwater_autonomy::LinearPiecewise();
 }
 
+/**
+* Callback that takes in the commanded forward thrust value and converts it into an expected velocity.
+* This velocity is then published for use as an expected vehicle velocity.
+*/
+void forwardThrusterCallback(const std_msgs::Float64::ConstPtr& val) {
+    underwater_vehicle_msgs::FloatMeasurement velData;
+    
+    std::vector<LinearPiecewise::Point> possibleX = forwardThruster.getX(val->data);
+    if(possibleX.size() > 0) {
+        velData.data = possibleX[0].x;
+        velData.header.stamp = ros::Time::now();
+        forwardVelocityPub.publish(velData);
+    }
+}
+
+/**
+* Callback that takes in the commanded vertical thrust value and converts it into an expected velocity.
+* This velocity is then published for use as an expected vehicle velocity.
+*/
+void verticalThrusterCallback(const std_msgs::Float64::ConstPtr& val) {
+    underwater_vehicle_msgs::FloatMeasurement velData;
+    
+    std::vector<LinearPiecewise::Point> possibleX = verticalThruster.getX(val->data);
+    if(possibleX.size() > 0) {
+        velData.data = possibleX[0].x;
+        velData.header.stamp = ros::Time::now();
+        verticalVelocityPub.publish(velData);
+    }
+}
+
 int main(int argc, char **argv)
 {
     ros::init(argc, argv, "four_dof_propulsion_control");
@@ -151,6 +191,12 @@ int main(int argc, char **argv)
     infoClient.call(info);
     VehicleInfo vehicleInfo(info);
 
+    ros::Subscriber forwardThrusterSub = nh.subscribe("command_forward_thruster", 10, &forwardThrusterCallback);
+    forwardVelocityPub = nh.advertise<underwater_vehicle_msgs::FloatMeasurement>("commanded_forward_velocity", 1000);
+
+    ros::Subscriber verticalThrusterSub = nh.subscribe("command_vertical_thruster", 10, &verticalThrusterCallback);
+    verticalVelocityPub = nh.advertise<underwater_vehicle_msgs::FloatMeasurement>("commanded_vertical_velocity", 1000);
+
     bool usePID;
     if(!nhPriv.getParam("use_pid", usePID))
     {
@@ -165,8 +211,8 @@ int main(int argc, char **argv)
     }
     else
     {
-        underwater_autonomy::LinearPiecewise forwardThruster = loadForwardThruster();
-        underwater_autonomy::LinearPiecewise verticalThruster = loadVerticalThruster();
+        forwardThruster = loadForwardThruster();
+        verticalThruster = loadVerticalThruster();
         underwater_autonomy::LinearPiecewise rudder = loadRudder();
 
         std::unique_ptr<PropulsionLogicInterface> logic(new FourDOFPropulsionLogic(vehicleInfo, 

@@ -30,9 +30,11 @@ private:
 
 	double angularVelocityStdDev;
 	std::vector<double> angularVelocityBiasError;
+	bool angVelActive;
 
 	double headingStdDev;
 	double headingBiasError;
+	bool headingActive;
 
 	double rollPitchStdDev;
 	double rollBiasError;
@@ -42,6 +44,7 @@ private:
 	std::normal_distribution<double> rotationDistribution;
 	std::normal_distribution<double> headingDist;
 	std::normal_distribution<double> tiltDist;
+
 };
 
 #endif
