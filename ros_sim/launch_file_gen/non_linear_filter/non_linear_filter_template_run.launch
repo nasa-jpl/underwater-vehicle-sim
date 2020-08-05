@@ -89,13 +89,13 @@
 
     <node pkg="ros_sim_autonomy_interface" type="ros_sim_sb_navigation_node" name="ros_sim_sb_navigation" ns="v1" output="screen">
         <rosparam param="hertz">5</rosparam>
-        <param name="config_file" value=":FILTER_FILENAME:"/>
+        <param name="config_file" value="$(dirname)/:FILTER_FILENAME:"/>
     </node>
 
 
     <!--Autonomy-->
     <node pkg="ros_sim_autonomy_interface" type="ros_sim_plan_server_node" name="ros_sim_plan_server" ns="v1" output="screen">
-        <param name="planner_config_file" value=":PLANNER_FILENAME:"/>
+        <param name="planner_config_file" value="$(dirname)/:PLANNER_FILENAME:"/>
         <rosparam param="fail_time">2764800</rosparam>
         <rosparam param="cancel_timeout">60</rosparam>
         <rosparam param="hertz">1</rosparam>
@@ -105,14 +105,16 @@
     <rosparam param="speed_up_factor">50</rosparam>
     <rosparam param="sim_start_time">2592000</rosparam>
 
-<!--
+
     <rosparam param="model_type">constant</rosparam>
     <rosparam param="model/depth">200</rosparam>
--->
+    <rosparam param="model/u">:MODEL_U:</rosparam>
+    <rosparam param="model/v">:MODEL_V:</rosparam>
 
+<!--
     <rosparam param="model_type">fvcom</rosparam>
     <rosparam param="model/fvcom_directory" subst_value="True">/home/dev/proj/axial/</rosparam>
-
+-->
     <node pkg="tf2_ros" type="static_transform_publisher" name="ned_publisher" args="0 0 0 1.57079632679 0 3.14159265359 world world_ned"/>
     <node pkg="underwater_vehicle_sim" type="clock_server_node" name="clock_server" output="screen"/>
 </launch>
