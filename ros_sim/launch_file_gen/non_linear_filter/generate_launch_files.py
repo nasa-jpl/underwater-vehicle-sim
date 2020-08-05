@@ -11,6 +11,7 @@ def outputFiles(launchTemplate, plannerTemplate, filterTemplate, outputDir, repl
     os.mkdir(outputDir)
     os.mkdir(os.path.join(outputDir, "filter_params"))
     os.mkdir(os.path.join(outputDir, "planner_params"))
+    os.mkdir(os.path.join(outputDir, "all_params"))
 
 
     keys = [i[0] for i in replaceMap.items()]
@@ -20,11 +21,20 @@ def outputFiles(launchTemplate, plannerTemplate, filterTemplate, outputDir, repl
         launchOutFile = os.path.join(outputDir, "non_linear_filter_run_" + str(runNum) + ".launch")
         plannerOutFile = os.path.join(outputDir, "planner_params", "non_linear_filter_waypoints_" + str(runNum) + ".toml")
         filterOutFile = os.path.join(outputDir, "filter_params", "non_linear_filter_params_" + str(runNum) + ".toml")
+        allParamsFile = os.path.join(outputDir, "all_params", "run_" + str(runNum) + ".toml")
 
         plannerOutFilename = os.path.join("planner_params", "non_linear_filter_waypoints_" + str(runNum) + ".toml")
         filterOutFilename = os.path.join("filter_params", "non_linear_filter_params_" + str(runNum) + ".toml")
 
         runNum += 1
+        with open(allParamsFile, "wt") as fout:
+            for i, k in enumerate(keys):
+                if type(k) is tuple:
+                    for kk, vv in zip(k, v[i]):
+                        fout.write(kk + " " + str(vv) + "\n")
+                elif type(k) is str:
+                    fout.write(k + " " + str(v[i]) + "\n")
+                
         with open(launchTemplate, "rt") as fin:
             with open(launchOutFile, "wt") as fout:
                 for line in fin:
@@ -109,4 +119,4 @@ if __name__ == "__main__":
     launch_template = "non_linear_filter_template_run.launch"
     planner_template = "non_linear_filter_waypoints.toml"
 
-    outputFiles(launch_template, planner_template, filter_template, sys.argv[1], oceanWorldsReplaceMap)
+    outputFiles(launch_template, planner_template, filter_template, sys.argv[1], mbariReplaceMap)
