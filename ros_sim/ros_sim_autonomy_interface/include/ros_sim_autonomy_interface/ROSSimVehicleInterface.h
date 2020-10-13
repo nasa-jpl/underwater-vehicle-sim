@@ -50,7 +50,7 @@ private:
 private:
     VehicleInfo info;
 
-    ros::Publisher goalPub;
+    ros::Publisher statusPub;
     ros::Subscriber dataSub;
     ros::Subscriber imuSub;
     ros::Subscriber usblSub;

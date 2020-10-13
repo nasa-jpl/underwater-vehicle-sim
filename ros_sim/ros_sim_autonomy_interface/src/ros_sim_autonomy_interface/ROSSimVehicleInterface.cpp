@@ -17,7 +17,7 @@ ROSSimVehicleInterface::ROSSimVehicleInterface(VehicleInfo info) :
     ros::NodeHandle nh;
 
     poseSub = nh.subscribe("primary_navigation", 1, &ROSSimVehicleInterface::navigationFilterCallback, this);
-    goalPub = nh.advertise<std_msgs::String>("goal", 1, true);
+    statusPub = nh.advertise<std_msgs::String>("planner_status", 1, true);
 
     initializeCallbacks();
 }
@@ -51,7 +51,7 @@ void ROSSimVehicleInterface::sendPlannerStatus(PlannerStatus status)
         msg.data = "unexpected_status";
     }
 
-    goalPub.publish(msg);
+    statusPub.publish(msg);
 }
 
 void ROSSimVehicleInterface::log(LogLevel level, std::string string)
@@ -238,6 +238,7 @@ void ROSSimVehicleInterface::receiveIMU(sensor_msgs::Imu msgData)
             double roll, pitch, yaw;
             tf2::Matrix3x3(orientation).getRPY(roll, pitch, yaw);
             heading.data = yaw;
+            heading.variance = msgData.orientation_covariance[8];
             heading.time = msgData.header.stamp.toSec();
             publishDataToCallbacks<DoubleSensorData>("heading", heading);
     } 
@@ -250,6 +251,16 @@ void ROSSimVehicleInterface::receiveIMU(sensor_msgs::Imu msgData)
         angularVelocity.data[0] = msgData.angular_velocity.x;
         angularVelocity.data[1] = msgData.angular_velocity.y;
         angularVelocity.data[2] = msgData.angular_velocity.z;
+        angularVelocity.covariance(0,0) = msgData.angular_velocity_covariance[0];
+        angularVelocity.covariance(0,1) = msgData.angular_velocity_covariance[1];
+        angularVelocity.covariance(0,2) = msgData.angular_velocity_covariance[2];
+        angularVelocity.covariance(1,0) = msgData.angular_velocity_covariance[3];
+        angularVelocity.covariance(1,1) = msgData.angular_velocity_covariance[4];
+        angularVelocity.covariance(1,2) = msgData.angular_velocity_covariance[5];
+        angularVelocity.covariance(2,0) = msgData.angular_velocity_covariance[6];
+        angularVelocity.covariance(2,1) = msgData.angular_velocity_covariance[7];
+        angularVelocity.covariance(2,2) = msgData.angular_velocity_covariance[8];
+
         angularVelocity.time = msgData.header.stamp.toSec();
 
         publishDataToCallbacks<Vector3dData>("angular_velocity", angularVelocity);
@@ -263,6 +274,10 @@ void ROSSimVehicleInterface::receiveUSBL(underwater_vehicle_msgs::USBL msgData)
     usbl.range = msgData.range;
     usbl.bearing = msgData.bearing;
     usbl.time = msgData.header.stamp.toSec();
+    usbl.covariance(0,0) = msgData.range_bearing_covariance[0];
+    usbl.covariance(0,1) = msgData.range_bearing_covariance[1];
+    usbl.covariance(1,0) = msgData.range_bearing_covariance[2];
+    usbl.covariance(1,1) = msgData.range_bearing_covariance[3];
 
     publishDataToCallbacks<USBLSensorData>("usbl", usbl);
 }
@@ -274,6 +289,17 @@ void ROSSimVehicleInterface::receiveDVL(underwater_vehicle_msgs::DVL msgData)
     dvl.x = msgData.velocity.x;
     dvl.y = msgData.velocity.y;
     dvl.z = msgData.velocity.z;
+    dvl.velocityCovariance(0,0) = msgData.velocity_covariance[0];
+    dvl.velocityCovariance(0,1) = msgData.velocity_covariance[1];
+    dvl.velocityCovariance(0,2) = msgData.velocity_covariance[2];
+    dvl.velocityCovariance(1,0) = msgData.velocity_covariance[3];
+    dvl.velocityCovariance(1,1) = msgData.velocity_covariance[4];
+    dvl.velocityCovariance(1,2) = msgData.velocity_covariance[5];
+    dvl.velocityCovariance(2,0) = msgData.velocity_covariance[6];
+    dvl.velocityCovariance(2,1) = msgData.velocity_covariance[7];
+    dvl.velocityCovariance(2,2) = msgData.velocity_covariance[8];
+
+
     dvl.time = msgData.header.stamp.toSec();
 
     if(msgData.velocity_reference == msgData.VELOCITY_REFERENCE_WATER)
@@ -304,6 +330,8 @@ void ROSSimVehicleInterface::receiveCommandedFowardVelocity(underwater_vehicle_m
     DoubleSensorData forwardData;
 
     forwardData.data = commandedForwardVelocity.data;
+    forwardData.variance = commandedForwardVelocity.variance;
+
     forwardData.time = commandedForwardVelocity.header.stamp.toSec();
 
     publishDataToCallbacks<DoubleSensorData>("commanded_forward_velocity", forwardData);
@@ -313,6 +341,7 @@ void ROSSimVehicleInterface::receiveCommandedVerticalVelocity(underwater_vehicle
     DoubleSensorData verticalData;
 
     verticalData.data = commandedVerticalVelocity.data;
+    verticalData.variance = commandedVerticalVelocity.variance;
     verticalData.time = commandedVerticalVelocity.header.stamp.toSec();
 
     publishDataToCallbacks<DoubleSensorData>("commanded_vertical_velocity", verticalData);

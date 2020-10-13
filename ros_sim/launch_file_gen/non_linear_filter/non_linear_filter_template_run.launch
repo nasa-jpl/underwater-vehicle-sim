@@ -12,7 +12,7 @@
         <rosparam param="local_model">true</rosparam>
 
         <rosparam param="propulsion_type">FourDOFPropulsion</rosparam>
-        <rosparam param="thrust_random_error">0.1</rosparam>
+        <rosparam param="thrust_random_error">0.0</rosparam>
         <rosparam param="propulsion_hertz">10</rosparam>
         <rosparam param="forward_thruster_thrust">[-100, -75, -50, -25, 0, 25, 50, 75, 100]</rosparam>
         <rosparam param="forward_thruster_velocity">[-1.40625, -1.3125, -1.125, -0.75, 0, 0.75, 1.125, 1.3125, 1.40625]</rosparam>
@@ -46,6 +46,7 @@
         <rosparam param="dvl/water_velocity_random_error">:DVL_RANDOM_ERROR:</rosparam> <!--m/s-->
         <rosparam param="dvl/bottom_velocity_percent_error">:DVL_PERCENT_ERROR:</rosparam> <!--Percent of velocity measurment-->
         <rosparam param="dvl/bottom_velocity_random_error">:DVL_RANDOM_ERROR:</rosparam> <!--m/s-->
+        <rosparam param="dvl/bottom_lock_range">80</rosparam> <!--m-->
         <rosparam param="dvl/hertz">5</rosparam>
 
         <rosparam param="depth/type">Depth</rosparam>
@@ -71,10 +72,10 @@
     <!--High Level Control-->
     <node pkg="propulsion_controller" type="four_dof_propulsion_control_node" name="controller" ns="v1">
         <param name="use_pid" value="false"/>
-        <rosparam param="forward_thruster_thrust">[-100, -75, -50, -25, 0, 25, 50, 75, 100]</rosparam>
-        <rosparam param="forward_thruster_velocity">[-1.40625, -1.3125, -1.125, -0.75, 0, 0.75, 1.125, 1.3125, 1.40625]</rosparam>
-        <rosparam param="vertical_thruster_thrust">[-100, -75, -50, -25, 0, 25, 50, 75, 100]</rosparam>
-        <rosparam param="vertical_thruster_velocity">[-1.40625, -1.3125, -1.125, -0.75, 0, 0.75, 1.125, 1.3125, 1.40625]</rosparam>
+        <rosparam param="forward_thruster_thrust">[-100, 100]</rosparam>
+        <rosparam param="forward_thruster_velocity">[-1.40625, 1.40625]</rosparam>
+        <rosparam param="vertical_thruster_thrust">[-100, 100]</rosparam>
+        <rosparam param="vertical_thruster_velocity">[-1.40625, 1.40625]</rosparam>
         <rosparam param="rudder_angle">[-45,0,45]</rosparam>
         <rosparam param="rudder_velocity">[-0.349066,0,0.349066]</rosparam>
 
@@ -107,7 +108,7 @@
 
 
     <rosparam param="model_type">constant</rosparam>
-    <rosparam param="model/depth">200</rosparam>
+    <rosparam param="model/depth">150</rosparam>
     <rosparam param="model/u">:MODEL_U:</rosparam>
     <rosparam param="model/v">:MODEL_V:</rosparam>
 

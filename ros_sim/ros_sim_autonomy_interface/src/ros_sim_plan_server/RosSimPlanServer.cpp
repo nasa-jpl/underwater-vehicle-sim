@@ -32,9 +32,9 @@ ROSSimPlanServer::ROSSimPlanServer(ROSSimPlanServer&& other) :
     planDispatcher.run();
 }
 
-std::string ROSSimPlanServer::getPlannerStatus()
+std::string ROSSimPlanServer::getPlannerState()
 {
-    return plannerStatus;
+    return planner->getPlannerState();
 }
 
 void ROSSimPlanServer::update()
@@ -64,7 +64,4 @@ void ROSSimPlanServer::update()
         slowSim.data = 1;
         clockSpeedPub.publish(slowSim);
     } 
-    
-
-    plannerStatus = planner->getPlannerStatus();
 }

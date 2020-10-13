@@ -18,6 +18,7 @@
 #include "vent_planner/DirectionSetVentPlanner.h"
 
 #include "navigation_planner/GoldenSelectionHomingPlanner.h"
+#include "navigation_planner/NonLinearFilterHomingPlanner.h"
 
 #include "ros_sim_plan_server/action_executors/YoYoSimActionExecutor.h"
 #include "ros_sim_plan_server/action_executors/HoldDepthSimActionExecutor.h"
@@ -82,6 +83,7 @@ int main(int argc, char **argv)
     PlannerFactory::registerPlanner("Waypoints", &WaypointsPlanner::create);
     PlannerFactory::registerPlanner("SingleAction", &SingleActionPlanner::create);
     PlannerFactory::registerPlanner("GoldenSelectionHoming", &GoldenSelectionHomingPlanner::create);
+    PlannerFactory::registerPlanner("NonLinearFilterHoming", &NonLinearFilterHomingPlanner::create);
 
     std::string plannerType = config.readSimpleEntry<std::string>("planner_type");
     std::unique_ptr<Planner> planner = PlannerFactory::create(plannerType, interface, config);
@@ -89,8 +91,8 @@ int main(int argc, char **argv)
     ROSSimPlanServer server(std::move(planner), interface, cancelTimeout);
 
     // make a publisher to send planner status messages
-    ros::Publisher plannerStatus_pub = nh.advertise<std_msgs::String>("plannerStatus", 1);
-    std_msgs::String plannerStatusMsg;
+    ros::Publisher plannerStatePub = nh.advertise<std_msgs::String>("planner_state", 1);
+    std_msgs::String plannerStateMsg;
 
     ROS_INFO("Planner Initalized");
 
@@ -119,8 +121,8 @@ int main(int argc, char **argv)
     {
         server.update();
 
-        plannerStatusMsg.data = server.getPlannerStatus();
-        plannerStatus_pub.publish(plannerStatusMsg);
+        plannerStateMsg.data = server.getPlannerState();
+        plannerStatePub.publish(plannerStateMsg);
 
         ros::spinOnce();
         r.sleep();

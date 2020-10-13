@@ -25,6 +25,9 @@ add_message_files(
     FloatMeasurement.msg
     DVL.msg
     PropulsionControllerState.msg
+    Range.msg
+    Ranges.msg
+
 )
 
 ## Generate services in the 'srv' folder

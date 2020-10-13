@@ -21,13 +21,13 @@ def outputFiles(launchTemplate, plannerTemplate, filterTemplate, outputDir, repl
         launchOutFile = os.path.join(outputDir, "non_linear_filter_run_" + str(runNum) + ".launch")
         plannerOutFile = os.path.join(outputDir, "planner_params", "non_linear_filter_waypoints_" + str(runNum) + ".toml")
         filterOutFile = os.path.join(outputDir, "filter_params", "non_linear_filter_params_" + str(runNum) + ".toml")
-        allParamsFile = os.path.join(outputDir, "all_params", "run_" + str(runNum) + ".toml")
+        allParamsOutFile = os.path.join(outputDir, "all_params", "non_linear_filter_run_" + str(runNum) + ".params")
 
         plannerOutFilename = os.path.join("planner_params", "non_linear_filter_waypoints_" + str(runNum) + ".toml")
         filterOutFilename = os.path.join("filter_params", "non_linear_filter_params_" + str(runNum) + ".toml")
 
         runNum += 1
-        with open(allParamsFile, "wt") as fout:
+        with open(allParamsOutFile, "wt") as fout:
             for i, k in enumerate(keys):
                 if type(k) is tuple:
                     for kk, vv in zip(k, v[i]):
@@ -84,13 +84,13 @@ if __name__ == "__main__":
     mbariReplaceMap[":HEADING_BIAS_ERROR:"] = [0]
     mbariReplaceMap[":HEADING_ACTIVE:"] = ["true"]
 
-    mbariReplaceMap[":DVL_PERCENT_ERROR:"] = [0.02]
-    mbariReplaceMap[":DVL_RANDOM_ERROR:"] = [0.002]
+    mbariReplaceMap[":DVL_PERCENT_ERROR:"] = [0.03]
+    mbariReplaceMap[":DVL_RANDOM_ERROR:"] = [0.003]
 
     mbariReplaceMap[":FILTER_NUM_RANGES:"] = [5,10,20,35,50]
     mbariReplaceMap[":USE_DVL:"] = ["true", "false"]
 
-    mbariReplaceMap[(":MODEL_U:", ":MODEL_V:")] = [(0, 0), (-0.07071067811, 0.07071067811)]
+    mbariReplaceMap[(":MODEL_U:", ":MODEL_V:")] = [(0, 0), (-0.4, 0.4)]
 
 
     oceanWorldsReplaceMap = {}

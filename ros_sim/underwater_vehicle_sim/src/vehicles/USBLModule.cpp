@@ -125,6 +125,8 @@ void USBLModule::update(const ros::Time& lastTime, VehicleState& vehicleState, M
 	usblMsg->beacon_z = beaconZ;
 	usblMsg->range = range;
 	usblMsg->bearing = bearing;
+	usblMsg->range_bearing_covariance[0] = std::pow(rangeRandomError * trueRange, 2) + std::pow(rangeBiasError, 2);
+	usblMsg->range_bearing_covariance[3] = std::pow(bearingRandomError, 2) + std::pow(bearingBiasError, 2);
 
 	usbl.publish(usblMsg);
 }

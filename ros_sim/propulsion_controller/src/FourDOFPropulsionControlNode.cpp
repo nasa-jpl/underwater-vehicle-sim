@@ -17,6 +17,8 @@ underwater_autonomy::LinearPiecewise verticalThruster;
 ros::Publisher forwardVelocityPub;
 ros::Publisher verticalVelocityPub;
 
+double thrusterStdDev;
+
 underwater_autonomy::LinearPiecewise loadForwardThruster() {
     ros::NodeHandle nhPriv("~");
 
@@ -156,6 +158,7 @@ void forwardThrusterCallback(const std_msgs::Float64::ConstPtr& val) {
     std::vector<LinearPiecewise::Point> possibleX = forwardThruster.getX(val->data);
     if(possibleX.size() > 0) {
         velData.data = possibleX[0].x;
+        velData.variance = thrusterStdDev*thrusterStdDev;
         velData.header.stamp = ros::Time::now();
         forwardVelocityPub.publish(velData);
     }
@@ -171,6 +174,7 @@ void verticalThrusterCallback(const std_msgs::Float64::ConstPtr& val) {
     std::vector<LinearPiecewise::Point> possibleX = verticalThruster.getX(val->data);
     if(possibleX.size() > 0) {
         velData.data = possibleX[0].x;
+        velData.variance = thrusterStdDev*thrusterStdDev;
         velData.header.stamp = ros::Time::now();
         verticalVelocityPub.publish(velData);
     }
@@ -202,6 +206,10 @@ int main(int argc, char **argv)
     {
         ROS_FATAL("Parameter \"use_pid\" not present in the parameter server.");
         exit(1);
+    }
+
+    if(!nhPriv.getParam("thruster_std_dev", thrusterStdDev)) {
+        thrusterStdDev = 0.25;
     }
 
     if(usePID)
