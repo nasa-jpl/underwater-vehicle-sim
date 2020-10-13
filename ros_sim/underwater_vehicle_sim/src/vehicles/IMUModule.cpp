@@ -1,5 +1,7 @@
 #include "vehicles/IMUModule.h"
 
+#include <limits>
+
 #include "ros/ros.h"
 
 #include "tf2/LinearMath/Vector3.h"
@@ -16,9 +18,11 @@ IMUModule::IMUModule(std::string name) :
 
 	nhPriv.param("angular_velocity_random_error", angularVelocityStdDev, 0.0);
 	nhPriv.param("angular_velocity_bias_error", angularVelocityBiasError, std::vector<double>{0.0, 0.0, 0.0});
+	nhPriv.param("angular_velocity_active", angVelActive, true);
 
 	nhPriv.param("heading_random_error", headingStdDev, 0.0);
 	nhPriv.param("heading_bias_error", headingBiasError, 0.0);
+	nhPriv.param("heading_active", headingActive, true);
 
 	nhPriv.param("roll_pitch_random_error", rollPitchStdDev, 0.0);
 	nhPriv.param("roll_bias_error", rollBiasError, 0.0); 
@@ -79,39 +83,75 @@ void IMUModule::update(const ros::Time& lastTime, VehicleState& vehicleState, Mo
 	data->header.stamp = lastTime;
   	data->header.frame_id = "world_ned";
 
-	data->orientation.x = rotation.x();
-	data->orientation.y = rotation.y();
-	data->orientation.z = rotation.z();
-	data->orientation.w = rotation.w();
+	if(headingActive) {
+		data->orientation.x = rotation.x();
+		data->orientation.y = rotation.y();
+		data->orientation.z = rotation.z();
+		data->orientation.w = rotation.w();
+	
+		data->orientation_covariance[0] = rollPitchStdDev * rollPitchStdDev;
+		data->orientation_covariance[1] = 0;
+		data->orientation_covariance[2] = 0;
 
-	data->angular_velocity.x = angularVelocity.x();
-	data->angular_velocity.y = angularVelocity.y();
-	data->angular_velocity.z = angularVelocity.z();
+		data->orientation_covariance[3] = 0;
+		data->orientation_covariance[4] = rollPitchStdDev * rollPitchStdDev;
+		data->orientation_covariance[5] = 0;
 
-	data->orientation_covariance[0] = rollPitchStdDev * rollPitchStdDev;
-	data->orientation_covariance[1] = 0;
-	data->orientation_covariance[2] = 0;
+		data->orientation_covariance[6] = 0;
+		data->orientation_covariance[7] = 0;
+		data->orientation_covariance[8] = headingStdDev * headingStdDev;
+	} else {
+		data->orientation.x = std::numeric_limits<double>::quiet_NaN();
+		data->orientation.y = std::numeric_limits<double>::quiet_NaN();
+		data->orientation.z = std::numeric_limits<double>::quiet_NaN();
+		data->orientation.w = std::numeric_limits<double>::quiet_NaN();
+	
+		data->orientation_covariance[0] = -1;
+		data->orientation_covariance[1] = -1;
+		data->orientation_covariance[2] = -1;
 
-	data->orientation_covariance[3] = 0;
-	data->orientation_covariance[4] = rollPitchStdDev * rollPitchStdDev;
-	data->orientation_covariance[5] = 0;
+		data->orientation_covariance[3] = -1;
+		data->orientation_covariance[4] = -1;
+		data->orientation_covariance[5] = -1;
 
-	data->orientation_covariance[6] = 0;
-	data->orientation_covariance[7] = 0;
-	data->orientation_covariance[8] = headingStdDev * headingStdDev;
+		data->orientation_covariance[6] = -1;
+		data->orientation_covariance[7] = -1;
+		data->orientation_covariance[8] = -1;
+	}
 
+	if(angVelActive) {
+		data->angular_velocity.x = angularVelocity.x();
+		data->angular_velocity.y = angularVelocity.y();
+		data->angular_velocity.z = angularVelocity.z();
 
-	data->angular_velocity_covariance[0] = angularVelocityStdDev * angularVelocityStdDev;
-	data->angular_velocity_covariance[1] = 0;
-	data->angular_velocity_covariance[2] = 0;
+		data->angular_velocity_covariance[0] = angularVelocityStdDev * angularVelocityStdDev;
+		data->angular_velocity_covariance[1] = 0;
+		data->angular_velocity_covariance[2] = 0;
 
-	data->angular_velocity_covariance[3] = 0;
-	data->angular_velocity_covariance[4] = angularVelocityStdDev * angularVelocityStdDev;
-	data->angular_velocity_covariance[5] = 0;
+		data->angular_velocity_covariance[3] = 0;
+		data->angular_velocity_covariance[4] = angularVelocityStdDev * angularVelocityStdDev;
+		data->angular_velocity_covariance[5] = 0;
 
-	data->angular_velocity_covariance[6] = 0;
-	data->angular_velocity_covariance[7] = 0;
-	data->angular_velocity_covariance[8] = angularVelocityStdDev * angularVelocityStdDev;
+		data->angular_velocity_covariance[6] = 0;
+		data->angular_velocity_covariance[7] = 0;
+		data->angular_velocity_covariance[8] = angularVelocityStdDev * angularVelocityStdDev;
+	} else {
+		data->angular_velocity.x = std::numeric_limits<double>::quiet_NaN();
+		data->angular_velocity.y = std::numeric_limits<double>::quiet_NaN();
+		data->angular_velocity.z = std::numeric_limits<double>::quiet_NaN();
+
+		data->angular_velocity_covariance[0] = -1;
+		data->angular_velocity_covariance[1] = -1;
+		data->angular_velocity_covariance[2] = -1;
+
+		data->angular_velocity_covariance[3] = -1;
+		data->angular_velocity_covariance[4] = -1;
+		data->angular_velocity_covariance[5] = -1;
+
+		data->angular_velocity_covariance[6] = -1;
+		data->angular_velocity_covariance[7] = -1;
+		data->angular_velocity_covariance[8] = -1;
+	}
 
 
 	data->linear_acceleration_covariance[0] = -1;

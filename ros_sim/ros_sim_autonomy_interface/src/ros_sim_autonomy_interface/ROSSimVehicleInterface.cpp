@@ -17,7 +17,7 @@ ROSSimVehicleInterface::ROSSimVehicleInterface(VehicleInfo info) :
     ros::NodeHandle nh;
 
     poseSub = nh.subscribe("primary_navigation", 1, &ROSSimVehicleInterface::navigationFilterCallback, this);
-    goalPub = nh.advertise<std_msgs::String>("goal", 1, true);
+    statusPub = nh.advertise<std_msgs::String>("planner_status", 1, true);
 
     initializeCallbacks();
 }
@@ -51,7 +51,7 @@ void ROSSimVehicleInterface::sendPlannerStatus(PlannerStatus status)
         msg.data = "unexpected_status";
     }
 
-    goalPub.publish(msg);
+    statusPub.publish(msg);
 }
 
 void ROSSimVehicleInterface::log(LogLevel level, std::string string)
@@ -182,21 +182,16 @@ void ROSSimVehicleInterface::initializeCallbacks() {
                                    this);
         }
     }
+    ros::NodeHandle nh;
+    forwardVelSub = nh.subscribe("commanded_forward_velocity", 
+                                        100, 
+                                        &ROSSimVehicleInterface::receiveCommandedFowardVelocity, 
+                                        this);
+    verticalVelSub = nh.subscribe("commanded_vertical_velocity", 
+                                        100, 
+                                        &ROSSimVehicleInterface::receiveCommandedVerticalVelocity, 
+                                        this);
 
-    if(info.getPropModuleType() == "FourDOFPropulsion")
-    {
-        ros::NodeHandle nh(info.getPropModuleName());
-
-        forwardThrusterSub = nh.subscribe("measured_forward_thruster", 
-                                               100, 
-                                               &ROSSimVehicleInterface::receiveForwardThruster, 
-                                               this);
-
-        lateralThrusterSub = nh.subscribe("measured_lateral_thruster", 
-                                               100, 
-                                               &ROSSimVehicleInterface::receiveLateralThruster, 
-                                               this);
-    }
 }
 
 void ROSSimVehicleInterface::receiveModelData(const underwater_vehicle_msgs::VehicleData::ConstPtr& msg)
@@ -230,22 +225,46 @@ void ROSSimVehicleInterface::receiveIMU(sensor_msgs::Imu msgData)
     DoubleSensorData heading;
     Vector3dData angularVelocity;
 
-    tf2::Quaternion orientation(msgData.orientation.x,
-                                msgData.orientation.y,
-                                msgData.orientation.z,
-                                msgData.orientation.w);
-    double roll, pitch, yaw;
-    tf2::Matrix3x3(orientation).getRPY(roll, pitch, yaw);
-    heading.data = yaw;
-    heading.time = msgData.header.stamp.toSec();
+    if(msgData.orientation_covariance[0] != -1 &&
+       !std::isnan(msgData.orientation.x) &&
+       !std::isnan(msgData.orientation.y) &&
+       !std::isnan(msgData.orientation.z) &&
+       !std::isnan(msgData.orientation.w))
+    {
+        tf2::Quaternion orientation(msgData.orientation.x,
+                                        msgData.orientation.y,
+                                        msgData.orientation.z,
+                                        msgData.orientation.w);
+            double roll, pitch, yaw;
+            tf2::Matrix3x3(orientation).getRPY(roll, pitch, yaw);
+            heading.data = yaw;
+            heading.variance = msgData.orientation_covariance[8];
+            heading.time = msgData.header.stamp.toSec();
+            publishDataToCallbacks<DoubleSensorData>("heading", heading);
+    } 
+    
+    if(msgData.angular_velocity_covariance[0] != -1 &&
+       !std::isnan(msgData.angular_velocity.x) &&
+       !std::isnan(msgData.angular_velocity.y) &&
+       !std::isnan(msgData.angular_velocity.z))
+    {
+        angularVelocity.data[0] = msgData.angular_velocity.x;
+        angularVelocity.data[1] = msgData.angular_velocity.y;
+        angularVelocity.data[2] = msgData.angular_velocity.z;
+        angularVelocity.covariance(0,0) = msgData.angular_velocity_covariance[0];
+        angularVelocity.covariance(0,1) = msgData.angular_velocity_covariance[1];
+        angularVelocity.covariance(0,2) = msgData.angular_velocity_covariance[2];
+        angularVelocity.covariance(1,0) = msgData.angular_velocity_covariance[3];
+        angularVelocity.covariance(1,1) = msgData.angular_velocity_covariance[4];
+        angularVelocity.covariance(1,2) = msgData.angular_velocity_covariance[5];
+        angularVelocity.covariance(2,0) = msgData.angular_velocity_covariance[6];
+        angularVelocity.covariance(2,1) = msgData.angular_velocity_covariance[7];
+        angularVelocity.covariance(2,2) = msgData.angular_velocity_covariance[8];
 
-    angularVelocity.data[0] = msgData.angular_velocity.x;
-    angularVelocity.data[1] = msgData.angular_velocity.y;
-    angularVelocity.data[2] = msgData.angular_velocity.z;
-    angularVelocity.time = msgData.header.stamp.toSec();
+        angularVelocity.time = msgData.header.stamp.toSec();
 
-    publishDataToCallbacks<DoubleSensorData>("heading", heading);
-    publishDataToCallbacks<Vector3dData>("angular_velocity", angularVelocity);
+        publishDataToCallbacks<Vector3dData>("angular_velocity", angularVelocity);
+    }
 }
 
 void ROSSimVehicleInterface::receiveUSBL(underwater_vehicle_msgs::USBL msgData)
@@ -255,6 +274,10 @@ void ROSSimVehicleInterface::receiveUSBL(underwater_vehicle_msgs::USBL msgData)
     usbl.range = msgData.range;
     usbl.bearing = msgData.bearing;
     usbl.time = msgData.header.stamp.toSec();
+    usbl.covariance(0,0) = msgData.range_bearing_covariance[0];
+    usbl.covariance(0,1) = msgData.range_bearing_covariance[1];
+    usbl.covariance(1,0) = msgData.range_bearing_covariance[2];
+    usbl.covariance(1,1) = msgData.range_bearing_covariance[3];
 
     publishDataToCallbacks<USBLSensorData>("usbl", usbl);
 }
@@ -266,6 +289,17 @@ void ROSSimVehicleInterface::receiveDVL(underwater_vehicle_msgs::DVL msgData)
     dvl.x = msgData.velocity.x;
     dvl.y = msgData.velocity.y;
     dvl.z = msgData.velocity.z;
+    dvl.velocityCovariance(0,0) = msgData.velocity_covariance[0];
+    dvl.velocityCovariance(0,1) = msgData.velocity_covariance[1];
+    dvl.velocityCovariance(0,2) = msgData.velocity_covariance[2];
+    dvl.velocityCovariance(1,0) = msgData.velocity_covariance[3];
+    dvl.velocityCovariance(1,1) = msgData.velocity_covariance[4];
+    dvl.velocityCovariance(1,2) = msgData.velocity_covariance[5];
+    dvl.velocityCovariance(2,0) = msgData.velocity_covariance[6];
+    dvl.velocityCovariance(2,1) = msgData.velocity_covariance[7];
+    dvl.velocityCovariance(2,2) = msgData.velocity_covariance[8];
+
+
     dvl.time = msgData.header.stamp.toSec();
 
     if(msgData.velocity_reference == msgData.VELOCITY_REFERENCE_WATER)
@@ -292,22 +326,23 @@ void ROSSimVehicleInterface::receiveDepth(underwater_vehicle_msgs::FloatMeasurem
     publishDataToCallbacks<DoubleSensorData>("depth", depth);
 }
 
-void ROSSimVehicleInterface::receiveForwardThruster(underwater_vehicle_msgs::FloatMeasurement forwardData)
-{
-    DoubleSensorData forward;
+void ROSSimVehicleInterface::receiveCommandedFowardVelocity(underwater_vehicle_msgs::FloatMeasurement commandedForwardVelocity) {
+    DoubleSensorData forwardData;
 
-    forward.data = forwardData.data;
-    forward.time = forwardData.header.stamp.toSec();
+    forwardData.data = commandedForwardVelocity.data;
+    forwardData.variance = commandedForwardVelocity.variance;
 
-    publishDataToCallbacks<DoubleSensorData>("forwater_thruster", forward);
+    forwardData.time = commandedForwardVelocity.header.stamp.toSec();
+
+    publishDataToCallbacks<DoubleSensorData>("commanded_forward_velocity", forwardData);
 }
 
-void ROSSimVehicleInterface::receiveLateralThruster(underwater_vehicle_msgs::FloatMeasurement lateralData)
-{
-    DoubleSensorData lateral;
+void ROSSimVehicleInterface::receiveCommandedVerticalVelocity(underwater_vehicle_msgs::FloatMeasurement commandedVerticalVelocity) {
+    DoubleSensorData verticalData;
 
-    lateral.data = lateralData.data;
-    lateral.time = lateralData.header.stamp.toSec();
+    verticalData.data = commandedVerticalVelocity.data;
+    verticalData.variance = commandedVerticalVelocity.variance;
+    verticalData.time = commandedVerticalVelocity.header.stamp.toSec();
 
-    publishDataToCallbacks<DoubleSensorData>("lateral_thruster", lateral);
-} 
+    publishDataToCallbacks<DoubleSensorData>("commanded_vertical_velocity", verticalData);
+}

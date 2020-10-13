@@ -15,156 +15,157 @@ import argparse
 import psutil, signal
 
 import rosgraph_msgs
+import signal
 
 
-currentGoal = "running"
+
+currentStatus = "running"
 dataFilePub = None
-currentTime = 1000
+statusSub = None
+clockSub = None
+roscore = None
+currentTime = 0
 
-def callback(data):
-    global currentGoal
-    currentGoal = data.data
+def handler(signum, frame):
+    stopROSBag()
+    roscore.kill()
+    sys.exit(1)
 
 def runtimeCallback(data):
     global currentTime
 
     currentTime = data.clock.secs
 
+def statusCallback(data):
+    global currentStatus
+    currentStatus = data.data
+
+def initializeROS():
+    global statusSub
+    global roscore
+    global clockSub
+    roscore = subprocess.Popen('roscore')
+    time.sleep(5)
+    rospy.init_node('en_Mapping', anonymous=True)
+    statusSub = rospy.Subscriber('/v1/planner_status', String, statusCallback)
+    clockSub = rospy.Subscriber('/clock', rosgraph_msgs.msg.Clock, runtimeCallback)
+
+
+def initializeROSLaunch():
+    uuid = roslaunch.rlutil.get_or_generate_uuid(None, False)
+    roslaunch.configure_logging(uuid)
+    return uuid
+
 def getLaunchFiles(directory):
     return [os.path.join(directory, f) for f in os.listdir(directory) if os.path.isfile(os.path.join(directory, f)) and f.endswith(".launch")]
 
-def runLaunchFile(uuid, filename, outputDirectory, inputDirectory):
-    global currentTime
-    print("UUID: " + str(uuid))
-    launch = roslaunch.parent.ROSLaunchParent(uuid, [filename])
+def generateROSBagTopics(vehicles, topic_file, topics):
+    bagStr = ""
 
-    if not os.path.exists(outputDirectory):
-        os.makedirs(outputDirectory)
+    if topic_file is not None:
+        with open(topic_file, "rt") as fin:
+            for line in fin:
+                bagStr += line + " "
+    if topics is not None:
+        for t in topics:
+            bagStr += t + " "
 
-    rospy.loginfo("Starting launch file: %s", filename)
-    launch.start()
+    if vehicles is not None:
+        if len(vehicles) > 0:
+            bagStr += "-e "
+        for v in vehicles:
+            bagStr += "/" + v + "/(.*) "
 
-    rate = rospy.Rate(0.1)
+    return bagStr
 
-    # start recording messages to bag
-    # TODO: this process won't die if you terminate the parent early (i.e. you ctr-c)
-    command = "rosbag record -o " + outputDirectory + "/vehicleData /v1/data_broadcaster/data /v1/plannerStatus __name:=my_bag"
+def startROSBag(outputFile, topics):
+    command = "rosbag record -O " + outputFile + " " + topics + " __name:=my_bag"
     command = shlex.split(command)
     rosbag_proc = subprocess.Popen(command)
 
-    time.sleep(10)
-
-    sawRunning = False
-    while (not sawRunning or currentGoal == 'running') and currentTime < 5011200:
-        if(currentGoal == 'running'):
-            sawRunning = True
-
-        try:
-            rate.sleep()
-        except rospy.exceptions.ROSTimeMovedBackwardsException:
-            pass
-
-    print("Goal reached saving data\n")
-    sys.stdout.flush()
-    rospy.loginfo("Goal reached saving data to: %s", outputDirectory)
-
-    if currentTime >= 5011200:
-        rospy.loginfo("Ran out of time, stopping early")
-
-    # # this is crashing. It just saves that the run succeeded. Ignoring this for now
-    # # additionally, it took awhile for the script to notice that we were done with the run, maybe something to look at?
-    # #
-    # try:
-    #     dataFileClient = rospy.ServiceProxy('/data_server/save', data_server.srv.SaveData)
-    #     dataFileClient(os.path.join(os.path.abspath(outputDirectory), "data.csv"))
-    # except rospy.service.ServiceException:
-    #     rospy.logerr("Auto Run: ServiceException /data_server/save: inputFile: %s", filename)
-    #     launch.shutdown()
-    #     # stop the bag recording
-    #     rosbag_proc.send_signal(subprocess.signal.SIGINT)
-    #     return
-
-    # try:
-    #     logClient = rospy.ServiceProxy('/planner_log/save', planner_log.srv.SaveLog)
-    #     logClient(os.path.join(os.path.abspath(outputDirectory), "log.txt"))
-    # except rospy.service.ServiceException:
-    #     rospy.logerr("Auto Run: ServiceException /planner_log/save: inputFile: %s", filename)
-    #     launch.shutdown()
-    #     # stop the bag recording
-    #     rosbag_proc.send_signal(subprocess.signal.SIGINT)
-    #     return
-
-    with open(os.path.join(outputDirectory, "stats.txt"), 'w+') as f:
-        f.write("Goal State: " + currentGoal)
-
-    # stop the bag recording
-    print("Stopping bag file\n")
+def stopROSBag():
     command = "rosnode kill /my_bag"
     command = shlex.split(command)
     rosbag_proc = subprocess.Popen(command)
 
-    shutil.copy(filename, outputDirectory)
+def runLaunchFile(uuid, filename, outputFile, completeDirectory, topics):
+    global currentTime
 
+    launch = roslaunch.parent.ROSLaunchParent(uuid, [filename])
+
+    #Start ROSBag Recording
+    startROSBag(outputFile, topics)
+
+    #Start launch file
+    launch.start()
+    time.sleep(5)
+    
+    sawRunning = False
+
+    while (not sawRunning or currentStatus == 'running') and currentTime < 5011200:
+        if(currentStatus == 'running'):
+            sawRunning = True
+        try:
+            time.sleep(1)
+ 
+        except rospy.exceptions.ROSTimeMovedBackwardsException:
+            pass
+
+    sys.stdout.flush()
+
+    # stop the bag recording
+    stopROSBag()
+    time.sleep(5)
+    
+    #Shutdown the launch file
     rospy.loginfo("Stopping launch file: %s", filename)
     launch.shutdown()
 
+    #Move completed launch file to completed directory
+    if os.path.exists(completeDirectory):
+        shutil.move(filename, completeDirectory)
+    
 
-    if os.path.exists(os.path.join(inputDirectory, "completed")):
-        shutil.move(filename, os.path.join(inputDirectory, "completed"))
+def main(inputs, outputDirectory, topics):
+    global currentStatus
 
-def main(input, outputDirectory):
-    global currentGoal
+    signal.signal(signal.SIGINT, handler)
 
-    # check if input is file or directory
-    # true if input is directory
-    if not os.path.isfile(input):
-        if not os.path.exists(os.path.join(input, "completed")):
-            os.makedirs(os.path.join(input, "completed"))
+    initializeROS()
+    roslaunch_uuid = initializeROSLaunch()
 
-        launchFiles = getLaunchFiles(input)
+    launchFiles = None
+    outputROSBag = None
+    
+    if not os.path.exists(outputDirectory):
+        os.makedirs(outputDirectory)
 
-    roscore = subprocess.Popen('roscore')
+    if not os.path.isfile(inputs):
+        if not os.path.exists(os.path.join(inputs, "completed")):
+            os.makedirs(os.path.join(inputs, "completed"))
 
-    time.sleep(5)
-
-    # if getting stuck here, need to run roscore in different process
-    rospy.init_node('en_Mapping', anonymous=True)
-
-    uuid = roslaunch.rlutil.get_or_generate_uuid(None, False)
-    roslaunch.configure_logging(uuid)
-
-    # TODO check where the timeout message is sent to
-    rospy.Subscriber('/v1/goal', String, callback)
-
-    # roslib.rosgraph_msgs.Clock
-    rospy.Subscriber('/clock', rosgraph_msgs.msg.Clock, runtimeCallback)
-
-    if not os.path.isfile(input):
-        # run all launch files in dir
-        outputDirectories = [os.path.join(outputDirectory, os.path.basename(file).replace('.','_')) for file in launchFiles]
-
-        for launchFile, output in zip(launchFiles, outputDirectories):
-            time.sleep(10)
-            currentGoal = 'running'
-            runLaunchFile(uuid, launchFile, output, input)
+        launchFiles = getLaunchFiles(inputs)
+        outputROSBag = [os.path.join(outputDirectory, os.path.basename(file).replace('.launch','.bag')) for file in launchFiles]
     else:
-        # run the launch file
-        currentGoal = 'running'
-        runLaunchFile(uuid, input, outputDirectory, os.getcwd())
+        launchFiles = [inputs]
+        outputROSBag = [os.path.join(outputDirectory, os.path.basename(inputs).replace('.launch','.bag'))]
 
-
+    for launchFile, output in zip(launchFiles, outputROSBag):
+        time.sleep(5)
+        currentStatus = 'running'
+        runLaunchFile(roslaunch_uuid, launchFile, output, os.path.join(inputs, "completed"), topics)
 
 if __name__ == "__main__":
+
     parser = argparse.ArgumentParser()
 
     parser.add_argument("input", help="path of launch file or directory containg launch files")
-    parser.add_argument("outputDir", help="path of directory of output", nargs='*', default=None)
+    parser.add_argument("output", help="path of directory for output")
+    parser.add_argument('-tf', '--topic_file',  help="path to file containing topics to record", default=None)
+    parser.add_argument('-v', '--vehicles',  help="vehicle to record all topics for", nargs='*', default=None)
+    parser.add_argument('-t', '--topics',  help="topics to record in the rosbag", nargs='*', default=None)
 
     args = parser.parse_args()
 
-    if args.outputDir:
-        outDir = args.outputDir[0]
-    else:
-        outDir = os.getcwd()
-
-    main(args.input, outDir)
+    topics = generateROSBagTopics(args.vehicles, args.topic_file, args.topics)
+    main(args.input, args.output, topics)

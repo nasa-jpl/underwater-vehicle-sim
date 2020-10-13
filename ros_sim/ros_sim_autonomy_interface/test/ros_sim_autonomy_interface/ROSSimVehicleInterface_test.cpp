@@ -16,6 +16,7 @@
 #include "underwater_vehicle_msgs/USBL.h"
 #include "underwater_vehicle_msgs/FloatMeasurement.h"
 #include "underwater_vehicle_msgs/DVL.h"
+#include "underwater_vehicle_msgs/PropulsionControllerState.h"
 
 #include "ros_sim_autonomy_interface/ROSSimVehicleInterface.h"
 
@@ -280,74 +281,55 @@ TEST(ROSSimNavigationFilter, DataBroadcasterCallback)
     EXPECT_DOUBLE_EQ(14, lastPlume.time);
 }
 
-TEST(ROSSimNavigationFilter, ForwardThrusterCallback)
+TEST(ROSSimNavigationFilter, CommandedVelocityCallback)
 {
     underwater_vehicle_msgs::GetVehicleInfo infoSrv;
-    infoSrv.response.propModuleType = "FourDOFPropulsion";
-    infoSrv.response.propModuleName = "prop";
+    infoSrv.response.propModuleType = "None";
+    infoSrv.response.propModuleName = "None";
+    infoSrv.response.moduleTypes = {"DVL"};
+    infoSrv.response.moduleNames = {"dvl"};
     VehicleInfo info(infoSrv);
 
     ROSSimVehicleInterface interface(info);
 
-    bool gotThrust = false;
-    DoubleSensorData lastTrust;
+    bool gotForward = false;
+    DoubleSensorData lastForward;
+    bool gotVertical = false;
+    DoubleSensorData lastVertical;
 
-    std::function<void(const DoubleSensorData&)> thrustCB = [&](const DoubleSensorData& data) { lastTrust = data; 
-                                                                                               gotThrust = true; };
+    std::function<void(const DoubleSensorData&)> forwardCB = [&](const DoubleSensorData& data) { lastForward = data; 
+                                                                                                 gotForward = true; };
 
-    interface.registerDataCallback<DoubleSensorData>("forwater_thruster", thrustCB);
+    std::function<void(const DoubleSensorData&)> verticalCB = [&](const DoubleSensorData& data) { lastVertical = data; 
+                                                                                                 gotVertical = true; };
+
+    interface.registerDataCallback<DoubleSensorData>("commanded_forward_velocity", forwardCB);
+    interface.registerDataCallback<DoubleSensorData>("commanded_vertical_velocity", verticalCB);
 
     ros::NodeHandle nh;
-    ros::Publisher thrustPub = nh.advertise<underwater_vehicle_msgs::FloatMeasurement>("prop/measured_forward_thruster", 1, true);
-    underwater_vehicle_msgs::FloatMeasurement thrust;
+    ros::Publisher forwardPub = nh.advertise<underwater_vehicle_msgs::FloatMeasurement>("commanded_forward_velocity", 1, true);
+    ros::Publisher verticalPub = nh.advertise<underwater_vehicle_msgs::FloatMeasurement>("commanded_vertical_velocity", 1, true);
 
-    thrust.data = 30.0;
-    thrust.header.stamp = ros::Time(10);
+    underwater_vehicle_msgs::FloatMeasurement forwardData;
+    underwater_vehicle_msgs::FloatMeasurement verticalData;
 
-    thrustPub.publish(thrust);
+    forwardData.data = 0.56;
+    verticalData.data = 0.67;
+    forwardData.header.stamp = ros::Time(16);
+    verticalData.header.stamp = ros::Time(17);
 
-    while(!gotThrust) {
+    forwardPub.publish(forwardData);
+    verticalPub.publish(verticalData);
+
+    while(!gotForward && !gotVertical) {
         ros::Duration(0.5).sleep();
         ros::spinOnce();
     }
 
-    EXPECT_DOUBLE_EQ(10, lastTrust.time);
-    EXPECT_DOUBLE_EQ(30.0, lastTrust.data);
-}
-
-TEST(ROSSimNavigationFilter, LateralThrusterCallback)
-{
-    underwater_vehicle_msgs::GetVehicleInfo infoSrv;
-    infoSrv.response.propModuleType = "FourDOFPropulsion";
-    infoSrv.response.propModuleName = "prop";
-    VehicleInfo info(infoSrv);
-
-    ROSSimVehicleInterface interface(info);
-
-    bool gotThrust = false;
-    DoubleSensorData lastTrust;
-
-    std::function<void(const DoubleSensorData&)> thrustCB = [&](const DoubleSensorData& data) { lastTrust = data; 
-                                                                                               gotThrust = true; };
-
-    interface.registerDataCallback<DoubleSensorData>("lateral_thruster", thrustCB);
-
-    ros::NodeHandle nh;
-    ros::Publisher thrustPub = nh.advertise<underwater_vehicle_msgs::FloatMeasurement>("prop/measured_lateral_thruster", 1, true);
-    underwater_vehicle_msgs::FloatMeasurement thrust;
-
-    thrust.data = 31.0;
-    thrust.header.stamp = ros::Time(10);
-
-    thrustPub.publish(thrust);
-
-    while(!gotThrust) {
-        ros::Duration(0.5).sleep();
-        ros::spinOnce();
-    }
-
-    EXPECT_DOUBLE_EQ(10, lastTrust.time);
-    EXPECT_DOUBLE_EQ(31.0, lastTrust.data);
+    EXPECT_DOUBLE_EQ(16, lastForward.time);
+    EXPECT_DOUBLE_EQ(17, lastVertical.time);
+    EXPECT_DOUBLE_EQ(0.56, lastForward.data);
+    EXPECT_DOUBLE_EQ(0.67, lastVertical.data);
 }
 
 //Had issues doing this in the roslaunch file for this test. Not sure why.

@@ -16,7 +16,8 @@ find_package(catkin REQUIRED
              tf2_geometry_msgs
              underwater_vehicle_msgs
              propulsion_controller
-             nav_msgs)
+             nav_msgs
+             geometry_msgs)
 
 find_package (Eigen3 3.3 REQUIRED NO_MODULE)
 
@@ -180,6 +181,17 @@ target_include_directories(${PROJECT_NAME} PUBLIC /usr/local/include/bfl)
  add_dependencies(ros_sim_dr_navigation_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
   target_include_directories(ros_sim_dr_navigation_node PRIVATE  ${UNDERWATER_AUTONOMY_INCLUDE})
  target_link_libraries(ros_sim_dr_navigation_node
+   ros_sim_autonomy_interface
+   underwater_vehicle_msgs
+   ${UNDERWATER_AUTONOMY_LIB}
+   ${catkin_LIBRARIES}
+ )
+
+  add_executable(ros_sim_sb_navigation_node src/ros_sim_navigation/ROSSimSBNavigationNode.cpp)
+# set_target_properties(ros_sim_sb_navigation_node PROPERTIES OUTPUT_NAME node PREFIX "")
+ add_dependencies(ros_sim_sb_navigation_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+  target_include_directories(ros_sim_sb_navigation_node PRIVATE  ${UNDERWATER_AUTONOMY_INCLUDE})
+ target_link_libraries(ros_sim_sb_navigation_node
    ros_sim_autonomy_interface
    underwater_vehicle_msgs
    ${UNDERWATER_AUTONOMY_LIB}

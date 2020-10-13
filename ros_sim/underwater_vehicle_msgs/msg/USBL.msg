@@ -8,3 +8,5 @@ float64 beacon_z
 
 float64 range
 float64 bearing
+
+float64[4] range_bearing_covariance

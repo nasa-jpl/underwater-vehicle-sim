@@ -1,0 +1,11 @@
+planner_type = "Waypoints"
+
+waypoints_x = [500, 500, 1000, 1000, 1500, 1500, 2000, 2000, 2500, 2500, 3000, 3000, 3500, 3500, 4000, 4000]
+waypoints_y = [0, 500, 500, 0, 0, 500, 500, 0, 0, 500, 500, 0, 0, 500, 500, 0]
+waypoints_z = [100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100]
+
+yoyo = false
+
+target_horizontal_velocity = 1.0
+target_vertical_velocity = 1.0
+target_rotational_velocity = 0.0872665

@@ -366,10 +366,12 @@ TEST(PropulsionController, goToXY)
 
     //Before Goal
     controller.update();
+    ros::WallDuration(0.5).sleep();
+    ros::spinOnce();
 
     EXPECT_EQ(1, rawLogicPtr->getAvoidSeafloorCalls());
     EXPECT_EQ(0, rawLogicPtr->getGoToXYCalls());
-    EXPECT_EQ(0, rawLogicPtr->getStopXYCalls());
+    EXPECT_EQ(1, rawLogicPtr->getStopXYCalls());
     EXPECT_FALSE(rawLogicPtr->getXYMovement());
     EXPECT_TRUE(rawLogicPtr->getZMovement());
 
@@ -377,16 +379,21 @@ TEST(PropulsionController, goToXY)
     underwater_vehicle_msgs::GoToXY goToXYMsg;
     goToXYMsg.request.x = 100;
     goToXYMsg.request.y = -100;
+    goToXYMsg.request.xLinearVelocity = 0.85;
     goToXYMsg.request.enable = true;
 
     goToXYClient.call(goToXYMsg);
 
     //During Goal
     controller.update();
+    ros::WallDuration(0.5).sleep();
+    ros::spinOnce();
+
     EXPECT_EQ(2, rawLogicPtr->getAvoidSeafloorCalls());
     EXPECT_EQ(1, rawLogicPtr->getGoToXYCalls());
-    EXPECT_EQ(0, rawLogicPtr->getStopXYCalls());
+    EXPECT_EQ(1, rawLogicPtr->getStopXYCalls());
     EXPECT_FALSE(lastXYComplete);
+
     EXPECT_TRUE(rawLogicPtr->getXYMovement());
     EXPECT_TRUE(rawLogicPtr->getZMovement());
 
@@ -398,8 +405,9 @@ TEST(PropulsionController, goToXY)
 
     EXPECT_EQ(3, rawLogicPtr->getAvoidSeafloorCalls());
     EXPECT_EQ(1, rawLogicPtr->getGoToXYCalls());
-    EXPECT_EQ(1, rawLogicPtr->getStopXYCalls());
+    EXPECT_EQ(2, rawLogicPtr->getStopXYCalls());
     EXPECT_TRUE(lastXYComplete);
+
     EXPECT_DOUBLE_EQ(100, lastXYCompleteX);
     EXPECT_DOUBLE_EQ(-100, lastXYCompleteY);
     EXPECT_FALSE(rawLogicPtr->getXYMovement());
@@ -435,7 +443,7 @@ TEST(PropulsionController, goToXYCancel)
 
     EXPECT_EQ(1, rawLogicPtr->getAvoidSeafloorCalls());
     EXPECT_EQ(0, rawLogicPtr->getGoToXYCalls());
-    EXPECT_EQ(0, rawLogicPtr->getStopXYCalls());
+    EXPECT_EQ(1, rawLogicPtr->getStopXYCalls());
     EXPECT_FALSE(rawLogicPtr->getXYMovement());
     EXPECT_TRUE(rawLogicPtr->getZMovement());
 
@@ -454,7 +462,7 @@ TEST(PropulsionController, goToXYCancel)
     controller.update();
     EXPECT_EQ(2, rawLogicPtr->getAvoidSeafloorCalls());
     EXPECT_EQ(1, rawLogicPtr->getGoToXYCalls());
-    EXPECT_EQ(0, rawLogicPtr->getStopXYCalls());
+    EXPECT_EQ(1, rawLogicPtr->getStopXYCalls());
     EXPECT_TRUE(rawLogicPtr->getXYMovement());
     EXPECT_TRUE(rawLogicPtr->getZMovement());
 
@@ -467,14 +475,14 @@ TEST(PropulsionController, goToXYCancel)
 
     EXPECT_EQ(2, rawLogicPtr->getAvoidSeafloorCalls());
     EXPECT_EQ(1, rawLogicPtr->getGoToXYCalls());
-    EXPECT_EQ(1, rawLogicPtr->getStopXYCalls());
+    EXPECT_EQ(2, rawLogicPtr->getStopXYCalls());
     EXPECT_FALSE(rawLogicPtr->getXYMovement());
     EXPECT_TRUE(rawLogicPtr->getZMovement());
 
     controller.update();
     EXPECT_EQ(3, rawLogicPtr->getAvoidSeafloorCalls());
     EXPECT_EQ(1, rawLogicPtr->getGoToXYCalls());
-    EXPECT_EQ(1, rawLogicPtr->getStopXYCalls());
+    EXPECT_EQ(3, rawLogicPtr->getStopXYCalls());
     EXPECT_FALSE(rawLogicPtr->getXYMovement());
     EXPECT_TRUE(rawLogicPtr->getZMovement());
     spinner.stop();
@@ -583,7 +591,7 @@ TEST(PropulsionController, followHeadingCancel)
 
     EXPECT_EQ(1, rawLogicPtr->getAvoidSeafloorCalls());
     EXPECT_EQ(0, rawLogicPtr->getFollowHeadingCalls());
-    EXPECT_EQ(0, rawLogicPtr->getStopXYCalls());
+    EXPECT_EQ(1, rawLogicPtr->getStopXYCalls());
     EXPECT_FALSE(rawLogicPtr->getXYMovement());
     EXPECT_TRUE(rawLogicPtr->getZMovement());
 
@@ -599,7 +607,7 @@ TEST(PropulsionController, followHeadingCancel)
     controller.update();
     EXPECT_EQ(2, rawLogicPtr->getAvoidSeafloorCalls());
     EXPECT_EQ(1, rawLogicPtr->getFollowHeadingCalls());
-    EXPECT_EQ(0, rawLogicPtr->getStopXYCalls());
+    EXPECT_EQ(1, rawLogicPtr->getStopXYCalls());
     EXPECT_TRUE(rawLogicPtr->getXYMovement());
     EXPECT_TRUE(rawLogicPtr->getZMovement());
 
@@ -612,20 +620,20 @@ TEST(PropulsionController, followHeadingCancel)
 
     EXPECT_EQ(2, rawLogicPtr->getAvoidSeafloorCalls());
     EXPECT_EQ(1, rawLogicPtr->getFollowHeadingCalls());
-    EXPECT_EQ(1, rawLogicPtr->getStopXYCalls());
+    EXPECT_EQ(2, rawLogicPtr->getStopXYCalls());
     EXPECT_FALSE(rawLogicPtr->getXYMovement());
     EXPECT_TRUE(rawLogicPtr->getZMovement());
 
     controller.update();
     EXPECT_EQ(3, rawLogicPtr->getAvoidSeafloorCalls());
     EXPECT_EQ(1, rawLogicPtr->getFollowHeadingCalls());
-    EXPECT_EQ(1, rawLogicPtr->getStopXYCalls());
+    EXPECT_EQ(3, rawLogicPtr->getStopXYCalls());
     EXPECT_FALSE(rawLogicPtr->getXYMovement());
     EXPECT_TRUE(rawLogicPtr->getZMovement());
     spinner.stop();
 }
 
-TEST(PropulsionController, xyInterruptHeading) 
+TEST(PropulsionController, xyInterruptHeading)
 {
     ros::NodeHandle nh("xyInterruptHeading");
 
@@ -652,7 +660,7 @@ TEST(PropulsionController, xyInterruptHeading)
 
     EXPECT_EQ(1, rawLogicPtr->getAvoidSeafloorCalls());
     EXPECT_EQ(0, rawLogicPtr->getFollowHeadingCalls());
-    EXPECT_EQ(0, rawLogicPtr->getStopXYCalls());
+    EXPECT_EQ(1, rawLogicPtr->getStopXYCalls());
     EXPECT_FALSE(rawLogicPtr->getXYMovement());
     EXPECT_TRUE(rawLogicPtr->getZMovement());
 
@@ -669,7 +677,7 @@ TEST(PropulsionController, xyInterruptHeading)
     EXPECT_EQ(2, rawLogicPtr->getAvoidSeafloorCalls());
     EXPECT_EQ(1, rawLogicPtr->getFollowHeadingCalls());
     EXPECT_EQ(0, rawLogicPtr->getGoToXYCalls());
-    EXPECT_EQ(0, rawLogicPtr->getStopXYCalls());
+    EXPECT_EQ(1, rawLogicPtr->getStopXYCalls());
     EXPECT_TRUE(rawLogicPtr->getXYMovement());
     EXPECT_TRUE(rawLogicPtr->getZMovement());
 
@@ -687,7 +695,7 @@ TEST(PropulsionController, xyInterruptHeading)
     EXPECT_EQ(3, rawLogicPtr->getAvoidSeafloorCalls());
     EXPECT_EQ(1, rawLogicPtr->getFollowHeadingCalls());
     EXPECT_EQ(1, rawLogicPtr->getGoToXYCalls());
-    EXPECT_EQ(0, rawLogicPtr->getStopXYCalls());
+    EXPECT_EQ(1, rawLogicPtr->getStopXYCalls());
     EXPECT_TRUE(rawLogicPtr->getXYMovement());
     EXPECT_TRUE(rawLogicPtr->getZMovement());
 
@@ -721,7 +729,7 @@ TEST(PropulsionController, headingInterruptXY)
 
     EXPECT_EQ(1, rawLogicPtr->getAvoidSeafloorCalls());
     EXPECT_EQ(0, rawLogicPtr->getFollowHeadingCalls());
-    EXPECT_EQ(0, rawLogicPtr->getStopXYCalls());
+    EXPECT_EQ(1, rawLogicPtr->getStopXYCalls());
     EXPECT_FALSE(rawLogicPtr->getXYMovement());
     EXPECT_TRUE(rawLogicPtr->getZMovement());
 
@@ -740,7 +748,7 @@ TEST(PropulsionController, headingInterruptXY)
     EXPECT_EQ(2, rawLogicPtr->getAvoidSeafloorCalls());
     EXPECT_EQ(0, rawLogicPtr->getFollowHeadingCalls());
     EXPECT_EQ(1, rawLogicPtr->getGoToXYCalls());
-    EXPECT_EQ(0, rawLogicPtr->getStopXYCalls());
+    EXPECT_EQ(1, rawLogicPtr->getStopXYCalls());
     EXPECT_TRUE(rawLogicPtr->getXYMovement());
     EXPECT_TRUE(rawLogicPtr->getZMovement());
 
@@ -758,7 +766,7 @@ TEST(PropulsionController, headingInterruptXY)
     EXPECT_EQ(3, rawLogicPtr->getAvoidSeafloorCalls());
     EXPECT_EQ(1, rawLogicPtr->getFollowHeadingCalls());
     EXPECT_EQ(1, rawLogicPtr->getGoToXYCalls());
-    EXPECT_EQ(0, rawLogicPtr->getStopXYCalls());
+    EXPECT_EQ(1, rawLogicPtr->getStopXYCalls());
     EXPECT_TRUE(rawLogicPtr->getXYMovement());
     EXPECT_TRUE(rawLogicPtr->getZMovement());
 

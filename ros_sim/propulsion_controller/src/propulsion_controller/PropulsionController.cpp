@@ -57,6 +57,8 @@ void PropulsionController::update(void)
     else if(followHeadingEnable)
     {
         followHeadingUpdate();
+    } else {
+        logicController->stopXY();
     }
 
     if(goToZEnable)
@@ -225,6 +227,8 @@ void PropulsionController::navigationFilterCallback(const nav_msgs::Odometry odo
 void PropulsionController::publishState() 
 {
     underwater_vehicle_msgs::PropulsionControllerState stateMsg;
+
+    stateMsg.header.stamp = ros::Time::now();
 
     stateMsg.xyEnable = goToXYEnable;
     stateMsg.xyComplete = goToXYComplete;

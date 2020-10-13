@@ -17,7 +17,7 @@ using namespace underwater_autonomy;
 
 FourDOFPropulsionPIDLogic::FourDOFPropulsionPIDLogic(VehicleInfo& vehicleInfo) :
     PropulsionLogicInterface(vehicleInfo),
-    lateralError(5.0),
+    lateralError(25.0),
     verticalError(1.0),
     latestSonarDepth(1000),
     minSeafloorDistance(3.0),

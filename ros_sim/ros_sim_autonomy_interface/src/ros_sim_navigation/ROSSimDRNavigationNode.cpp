@@ -25,7 +25,8 @@ void publishPose() {
     Eigen::Quaterniond orientation = pose.getOrientation();
     Eigen::Vector3d linearVelocity = pose.getLinearVelocity();
     Eigen::Vector3d angularVelocity = pose.getAngularVelocity();
-
+    Eigen::Matrix<double,6,6> poseCovariance = pose.getPoseCovariance();
+    Eigen::Matrix<double,6,6> twistCovariance = pose.getTwistCovariance();
 
     nav_msgs::Odometry odoMsg;
     odoMsg.header.stamp = ros::Time::now();
@@ -41,9 +42,10 @@ void publishPose() {
     odoMsg.pose.pose.orientation.z = orientation.z();
     odoMsg.pose.pose.orientation.w = orientation.w();
 
-    for(unsigned int i = 0; i < 36; i++)
-    {
-        odoMsg.pose.covariance[i] = 0;
+    for(uint i = 0; i < 6; i++) {
+        for(uint j = 0; j < 6; j++) {
+            odoMsg.pose.covariance[i*6 + j] = poseCovariance(i,j);
+        }
     }
 
     odoMsg.twist.twist.linear.x = linearVelocity[0];
@@ -54,11 +56,11 @@ void publishPose() {
     odoMsg.twist.twist.angular.y = angularVelocity[1];
     odoMsg.twist.twist.angular.z = angularVelocity[2];
 
-    for(unsigned int i = 0; i < 36; i++)
-    {
-        odoMsg.twist.covariance[i] = 0;
+    for(uint i = 0; i < 6; i++) {
+        for(uint j = 0; j < 6; j++) {
+            odoMsg.twist.covariance[i*6 + j] = twistCovariance(i,j);
+        }
     }
-
     posePublisher.publish(odoMsg);
 }
 
@@ -87,6 +89,14 @@ int main(int argc, char **argv)
                      * Eigen::AngleAxisd(0, Eigen::Vector3d::UnitY())
                      * Eigen::AngleAxisd(0, Eigen::Vector3d::UnitZ());
     VehiclePose startPose(startPosition, startOrientation);
+    Eigen::Matrix<double,6,6> poseCovariance = Eigen::Matrix<double,6,6>::Zero();
+    Eigen::Matrix<double,6,6> twistCovariance = Eigen::Matrix<double,6,6>::Zero();
+    twistCovariance(0,0) = 2;
+    twistCovariance(1,1) = 2;
+    twistCovariance(5,5) = 0;
+
+    startPose.setPoseCovariance(poseCovariance);
+    startPose.setTwistCovariance(twistCovariance);
 
     filter = std::unique_ptr<DeadReckoningNavigationFilter>(new DeadReckoningNavigationFilter(interface));
     filter->setPose(startPose);
