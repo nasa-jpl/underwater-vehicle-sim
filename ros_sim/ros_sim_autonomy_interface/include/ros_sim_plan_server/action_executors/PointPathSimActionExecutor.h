@@ -77,6 +77,9 @@ private:
 
     bool statePropSetup;
     long prevXYSeqNum;
+
+    bool poseAtFirstExecuteValid;
+    underwater_autonomy::VehiclePose poseAtFirstExecute;
 };
 
 #endif

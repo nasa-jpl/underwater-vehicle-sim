@@ -24,7 +24,8 @@ PointPathSimActionExecutor::PointPathSimActionExecutor(underwater_autonomy::Poin
     replanNextUpdate(false),
     lastReplanTime(0),
     distanceSinceReplan(0),
-    statePropSetup(false)
+    statePropSetup(false),
+    poseAtFirstExecuteValid(false)
 {
     propStateSub = nh.subscribe("prop_state", 10, &PointPathSimActionExecutor::propStateCallback, this);
     poseSub = nh.subscribe("primary_navigation", 1, &PointPathSimActionExecutor::navigationFilterCallback, this);
@@ -45,6 +46,11 @@ void PointPathSimActionExecutor::execute()
 
     //Wait for the propulsion controller state subscriber to be setup
     waitForPropStateSetup();
+
+    if(!poseAtFirstExecuteValid) {
+        poseAtFirstExecute = currentPose;
+        poseAtFirstExecuteValid = true;
+    }
 
     //Creates an action goal and sends it to the action server for point path movement
     if(!action.isDone())
@@ -108,6 +114,18 @@ void PointPathSimActionExecutor::propStateCallback(const underwater_vehicle_msgs
     }
 
     Eigen::Vector3d currentTargetPoint = action.getCurrentTargetPoint();
+    if(action.getPointType() == PointPathAction::PointType::RELATIVE) {
+        Eigen::Vector3d rpyAngles = poseAtFirstExecute.getOrientation().toRotationMatrix().eulerAngles(0, 1, 2);
+        Eigen::Vector3d position = poseAtFirstExecute.getPosition();
+        double yaw = rpyAngles[2];
+        double updatedX = currentTargetPoint[0] * std::cos(yaw) - currentTargetPoint[1] * std::sin(yaw) + position[0];
+        double updatedY = currentTargetPoint[0] * std::sin(yaw) + currentTargetPoint[1] * std::cos(yaw) + position[1];
+
+        currentTargetPoint[0] = updatedX;
+        currentTargetPoint[1] = updatedY;
+    }
+
+
     if(state.xyComplete && 
        doubleEq(currentTargetPoint[0], state.x) &&
        doubleEq(currentTargetPoint[1], state.y) &&
@@ -144,6 +162,17 @@ void PointPathSimActionExecutor::waitForPropStateSetup()
 bool PointPathSimActionExecutor::sendNextGoToXYGoal()
 {
     Eigen::Vector3d point = action.getCurrentTargetPoint();
+    if(action.getPointType() == PointPathAction::PointType::RELATIVE) {
+        Eigen::Vector3d rpyAngles = poseAtFirstExecute.getOrientation().toRotationMatrix().eulerAngles(0, 1, 2);
+        Eigen::Vector3d position = poseAtFirstExecute.getPosition();
+        double yaw = rpyAngles[2];
+        double updatedX = point[0] * std::cos(yaw) - point[1] * std::sin(yaw) + position[0];
+        double updatedY = point[0] * std::sin(yaw) + point[1] * std::cos(yaw) + position[1];
+
+        point[0] = updatedX;
+        point[1] = updatedY;
+    }
+
     underwater_vehicle_msgs::GoToXY goToXYMsg;
     goToXYMsg.request.x = point[0];
     goToXYMsg.request.y = point[1];

@@ -149,6 +149,12 @@ private:
 	double startZ;
 
 	/**
+	* Starting yaw of the vehicle
+	*/
+	double startYaw;
+
+
+	/**
 	* Local model used if speed is important
 	*/
 	std::unique_ptr<ocean_models::ModelInterface> model;

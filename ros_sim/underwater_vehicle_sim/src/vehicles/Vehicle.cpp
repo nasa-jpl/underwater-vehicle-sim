@@ -50,12 +50,16 @@ void Vehicle::initalizeVehicleFrame()
 	nhPriv.getParam("start_x", startX);
 	nhPriv.getParam("start_y", startY);
 	nhPriv.getParam("start_z", startZ);
+	if(!nhPriv.getParam("start_yaw", startYaw)) {
+		startYaw = 0;
+	}
+
 	nhPriv.getParam("start_power", powerCapacity);
 	nhPriv.getParam("start_dataCapacity", dataCapacity);
 
 	//broadcast the inital frame for this vehicle
 	tf2::Quaternion initialRotation;
-	initialRotation.setRPY(0, 0, 0);
+	initialRotation.setRPY(0, 0, startYaw);
 	vehicleState.setRotationNED(initialRotation);
 
 	tf2::Vector3 initialPosition(startX, startY, startZ);
