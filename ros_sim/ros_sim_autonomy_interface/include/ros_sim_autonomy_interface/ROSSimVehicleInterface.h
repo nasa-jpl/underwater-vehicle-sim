@@ -4,6 +4,7 @@
 #include "ros/ros.h"
 
 #include "underwater_autonomy/planner/VehicleInterface.h"
+#include "underwater_autonomy/util/LogData.h"
 
 #include "underwater_vehicle_msgs/VehicleInfo.h"
 #include "underwater_vehicle_msgs/VehicleData.h"
@@ -26,6 +27,7 @@ public:
 
     void sendPlannerStatus(underwater_autonomy::PlannerStatus status) override;
     void log(underwater_autonomy::LogLevel level, std::string string) override;
+    void log(std::string channel, underwater_autonomy::LogData data) override;
 
     underwater_autonomy::VehiclePose getPosition() const override;
     double getTime() const override;
@@ -42,7 +44,6 @@ private:
     void receiveDVL(underwater_vehicle_msgs::DVL msgData);
 
     void receiveCommandedFowardVelocity(underwater_vehicle_msgs::FloatMeasurement commandedForwardVelocity);
-    void receiveCommandedVerticalVelocity(underwater_vehicle_msgs::FloatMeasurement commandedVerticalVelocity);
 
     void navigationFilterCallback(const nav_msgs::Odometry odo);
     

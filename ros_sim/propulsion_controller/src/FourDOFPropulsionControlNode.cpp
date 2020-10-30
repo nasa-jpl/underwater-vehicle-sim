@@ -208,7 +208,7 @@ int main(int argc, char **argv)
         exit(1);
     }
 
-    if(!nhPriv.getParam("thruster_std_dev", thrusterStdDev)) {
+    if(!nhPriv.getParam("thruster_velocity_std_dev", thrusterStdDev)) {
         thrusterStdDev = 0.25;
     }
 

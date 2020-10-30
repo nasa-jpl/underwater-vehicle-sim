@@ -98,7 +98,12 @@ int main(int argc, char **argv)
     startPose.setPoseCovariance(poseCovariance);
     startPose.setTwistCovariance(twistCovariance);
 
-    filter = std::unique_ptr<DeadReckoningNavigationFilter>(new DeadReckoningNavigationFilter(interface));
+    std::string configFilename;
+    nhPriv.getParam("config_file", configFilename);
+    ConfigurationFile config(configFilename);
+    DeadReckoningNavigationFilter::Parameters parameters(config);
+
+    filter = std::unique_ptr<DeadReckoningNavigationFilter>(new DeadReckoningNavigationFilter(interface, parameters));
     filter->setPose(startPose);
 
     float hertz;

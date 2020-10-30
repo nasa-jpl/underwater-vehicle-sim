@@ -1,0 +1,18 @@
+planner_type = "GoldenSelectionHoming"
+
+target_horizontal_velocity = 0.5
+start_interval = 2.0944 #120 degrees
+end_interval = 0.52359877559   #30 degrees
+max_time_on_bearing = 3600
+follow_heading_replan_time = 450
+slope_std_dev_threshold = 0.05
+num_slope_std_dev_values = 5
+
+restart_percent = 0.9
+
+operation_region.min.x = -50000
+operation_region.min.y = -50000
+operation_region.min.z = 0
+operation_region.max.x = 50000
+operation_region.max.y = 50000
+operation_region.max.z = 4000

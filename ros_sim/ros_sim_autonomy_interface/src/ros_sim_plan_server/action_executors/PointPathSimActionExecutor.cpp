@@ -114,7 +114,7 @@ void PointPathSimActionExecutor::propStateCallback(const underwater_vehicle_msgs
     }
 
     Eigen::Vector3d currentTargetPoint = action.getCurrentTargetPoint();
-    if(action.getPointType() == PointPathAction::PointType::RELATIVE) {
+    if(action.getPointType() == PointPathAction::PointType::VEHICLE_RELATIVE) {
         Eigen::Vector3d rpyAngles = poseAtFirstExecute.getOrientation().toRotationMatrix().eulerAngles(0, 1, 2);
         Eigen::Vector3d position = poseAtFirstExecute.getPosition();
         double yaw = rpyAngles[2];
@@ -162,7 +162,7 @@ void PointPathSimActionExecutor::waitForPropStateSetup()
 bool PointPathSimActionExecutor::sendNextGoToXYGoal()
 {
     Eigen::Vector3d point = action.getCurrentTargetPoint();
-    if(action.getPointType() == PointPathAction::PointType::RELATIVE) {
+    if(action.getPointType() == PointPathAction::PointType::VEHICLE_RELATIVE) {
         Eigen::Vector3d rpyAngles = poseAtFirstExecute.getOrientation().toRotationMatrix().eulerAngles(0, 1, 2);
         Eigen::Vector3d position = poseAtFirstExecute.getPosition();
         double yaw = rpyAngles[2];
