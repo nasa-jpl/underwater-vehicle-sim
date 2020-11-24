@@ -14,4 +14,4 @@ operation_region.max.y = 150000
 operation_region.max.z = 5000
 
 target_horizontal_velocity = 1.0
-target_rotational_velocity = 0.0872665
+target_rotational_velocity = 0.08

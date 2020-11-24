@@ -5,6 +5,8 @@ project(ros_sim_autonomy_interface)
 add_compile_options(-std=c++11)
 add_compile_options($<BUILD_INTERFACE:-Wall>)
 
+add_definitions(-DEIGEN_DONT_VECTORIZE -DEIGEN_DISABLE_UNALIGNED_ARRAY_ASSERT)
+
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
@@ -21,12 +23,15 @@ find_package(catkin REQUIRED
 
 find_package (Eigen3 3.3 REQUIRED NO_MODULE)
 
+find_library(ALG_LIB alg_lib)
 find_library(UNDERWATER_AUTONOMY_LIB underwater_autonomy)
 find_path(UNDERWATER_AUTONOMY_INCLUDE underwater_autonomy)
 find_library(VENT_PLANNER_LIB vent_planner)
 find_path(VENT_PLANNER_INCLUDE vent_planner)
 find_library(NAVIGATION_PLANNER_LIB navigation_planner)
 find_path(NAVIGATION_PLANNER_INCLUDE navigation_planner)
+find_library(RTD_PLANNER_LIB rtd_planner)
+find_path(RTD_PLANNER_INCLUDE rtd_planner)
 
 find_package (Eigen3 3.3 REQUIRED NO_MODULE)
 
@@ -138,6 +143,7 @@ add_library(${PROJECT_NAME}
     src/ros_sim_plan_server/action_executors/FollowHeadingSimActionExecutor.cpp
     src/ros_sim_plan_server/action_executors/HoldDepthSimActionExecutor.cpp
     src/ros_sim_plan_server/action_executors/YoYoSimActionExecutor.cpp
+    src/ros_sim_plan_server/action_executors/CircleSimActionExecutor.cpp
 )
 target_include_directories(${PROJECT_NAME} PUBLIC /usr/local/include/bfl)
 
@@ -146,11 +152,16 @@ target_include_directories(${PROJECT_NAME} PUBLIC /usr/local/include/bfl)
 ## either from message generation or dynamic reconfigure
  add_dependencies(${PROJECT_NAME} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
- target_include_directories(ros_sim_autonomy_interface PUBLIC ${NAVIGATION_PLANNER_INCLUDE} ${VENT_PLANNER_INCLUDE} ${UNDERWATER_AUTONOMY_INCLUDE})
+ target_include_directories(ros_sim_autonomy_interface PUBLIC 
+  ${NAVIGATION_PLANNER_INCLUDE} 
+  ${VENT_PLANNER_INCLUDE} 
+  ${RTD_PLANNER_INCLUDE} 
+  ${UNDERWATER_AUTONOMY_INCLUDE})
  target_link_libraries(ros_sim_autonomy_interface
-   ${UNDERWATER_AUTONOMY_LIB}
-   ${VENT_PLANNER_LIB}
    ${NAVIGATION_PLANNER_LIB}
+   ${VENT_PLANNER_LIB}
+   ${RTD_PLANNER_LIB}
+   ${UNDERWATER_AUTONOMY_LIB}
    ${catkin_LIBRARIES}
  )
 
@@ -158,12 +169,18 @@ target_include_directories(${PROJECT_NAME} PUBLIC /usr/local/include/bfl)
  add_executable(ros_sim_plan_server_node src/ROSSimPlanServerNode.cpp)
 # set_target_properties(ros_sim_plan_server_node PROPERTIES OUTPUT_NAME node PREFIX "")
  add_dependencies(ros_sim_plan_server_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
- target_include_directories(ros_sim_plan_server_node PRIVATE ${NAVIGATION_PLANNER_INCLUDE} ${VENT_PLANNER_INCLUDE} ${UNDERWATER_AUTONOMY_INCLUDE})
+ target_include_directories(ros_sim_plan_server_node PRIVATE 
+  ${NAVIGATION_PLANNER_INCLUDE} 
+  ${VENT_PLANNER_INCLUDE}
+  ${RTD_PLANNER_INCLUDE} 
+  ${UNDERWATER_AUTONOMY_INCLUDE})
  target_link_libraries(ros_sim_plan_server_node
    ros_sim_autonomy_interface
-   ${UNDERWATER_AUTONOMY_LIB}
-   ${VENT_PLANNER_LIB}
    ${NAVIGATION_PLANNER_LIB}
+   ${VENT_PLANNER_LIB}
+   ${RTD_PLANNER_LIB}
+   ${UNDERWATER_AUTONOMY_LIB}
+   ${ALG_LIB}
    ${catkin_LIBRARIES}
  )
 
@@ -195,6 +212,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC /usr/local/include/bfl)
    ros_sim_autonomy_interface
    underwater_vehicle_msgs
    ${UNDERWATER_AUTONOMY_LIB}
+   ${ALG_LIB}
    ${catkin_LIBRARIES}
  )
 

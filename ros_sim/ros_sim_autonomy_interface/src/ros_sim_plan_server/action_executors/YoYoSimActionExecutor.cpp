@@ -32,7 +32,7 @@ YoYoSimActionExecutor::YoYoSimActionExecutor(underwater_autonomy::YoYoAction& ac
 
 void YoYoSimActionExecutor::execute()
 {
-    ROS_INFO("Execute yoyo action");
+    ROS_INFO("ROS: Execute YoYo Action");
 
     //Check that we have someone listening to us
     goToZClient.waitForExistence(ros::Duration(10));
@@ -64,7 +64,7 @@ void YoYoSimActionExecutor::stop()
         action.stopDone();
     }
 
-    ROS_INFO("Stop yoyo action");
+    ROS_INFO("ROS: Stop YoYo Action");
 }
 
 bool YoYoSimActionExecutor::triggerReplan()
@@ -127,7 +127,7 @@ void YoYoSimActionExecutor::monitor()
        action.getTimeRunning() >= action.getYoYoTime())
     {
         action.complete(action.getLatestTime());
-        ROS_INFO("Complete yoyo action");
+        ROS_INFO("ROS: Complete YoYo Action");
     }
     else if(action.doReplan(false, action.getLatestTime() - lastReplanTime, distanceSinceReplan))
     {

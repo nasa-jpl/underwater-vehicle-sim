@@ -32,7 +32,7 @@ HoldDepthSimActionExecutor::HoldDepthSimActionExecutor(underwater_autonomy::Hold
 
 void HoldDepthSimActionExecutor::execute()
 {
-    ROS_INFO("Execute hold depth action");
+    ROS_INFO("ROS: Execute Hold Depth Action");
 
     //Check that we have someone listening to us
     goToZClient.waitForExistence(ros::Duration(10));
@@ -73,7 +73,7 @@ void HoldDepthSimActionExecutor::stop()
         action.stopDone();
     }
 
-    ROS_INFO("Stop hold depth action");
+    ROS_INFO("ROS: Stop Hold Depth Action");
 }
 
 bool HoldDepthSimActionExecutor::triggerReplan()
@@ -96,7 +96,7 @@ void HoldDepthSimActionExecutor::monitor()
        action.getTimeRunning() >= action.getHoldDepthTime())
     {
         action.complete(action.getLatestTime());
-        ROS_INFO("Complete hold depth action");
+        ROS_INFO("ROS: Complete Hold Depth Action");
     }
     else if(action.doReplan(action.getLatestTime() - lastReplanTime, distanceSinceReplan))
     {

@@ -13,28 +13,27 @@
 
 #include "underwater_autonomy/planner/actions/Action.h"
 
-#include "ros_sim_plan_server/action_executors/PointPathSimActionExecutor.h"
-#include "underwater_autonomy/planner/actions/PointPathAction.h"
+#include "ros_sim_plan_server/action_executors/CircleSimActionExecutor.h"
+#include "underwater_autonomy/planner/actions/CircleAction.h"
 
 using namespace underwater_autonomy;
 
-PointPathSimActionExecutor::PointPathSimActionExecutor(underwater_autonomy::PointPathAction& action, ros::NodeHandle& nh, VehicleInfo& vehicleInfo) :
+CircleSimActionExecutor::CircleSimActionExecutor(underwater_autonomy::CircleAction& action, ros::NodeHandle& nh, VehicleInfo& vehicleInfo) :
     ActionExecutor(action),
     vehicleInfo(vehicleInfo),
     replanNextUpdate(false),
     lastReplanTime(0),
     distanceSinceReplan(0),
-    statePropSetup(false),
-    poseAtFirstExecuteValid(false)
+    statePropSetup(false)
 {
-    propStateSub = nh.subscribe("prop_state", 10, &PointPathSimActionExecutor::propStateCallback, this);
-    poseSub = nh.subscribe("primary_navigation", 1, &PointPathSimActionExecutor::navigationFilterCallback, this);
+    propStateSub = nh.subscribe("prop_state", 10, &CircleSimActionExecutor::propStateCallback, this);
+    poseSub = nh.subscribe("primary_navigation", 1, &CircleSimActionExecutor::navigationFilterCallback, this);
     goToXYClient = nh.serviceClient<underwater_vehicle_msgs::GoToXY>("go_to_xy");
 }
 
-void PointPathSimActionExecutor::execute()
+void CircleSimActionExecutor::execute()
 {
-    ROS_INFO("ROS: Execute Point Path Action");
+    ROS_INFO("ROS: Execute Circle Action");
 
     //Check that we have someone listening to us
     goToXYClient.waitForExistence(ros::Duration(10));
@@ -47,65 +46,49 @@ void PointPathSimActionExecutor::execute()
     //Wait for the propulsion controller state subscriber to be setup
     waitForPropStateSetup();
 
-    if(!poseAtFirstExecuteValid) {
-        poseAtFirstExecute = currentPose;
-        poseAtFirstExecuteValid = true;
-    }
+    createCirclePoints();
+    currentCirclePoint = 0;
 
     //Creates an action goal and sends it to the action server for point path movement
-    if(!action.isDone())
-    {
-        if(sendNextGoToXYGoal())
-        {
-            action.dispatchDone();
-        }
-    }
-    else
+    if(sendNextGoToXYGoal())
     {
         action.dispatchDone();
-        action.complete(action.getLatestTime());
-        ROS_INFO("ROS: Point Path Action Completed");
     }
 
     lastReplanTime = action.getLatestTime();
     distanceSinceReplan = 0;
 }
 
-void PointPathSimActionExecutor::monitor()
+void CircleSimActionExecutor::monitor()
 {
-    if(action.doReplan(false, action.getLatestTime() - lastReplanTime, distanceSinceReplan)) 
+    if(action.getState() == Action::State::EXECUTING &&
+       action.getCircleTime() >= 0 &&
+       action.getTimeRunning() >= action.getCircleTime())
+    {
+        action.complete(action.getLatestTime());
+        ROS_INFO("ROS: Complete Circle Action");
+    }
+
+    if(action.doReplan(action.getLatestTime() - lastReplanTime, distanceSinceReplan)) 
     {
         replanNextUpdate = true;
     }
 }
 
-void PointPathSimActionExecutor::stop()
+void CircleSimActionExecutor::stop()
 {
     underwater_vehicle_msgs::GoToXY enableMsg;
     enableMsg.request.enable = false;
     if(goToXYClient.exists() &&
        goToXYClient.call(enableMsg))
     {
-        if(action.getPointType() == PointPathAction::PointType::VEHICLE_RELATIVE) {
-            //TODO: Set interrupt point correctly
-        }
-        else if(action.getPointType() == PointPathAction::PointType::WORLD_RELATIVE) {
-            Eigen::Vector3d currentPosition = currentPose.getPosition();
-            Eigen::Vector3d updatedPosition;
-
-            updatedPosition[0] = currentPosition[0] - poseAtFirstExecute.getPosition()[0];
-            updatedPosition[1] = currentPosition[1] - poseAtFirstExecute.getPosition()[1];
-            action.setInterruptPoint(updatedPosition);
-        } else {
-            action.setInterruptPoint(currentPose.getPosition());
-        }
         action.stopDone();
     }
 
-    ROS_INFO("ROS: Point Path Action Stopped");
+    ROS_INFO("ROS: Circle Action Stopped");
 }
 
-bool PointPathSimActionExecutor::triggerReplan()
+bool CircleSimActionExecutor::triggerReplan()
 {
     if(replanNextUpdate)
     {
@@ -118,29 +101,18 @@ bool PointPathSimActionExecutor::triggerReplan()
     return false;
 }
 
-void PointPathSimActionExecutor::propStateCallback(const underwater_vehicle_msgs::PropulsionControllerState state)
+void CircleSimActionExecutor::propStateCallback(const underwater_vehicle_msgs::PropulsionControllerState state)
 {
     if(!statePropSetup) {
         statePropSetup = true;
         prevXYSeqNum = state.xySeqNum;
     }
 
-    Eigen::Vector3d currentTargetPoint = action.getCurrentTargetPoint();
-    if(action.getPointType() == PointPathAction::PointType::VEHICLE_RELATIVE) {
-        Eigen::Vector3d rpyAngles = poseAtFirstExecute.getOrientation().toRotationMatrix().eulerAngles(0, 1, 2);
-        Eigen::Vector3d position = poseAtFirstExecute.getPosition();
-        double yaw = rpyAngles[2];
-        double updatedX = currentTargetPoint[0] * std::cos(yaw) - currentTargetPoint[1] * std::sin(yaw) + position[0];
-        double updatedY = currentTargetPoint[0] * std::sin(yaw) + currentTargetPoint[1] * std::cos(yaw) + position[1];
-
-        currentTargetPoint[0] = updatedX;
-        currentTargetPoint[1] = updatedY;
-    } else if(action.getPointType() == PointPathAction::PointType::WORLD_RELATIVE) {
-        Eigen::Vector3d position = poseAtFirstExecute.getPosition();
-        currentTargetPoint[0] += position[0];
-        currentTargetPoint[1] += position[1];
+    if(circlePoints.size() == 0) {
+        return;
     }
 
+    Eigen::Vector2d currentTargetPoint = circlePoints[currentCirclePoint];
 
     if(state.xyComplete && 
        doubleEq(currentTargetPoint[0], state.x) &&
@@ -150,48 +122,27 @@ void PointPathSimActionExecutor::propStateCallback(const underwater_vehicle_msgs
     {
         prevXYSeqNum = state.xySeqNum;
 
-        action.reachedTargetPoint();
-        if(!action.isDone())
-        {
-            sendNextGoToXYGoal();
-
-            if(action.doReplan(true, action.getLatestTime() - lastReplanTime, distanceSinceReplan)) 
-            {
-                replanNextUpdate = true;
-            }
-        }    
-        else
-        {
-            action.complete(action.getLatestTime());
-            ROS_INFO("ROS: Point Path Action Complete");
+        currentCirclePoint++;
+        if(currentCirclePoint >= circlePoints.size()) {
+            currentCirclePoint = 0;
         }
+        sendNextGoToXYGoal();
     }
 }
 
-void PointPathSimActionExecutor::waitForPropStateSetup()
+void CircleSimActionExecutor::waitForPropStateSetup()
 {
     while(!statePropSetup) {
         ros::spinOnce();
     }
 }
 
-bool PointPathSimActionExecutor::sendNextGoToXYGoal()
+bool CircleSimActionExecutor::sendNextGoToXYGoal()
 {
-    Eigen::Vector3d point = action.getCurrentTargetPoint();
-    if(action.getPointType() == PointPathAction::PointType::VEHICLE_RELATIVE) {
-        Eigen::Vector3d rpyAngles = poseAtFirstExecute.getOrientation().toRotationMatrix().eulerAngles(0, 1, 2);
-        Eigen::Vector3d position = poseAtFirstExecute.getPosition();
-        double yaw = rpyAngles[2];
-        double updatedX = point[0] * std::cos(yaw) - point[1] * std::sin(yaw) + position[0];
-        double updatedY = point[0] * std::sin(yaw) + point[1] * std::cos(yaw) + position[1];
-
-        point[0] = updatedX;
-        point[1] = updatedY;
-    } else if(action.getPointType() == PointPathAction::PointType::WORLD_RELATIVE) {
-        Eigen::Vector3d position = poseAtFirstExecute.getPosition();
-        point[0] += position[0];
-        point[1] += position[1];
+    if(circlePoints.size() == 0) {
+        return false;
     }
+    Eigen::Vector2d point = circlePoints[currentCirclePoint];
 
     underwater_vehicle_msgs::GoToXY goToXYMsg;
     goToXYMsg.request.x = point[0];
@@ -209,7 +160,22 @@ bool PointPathSimActionExecutor::sendNextGoToXYGoal()
     return true;
 }
 
-void PointPathSimActionExecutor::navigationFilterCallback(const nav_msgs::Odometry odo)
+void CircleSimActionExecutor::createCirclePoints() {
+    const double pi = 3.14159265358979323846;
+
+    circlePoints.clear();
+
+    Eigen::Vector3d position = currentPose.getPosition();
+    double angleInterval = pi / 4;
+
+    for(uint i = 0; i < 8; i++) {
+        double x = position[0] + cos(angleInterval * i) * action.getRadius();
+        double y = position[1] + sin(angleInterval * i) * action.getRadius();
+        circlePoints.emplace_back(x, y);
+    }
+}
+
+void CircleSimActionExecutor::navigationFilterCallback(const nav_msgs::Odometry odo)
 {    
     Eigen::Vector3d position(odo.pose.pose.position.x,
                              odo.pose.pose.position.y,
@@ -272,7 +238,7 @@ void PointPathSimActionExecutor::navigationFilterCallback(const nav_msgs::Odomet
     }
 }
 
-bool PointPathSimActionExecutor::doubleEq(double d1, double d2)
+bool CircleSimActionExecutor::doubleEq(double d1, double d2)
 {
     return abs(d1 - d2) < 0.001;
 }

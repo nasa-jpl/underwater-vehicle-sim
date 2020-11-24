@@ -50,7 +50,7 @@ private:
 
 private:
     VehicleInfo info;
-
+    ros::NodeHandle nh;
     ros::Publisher statusPub;
     ros::Subscriber dataSub;
     ros::Subscriber imuSub;
@@ -62,6 +62,8 @@ private:
     ros::Subscriber verticalVelSub;
 
     underwater_autonomy::VehiclePose currentPose;
+
+    std::map<std::string, ros::Publisher> logPublishers;
 };
 
 #endif

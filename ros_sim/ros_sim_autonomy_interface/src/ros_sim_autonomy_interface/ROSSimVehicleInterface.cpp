@@ -9,13 +9,13 @@
 
 #include "std_msgs/String.h"
 
+#include "underwater_vehicle_msgs/LogData.h"
+
 using namespace underwater_autonomy;
 
 ROSSimVehicleInterface::ROSSimVehicleInterface(VehicleInfo info) :
     info(info)
 {
-    ros::NodeHandle nh;
-
     poseSub = nh.subscribe("primary_navigation", 1, &ROSSimVehicleInterface::navigationFilterCallback, this);
     statusPub = nh.advertise<std_msgs::String>("planner_status", 1, true);
 
@@ -78,7 +78,58 @@ void ROSSimVehicleInterface::log(LogLevel level, std::string string)
     }
 }
 
-void ROSSimVehicleInterface::log(std::string channel, underwater_autonomy::LogData data) {}
+void ROSSimVehicleInterface::log(std::string channel, underwater_autonomy::LogData data) {
+
+    underwater_vehicle_msgs::LogData logMsg;
+    std::vector<underwater_vehicle_msgs::DoubleArray> doubleArrays;
+    std::vector<underwater_vehicle_msgs::IntArray> intArrays;
+    std::vector<underwater_vehicle_msgs::ByteArray> byteArrays;
+    std::vector<underwater_vehicle_msgs::StringArray> stringArrays;
+
+    for(uint i = 0; i < data.numDoubleArrays(); i++) {
+        underwater_vehicle_msgs::DoubleArray array;
+        array.variable = data.getDoubleVariable(i);
+        array.units = data.getDoubleUnits(i);
+        array.data = data.getDoubleArray(i);
+        doubleArrays.push_back(array);
+    }
+
+    for(uint i = 0; i < data.numIntArrays(); i++) {
+        underwater_vehicle_msgs::IntArray array;
+        array.variable = data.getIntVariable(i);
+        array.units = data.getIntUnits(i);
+        array.data = data.getIntArray(i);
+        intArrays.push_back(array);
+    }
+
+    for(uint i = 0; i < data.numByteArrays(); i++) {
+        underwater_vehicle_msgs::ByteArray array;
+        array.variable = data.getByteVariable(i);
+        array.units = data.getByteUnits(i);
+        array.data = data.getByteArray(i);
+        byteArrays.push_back(array);
+    }
+
+    for(uint i = 0; i < data.numStringArrays(); i++) {
+        underwater_vehicle_msgs::StringArray array;
+        array.variable = data.getStringVariable(i);
+        array.units = data.getStringUnits(i);
+        array.data = data.getStringArray(i);
+        stringArrays.push_back(array);
+    }
+    logMsg.doubleArrays = doubleArrays;
+    logMsg.intArrays = intArrays;
+    logMsg.byteArrays = byteArrays;
+    logMsg.stringArrays = stringArrays;
+
+    auto entry = logPublishers.find(channel);
+    if( entry == logPublishers.end()) {
+        ros::Publisher pub = nh.advertise<underwater_vehicle_msgs::LogData>(channel, 10);
+        logPublishers.insert(std::pair<std::string,ros::Publisher>(channel, pub));
+    }
+
+    logPublishers[channel].publish(logMsg);
+}
 
 double ROSSimVehicleInterface::getTime() const
 {
@@ -276,6 +327,13 @@ void ROSSimVehicleInterface::receiveUSBL(underwater_vehicle_msgs::USBL msgData)
     usbl.covariance(1,0) = msgData.range_bearing_covariance[2];
     usbl.covariance(1,1) = msgData.range_bearing_covariance[3];
 
+    if(std::isnan(usbl.range)) {
+        usbl.covariance(0,0) = -1;
+    }
+    if(std::isnan(usbl.bearing)) {
+        usbl.covariance(1,1) = -1;
+    }
+    
     publishDataToCallbacks<USBLSensorData>("usbl", usbl);
 }
 

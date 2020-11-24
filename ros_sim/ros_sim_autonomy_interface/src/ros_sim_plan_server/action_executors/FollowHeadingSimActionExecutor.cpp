@@ -32,7 +32,7 @@ FollowHeadingSimActionExecutor::FollowHeadingSimActionExecutor(underwater_autono
 
 void FollowHeadingSimActionExecutor::execute()
 {
-    ROS_INFO("Execute follow heading action");
+    ROS_INFO("ROS: Execute Follow Heading Action");
 
     //Check that we have someone listening to us
     followHeadingClient.waitForExistence(ros::Duration(10));
@@ -73,7 +73,7 @@ void FollowHeadingSimActionExecutor::stop()
     {
         action.stopDone();
     }
-    ROS_INFO("Stop follow heading action");
+    ROS_INFO("ROS: Stop Follow Heading Action");
 }
 
 bool FollowHeadingSimActionExecutor::triggerReplan()
@@ -96,7 +96,7 @@ void FollowHeadingSimActionExecutor::monitor()
        action.getState() == Action::State::EXECUTING)
     {
         action.complete(action.getLatestTime());
-        ROS_INFO("Complete follow heading action");
+        ROS_INFO("ROS: Complete Follow Heading Action");
     }
     else if(action.doReplan(action.getLatestTime() - lastReplanTime, distanceSinceReplan))
     {

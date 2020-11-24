@@ -20,14 +20,18 @@
 #include "navigation_planner/GoldenSelectionHomingPlanner.h"
 #include "navigation_planner/NonLinearFilterHomingPlanner.h"
 
+#include "rtd_planner/OutAndBackExplorePlanner.h"
+
 #include "ros_sim_plan_server/action_executors/YoYoSimActionExecutor.h"
 #include "ros_sim_plan_server/action_executors/HoldDepthSimActionExecutor.h"
 #include "ros_sim_plan_server/action_executors/PointPathSimActionExecutor.h"
 #include "ros_sim_plan_server/action_executors/FollowHeadingSimActionExecutor.h"
+#include "ros_sim_plan_server/action_executors/CircleSimActionExecutor.h"
 
 using namespace underwater_autonomy;
 using namespace vent_planner;
 using namespace navigation_planner;
+using namespace rtd_planner;
 
 bool dataStarted = false;
 bool navStarted = false;
@@ -71,6 +75,7 @@ int main(int argc, char **argv)
     HoldDepthAction::setExecutorCreateFunction(std::bind(&HoldDepthSimActionExecutor::create, std::placeholders::_1, nh, info));
     PointPathAction::setExecutorCreateFunction(std::bind(&PointPathSimActionExecutor::create, std::placeholders::_1, nh, info));
     FollowHeadingAction::setExecutorCreateFunction(std::bind(&FollowHeadingSimActionExecutor::create, std::placeholders::_1, nh, info));
+    CircleAction::setExecutorCreateFunction(std::bind(&CircleSimActionExecutor::create, std::placeholders::_1, nh, info));
 
 
     std::string configFilename;
@@ -84,6 +89,7 @@ int main(int argc, char **argv)
     PlannerFactory::registerPlanner("SingleAction", &SingleActionPlanner::create);
     PlannerFactory::registerPlanner("GoldenSelectionHoming", &GoldenSelectionHomingPlanner::create);
     PlannerFactory::registerPlanner("NonLinearFilterHoming", &NonLinearFilterHomingPlanner::create);
+    PlannerFactory::registerPlanner("OutAndBackExplore", &OutAndBackExplorePlanner::create);
 
     std::string plannerType = config.readSimpleEntry<std::string>("planner_type");
     std::unique_ptr<Planner> planner = PlannerFactory::create(plannerType, interface, config);
@@ -91,7 +97,7 @@ int main(int argc, char **argv)
     ROSSimPlanServer server(std::move(planner), interface, cancelTimeout);
 
     // make a publisher to send planner status messages
-    ros::Publisher plannerStatePub = nh.advertise<std_msgs::String>("planner_state", 1);
+    ros::Publisher plannerStatePub = nh.advertise<std_msgs::String>("planner_status", 1);
     std_msgs::String plannerStateMsg;
 
     ROS_INFO("Planner Initalized");

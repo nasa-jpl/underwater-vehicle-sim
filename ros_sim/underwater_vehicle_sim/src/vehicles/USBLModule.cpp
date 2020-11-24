@@ -51,8 +51,6 @@ USBLModule::USBLModule(std::string name) :
 	}
 	bearingDistribution = std::normal_distribution<double>(0, bearingRandomError);
 	badRangeRandom = std::uniform_real_distribution<double>(0, 1.0);
-	badRangeDistribution = std::uniform_real_distribution<double>(-badRangeError, badRangeError);
-
 
 	usbl = nh.advertise<underwater_vehicle_msgs::USBL>("data", 1000);
 }
@@ -72,8 +70,12 @@ void USBLModule::update(const ros::Time& lastTime, VehicleState& vehicleState, M
 	{
 		if(badRangeRandom(generator) <= badRangeProbability)
 		{
+			std::uniform_real_distribution<double> badRangeDistribution(-trueRange*badRangeError, trueRange*badRangeError);
 			range = trueRange;
 			range += badRangeDistribution(generator);
+			if(range < 0) {
+				range = -range;
+			}
 		}
 		else
 		{

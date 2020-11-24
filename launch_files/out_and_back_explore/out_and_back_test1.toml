@@ -1,0 +1,71 @@
+planner_type = "OutAndBackExplore"
+start_phase = "homing"
+
+min_depth = 10
+max_depth = 100
+hold_depth = 50
+
+out_of_range_time = 600
+beacon_estimate_expire_time = 1000
+range_wait_time = 600
+ranging_pattern_replan_time = 0.25
+ranging_pattern_time = 1500
+action_timeout = 43200
+pattern_size = 200
+
+num_monitor_ranges = 10
+restart_threshold = 0.2
+monitor_homing_replan_time = 0.5
+
+operation_region.min.x = -20000
+operation_region.min.y = -20000
+operation_region.min.z = 0
+operation_region.max.x = 20000
+operation_region.max.y = 20000
+operation_region.max.z = 200
+
+
+#Single Beacon Navigation Filter Parameters
+filter_names = ["sb1"]
+main_filter = "sb1"
+
+##Default Filter Parameters
+automatic_optimization = false
+initial_position_sigma = 1
+initial_heading_sigma = 0.0174533
+
+max_ranges = 100
+
+beacon_range = -1
+beacon_bearing_range = -1
+
+velocity_timeout = 5
+default_linear_velocity_sigma = 0.6
+velocity_mode = "best"
+
+weighted_optimization = false
+xy_process_noise = 0
+heading_process_noise = 0.00007615442 #0.5 deg sigma
+xy_vel_process_noise = 0.01
+ang_vel_process_noise = 0.0000000304 #0.1 deg/secong sigma
+
+median_filter_bin_size = 5
+range_filter_type = "offset_fix_median"
+
+use_heading = true
+
+##sb1
+sb1.velocity_mode = "best"
+sb1.use_heading = true
+
+##sb2
+sb2.velocity_mode = "best"
+sb2.use_heading = false
+
+##sb3
+sb3.velocity_mode = "prop"
+sb3.use_heading = true
+
+##sb4
+sb4.velocity_mode = "prop"
+sb4.use_heading = false

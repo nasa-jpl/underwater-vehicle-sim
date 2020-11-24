@@ -68,7 +68,6 @@ private:
 	std::default_random_engine generator;
 	std::normal_distribution<double> bearingDistribution;
 	std::uniform_real_distribution<double> badRangeRandom;
-	std::uniform_real_distribution<double> badRangeDistribution;
 
 
 

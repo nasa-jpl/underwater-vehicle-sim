@@ -27,7 +27,11 @@ add_message_files(
     PropulsionControllerState.msg
     Range.msg
     Ranges.msg
-
+    ByteArray.msg
+    IntArray.msg
+    DoubleArray.msg
+    StringArray.msg
+    LogData.msg
 )
 
 ## Generate services in the 'srv' folder

@@ -5,6 +5,8 @@ project(propulsion_controller)
 add_compile_options(-std=c++11)
 add_compile_options($<BUILD_INTERFACE:-Wall>)
 
+add_definitions(-DEIGEN_DONT_VECTORIZE -DEIGEN_DISABLE_UNALIGNED_ARRAY_ASSERT)
+
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
