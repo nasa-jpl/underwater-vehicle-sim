@@ -1,5 +1,5 @@
 planner_type = "OutAndBackExplore"
-start_phase = "homing"
+start_phase = "explore"
 
 min_depth = 10
 max_depth = 100
@@ -14,8 +14,12 @@ action_timeout = 43200
 pattern_size = 200
 
 num_monitor_ranges = 10
-restart_threshold = 0.2
+homing_restart_threshold = 0.2
 monitor_homing_replan_time = 0.5
+
+explore_distance = 3000
+explore_heading_degrees = 0
+explore_restart_threshold = 0.2
 
 operation_region.min.x = -20000
 operation_region.min.y = -20000
@@ -26,10 +30,12 @@ operation_region.max.z = 200
 
 
 #Single Beacon Navigation Filter Parameters
-filter_names = ["sb1"]
+filter_names = ["sb1","sb2","sb3","sb4"]
 main_filter = "sb1"
 
 ##Default Filter Parameters
+correct_beacon_slant = true
+beacon_depth = 100
 automatic_optimization = false
 initial_position_sigma = 1
 initial_heading_sigma = 0.0174533

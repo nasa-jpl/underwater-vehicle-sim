@@ -42,85 +42,88 @@ DVLModule::DVLModule(std::string name) :
 
 void DVLModule::update(const ros::Time& lastTime, VehicleState& vehicleState, ModelData& modelData) 
 {
-    underwater_vehicle_msgs::DVLPtr dvlMsg(new underwater_vehicle_msgs::DVL);
-    dvlMsg->header.frame_id = "world_ned";
-    dvlMsg->header.stamp = lastTime;
-    dvlMsg->name = name;
+    underwater_vehicle_msgs::DVLPtr dvlMsgWater(new underwater_vehicle_msgs::DVL);
+    underwater_vehicle_msgs::DVLPtr dvlMsgGround(new underwater_vehicle_msgs::DVL);
+    dvlMsgWater->header.frame_id = "world_ned";
+    dvlMsgWater->header.stamp = lastTime;
+    dvlMsgWater->name = name;
+
+    dvlMsgGround->header.frame_id = "world_ned";
+    dvlMsgGround->header.stamp = lastTime;
+    dvlMsgGround->name = name;
 
     //Calculate bottom range
     double rangeReading = modelData.depth - vehicleState.getPositionNED().getZ();
 
-    if(rangeReading > bottomLockRange)
+    dvlMsgWater->velocity_reference = dvlMsgWater->VELOCITY_REFERENCE_WATER;
+    dvlMsgWater->range = -1;
+
+    tf2::Vector3 linearVelocity = vehicleState.getLinearVelocityNED(false);
+    dvlMsgWater->velocity.x = linearVelocity[0];
+    dvlMsgWater->velocity.y = linearVelocity[1];
+    dvlMsgWater->velocity.z = linearVelocity[2];
+    dvlMsgWater->velocity_covariance[0] = std::pow(dvlMsgWater->velocity.x * waterVelocityScaleError, 2) + std::pow(waterVelocityRandomError, 2);
+    dvlMsgWater->velocity_covariance[4] = std::pow(dvlMsgWater->velocity.y * waterVelocityScaleError, 2) + std::pow(waterVelocityRandomError, 2);
+    dvlMsgWater->velocity_covariance[8] = std::pow(dvlMsgWater->velocity.z * waterVelocityScaleError, 2) + std::pow(waterVelocityRandomError, 2);
+
+    if(waterVelocityScaleError > 0)
     {
-        dvlMsg->velocity_reference = dvlMsg->VELOCITY_REFERENCE_WATER;
-        dvlMsg->range = -1;
-
-        tf2::Vector3 linearVelocity = vehicleState.getLinearVelocityNED(false);
-        dvlMsg->velocity.x = linearVelocity[0];
-        dvlMsg->velocity.y = linearVelocity[1];
-        dvlMsg->velocity.z = linearVelocity[2];
-        dvlMsg->velocity_covariance[0] = std::pow(dvlMsg->velocity.x * waterVelocityScaleError, 2) + std::pow(waterVelocityRandomError, 2);
-        dvlMsg->velocity_covariance[4] = std::pow(dvlMsg->velocity.y * waterVelocityScaleError, 2) + std::pow(waterVelocityRandomError, 2);
-        dvlMsg->velocity_covariance[8] = std::pow(dvlMsg->velocity.z * waterVelocityScaleError, 2) + std::pow(waterVelocityRandomError, 2);
-
-        if(waterVelocityScaleError > 0)
-        {
-            std::normal_distribution<double> waterVelocityScaleDistributionX(0, dvlMsg->velocity.x * waterVelocityScaleError);
-            std::normal_distribution<double> waterVelocityScaleDistributionY(0, dvlMsg->velocity.y * waterVelocityScaleError);
-            std::normal_distribution<double> waterVelocityScaleDistributionZ(0, dvlMsg->velocity.z * waterVelocityScaleError);
-            dvlMsg->velocity.x += waterVelocityScaleDistributionX(generator);
-            dvlMsg->velocity.y += waterVelocityScaleDistributionY(generator);
-            dvlMsg->velocity.z += waterVelocityScaleDistributionZ(generator);
-        }
-
-        if(waterVelocityRandomError > 0) {
-            dvlMsg->velocity.x += waterVelocityDistribution(generator);
-            dvlMsg->velocity.y += waterVelocityDistribution(generator);
-            dvlMsg->velocity.z += waterVelocityDistribution(generator);
-        }
-
-        dvlMsg->velocity.x += waterVelocityBiasError[0];
-        dvlMsg->velocity.y += waterVelocityBiasError[1];
-        dvlMsg->velocity.z += waterVelocityBiasError[2];
+        std::normal_distribution<double> waterVelocityScaleDistributionX(0, dvlMsgWater->velocity.x * waterVelocityScaleError);
+        std::normal_distribution<double> waterVelocityScaleDistributionY(0, dvlMsgWater->velocity.y * waterVelocityScaleError);
+        std::normal_distribution<double> waterVelocityScaleDistributionZ(0, dvlMsgWater->velocity.z * waterVelocityScaleError);
+        dvlMsgWater->velocity.x += waterVelocityScaleDistributionX(generator);
+        dvlMsgWater->velocity.y += waterVelocityScaleDistributionY(generator);
+        dvlMsgWater->velocity.z += waterVelocityScaleDistributionZ(generator);
     }
-    else
+
+    if(waterVelocityRandomError > 0) {
+        dvlMsgWater->velocity.x += waterVelocityDistribution(generator);
+        dvlMsgWater->velocity.y += waterVelocityDistribution(generator);
+        dvlMsgWater->velocity.z += waterVelocityDistribution(generator);
+    }
+
+    dvlMsgWater->velocity.x += waterVelocityBiasError[0];
+    dvlMsgWater->velocity.y += waterVelocityBiasError[1];
+    dvlMsgWater->velocity.z += waterVelocityBiasError[2];
+    
+    if(rangeReading <= bottomLockRange)
     {
-        dvlMsg->velocity_reference = dvlMsg->VELOCITY_REFERENCE_BOTTOM;
+        dvlMsgGround->velocity_reference = dvlMsgGround->VELOCITY_REFERENCE_BOTTOM;
         //Only apply error if the std dev of the distribution is positive
         if(bottomRangeRandomError > 0)
         {
             rangeReading += bottomRangeDistribution(generator);
         }
-        dvlMsg->range = rangeReading;
+        dvlMsgGround->range = rangeReading;
 
         tf2::Vector3 linearVelocity = vehicleState.getLinearVelocityNED(true);
-        dvlMsg->velocity.x = linearVelocity[0];
-        dvlMsg->velocity.y = linearVelocity[1];
-        dvlMsg->velocity.z = linearVelocity[2];
-        dvlMsg->velocity_covariance[0] = std::pow(dvlMsg->velocity.x * bottomVelocityScaleError, 2) + std::pow(bottomVelocityRandomError, 2);
-        dvlMsg->velocity_covariance[4] = std::pow(dvlMsg->velocity.y * bottomVelocityScaleError, 2) + std::pow(bottomVelocityRandomError, 2);
-        dvlMsg->velocity_covariance[8] = std::pow(dvlMsg->velocity.z * bottomVelocityScaleError, 2) + std::pow(bottomVelocityRandomError, 2);
+        dvlMsgGround->velocity.x = linearVelocity[0];
+        dvlMsgGround->velocity.y = linearVelocity[1];
+        dvlMsgGround->velocity.z = linearVelocity[2];
+        dvlMsgGround->velocity_covariance[0] = std::pow(dvlMsgGround->velocity.x * bottomVelocityScaleError, 2) + std::pow(bottomVelocityRandomError, 2);
+        dvlMsgGround->velocity_covariance[4] = std::pow(dvlMsgGround->velocity.y * bottomVelocityScaleError, 2) + std::pow(bottomVelocityRandomError, 2);
+        dvlMsgGround->velocity_covariance[8] = std::pow(dvlMsgGround->velocity.z * bottomVelocityScaleError, 2) + std::pow(bottomVelocityRandomError, 2);
 
         if(bottomVelocityScaleError > 0)
         {
-            std::normal_distribution<double> bottomVelocityScaleDistributionX(0, dvlMsg->velocity.x * bottomVelocityScaleError);
-            std::normal_distribution<double> bottomVelocityScaleDistributionY(0, dvlMsg->velocity.y * bottomVelocityScaleError);
-            std::normal_distribution<double> bottomVelocityScaleDistributionZ(0, dvlMsg->velocity.z * bottomVelocityScaleError);
-            dvlMsg->velocity.x += bottomVelocityScaleDistributionX(generator);
-            dvlMsg->velocity.y += bottomVelocityScaleDistributionY(generator);
-            dvlMsg->velocity.z += bottomVelocityScaleDistributionZ(generator);
+            std::normal_distribution<double> bottomVelocityScaleDistributionX(0, dvlMsgGround->velocity.x * bottomVelocityScaleError);
+            std::normal_distribution<double> bottomVelocityScaleDistributionY(0, dvlMsgGround->velocity.y * bottomVelocityScaleError);
+            std::normal_distribution<double> bottomVelocityScaleDistributionZ(0, dvlMsgGround->velocity.z * bottomVelocityScaleError);
+            dvlMsgGround->velocity.x += bottomVelocityScaleDistributionX(generator);
+            dvlMsgGround->velocity.y += bottomVelocityScaleDistributionY(generator);
+            dvlMsgGround->velocity.z += bottomVelocityScaleDistributionZ(generator);
         }
 
         if(bottomVelocityRandomError > 0) {
-            dvlMsg->velocity.x += bottomVelocityDistribution(generator);
-            dvlMsg->velocity.y += bottomVelocityDistribution(generator);
-            dvlMsg->velocity.z += bottomVelocityDistribution(generator);
+            dvlMsgGround->velocity.x += bottomVelocityDistribution(generator);
+            dvlMsgGround->velocity.y += bottomVelocityDistribution(generator);
+            dvlMsgGround->velocity.z += bottomVelocityDistribution(generator);
         }
 
-        dvlMsg->velocity.x += bottomVelocityBiasError[0];
-        dvlMsg->velocity.y += bottomVelocityBiasError[1];
-        dvlMsg->velocity.z += bottomVelocityBiasError[2];
+        dvlMsgGround->velocity.x += bottomVelocityBiasError[0];
+        dvlMsgGround->velocity.y += bottomVelocityBiasError[1];
+        dvlMsgGround->velocity.z += bottomVelocityBiasError[2];
+        dvl.publish(dvlMsgGround);
     }
-
-    dvl.publish(dvlMsg);
+    dvl.publish(dvlMsgWater);
 }

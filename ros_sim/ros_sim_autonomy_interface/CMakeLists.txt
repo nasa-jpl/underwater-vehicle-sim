@@ -30,8 +30,8 @@ find_library(VENT_PLANNER_LIB vent_planner)
 find_path(VENT_PLANNER_INCLUDE vent_planner)
 find_library(NAVIGATION_PLANNER_LIB navigation_planner)
 find_path(NAVIGATION_PLANNER_INCLUDE navigation_planner)
-find_library(RTD_PLANNER_LIB rtd_planner)
-find_path(RTD_PLANNER_INCLUDE rtd_planner)
+find_library(EXPLORE_PLANNER_LIB explore_planner)
+find_path(EXPLORE_PLANNER_INCLUDE explore_planner)
 
 find_package (Eigen3 3.3 REQUIRED NO_MODULE)
 
@@ -155,12 +155,12 @@ target_include_directories(${PROJECT_NAME} PUBLIC /usr/local/include/bfl)
  target_include_directories(ros_sim_autonomy_interface PUBLIC 
   ${NAVIGATION_PLANNER_INCLUDE} 
   ${VENT_PLANNER_INCLUDE} 
-  ${RTD_PLANNER_INCLUDE} 
+  ${EXPLORE_PLANNER_INCLUDE} 
   ${UNDERWATER_AUTONOMY_INCLUDE})
  target_link_libraries(ros_sim_autonomy_interface
    ${NAVIGATION_PLANNER_LIB}
    ${VENT_PLANNER_LIB}
-   ${RTD_PLANNER_LIB}
+   ${EXPLORE_PLANNER_LIB}
    ${UNDERWATER_AUTONOMY_LIB}
    ${catkin_LIBRARIES}
  )
@@ -172,13 +172,13 @@ target_include_directories(${PROJECT_NAME} PUBLIC /usr/local/include/bfl)
  target_include_directories(ros_sim_plan_server_node PRIVATE 
   ${NAVIGATION_PLANNER_INCLUDE} 
   ${VENT_PLANNER_INCLUDE}
-  ${RTD_PLANNER_INCLUDE} 
+  ${EXPLORE_PLANNER_INCLUDE} 
   ${UNDERWATER_AUTONOMY_INCLUDE})
  target_link_libraries(ros_sim_plan_server_node
    ros_sim_autonomy_interface
    ${NAVIGATION_PLANNER_LIB}
    ${VENT_PLANNER_LIB}
-   ${RTD_PLANNER_LIB}
+   ${EXPLORE_PLANNER_LIB}
    ${UNDERWATER_AUTONOMY_LIB}
    ${ALG_LIB}
    ${catkin_LIBRARIES}

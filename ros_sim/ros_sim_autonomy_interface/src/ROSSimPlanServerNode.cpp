@@ -20,7 +20,8 @@
 #include "navigation_planner/GoldenSelectionHomingPlanner.h"
 #include "navigation_planner/NonLinearFilterHomingPlanner.h"
 
-#include "rtd_planner/OutAndBackExplorePlanner.h"
+#include "explore_planner/OutAndBackExplorePlanner.h"
+#include "explore_planner/InWaterTestPlanner.h"
 
 #include "ros_sim_plan_server/action_executors/YoYoSimActionExecutor.h"
 #include "ros_sim_plan_server/action_executors/HoldDepthSimActionExecutor.h"
@@ -31,7 +32,7 @@
 using namespace underwater_autonomy;
 using namespace vent_planner;
 using namespace navigation_planner;
-using namespace rtd_planner;
+using namespace explore_planner;
 
 bool dataStarted = false;
 bool navStarted = false;
@@ -90,6 +91,7 @@ int main(int argc, char **argv)
     PlannerFactory::registerPlanner("GoldenSelectionHoming", &GoldenSelectionHomingPlanner::create);
     PlannerFactory::registerPlanner("NonLinearFilterHoming", &NonLinearFilterHomingPlanner::create);
     PlannerFactory::registerPlanner("OutAndBackExplore", &OutAndBackExplorePlanner::create);
+    PlannerFactory::registerPlanner("InWaterTest", &InWaterTestPlanner::create);
 
     std::string plannerType = config.readSimpleEntry<std::string>("planner_type");
     std::unique_ptr<Planner> planner = PlannerFactory::create(plannerType, interface, config);
