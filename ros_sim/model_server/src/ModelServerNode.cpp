@@ -10,6 +10,7 @@
 
 #include "ocean_models/general_models/LinearModel.h"
 #include "ocean_models/general_models/ConstantModel.h"
+#include "ocean_models/general_models/OceanFrontModel.h"
 #include "ocean_models/fvcom/FVCOM.h"
 
 #include "std_msgs/Float64.h"
@@ -157,7 +158,26 @@ int main(int argc, char **argv)
 
         model.reset(new LinearModel(u, v, temp, salt, dye, depth, zeroDistance, centerX, centerY, centerZ, type));
         ROS_INFO("Linear Model Loaded");
-    }
+    } else if(model_type == "front") {
+        float offsetX = 0;
+        float offsetY = 0;
+        float offsetHeight = 0;
+        float offsetTime = 0;
+
+        std::string paramFilename;
+        n.getParam("/model/param_file", paramFilename);
+        n.getParam("/model/offset_x", offsetX);
+        n.getParam("/model/offset_y", offsetY);
+        n.getParam("/model/offset_height", offsetHeight);
+        n.getParam("/model/offset_time", offsetTime);
+
+        underwater_autonomy::ConfigurationFile configFile(paramFilename);
+        OceanFrontModel::Parameters parameters(configFile);
+        model.reset(new OceanFrontModel(parameters));
+        model->setOffsets(offsetX, offsetY, offsetHeight, offsetTime);
+
+        ROS_INFO("Ocean Front Model Loaded");
+    }  
     else
     {
         ROS_FATAL("Parameter \"model_type\" is not valid.");

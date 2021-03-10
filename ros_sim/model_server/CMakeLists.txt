@@ -14,6 +14,8 @@ find_package(catkin REQUIRED COMPONENTS
   message_generation
 )
 
+find_library(UNDERWATER_AUTONOMY_LIB underwater_autonomy)
+find_path(UNDERWATER_AUTONOMY_INCLUDE underwater_autonomy)
 find_library(OCEAN_MODELS_LIB ocean_models)
 find_path(OCEAN_MODELS_INCLUDE ocean_models)
 
@@ -142,9 +144,10 @@ include_directories(
  add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
- target_include_directories(${PROJECT_NAME}_node PRIVATE ${OCEAN_MODELS_INCLUDE})
+ target_include_directories(${PROJECT_NAME}_node PRIVATE ${UNDERWATER_AUTONOMY_INCLUDE} ${OCEAN_MODELS_INCLUDE})
  target_link_libraries(${PROJECT_NAME}_node
    ${OCEAN_MODELS_LIB}
+   ${UNDERWATER_AUTONOMY_LIB}
    ${catkin_LIBRARIES}
  )
 

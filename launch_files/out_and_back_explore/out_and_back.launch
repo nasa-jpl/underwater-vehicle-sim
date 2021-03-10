@@ -5,8 +5,8 @@
 
     <node pkg="underwater_vehicle_sim" type="underwater_vehicle_sim_node" name="vehicle_sim" ns="v1" output="screen">
         <rosparam param="sim_hertz">10</rosparam>
-        <rosparam param="start_x">100</rosparam>
-        <rosparam param="start_y">100</rosparam>
+        <rosparam param="start_x">1000</rosparam>
+        <rosparam param="start_y">1000</rosparam>
 
         <rosparam param="start_z">10</rosparam>
         <rosparam param="start_yaw">0</rosparam>
@@ -64,7 +64,7 @@
         <rosparam param="usbl/bearing_bias_error">0.0174533</rosparam>   <!--1 degree-->
         <rosparam param="usbl/range_random_error">0.01</rosparam> <!--Percent of range measurment-->
         <rosparam param="usbl/range_bias_error">0</rosparam> <!--Percent of range measurment-->
-        <rosparam param="usbl/valid_bearing_distance">1000</rosparam>
+        <rosparam param="usbl/valid_bearing_distance">300</rosparam>
         <rosparam param="usbl/valid_range_distance">5000</rosparam>
         <rosparam param="usbl/bad_range_probability">0.1</rosparam>
         <rosparam param="usbl/bad_range_error">1</rosparam> <!--Percent of range measurment-->
@@ -99,8 +99,8 @@
     <!--Autonomy-->
     <!--launch-prefix="xterm -e gdb args" -->
     
-    <node pkg="ros_sim_autonomy_interface" type="ros_sim_plan_server_node" name="ros_sim_plan_server" ns="v1" output="screen">
-        <param name="planner_config_file" value="$(dirname)/../../../../../mbari-lrauv-planner-interface/jpl_planner_config/test_config/in_water_test_planner.toml"/>
+    <node pkg="ros_sim_autonomy_interface" type="ros_sim_plan_server_node" name="ros_sim_plan_server" ns="v1" output="screen" >
+        <param name="planner_config_file" value="$(dirname)/../../../../../mbari-lrauv-planner-interface/jpl_planner_config/homing_config/large_dat_range/homing_planner_1_corrected.toml"/>
         <rosparam param="fail_time">2764800</rosparam>
         <rosparam param="cancel_timeout">60</rosparam>
         <rosparam param="hertz">1</rosparam>

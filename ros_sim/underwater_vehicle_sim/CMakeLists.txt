@@ -178,6 +178,7 @@ catkin_package(
  target_include_directories(${PROJECT_NAME}_node PRIVATE ${OCEAN_MODELS_INCLUDE})
  target_link_libraries(${PROJECT_NAME}_node
    underwater_vehicles
+   ${UNDERWATER_AUTONOMY_LIB} 
    ${OCEAN_MODELS_LIB}
    ${catkin_LIBRARIES}
  )

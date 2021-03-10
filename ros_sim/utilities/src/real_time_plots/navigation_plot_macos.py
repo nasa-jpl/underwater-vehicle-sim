@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+import argparse
+
 import sys
 import rospy
 from std_msgs.msg import String
@@ -120,9 +122,14 @@ def plot():
     rospy.spin()
 
 def main():
+    parser = argparse.ArgumentParser(description='Plot real-time position information from a ROS topic.')
+    parser.add_argument('topics', metavar='T', type=str, nargs='+',
+                        help='Topics to listen on for position information')
+    args = parser.parse_args()
+    args.topics
     rospy.init_node('real_time_map_view', anonymous=True)
 
-    for i, arg in enumerate(sys.argv[1:]):
+    for i, arg in enumerate(args.topics):
         rospy.Subscriber(arg, Odometry, callback, (i, ))
         scatters.append(plt.scatter([], [], linewidth=0, animated=True, c=colors[i]))
 
