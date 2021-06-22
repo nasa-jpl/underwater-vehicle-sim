@@ -1,14 +1,14 @@
-#ifndef CREATE_SIM_ACTION_EXECUTOR_H
-#define CREATE_SIM_ACTION_EXECUTOR_H
+#ifndef CREATE_SIM_COMMAND_EXECUTOR_H
+#define CREATE_SIM_COMMAND_EXECUTOR_H
 
 #include <exception>
 #include <memory>
 #include <functional>
 
-#include "underwater_autonomy/planner/ActionExecutor.h"
+#include "underwater_autonomy/planner/CommandExecutor.h"
 
 template <class T1, class T2>
-class SimActionExecutorFactoryMethod
+class SimCommandExecutorFactoryMethod
 {
 public:
 

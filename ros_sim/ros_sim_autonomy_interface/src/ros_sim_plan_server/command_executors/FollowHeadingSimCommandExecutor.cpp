@@ -12,27 +12,27 @@
 
 #include "tf2_geometry_msgs/tf2_geometry_msgs.h"
 
-#include "underwater_autonomy/planner/actions/Action.h"
+#include "underwater_autonomy/planner/commands/Command.h"
 
-#include "ros_sim_plan_server/action_executors/FollowHeadingSimActionExecutor.h"
+#include "ros_sim_plan_server/command_executors/FollowHeadingSimCommandExecutor.h"
 
 using namespace underwater_autonomy;
 
-FollowHeadingSimActionExecutor::FollowHeadingSimActionExecutor(underwater_autonomy::FollowHeadingAction& action, ros::NodeHandle& nh, VehicleInfo& vehicleInfo) :
-    ActionExecutor(action),
+FollowHeadingSimCommandExecutor::FollowHeadingSimCommandExecutor(underwater_autonomy::FollowHeadingCommand& action, ros::NodeHandle& nh, VehicleInfo& vehicleInfo) :
+    CommandExecutor(action),
     vehicleInfo(vehicleInfo),
     replanNextUpdate(false),
     lastReplanTime(0),
     distanceSinceReplan(0)
 {
-    poseSub = nh.subscribe("primary_navigation", 1, &FollowHeadingSimActionExecutor::navigationFilterCallback, this);
+    poseSub = nh.subscribe("primary_navigation", 1, &FollowHeadingSimCommandExecutor::navigationFilterCallback, this);
 
     followHeadingClient = nh.serviceClient<underwater_vehicle_msgs::FollowHeading>("follow_heading");
 }
 
-void FollowHeadingSimActionExecutor::execute()
+void FollowHeadingSimCommandExecutor::execute()
 {
-    ROS_INFO("ROS: Execute Follow Heading Action");
+    ROS_INFO("ROS: Execute Follow Heading Command");
 
     //Check that we have someone listening to us
     followHeadingClient.waitForExistence(ros::Duration(10));
@@ -64,7 +64,7 @@ void FollowHeadingSimActionExecutor::execute()
     distanceSinceReplan = 0;
 }
 
-void FollowHeadingSimActionExecutor::stop()
+void FollowHeadingSimCommandExecutor::stop()
 {
     underwater_vehicle_msgs::FollowHeading enableMsg;
     enableMsg.request.enable = false;
@@ -73,10 +73,10 @@ void FollowHeadingSimActionExecutor::stop()
     {
         action.stopDone();
     }
-    ROS_INFO("ROS: Stop Follow Heading Action");
+    ROS_INFO("ROS: Stop Follow Heading Command");
 }
 
-bool FollowHeadingSimActionExecutor::triggerReplan()
+bool FollowHeadingSimCommandExecutor::triggerReplan()
 {
     if(replanNextUpdate)
     {
@@ -89,14 +89,14 @@ bool FollowHeadingSimActionExecutor::triggerReplan()
     return false;
 }
 
-void FollowHeadingSimActionExecutor::monitor()
+void FollowHeadingSimCommandExecutor::monitor()
 {
     if(action.getFollowHeadingTime() >= 0 && 
        action.getTimeRunning() >= action.getFollowHeadingTime() &&
-       action.getState() == Action::State::EXECUTING)
+       action.getState() == Command::State::EXECUTING)
     {
         action.complete(action.getLatestTime());
-        ROS_INFO("ROS: Complete Follow Heading Action");
+        ROS_INFO("ROS: Complete Follow Heading Command");
     }
     else if(action.doReplan(action.getLatestTime() - lastReplanTime, distanceSinceReplan))
     {
@@ -104,7 +104,7 @@ void FollowHeadingSimActionExecutor::monitor()
     }
 }
 
-void FollowHeadingSimActionExecutor::navigationFilterCallback(const nav_msgs::Odometry odo)
+void FollowHeadingSimCommandExecutor::navigationFilterCallback(const nav_msgs::Odometry odo)
 {    
     Eigen::Vector3d position(odo.pose.pose.position.x,
                              odo.pose.pose.position.y,
@@ -156,10 +156,10 @@ void FollowHeadingSimActionExecutor::navigationFilterCallback(const nav_msgs::Od
     currentPose.setAngularVelocity(angularVelocity);
     currentPose.setTwistCovariance(twistCovariance);
 
-    if((action.getState() == Action::State::DISPATCHED ||
-        action.getState() == Action::State::EXECUTING ||
-        action.getState() == Action::State::PAUSING ||
-        action.getState() == Action::State::COMPLETING) &&
+    if((action.getState() == Command::State::DISPATCHED ||
+        action.getState() == Command::State::EXECUTING ||
+        action.getState() == Command::State::PAUSING ||
+        action.getState() == Command::State::COMPLETING) &&
         !action.inOperationRegion(currentPose.getPosition()))
     {
         action.fail(action.getLatestTime());

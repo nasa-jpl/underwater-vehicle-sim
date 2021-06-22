@@ -15,18 +15,18 @@
 #include "underwater_vehicle_msgs/VehicleInfo.h"
 #include "underwater_vehicle_msgs/FollowHeading.h"
 
-#include "ros_sim_plan_server/action_executors/FollowHeadingSimActionExecutor.h"
+#include "ros_sim_plan_server/command_executors/FollowHeadingSimCommandExecutor.h"
 
 #include "underwater_autonomy/util/BoxOperationRegion.h"
 
 using namespace underwater_autonomy;
 
-std::shared_ptr<FollowHeadingAction> actionExecutePropModuleTypeFail;
-std::shared_ptr<FollowHeadingAction> actionExecuteAndPause;
-std::shared_ptr<FollowHeadingAction> actionExecuteAndSucceed;
-std::shared_ptr<FollowHeadingAction> actionExecuteAndOutOfRegion;
-std::shared_ptr<FollowHeadingAction> actionTimeReplan;
-std::shared_ptr<FollowHeadingAction> actionDistanceReplan;
+std::shared_ptr<FollowHeadingCommand> actionExecutePropModuleTypeFail;
+std::shared_ptr<FollowHeadingCommand> actionExecuteAndPause;
+std::shared_ptr<FollowHeadingCommand> actionExecuteAndSucceed;
+std::shared_ptr<FollowHeadingCommand> actionExecuteAndOutOfRegion;
+std::shared_ptr<FollowHeadingCommand> actionTimeReplan;
+std::shared_ptr<FollowHeadingCommand> actionDistanceReplan;
 
 struct CallbackInfo {
     uint followHeadingCalls = 0;
@@ -67,7 +67,7 @@ void setupCallbacks(ros::NodeHandle& nh, CallbackInfo& callbackInfo)
     ros::ServiceClient propServiceClient = nh.serviceClient<underwater_vehicle_msgs::FollowHeading>("follow_heading");
     propServiceClient.waitForExistence();
 }
-void waitForState(Action& action, Action::State state) {
+void waitForState(Command& action, Command::State state) {
     while(action.getState() != state)
     {
         action.monitor(3);
@@ -75,7 +75,7 @@ void waitForState(Action& action, Action::State state) {
     }
 }
 
-TEST(FollowHeadingSimActionExecutor, ExecuteAndPause)
+TEST(FollowHeadingSimCommandExecutor, ExecuteAndPause)
 {
     ros::NodeHandle nh("ExecuteAndPause");
 
@@ -94,16 +94,16 @@ TEST(FollowHeadingSimActionExecutor, ExecuteAndPause)
     EXPECT_EQ(1, callbackInfo.heading);
     EXPECT_TRUE(callbackInfo.enable);
 
-    EXPECT_EQ(Action::State::EXECUTING, actionExecuteAndPause->getState());
+    EXPECT_EQ(Command::State::EXECUTING, actionExecuteAndPause->getState());
 
     //Cancel action
     actionExecuteAndPause->pause(3);
     EXPECT_EQ(2u, callbackInfo.followHeadingCalls);
-    EXPECT_EQ(Action::State::PAUSED, actionExecuteAndPause->getState());
+    EXPECT_EQ(Command::State::PAUSED, actionExecuteAndPause->getState());
 }
 
 
-TEST(FollowHeadingSimActionExecutor, ExecuteAndSucceed)
+TEST(FollowHeadingSimCommandExecutor, ExecuteAndSucceed)
 {
     ros::NodeHandle nh("ExecuteAndSucceed");
 
@@ -119,14 +119,14 @@ TEST(FollowHeadingSimActionExecutor, ExecuteAndSucceed)
     EXPECT_EQ(1u, callbackInfo.followHeadingCalls);
     EXPECT_EQ(1, callbackInfo.heading);
     EXPECT_TRUE(callbackInfo.enable);
-    EXPECT_EQ(Action::State::EXECUTING, actionExecuteAndSucceed->getState());
+    EXPECT_EQ(Command::State::EXECUTING, actionExecuteAndSucceed->getState());
 
     actionExecuteAndSucceed->monitor(2);
 
-    EXPECT_EQ(Action::State::COMPLETED, actionExecuteAndSucceed->getState());
+    EXPECT_EQ(Command::State::COMPLETED, actionExecuteAndSucceed->getState());
 }
 
-TEST(FollowHeadingSimActionExecutor, ExecuteAndOutOfRegion)
+TEST(FollowHeadingSimCommandExecutor, ExecuteAndOutOfRegion)
 {
     ros::NodeHandle nh("ExecuteAndOutOfRegion");
 
@@ -146,7 +146,7 @@ TEST(FollowHeadingSimActionExecutor, ExecuteAndOutOfRegion)
     EXPECT_EQ(1u, callbackInfo.followHeadingCalls);
     EXPECT_EQ(1, callbackInfo.heading);
     EXPECT_TRUE(callbackInfo.enable);
-    EXPECT_EQ(Action::State::EXECUTING, actionExecuteAndOutOfRegion->getState());
+    EXPECT_EQ(Command::State::EXECUTING, actionExecuteAndOutOfRegion->getState());
 
     nav_msgs::Odometry poseMsg;
     poseMsg.pose.pose.position.x = 1000;
@@ -155,11 +155,11 @@ TEST(FollowHeadingSimActionExecutor, ExecuteAndOutOfRegion)
 
     posePub.publish(poseMsg);
     
-    waitForState(*actionExecuteAndOutOfRegion, Action::State::FAILED);
-    EXPECT_EQ(Action::State::FAILED, actionExecuteAndOutOfRegion->getState());
+    waitForState(*actionExecuteAndOutOfRegion, Command::State::FAILED);
+    EXPECT_EQ(Command::State::FAILED, actionExecuteAndOutOfRegion->getState());
 }
 
-TEST(FollowHeadingSimActionExecutor, TimeReplan)
+TEST(FollowHeadingSimCommandExecutor, TimeReplan)
 {
     ros::NodeHandle nh("TimeReplan");
 
@@ -178,7 +178,7 @@ TEST(FollowHeadingSimActionExecutor, TimeReplan)
     EXPECT_EQ(1u, callbackInfo.followHeadingCalls);
     EXPECT_EQ(1, callbackInfo.heading);
     EXPECT_TRUE(callbackInfo.enable);
-    EXPECT_EQ(Action::State::EXECUTING, actionTimeReplan->getState());
+    EXPECT_EQ(Command::State::EXECUTING, actionTimeReplan->getState());
 
     bool replan = false;
     while(!(replan = actionTimeReplan->triggerReplan())) {
@@ -188,7 +188,7 @@ TEST(FollowHeadingSimActionExecutor, TimeReplan)
     EXPECT_FALSE(actionTimeReplan->triggerReplan());
 }
 
-TEST(FollowHeadingSimActionExecutor, DistanceReplan)
+TEST(FollowHeadingSimCommandExecutor, DistanceReplan)
 {
     ros::NodeHandle nh("DistanceReplan");
 
@@ -207,7 +207,7 @@ TEST(FollowHeadingSimActionExecutor, DistanceReplan)
     EXPECT_EQ(1u, callbackInfo.followHeadingCalls);
     EXPECT_EQ(1, callbackInfo.heading);
     EXPECT_TRUE(callbackInfo.enable);
-    EXPECT_EQ(Action::State::EXECUTING, actionDistanceReplan->getState());
+    EXPECT_EQ(Command::State::EXECUTING, actionDistanceReplan->getState());
     
     nav_msgs::Odometry poseMsg;
     poseMsg.pose.pose.position.x = 3.1;
@@ -265,64 +265,64 @@ int main(int argc, char** argv){
     VehicleInfo info(infoMsg);
 
     ros::NodeHandle nhExecuteAndPause("ExecuteAndPause");
-    FollowHeadingAction::setExecutorCreateFunction(std::bind(&FollowHeadingSimActionExecutor::create, std::placeholders::_1,  nhExecuteAndPause, info));
-    actionExecuteAndPause = std::shared_ptr<FollowHeadingAction>(new FollowHeadingAction(1,
+    FollowHeadingCommand::setExecutorCreateFunction(std::bind(&FollowHeadingSimCommandExecutor::create, std::placeholders::_1,  nhExecuteAndPause, info));
+    actionExecuteAndPause = std::shared_ptr<FollowHeadingCommand>(new FollowHeadingCommand(1,
                                                                     2,
                                                                     3,
                                                                     100,
                                                                     100,
                                                                     std::unique_ptr<OperationRegion>(new BoxOperationRegion()),
-                                                                    FollowHeadingAction::ReplanType::NONE,
+                                                                    FollowHeadingCommand::ReplanType::NONE,
                                                                     6));
-    actionExecuteAndPause->initActionExecutor(); //Initialize action exeuctor early so we can update the create function
+    actionExecuteAndPause->initCommandExecutor(); //Initialize action exeuctor early so we can update the create function
 
     ros::NodeHandle nhExecuteAndSucceed("ExecuteAndSucceed");
-    FollowHeadingAction::setExecutorCreateFunction(std::bind(&FollowHeadingSimActionExecutor::create, std::placeholders::_1,  nhExecuteAndSucceed, info));
-    actionExecuteAndSucceed = std::shared_ptr<FollowHeadingAction>(new FollowHeadingAction(1,
+    FollowHeadingCommand::setExecutorCreateFunction(std::bind(&FollowHeadingSimCommandExecutor::create, std::placeholders::_1,  nhExecuteAndSucceed, info));
+    actionExecuteAndSucceed = std::shared_ptr<FollowHeadingCommand>(new FollowHeadingCommand(1,
                                                                     2,
                                                                     3,
                                                                     2,
                                                                     2,
                                                                     std::unique_ptr<OperationRegion>(new BoxOperationRegion()),
-                                                                    FollowHeadingAction::ReplanType::NONE,
+                                                                    FollowHeadingCommand::ReplanType::NONE,
                                                                     6)); 
-    actionExecuteAndSucceed->initActionExecutor(); //Initialize action exeuctor early so we can update the create function
+    actionExecuteAndSucceed->initCommandExecutor(); //Initialize action exeuctor early so we can update the create function
 
     ros::NodeHandle nhExecuteAndOutOfRegion("ExecuteAndOutOfRegion");
-    FollowHeadingAction::setExecutorCreateFunction(std::bind(&FollowHeadingSimActionExecutor::create, std::placeholders::_1,  nhExecuteAndOutOfRegion, info));
-    actionExecuteAndOutOfRegion = std::shared_ptr<FollowHeadingAction>(new FollowHeadingAction(1,
+    FollowHeadingCommand::setExecutorCreateFunction(std::bind(&FollowHeadingSimCommandExecutor::create, std::placeholders::_1,  nhExecuteAndOutOfRegion, info));
+    actionExecuteAndOutOfRegion = std::shared_ptr<FollowHeadingCommand>(new FollowHeadingCommand(1,
                                                                         2,
                                                                         3,
                                                                         100,
                                                                         100,
                                                                         std::unique_ptr<OperationRegion>(new BoxOperationRegion(0, 0, 0, 100, 100, 100)),
-                                                                        FollowHeadingAction::ReplanType::NONE,
+                                                                        FollowHeadingCommand::ReplanType::NONE,
                                                                         6)); 
-    actionExecuteAndOutOfRegion->initActionExecutor(); //Initialize action exeuctor early so we can update the create function
+    actionExecuteAndOutOfRegion->initCommandExecutor(); //Initialize action exeuctor early so we can update the create function
 
     ros::NodeHandle nhTimeReplan("TimeReplan");
-    FollowHeadingAction::setExecutorCreateFunction(std::bind(&FollowHeadingSimActionExecutor::create, std::placeholders::_1, nhTimeReplan, info));
-    actionTimeReplan = std::shared_ptr<FollowHeadingAction>(new FollowHeadingAction(1,
+    FollowHeadingCommand::setExecutorCreateFunction(std::bind(&FollowHeadingSimCommandExecutor::create, std::placeholders::_1, nhTimeReplan, info));
+    actionTimeReplan = std::shared_ptr<FollowHeadingCommand>(new FollowHeadingCommand(1,
                                                             2,
                                                             3,
                                                             100,
                                                             100,
                                                             std::unique_ptr<OperationRegion>(new BoxOperationRegion()),
-                                                            FollowHeadingAction::ReplanType::PERIODIC_TIME,
+                                                            FollowHeadingCommand::ReplanType::PERIODIC_TIME,
                                                             3)); 
-    actionTimeReplan->initActionExecutor(); //Initialize action exeuctor early so we can update the create function
+    actionTimeReplan->initCommandExecutor(); //Initialize action exeuctor early so we can update the create function
 
     ros::NodeHandle nhDistanceReplan("DistanceReplan");
-    FollowHeadingAction::setExecutorCreateFunction(std::bind(&FollowHeadingSimActionExecutor::create, std::placeholders::_1,  nhDistanceReplan, info));
-    actionDistanceReplan = std::shared_ptr<FollowHeadingAction>(new FollowHeadingAction(1,
+    FollowHeadingCommand::setExecutorCreateFunction(std::bind(&FollowHeadingSimCommandExecutor::create, std::placeholders::_1,  nhDistanceReplan, info));
+    actionDistanceReplan = std::shared_ptr<FollowHeadingCommand>(new FollowHeadingCommand(1,
                                                                 2,
                                                                 3,
                                                                 100,
                                                                 100,
                                                                 std::unique_ptr<OperationRegion>(new BoxOperationRegion()),
-                                                                FollowHeadingAction::ReplanType::PERIODIC_DISTANCE,
+                                                                FollowHeadingCommand::ReplanType::PERIODIC_DISTANCE,
                                                                 3)); 
-    actionDistanceReplan->initActionExecutor(); //Initialize action exeuctor early so we can update the create function
+    actionDistanceReplan->initCommandExecutor(); //Initialize action exeuctor early so we can update the create function
 
     return RUN_ALL_TESTS();
 }

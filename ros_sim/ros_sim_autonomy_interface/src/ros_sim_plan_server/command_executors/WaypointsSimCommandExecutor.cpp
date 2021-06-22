@@ -11,15 +11,15 @@
 
 #include "underwater_vehicle_msgs/PropulsionControllerState.h"
 
-#include "underwater_autonomy/planner/actions/Action.h"
+#include "underwater_autonomy/planner/commands/Command.h"
 
-#include "ros_sim_plan_server/action_executors/PointPathSimActionExecutor.h"
-#include "underwater_autonomy/planner/actions/PointPathAction.h"
+#include "ros_sim_plan_server/command_executors/WaypointsSimCommandExecutor.h"
+#include "underwater_autonomy/planner/commands/WaypointsCommand.h"
 
 using namespace underwater_autonomy;
 
-PointPathSimActionExecutor::PointPathSimActionExecutor(underwater_autonomy::PointPathAction& action, ros::NodeHandle& nh, VehicleInfo& vehicleInfo) :
-    ActionExecutor(action),
+WaypointsSimCommandExecutor::WaypointsSimCommandExecutor(underwater_autonomy::WaypointsCommand& action, ros::NodeHandle& nh, VehicleInfo& vehicleInfo) :
+    CommandExecutor(action),
     vehicleInfo(vehicleInfo),
     replanNextUpdate(false),
     lastReplanTime(0),
@@ -27,14 +27,14 @@ PointPathSimActionExecutor::PointPathSimActionExecutor(underwater_autonomy::Poin
     statePropSetup(false),
     poseAtFirstExecuteValid(false)
 {
-    propStateSub = nh.subscribe("prop_state", 10, &PointPathSimActionExecutor::propStateCallback, this);
-    poseSub = nh.subscribe("primary_navigation", 1, &PointPathSimActionExecutor::navigationFilterCallback, this);
+    propStateSub = nh.subscribe("prop_state", 10, &WaypointsSimCommandExecutor::propStateCallback, this);
+    poseSub = nh.subscribe("primary_navigation", 1, &WaypointsSimCommandExecutor::navigationFilterCallback, this);
     goToXYClient = nh.serviceClient<underwater_vehicle_msgs::GoToXY>("go_to_xy");
 }
 
-void PointPathSimActionExecutor::execute()
+void WaypointsSimCommandExecutor::execute()
 {
-    ROS_INFO("ROS: Execute Point Path Action");
+    ROS_INFO("ROS: Execute Point Path Command");
 
     //Check that we have someone listening to us
     goToXYClient.waitForExistence(ros::Duration(10));
@@ -64,14 +64,14 @@ void PointPathSimActionExecutor::execute()
     {
         action.dispatchDone();
         action.complete(action.getLatestTime());
-        ROS_INFO("ROS: Point Path Action Completed");
+        ROS_INFO("ROS: Point Path Command Completed");
     }
 
     lastReplanTime = action.getLatestTime();
     distanceSinceReplan = 0;
 }
 
-void PointPathSimActionExecutor::monitor()
+void WaypointsSimCommandExecutor::monitor()
 {
     if(action.doReplan(false, action.getLatestTime() - lastReplanTime, distanceSinceReplan)) 
     {
@@ -79,17 +79,17 @@ void PointPathSimActionExecutor::monitor()
     }
 }
 
-void PointPathSimActionExecutor::stop()
+void WaypointsSimCommandExecutor::stop()
 {
     underwater_vehicle_msgs::GoToXY enableMsg;
     enableMsg.request.enable = false;
     if(goToXYClient.exists() &&
        goToXYClient.call(enableMsg))
     {
-        if(action.getPointType() == PointPathAction::PointType::VEHICLE_RELATIVE) {
+        if(action.getPointType() == WaypointsCommand::PointType::VEHICLE_RELATIVE) {
             //TODO: Set interrupt point correctly
         }
-        else if(action.getPointType() == PointPathAction::PointType::WORLD_RELATIVE) {
+        else if(action.getPointType() == WaypointsCommand::PointType::WORLD_RELATIVE) {
             Eigen::Vector3d currentPosition = currentPose.getPosition();
             Eigen::Vector3d updatedPosition;
 
@@ -102,10 +102,10 @@ void PointPathSimActionExecutor::stop()
         action.stopDone();
     }
 
-    ROS_INFO("ROS: Point Path Action Stopped");
+    ROS_INFO("ROS: Point Path Command Stopped");
 }
 
-bool PointPathSimActionExecutor::triggerReplan()
+bool WaypointsSimCommandExecutor::triggerReplan()
 {
     if(replanNextUpdate)
     {
@@ -118,7 +118,7 @@ bool PointPathSimActionExecutor::triggerReplan()
     return false;
 }
 
-void PointPathSimActionExecutor::propStateCallback(const underwater_vehicle_msgs::PropulsionControllerState state)
+void WaypointsSimCommandExecutor::propStateCallback(const underwater_vehicle_msgs::PropulsionControllerState state)
 {
     if(!statePropSetup) {
         statePropSetup = true;
@@ -126,7 +126,7 @@ void PointPathSimActionExecutor::propStateCallback(const underwater_vehicle_msgs
     }
 
     Eigen::Vector3d currentTargetPoint = action.getCurrentTargetPoint();
-    if(action.getPointType() == PointPathAction::PointType::VEHICLE_RELATIVE) {
+    if(action.getPointType() == WaypointsCommand::PointType::VEHICLE_RELATIVE) {
         Eigen::Vector3d rpyAngles = poseAtFirstExecute.getOrientation().toRotationMatrix().eulerAngles(0, 1, 2);
         Eigen::Vector3d position = poseAtFirstExecute.getPosition();
         double yaw = rpyAngles[2];
@@ -135,7 +135,7 @@ void PointPathSimActionExecutor::propStateCallback(const underwater_vehicle_msgs
 
         currentTargetPoint[0] = updatedX;
         currentTargetPoint[1] = updatedY;
-    } else if(action.getPointType() == PointPathAction::PointType::WORLD_RELATIVE) {
+    } else if(action.getPointType() == WaypointsCommand::PointType::WORLD_RELATIVE) {
         Eigen::Vector3d position = poseAtFirstExecute.getPosition();
         currentTargetPoint[0] += position[0];
         currentTargetPoint[1] += position[1];
@@ -145,7 +145,7 @@ void PointPathSimActionExecutor::propStateCallback(const underwater_vehicle_msgs
     if(state.xyComplete && 
        doubleEq(currentTargetPoint[0], state.x) &&
        doubleEq(currentTargetPoint[1], state.y) &&
-       action.getState() == Action::State::EXECUTING &&
+       action.getState() == Command::State::EXECUTING &&
        (prevXYSeqNum != state.xySeqNum))
     {
         prevXYSeqNum = state.xySeqNum;
@@ -163,22 +163,22 @@ void PointPathSimActionExecutor::propStateCallback(const underwater_vehicle_msgs
         else
         {
             action.complete(action.getLatestTime());
-            ROS_INFO("ROS: Point Path Action Complete");
+            ROS_INFO("ROS: Point Path Command Complete");
         }
     }
 }
 
-void PointPathSimActionExecutor::waitForPropStateSetup()
+void WaypointsSimCommandExecutor::waitForPropStateSetup()
 {
     while(!statePropSetup) {
         ros::spinOnce();
     }
 }
 
-bool PointPathSimActionExecutor::sendNextGoToXYGoal()
+bool WaypointsSimCommandExecutor::sendNextGoToXYGoal()
 {
     Eigen::Vector3d point = action.getCurrentTargetPoint();
-    if(action.getPointType() == PointPathAction::PointType::VEHICLE_RELATIVE) {
+    if(action.getPointType() == WaypointsCommand::PointType::VEHICLE_RELATIVE) {
         Eigen::Vector3d rpyAngles = poseAtFirstExecute.getOrientation().toRotationMatrix().eulerAngles(0, 1, 2);
         Eigen::Vector3d position = poseAtFirstExecute.getPosition();
         double yaw = rpyAngles[2];
@@ -187,7 +187,7 @@ bool PointPathSimActionExecutor::sendNextGoToXYGoal()
 
         point[0] = updatedX;
         point[1] = updatedY;
-    } else if(action.getPointType() == PointPathAction::PointType::WORLD_RELATIVE) {
+    } else if(action.getPointType() == WaypointsCommand::PointType::WORLD_RELATIVE) {
         Eigen::Vector3d position = poseAtFirstExecute.getPosition();
         point[0] += position[0];
         point[1] += position[1];
@@ -209,7 +209,7 @@ bool PointPathSimActionExecutor::sendNextGoToXYGoal()
     return true;
 }
 
-void PointPathSimActionExecutor::navigationFilterCallback(const nav_msgs::Odometry odo)
+void WaypointsSimCommandExecutor::navigationFilterCallback(const nav_msgs::Odometry odo)
 {    
     Eigen::Vector3d position(odo.pose.pose.position.x,
                              odo.pose.pose.position.y,
@@ -262,17 +262,17 @@ void PointPathSimActionExecutor::navigationFilterCallback(const nav_msgs::Odomet
     currentPose.setTwistCovariance(twistCovariance);
 
     //Check if out of region
-    if((action.getState() == Action::State::DISPATCHED ||
-        action.getState() == Action::State::EXECUTING ||
-        action.getState() == Action::State::PAUSING ||
-        action.getState() == Action::State::COMPLETING) && 
+    if((action.getState() == Command::State::DISPATCHED ||
+        action.getState() == Command::State::EXECUTING ||
+        action.getState() == Command::State::PAUSING ||
+        action.getState() == Command::State::COMPLETING) && 
         !action.inOperationRegion(currentPose.getPosition()))
     {
         action.fail(action.getLatestTime());
     }
 }
 
-bool PointPathSimActionExecutor::doubleEq(double d1, double d2)
+bool WaypointsSimCommandExecutor::doubleEq(double d1, double d2)
 {
     return abs(d1 - d2) < 0.001;
 }

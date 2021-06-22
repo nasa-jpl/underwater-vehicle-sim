@@ -27,27 +27,27 @@ void ROSSimVehicleInterface::sendPlannerStatus(PlannerStatus status)
     std_msgs::String msg;
     if(status == PlannerStatus::RUNNING)
     {
-        log(LogLevel::INFO, "Planner Status: Running");
+        log(LogLevel::INFO, "Behavior Status: Running");
         msg.data = "running";
     }
     else if(status == PlannerStatus::SUCCESS)
     {
-        log(LogLevel::INFO, "Planner Status: Success");
+        log(LogLevel::INFO, "Behavior Status: Success");
         msg.data = "success";
     }
     else if(status == PlannerStatus::FAILED)
     {
-        log(LogLevel::INFO, "Planner Status: Failed");
+        log(LogLevel::INFO, "Behavior Status: Failed");
         msg.data = "failed";
     }
     else if(status == PlannerStatus::PAUSED)
     {
-        log(LogLevel::INFO, "Planner Status: Paused");
+        log(LogLevel::INFO, "Behavior Status: Paused");
         msg.data = "paused";
     }
     else
     {
-        log(LogLevel::WARN, "Unexpected Planner Status");
+        log(LogLevel::WARN, "Unexpected Behavior Status");
         msg.data = "unexpected_status";
     }
 

@@ -2,37 +2,37 @@
 
 #include "std_msgs/String.h"
 
-#include "underwater_autonomy/planner/Planner.h"
+#include "underwater_autonomy/planner/Behavior.h"
 #include "underwater_autonomy/planner/PlanDispatcher.h"
 #include "underwater_autonomy/util/BoxOperationRegion.h"
-#include "underwater_autonomy/planner/SingleActionPlanner.h"
+#include "underwater_autonomy/planner/SingleCommandBehavior.h"
 #include "underwater_autonomy/util/ConfigurationFile.h"
-#include "underwater_autonomy/planner/PlannerFactory.h"
-#include "underwater_autonomy/planner/WaypointsPlanner.h"
+#include "underwater_autonomy/planner/BehaviorFactory.h"
+#include "underwater_autonomy/planner/WaypointsBehavior.h"
 
 #include "ros_sim_plan_server/ROSSimPlanServer.h"
 #include "ros_sim_autonomy_interface/ROSSimVehicleInterface.h"
 
-#include "vent_planner/NestedBinVentPlanner.h"
-#include "vent_planner/SurfaceGradientVentPlanner.h"
-#include "vent_planner/DirectionSetVentPlanner.h"
+#include "vent_behaviors/NestedBinVentBehavior.h"
+#include "vent_behaviors/SurfaceGradientVentBehavior.h"
+#include "vent_behaviors/DirectionSetVentBehavior.h"
 
-#include "navigation_planner/GoldenSelectionHomingPlanner.h"
-#include "navigation_planner/NonLinearFilterHomingPlanner.h"
+#include "navigation_behaviors/GoldenSelectionHomingBehavior.h"
+#include "navigation_behaviors/NonLinearFilterHomingBehavior.h"
 
-#include "explore_planner/OutAndBackExplorePlanner.h"
-#include "explore_planner/InWaterTestPlanner.h"
+#include "explore_behaviors/OutAndBackExploreBehavior.h"
+#include "explore_behaviors/InWaterTestBehavior.h"
 
-#include "ros_sim_plan_server/action_executors/YoYoSimActionExecutor.h"
-#include "ros_sim_plan_server/action_executors/HoldDepthSimActionExecutor.h"
-#include "ros_sim_plan_server/action_executors/PointPathSimActionExecutor.h"
-#include "ros_sim_plan_server/action_executors/FollowHeadingSimActionExecutor.h"
-#include "ros_sim_plan_server/action_executors/CircleSimActionExecutor.h"
+#include "ros_sim_plan_server/command_executors/YoYoSimCommandExecutor.h"
+#include "ros_sim_plan_server/command_executors/HoldDepthSimCommandExecutor.h"
+#include "ros_sim_plan_server/command_executors/WaypointsSimCommandExecutor.h"
+#include "ros_sim_plan_server/command_executors/FollowHeadingSimCommandExecutor.h"
+#include "ros_sim_plan_server/command_executors/CircleSimCommandExecutor.h"
 
 using namespace underwater_autonomy;
-using namespace vent_planner;
-using namespace navigation_planner;
-using namespace explore_planner;
+using namespace vent_behaviors;
+using namespace navigation_behaviors;
+using namespace explore_behaviors;
 
 bool dataStarted = false;
 bool navStarted = false;
@@ -72,29 +72,29 @@ int main(int argc, char **argv)
 
     std::shared_ptr<ROSSimVehicleInterface> interface = std::make_shared<ROSSimVehicleInterface>(info);
 
-    YoYoAction::setExecutorCreateFunction(std::bind(&YoYoSimActionExecutor::create, std::placeholders::_1, nh, info));
-    HoldDepthAction::setExecutorCreateFunction(std::bind(&HoldDepthSimActionExecutor::create, std::placeholders::_1, nh, info));
-    PointPathAction::setExecutorCreateFunction(std::bind(&PointPathSimActionExecutor::create, std::placeholders::_1, nh, info));
-    FollowHeadingAction::setExecutorCreateFunction(std::bind(&FollowHeadingSimActionExecutor::create, std::placeholders::_1, nh, info));
-    CircleAction::setExecutorCreateFunction(std::bind(&CircleSimActionExecutor::create, std::placeholders::_1, nh, info));
+    YoYoCommand::setExecutorCreateFunction(std::bind(&YoYoSimCommandExecutor::create, std::placeholders::_1, nh, info));
+    HoldDepthCommand::setExecutorCreateFunction(std::bind(&HoldDepthSimCommandExecutor::create, std::placeholders::_1, nh, info));
+    WaypointsCommand::setExecutorCreateFunction(std::bind(&WaypointsSimCommandExecutor::create, std::placeholders::_1, nh, info));
+    FollowHeadingCommand::setExecutorCreateFunction(std::bind(&FollowHeadingSimCommandExecutor::create, std::placeholders::_1, nh, info));
+    CircleCommand::setExecutorCreateFunction(std::bind(&CircleSimCommandExecutor::create, std::placeholders::_1, nh, info));
 
 
     std::string configFilename;
     nhPriv.getParam("planner_config_file", configFilename);
     ConfigurationFile config(configFilename);
 
-    PlannerFactory::registerPlanner("SurfaceGradient", &SurfaceGradientVentPlanner::create);
-    PlannerFactory::registerPlanner("NestedBin", &NestedBinVentPlanner::create);
-    PlannerFactory::registerPlanner("DirectionSet", &DirectionSetVentPlanner::create);
-    PlannerFactory::registerPlanner("Waypoints", &WaypointsPlanner::create);
-    PlannerFactory::registerPlanner("SingleAction", &SingleActionPlanner::create);
-    PlannerFactory::registerPlanner("GoldenSelectionHoming", &GoldenSelectionHomingPlanner::create);
-    PlannerFactory::registerPlanner("NonLinearFilterHoming", &NonLinearFilterHomingPlanner::create);
-    PlannerFactory::registerPlanner("OutAndBackExplore", &OutAndBackExplorePlanner::create);
-    PlannerFactory::registerPlanner("InWaterTest", &InWaterTestPlanner::create);
+    BehaviorFactory::registerBehavior("SurfaceGradient", &SurfaceGradientVentBehavior::create);
+    BehaviorFactory::registerBehavior("NestedBin", &NestedBinVentBehavior::create);
+    BehaviorFactory::registerBehavior("DirectionSet", &DirectionSetVentBehavior::create);
+    BehaviorFactory::registerBehavior("Waypoints", &WaypointsBehavior::create);
+    BehaviorFactory::registerBehavior("SingleCommand", &SingleCommandBehavior::create);
+    BehaviorFactory::registerBehavior("GoldenSelectionHoming", &GoldenSelectionHomingBehavior::create);
+    BehaviorFactory::registerBehavior("NonLinearFilterHoming", &NonLinearFilterHomingBehavior::create);
+    BehaviorFactory::registerBehavior("OutAndBackExplore", &OutAndBackExploreBehavior::create);
+    BehaviorFactory::registerBehavior("InWaterTest", &InWaterTestBehavior::create);
 
     std::string plannerType = config.readSimpleEntry<std::string>("planner_type");
-    std::unique_ptr<Planner> planner = PlannerFactory::create(plannerType, interface, config);
+    std::unique_ptr<Behavior> planner = BehaviorFactory::create(plannerType, interface, config);
 
     ROSSimPlanServer server(std::move(planner), interface, cancelTimeout);
 
@@ -102,7 +102,7 @@ int main(int argc, char **argv)
     ros::Publisher plannerStatePub = nh.advertise<std_msgs::String>("planner_status", 1);
     std_msgs::String plannerStateMsg;
 
-    ROS_INFO("Planner Initalized");
+    ROS_INFO("Behavior Initalized");
 
     //Wait until valid data starts streaming
     ros::Subscriber dataSub;
@@ -122,7 +122,7 @@ int main(int argc, char **argv)
         ros::spinOnce();
     }
 
-    ROS_INFO("Planner Started");
+    ROS_INFO("Behavior Started");
 
     ros::Rate r(loopHertz);
     while(ros::ok())

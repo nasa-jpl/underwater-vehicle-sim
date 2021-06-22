@@ -1,4 +1,4 @@
-#include "ros_sim_plan_server/action_executors/HoldDepthSimActionExecutor.h"
+#include "ros_sim_plan_server/command_executors/HoldDepthSimCommandExecutor.h"
 
 #include <vector>
 #include <unordered_map>
@@ -13,26 +13,26 @@
 #include "tf2_geometry_msgs/tf2_geometry_msgs.h"
 #include "underwater_vehicle_msgs/PropulsionControllerState.h"
 
-#include "underwater_autonomy/planner/actions/Action.h"
+#include "underwater_autonomy/planner/commands/Command.h"
 
-#include "underwater_autonomy/planner/actions/HoldDepthAction.h"
+#include "underwater_autonomy/planner/commands/HoldDepthCommand.h"
 
 using namespace underwater_autonomy;
 
-HoldDepthSimActionExecutor::HoldDepthSimActionExecutor(underwater_autonomy::HoldDepthAction& action, ros::NodeHandle& nh, VehicleInfo& vehicleInfo) :
-    ActionExecutor(action),
+HoldDepthSimCommandExecutor::HoldDepthSimCommandExecutor(underwater_autonomy::HoldDepthCommand& action, ros::NodeHandle& nh, VehicleInfo& vehicleInfo) :
+    CommandExecutor(action),
     vehicleInfo(vehicleInfo),
     replanNextUpdate(false),
     lastReplanTime(0),
     distanceSinceReplan(0)
 {
-    poseSub = nh.subscribe("primary_navigation", 1, &HoldDepthSimActionExecutor::navigationFilterCallback, this);
+    poseSub = nh.subscribe("primary_navigation", 1, &HoldDepthSimCommandExecutor::navigationFilterCallback, this);
     goToZClient = nh.serviceClient<underwater_vehicle_msgs::GoToZ>("go_to_z");
 }
 
-void HoldDepthSimActionExecutor::execute()
+void HoldDepthSimCommandExecutor::execute()
 {
-    ROS_INFO("ROS: Execute Hold Depth Action");
+    ROS_INFO("ROS: Execute Hold Depth Command");
 
     //Check that we have someone listening to us
     goToZClient.waitForExistence(ros::Duration(10));
@@ -63,7 +63,7 @@ void HoldDepthSimActionExecutor::execute()
     distanceSinceReplan = 0;
 }
 
-void HoldDepthSimActionExecutor::stop()
+void HoldDepthSimCommandExecutor::stop()
 {
     underwater_vehicle_msgs::GoToZ enableMsg;
     enableMsg.request.enable = false;
@@ -73,10 +73,10 @@ void HoldDepthSimActionExecutor::stop()
         action.stopDone();
     }
 
-    ROS_INFO("ROS: Stop Hold Depth Action");
+    ROS_INFO("ROS: Stop Hold Depth Command");
 }
 
-bool HoldDepthSimActionExecutor::triggerReplan()
+bool HoldDepthSimCommandExecutor::triggerReplan()
 {
     if(replanNextUpdate)
     {        
@@ -89,14 +89,14 @@ bool HoldDepthSimActionExecutor::triggerReplan()
     return false;
 }
 
-void HoldDepthSimActionExecutor::monitor()
+void HoldDepthSimCommandExecutor::monitor()
 {
-    if(action.getState() == Action::State::EXECUTING &&
+    if(action.getState() == Command::State::EXECUTING &&
        action.getHoldDepthTime() >= 0 &&
        action.getTimeRunning() >= action.getHoldDepthTime())
     {
         action.complete(action.getLatestTime());
-        ROS_INFO("ROS: Complete Hold Depth Action");
+        ROS_INFO("ROS: Complete Hold Depth Command");
     }
     else if(action.doReplan(action.getLatestTime() - lastReplanTime, distanceSinceReplan))
     {
@@ -104,7 +104,7 @@ void HoldDepthSimActionExecutor::monitor()
     }
 }
 
-void HoldDepthSimActionExecutor::navigationFilterCallback(const nav_msgs::Odometry odo)
+void HoldDepthSimCommandExecutor::navigationFilterCallback(const nav_msgs::Odometry odo)
 {    
     Eigen::Vector3d position(odo.pose.pose.position.x,
                              odo.pose.pose.position.y,
@@ -158,17 +158,17 @@ void HoldDepthSimActionExecutor::navigationFilterCallback(const nav_msgs::Odomet
     currentPose.setAngularVelocity(angularVelocity);
     currentPose.setTwistCovariance(twistCovariance);
 
-    if((action.getState() == Action::State::DISPATCHED ||
-        action.getState() == Action::State::EXECUTING ||
-        action.getState() == Action::State::PAUSING ||
-        action.getState() == Action::State::COMPLETING) &&
+    if((action.getState() == Command::State::DISPATCHED ||
+        action.getState() == Command::State::EXECUTING ||
+        action.getState() == Command::State::PAUSING ||
+        action.getState() == Command::State::COMPLETING) &&
         !action.inOperationRegion(currentPose.getPosition()))
     {
         action.fail(action.getLatestTime());
     }
 }
 
-bool HoldDepthSimActionExecutor::doubleEq(double d1, double d2)
+bool HoldDepthSimCommandExecutor::doubleEq(double d1, double d2)
 {
     return abs(d1 - d2) < 0.001;
 }

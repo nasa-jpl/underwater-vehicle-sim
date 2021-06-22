@@ -15,19 +15,19 @@
 #include "underwater_vehicle_msgs/VehicleInfo.h"
 #include "underwater_vehicle_msgs/GoToZ.h"
 
-#include "ros_sim_plan_server/action_executors/YoYoSimActionExecutor.h"
+#include "ros_sim_plan_server/command_executors/YoYoSimCommandExecutor.h"
 
 #include "underwater_autonomy/util/BoxOperationRegion.h"
 
 using namespace underwater_autonomy;
 
-std::shared_ptr<YoYoAction> actionExecutePropModuleTypeFail;
-std::shared_ptr<YoYoAction> actionExecuteAndPause;
-std::shared_ptr<YoYoAction> actionExecuteAndSucceed;
-std::shared_ptr<YoYoAction> actionExecuteAndOutOfRegion;
-std::shared_ptr<YoYoAction> actionTimeReplan;
-std::shared_ptr<YoYoAction> actionDistanceReplan;
-std::shared_ptr<YoYoAction> actionTurnReplan;
+std::shared_ptr<YoYoCommand> actionExecutePropModuleTypeFail;
+std::shared_ptr<YoYoCommand> actionExecuteAndPause;
+std::shared_ptr<YoYoCommand> actionExecuteAndSucceed;
+std::shared_ptr<YoYoCommand> actionExecuteAndOutOfRegion;
+std::shared_ptr<YoYoCommand> actionTimeReplan;
+std::shared_ptr<YoYoCommand> actionDistanceReplan;
+std::shared_ptr<YoYoCommand> actionTurnReplan;
 
 struct CallbackInfo {
     uint goToZCalls = 0;
@@ -76,7 +76,7 @@ void setupCallbacks(ros::NodeHandle& nh, CallbackInfo& callbackInfo)
     propServiceClient.waitForExistence();
 }
 
-void waitForState(Action& action, Action::State state) {
+void waitForState(Command& action, Command::State state) {
     while(action.getState() != state)
     {
         action.monitor(ros::Time::now().toSec());
@@ -84,7 +84,7 @@ void waitForState(Action& action, Action::State state) {
     }
 }
 
-TEST(YoYoSimActionExecutor, ExecuteAndPause)
+TEST(YoYoSimCommandExecutor, ExecuteAndPause)
 {
     ros::NodeHandle nh("ExecuteAndPause");
 
@@ -105,7 +105,7 @@ TEST(YoYoSimActionExecutor, ExecuteAndPause)
 
     EXPECT_EQ(1u, callbackInfo.goToZCalls);
     EXPECT_TRUE(callbackInfo.enable);
-    EXPECT_EQ(Action::State::EXECUTING, actionExecuteAndPause->getState());
+    EXPECT_EQ(Command::State::EXECUTING, actionExecuteAndPause->getState());
     EXPECT_EQ(1, callbackInfo.depth);
 
     actionExecuteAndPause->pause(ros::Time::now().toSec());
@@ -113,10 +113,10 @@ TEST(YoYoSimActionExecutor, ExecuteAndPause)
     EXPECT_EQ(2u, callbackInfo.goToZCalls);
     EXPECT_FALSE(callbackInfo.enable);
 
-    EXPECT_EQ(Action::State::PAUSED, actionExecuteAndPause->getState());
+    EXPECT_EQ(Command::State::PAUSED, actionExecuteAndPause->getState());
 }
 
-TEST(YoYoSimActionExecutor, ExecuteAndSucceed)
+TEST(YoYoSimCommandExecutor, ExecuteAndSucceed)
 {
     ros::NodeHandle nh("ExecuteAndSucceed");
 
@@ -140,7 +140,7 @@ TEST(YoYoSimActionExecutor, ExecuteAndSucceed)
     EXPECT_FALSE(callbackInfo.holdDepth);
     EXPECT_EQ(1, callbackInfo.depth);
 
-    EXPECT_EQ(Action::State::EXECUTING, actionExecuteAndSucceed->getState());
+    EXPECT_EQ(Command::State::EXECUTING, actionExecuteAndSucceed->getState());
 
 
     //Reset goal called
@@ -157,15 +157,15 @@ TEST(YoYoSimActionExecutor, ExecuteAndSucceed)
     EXPECT_EQ(2u, callbackInfo.goToZCalls);
     EXPECT_TRUE(callbackInfo.enable);
     EXPECT_EQ(2, callbackInfo.depth);
-    EXPECT_EQ(Action::State::EXECUTING, actionExecuteAndSucceed->getState());
+    EXPECT_EQ(Command::State::EXECUTING, actionExecuteAndSucceed->getState());
 
     actionExecuteAndSucceed->monitor(5.1);
     
-    waitForState(*actionExecuteAndSucceed, Action::State::COMPLETED);
-    EXPECT_EQ(Action::State::COMPLETED, actionExecuteAndSucceed->getState());
+    waitForState(*actionExecuteAndSucceed, Command::State::COMPLETED);
+    EXPECT_EQ(Command::State::COMPLETED, actionExecuteAndSucceed->getState());
 }
 
-TEST(YoYoSimActionExecutor, ExecuteAndOutOfRegion)
+TEST(YoYoSimCommandExecutor, ExecuteAndOutOfRegion)
 {
     ros::NodeHandle nh("ExecuteAndOutOfRegion");
 
@@ -188,7 +188,7 @@ TEST(YoYoSimActionExecutor, ExecuteAndOutOfRegion)
     EXPECT_EQ(1u, callbackInfo.goToZCalls);
     EXPECT_TRUE(callbackInfo.enable);
 
-    EXPECT_EQ(Action::State::EXECUTING, actionExecuteAndOutOfRegion->getState());
+    EXPECT_EQ(Command::State::EXECUTING, actionExecuteAndOutOfRegion->getState());
 
     nav_msgs::Odometry poseMsg;
     poseMsg.pose.pose.position.x = 0;
@@ -197,11 +197,11 @@ TEST(YoYoSimActionExecutor, ExecuteAndOutOfRegion)
 
     posePub.publish(poseMsg);
     
-    waitForState(*actionExecuteAndOutOfRegion, Action::State::FAILED);
-    EXPECT_EQ(Action::State::FAILED, actionExecuteAndOutOfRegion->getState());
+    waitForState(*actionExecuteAndOutOfRegion, Command::State::FAILED);
+    EXPECT_EQ(Command::State::FAILED, actionExecuteAndOutOfRegion->getState());
 }
 
-TEST(YoYoSimActionExecutor, TimeReplan)
+TEST(YoYoSimCommandExecutor, TimeReplan)
 {
     ros::NodeHandle nh("TimeReplan");
 
@@ -224,14 +224,14 @@ TEST(YoYoSimActionExecutor, TimeReplan)
     EXPECT_EQ(1u, callbackInfo.goToZCalls);
     EXPECT_EQ(1, callbackInfo.depth);
     EXPECT_TRUE(callbackInfo.enable);
-    EXPECT_EQ(Action::State::EXECUTING, actionTimeReplan->getState());
+    EXPECT_EQ(Command::State::EXECUTING, actionTimeReplan->getState());
 
     actionTimeReplan->monitor(3.1);
     EXPECT_TRUE(actionTimeReplan->triggerReplan());
     EXPECT_FALSE(actionTimeReplan->triggerReplan());
 }
 
-TEST(YoYoSimActionExecutor, DistanceReplan)
+TEST(YoYoSimCommandExecutor, DistanceReplan)
 {
     ros::NodeHandle nh("DistanceReplan");
 
@@ -256,7 +256,7 @@ TEST(YoYoSimActionExecutor, DistanceReplan)
     EXPECT_EQ(1, callbackInfo.depth);
     EXPECT_TRUE(callbackInfo.enable);
     EXPECT_FALSE(callbackInfo.holdDepth);
-    EXPECT_EQ(Action::State::EXECUTING, actionDistanceReplan->getState());
+    EXPECT_EQ(Command::State::EXECUTING, actionDistanceReplan->getState());
 
     actionDistanceReplan->monitor(ros::Time::now().toSec());
     EXPECT_FALSE(actionDistanceReplan->triggerReplan());
@@ -279,7 +279,7 @@ TEST(YoYoSimActionExecutor, DistanceReplan)
     EXPECT_FALSE(actionDistanceReplan->triggerReplan());
 }
 
-TEST(YoYoSimActionExecutor, TurnReplan)
+TEST(YoYoSimCommandExecutor, TurnReplan)
 {
     ros::NodeHandle nh("TurnReplan");
 
@@ -303,7 +303,7 @@ TEST(YoYoSimActionExecutor, TurnReplan)
     EXPECT_TRUE(callbackInfo.enable);
     EXPECT_FALSE(callbackInfo.holdDepth);
 
-    EXPECT_EQ(Action::State::EXECUTING, actionTurnReplan->getState());
+    EXPECT_EQ(Command::State::EXECUTING, actionTurnReplan->getState());
 
     state.zComplete = true;
     state.zSeqNum = 1;
@@ -321,7 +321,7 @@ TEST(YoYoSimActionExecutor, TurnReplan)
     EXPECT_EQ(2, callbackInfo.depth);
     EXPECT_TRUE(callbackInfo.enable);
 
-    EXPECT_EQ(Action::State::EXECUTING, actionTurnReplan->getState());
+    EXPECT_EQ(Command::State::EXECUTING, actionTurnReplan->getState());
 
     bool replan = false;
     while(!replan)
@@ -371,76 +371,76 @@ int main(int argc, char** argv){
     VehicleInfo info(infoMsg);
 
     ros::NodeHandle nhExecuteAndPause("ExecuteAndPause");
-    YoYoAction::setExecutorCreateFunction(std::bind(&YoYoSimActionExecutor::create, std::placeholders::_1,  nhExecuteAndPause, info));
-    actionExecuteAndPause = std::shared_ptr<YoYoAction>(new YoYoAction(1,
+    YoYoCommand::setExecutorCreateFunction(std::bind(&YoYoSimCommandExecutor::create, std::placeholders::_1,  nhExecuteAndPause, info));
+    actionExecuteAndPause = std::shared_ptr<YoYoCommand>(new YoYoCommand(1,
                                                                         2,
                                                                         3,
                                                                         100,
                                                                         200,
                                                                         std::unique_ptr<OperationRegion>(new BoxOperationRegion()),
-                                                                        YoYoAction::ReplanType::NONE,
+                                                                        YoYoCommand::ReplanType::NONE,
                                                                         4));
-    actionExecuteAndPause->initActionExecutor();
+    actionExecuteAndPause->initCommandExecutor();
 
     ros::NodeHandle nhExecuteAndSucceed("ExecuteAndSucceed");
-    YoYoAction::setExecutorCreateFunction(std::bind(&YoYoSimActionExecutor::create, std::placeholders::_1,  nhExecuteAndSucceed, info));
-    actionExecuteAndSucceed = std::shared_ptr<YoYoAction>(new YoYoAction(1,
+    YoYoCommand::setExecutorCreateFunction(std::bind(&YoYoSimCommandExecutor::create, std::placeholders::_1,  nhExecuteAndSucceed, info));
+    actionExecuteAndSucceed = std::shared_ptr<YoYoCommand>(new YoYoCommand(1,
                                                                         2,
                                                                         3,
                                                                         5,
                                                                         6,
                                                                         std::unique_ptr<OperationRegion>(new BoxOperationRegion()),
-                                                                        YoYoAction::ReplanType::NONE,
+                                                                        YoYoCommand::ReplanType::NONE,
                                                                         4));
-    actionExecuteAndSucceed->initActionExecutor();
+    actionExecuteAndSucceed->initCommandExecutor();
 
     ros::NodeHandle nhExecuteAndOutOfRegion("ExecuteAndOutOfRegion");
-    YoYoAction::setExecutorCreateFunction(std::bind(&YoYoSimActionExecutor::create, std::placeholders::_1,  nhExecuteAndOutOfRegion, info));
-    actionExecuteAndOutOfRegion = std::shared_ptr<YoYoAction>(new YoYoAction(1,
+    YoYoCommand::setExecutorCreateFunction(std::bind(&YoYoSimCommandExecutor::create, std::placeholders::_1,  nhExecuteAndOutOfRegion, info));
+    actionExecuteAndOutOfRegion = std::shared_ptr<YoYoCommand>(new YoYoCommand(1,
                                                                         2,
                                                                         3,
                                                                         100,
                                                                         100,
                                                                         std::unique_ptr<OperationRegion>(new BoxOperationRegion(0, 0, 0, 100, 100, 100)),
-                                                                        YoYoAction::ReplanType::NONE,
+                                                                        YoYoCommand::ReplanType::NONE,
                                                                         6)); 
-    actionExecuteAndOutOfRegion->initActionExecutor();
+    actionExecuteAndOutOfRegion->initCommandExecutor();
 
     ros::NodeHandle nhTimeReplan("TimeReplan");
-    YoYoAction::setExecutorCreateFunction(std::bind(&YoYoSimActionExecutor::create, std::placeholders::_1,  nhTimeReplan, info));
-    actionTimeReplan = std::shared_ptr<YoYoAction>(new YoYoAction(1,
+    YoYoCommand::setExecutorCreateFunction(std::bind(&YoYoSimCommandExecutor::create, std::placeholders::_1,  nhTimeReplan, info));
+    actionTimeReplan = std::shared_ptr<YoYoCommand>(new YoYoCommand(1,
                                                                 2,
                                                                 3,
                                                                 100,
                                                                 200,
                                                                 std::unique_ptr<OperationRegion>(new BoxOperationRegion()),
-                                                                YoYoAction::ReplanType::PERIODIC_TIME,
+                                                                YoYoCommand::ReplanType::PERIODIC_TIME,
                                                                 3));
-    actionTimeReplan->initActionExecutor();
+    actionTimeReplan->initCommandExecutor();
 
     ros::NodeHandle nhDistanceReplan("DistanceReplan");
-    YoYoAction::setExecutorCreateFunction(std::bind(&YoYoSimActionExecutor::create, std::placeholders::_1,  nhDistanceReplan, info));
-    actionDistanceReplan = std::shared_ptr<YoYoAction>(new YoYoAction(1,
+    YoYoCommand::setExecutorCreateFunction(std::bind(&YoYoSimCommandExecutor::create, std::placeholders::_1,  nhDistanceReplan, info));
+    actionDistanceReplan = std::shared_ptr<YoYoCommand>(new YoYoCommand(1,
                                                                     2,
                                                                     3,
                                                                     100,
                                                                     200,
                                                                     std::unique_ptr<OperationRegion>(new BoxOperationRegion()),
-                                                                    YoYoAction::ReplanType::PERIODIC_DISTANCE,
+                                                                    YoYoCommand::ReplanType::PERIODIC_DISTANCE,
                                                                     3));
-    actionDistanceReplan->initActionExecutor();
+    actionDistanceReplan->initCommandExecutor();
 
     ros::NodeHandle nhTurnReplan("TurnReplan");
-    YoYoAction::setExecutorCreateFunction(std::bind(&YoYoSimActionExecutor::create, std::placeholders::_1,  nhTurnReplan, info));
-    actionTurnReplan = std::shared_ptr<YoYoAction>(new YoYoAction(1,
+    YoYoCommand::setExecutorCreateFunction(std::bind(&YoYoSimCommandExecutor::create, std::placeholders::_1,  nhTurnReplan, info));
+    actionTurnReplan = std::shared_ptr<YoYoCommand>(new YoYoCommand(1,
                                                                 2,
                                                                 3,
                                                                 100,
                                                                 200,
                                                                 std::unique_ptr<OperationRegion>(new BoxOperationRegion()),
-                                                                YoYoAction::ReplanType::ON_YOYO_TURN,
+                                                                YoYoCommand::ReplanType::ON_YOYO_TURN,
                                                                 3));
-    actionTurnReplan->initActionExecutor();
+    actionTurnReplan->initCommandExecutor();
 
     return RUN_ALL_TESTS();
 }

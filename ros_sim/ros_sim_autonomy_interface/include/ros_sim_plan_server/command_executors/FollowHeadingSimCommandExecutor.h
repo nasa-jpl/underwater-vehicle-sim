@@ -1,5 +1,5 @@
-#ifndef FOLLOW_HEADING_SIM_ACTION_EXECUTOR_H
-#define FOLLOW_HEADING_SIM_ACTION_EXECUTOR_H
+#ifndef FOLLOW_HEADING_SIM_COMMAND_EXECUTOR_H
+#define FOLLOW_HEADING_SIM_COMMAND_EXECUTOR_H
 
 #include <vector>
 #include <unordered_map>
@@ -12,26 +12,26 @@
 #include "nav_msgs/Odometry.h"
 #include "std_msgs/Bool.h"
 
-#include "underwater_autonomy/planner/ActionExecutor.h"
-#include "underwater_autonomy/planner/actions/FollowHeadingAction.h"
+#include "underwater_autonomy/planner/CommandExecutor.h"
+#include "underwater_autonomy/planner/commands/FollowHeadingCommand.h"
 
 #include "underwater_vehicle_msgs/VehicleInfo.h"
 
-#include "ros_sim_plan_server/action_executors/SimActionExecutorFactoryMethod.h"
+#include "ros_sim_plan_server/command_executors/SimCommandExecutorFactoryMethod.h"
 
-class FollowHeadingSimActionExecutor : public underwater_autonomy::ActionExecutor<underwater_autonomy::FollowHeadingAction>,
-                                       public SimActionExecutorFactoryMethod<FollowHeadingSimActionExecutor, underwater_autonomy::FollowHeadingAction>
+class FollowHeadingSimCommandExecutor : public underwater_autonomy::CommandExecutor<underwater_autonomy::FollowHeadingCommand>,
+                                       public SimCommandExecutorFactoryMethod<FollowHeadingSimCommandExecutor, underwater_autonomy::FollowHeadingCommand>
 {
 public:
-    FollowHeadingSimActionExecutor(underwater_autonomy::FollowHeadingAction& action, ros::NodeHandle& nh, VehicleInfo& vehicleInfo);
+    FollowHeadingSimCommandExecutor(underwater_autonomy::FollowHeadingCommand& action, ros::NodeHandle& nh, VehicleInfo& vehicleInfo);
 
-    FollowHeadingSimActionExecutor(const FollowHeadingSimActionExecutor&&) = delete;
-    FollowHeadingSimActionExecutor(const FollowHeadingSimActionExecutor&) = delete;
+    FollowHeadingSimCommandExecutor(const FollowHeadingSimCommandExecutor&&) = delete;
+    FollowHeadingSimCommandExecutor(const FollowHeadingSimCommandExecutor&) = delete;
 
-    FollowHeadingSimActionExecutor& operator=(FollowHeadingSimActionExecutor&& ) = delete;
-    FollowHeadingSimActionExecutor& operator=(FollowHeadingSimActionExecutor& ) = delete;
+    FollowHeadingSimCommandExecutor& operator=(FollowHeadingSimCommandExecutor&& ) = delete;
+    FollowHeadingSimCommandExecutor& operator=(FollowHeadingSimCommandExecutor& ) = delete;
 
-    ~FollowHeadingSimActionExecutor() {}
+    ~FollowHeadingSimCommandExecutor() {}
 
     /**
     * Executes the yoyo action in the ros simulation with the given parameters

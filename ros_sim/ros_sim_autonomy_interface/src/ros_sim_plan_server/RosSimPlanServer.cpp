@@ -1,6 +1,6 @@
 #include "ros_sim_plan_server/ROSSimPlanServer.h"
 
-#include "underwater_autonomy/planner/Planner.h"
+#include "underwater_autonomy/planner/Behavior.h"
 #include "underwater_autonomy/planner/PlanDispatcher.h"
 
 #include "std_msgs/Float64.h"
@@ -9,7 +9,7 @@
 
 using namespace underwater_autonomy;
 
-ROSSimPlanServer::ROSSimPlanServer(std::unique_ptr<Planner> planner,
+ROSSimPlanServer::ROSSimPlanServer(std::unique_ptr<Behavior> planner,
                                     std::shared_ptr<ROSSimVehicleInterface> vehicleInterface,
                                    int cancelTimeout) :
     planner(std::move(planner)),
@@ -52,7 +52,7 @@ void ROSSimPlanServer::update()
         planDispatcher.setPlan(newPlan);
     }
 
-    if(planDispatcher.currentActionState() != NULL && *planDispatcher.currentActionState() == Action::State::EXECUTING)
+    if(planDispatcher.currentCommandState() != NULL && *planDispatcher.currentCommandState() == Command::State::EXECUTING)
     {
         std_msgs::Float64 startSim;
         startSim.data = speedUpFactor;

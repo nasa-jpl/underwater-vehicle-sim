@@ -15,19 +15,19 @@
 #include "underwater_vehicle_msgs/VehicleInfo.h"
 #include "underwater_vehicle_msgs/GoToXY.h"
 
-#include "ros_sim_plan_server/action_executors/PointPathSimActionExecutor.h"
+#include "ros_sim_plan_server/command_executors/WaypointsSimCommandExecutor.h"
 #include "underwater_autonomy/util/BoxOperationRegion.h"
 
 
 using namespace underwater_autonomy;
 
-std::shared_ptr<PointPathAction> actionExecutePropModuleTypeFail;
-std::shared_ptr<PointPathAction> actionExecuteAndPause;
-std::shared_ptr<PointPathAction> actionExecuteAndSucceed;
-std::shared_ptr<PointPathAction> actionExecuteAndOutOfRegion;
-std::shared_ptr<PointPathAction> actionTimeReplan;
-std::shared_ptr<PointPathAction> actionDistanceReplan;
-std::shared_ptr<PointPathAction> actionPointReachedReplan;
+std::shared_ptr<WaypointsCommand> actionExecutePropModuleTypeFail;
+std::shared_ptr<WaypointsCommand> actionExecuteAndPause;
+std::shared_ptr<WaypointsCommand> actionExecuteAndSucceed;
+std::shared_ptr<WaypointsCommand> actionExecuteAndOutOfRegion;
+std::shared_ptr<WaypointsCommand> actionTimeReplan;
+std::shared_ptr<WaypointsCommand> actionDistanceReplan;
+std::shared_ptr<WaypointsCommand> actionPointReachedReplan;
 
 struct CallbackInfo {
     uint goToXYCalls = 0;
@@ -80,7 +80,7 @@ void setupCallbacks(ros::NodeHandle& nh, CallbackInfo& callbackInfo)
     propServiceClient.waitForExistence();
 }
 
-void waitForState(Action& action, Action::State state) {
+void waitForState(Command& action, Command::State state) {
     while(action.getState() != state)
     {
         action.monitor(ros::Time::now().toSec());
@@ -88,7 +88,7 @@ void waitForState(Action& action, Action::State state) {
     }
 }
 
-TEST(PointPathSimActionExecutor, ExecuteAndPause)
+TEST(WaypointsSimCommandExecutor, ExecuteAndPause)
 {
     ros::NodeHandle nh("ExecuteAndPause");
 
@@ -114,15 +114,15 @@ TEST(PointPathSimActionExecutor, ExecuteAndPause)
     EXPECT_EQ(1, callbackInfo.x);
     EXPECT_EQ(2, callbackInfo.y);
     EXPECT_TRUE(callbackInfo.enable);
-    EXPECT_EQ(Action::State::EXECUTING, actionExecuteAndPause->getState());
+    EXPECT_EQ(Command::State::EXECUTING, actionExecuteAndPause->getState());
 
     actionExecuteAndPause->pause(ros::Time::now().toSec());
 
     EXPECT_EQ(2u, callbackInfo.goToXYCalls);
-    EXPECT_EQ(Action::State::PAUSED, actionExecuteAndPause->getState());
+    EXPECT_EQ(Command::State::PAUSED, actionExecuteAndPause->getState());
 }
 
-TEST(PointPathSimActionExecutor, ExecuteAndSucceed)
+TEST(WaypointsSimCommandExecutor, ExecuteAndSucceed)
 {
     ros::NodeHandle nh("ExecuteAndSucceed");
 
@@ -139,7 +139,7 @@ TEST(PointPathSimActionExecutor, ExecuteAndSucceed)
     state.xySeqNum = 0;
     callbackInfo.propStatePub.publish(state);
 
-    //Execute Action
+    //Execute Command
     actionExecuteAndSucceed->execute(ros::Time::now().toSec());
 
     EXPECT_EQ(1, callbackInfo.xLinearVelocity);
@@ -148,7 +148,7 @@ TEST(PointPathSimActionExecutor, ExecuteAndSucceed)
     EXPECT_EQ(1, callbackInfo.x);
     EXPECT_EQ(2, callbackInfo.y);
     EXPECT_TRUE(callbackInfo.enable);
-    EXPECT_EQ(Action::State::EXECUTING, actionExecuteAndSucceed->getState());
+    EXPECT_EQ(Command::State::EXECUTING, actionExecuteAndSucceed->getState());
 
     nav_msgs::Odometry poseMsg;
     poseMsg.pose.pose.position.x = 100;
@@ -174,15 +174,15 @@ TEST(PointPathSimActionExecutor, ExecuteAndSucceed)
     EXPECT_EQ(3, callbackInfo.y);
     EXPECT_TRUE(callbackInfo.enable);
 
-    //Cancel Action
+    //Cancel Command
     actionExecuteAndSucceed->pause(ros::Time::now().toSec());
     EXPECT_EQ(3u, callbackInfo.goToXYCalls);
-    EXPECT_EQ(Action::State::PAUSED, actionExecuteAndSucceed->getState());
+    EXPECT_EQ(Command::State::PAUSED, actionExecuteAndSucceed->getState());
 
-    //Restart Action
+    //Restart Command
     actionExecuteAndSucceed->execute(ros::Time::now().toSec());
     EXPECT_EQ(4u, callbackInfo.goToXYCalls);
-    EXPECT_EQ(Action::State::EXECUTING, actionExecuteAndSucceed->getState());
+    EXPECT_EQ(Command::State::EXECUTING, actionExecuteAndSucceed->getState());
     EXPECT_EQ(100, callbackInfo.x);
     EXPECT_EQ(-100, callbackInfo.y);
     EXPECT_TRUE(callbackInfo.enable);
@@ -199,7 +199,7 @@ TEST(PointPathSimActionExecutor, ExecuteAndSucceed)
     actionExecuteAndSucceed->monitor(ros::Time::now().toSec());
 
     EXPECT_EQ(5u, callbackInfo.goToXYCalls);
-    EXPECT_EQ(Action::State::EXECUTING, actionExecuteAndSucceed->getState());
+    EXPECT_EQ(Command::State::EXECUTING, actionExecuteAndSucceed->getState());
     EXPECT_EQ(2, callbackInfo.x);
     EXPECT_EQ(3, callbackInfo.y);
     EXPECT_TRUE(callbackInfo.enable);
@@ -220,7 +220,7 @@ TEST(PointPathSimActionExecutor, ExecuteAndSucceed)
     EXPECT_EQ(3, callbackInfo.x);
     EXPECT_EQ(4, callbackInfo.y);
     EXPECT_TRUE(callbackInfo.enable);
-    EXPECT_EQ(Action::State::EXECUTING, actionExecuteAndSucceed->getState());
+    EXPECT_EQ(Command::State::EXECUTING, actionExecuteAndSucceed->getState());
 
     state.xyComplete = true;
     state.xySeqNum = 4;
@@ -233,11 +233,11 @@ TEST(PointPathSimActionExecutor, ExecuteAndSucceed)
     ros::spinOnce();
     actionExecuteAndSucceed->monitor(ros::Time::now().toSec());
 
-    waitForState(*actionExecuteAndSucceed, Action::State::COMPLETED);
-    EXPECT_EQ(Action::State::COMPLETED, actionExecuteAndSucceed->getState());
+    waitForState(*actionExecuteAndSucceed, Command::State::COMPLETED);
+    EXPECT_EQ(Command::State::COMPLETED, actionExecuteAndSucceed->getState());
 }
 
-TEST(PointPathSimActionExecutor, ExecuteAndOutOfRegion)
+TEST(WaypointsSimCommandExecutor, ExecuteAndOutOfRegion)
 {
     ros::NodeHandle nh("ExecuteAndOutOfRegion");
     
@@ -261,7 +261,7 @@ TEST(PointPathSimActionExecutor, ExecuteAndOutOfRegion)
     EXPECT_EQ(1u, callbackInfo.goToXYCalls);
     EXPECT_TRUE(callbackInfo.enable);
 
-    EXPECT_EQ(Action::State::EXECUTING, actionExecuteAndOutOfRegion->getState());
+    EXPECT_EQ(Command::State::EXECUTING, actionExecuteAndOutOfRegion->getState());
 
     nav_msgs::Odometry poseMsg;
     poseMsg.pose.pose.position.x = 1000;
@@ -270,11 +270,11 @@ TEST(PointPathSimActionExecutor, ExecuteAndOutOfRegion)
 
     posePub.publish(poseMsg);
 
-    waitForState(*actionExecuteAndOutOfRegion, Action::State::FAILED);
-    EXPECT_EQ(Action::State::FAILED, actionExecuteAndOutOfRegion->getState());
+    waitForState(*actionExecuteAndOutOfRegion, Command::State::FAILED);
+    EXPECT_EQ(Command::State::FAILED, actionExecuteAndOutOfRegion->getState());
 }
 
-TEST(PointPathSimActionExecutor, TimeReplan)
+TEST(WaypointsSimCommandExecutor, TimeReplan)
 {
     ros::NodeHandle nh("TimeReplan");
 
@@ -300,7 +300,7 @@ TEST(PointPathSimActionExecutor, TimeReplan)
     EXPECT_EQ(1, callbackInfo.x);
     EXPECT_EQ(2, callbackInfo.y);
     EXPECT_TRUE(callbackInfo.enable);
-    EXPECT_EQ(Action::State::EXECUTING, actionTimeReplan->getState());
+    EXPECT_EQ(Command::State::EXECUTING, actionTimeReplan->getState());
 
     state.xyComplete = true;
     state.xySeqNum = 1;
@@ -318,7 +318,7 @@ TEST(PointPathSimActionExecutor, TimeReplan)
     EXPECT_FALSE(actionTimeReplan->triggerReplan());
 }
 
-TEST(PointPathSimActionExecutor, DistanceReplan)
+TEST(WaypointsSimCommandExecutor, DistanceReplan)
 {
     ros::NodeHandle nh("DistanceReplan");
 
@@ -345,7 +345,7 @@ TEST(PointPathSimActionExecutor, DistanceReplan)
     EXPECT_EQ(1, callbackInfo.x);
     EXPECT_EQ(2, callbackInfo.y);
     EXPECT_TRUE(callbackInfo.enable);
-    EXPECT_EQ(Action::State::EXECUTING, actionDistanceReplan->getState());
+    EXPECT_EQ(Command::State::EXECUTING, actionDistanceReplan->getState());
 
     state.xyComplete = true;
     state.xySeqNum = 1;
@@ -377,7 +377,7 @@ TEST(PointPathSimActionExecutor, DistanceReplan)
     EXPECT_FALSE(actionDistanceReplan->triggerReplan());
 }
 
-TEST(PointPathSimActionExecutor, PointReachedReplan)
+TEST(WaypointsSimCommandExecutor, PointReachedReplan)
 {
     ros::NodeHandle nh("PointReachedReplan");
 
@@ -403,7 +403,7 @@ TEST(PointPathSimActionExecutor, PointReachedReplan)
     EXPECT_EQ(2, callbackInfo.y);
     EXPECT_TRUE(callbackInfo.enable);
 
-    EXPECT_EQ(Action::State::EXECUTING, actionPointReachedReplan->getState());
+    EXPECT_EQ(Command::State::EXECUTING, actionPointReachedReplan->getState());
 
     actionPointReachedReplan->monitor(ros::Time::now().toSec());
     EXPECT_FALSE(actionPointReachedReplan->triggerReplan());
@@ -471,70 +471,70 @@ int main(int argc, char** argv){
     points.push_back(Eigen::Vector3d(3,4,5));
 
     ros::NodeHandle nhExecuteAndPause("ExecuteAndPause");
-    PointPathAction::setExecutorCreateFunction(std::bind(&PointPathSimActionExecutor::create, std::placeholders::_1,  nhExecuteAndPause, info));
-    actionExecuteAndPause = std::shared_ptr<PointPathAction>(new PointPathAction(points,
+    WaypointsCommand::setExecutorCreateFunction(std::bind(&WaypointsSimCommandExecutor::create, std::placeholders::_1,  nhExecuteAndPause, info));
+    actionExecuteAndPause = std::shared_ptr<WaypointsCommand>(new WaypointsCommand(points,
                                                                                     1,
                                                                                     2,
                                                                                     3,
                                                                                     std::unique_ptr<OperationRegion>(new BoxOperationRegion()),
-                                                                                    PointPathAction::ReplanType::NONE,
+                                                                                    WaypointsCommand::ReplanType::NONE,
                                                                                     3));
-    actionExecuteAndPause->initActionExecutor();
+    actionExecuteAndPause->initCommandExecutor();
 
     ros::NodeHandle nhExecuteAndSucceed("ExecuteAndSucceed");
-    PointPathAction::setExecutorCreateFunction(std::bind(&PointPathSimActionExecutor::create, std::placeholders::_1,  nhExecuteAndSucceed, info));
-    actionExecuteAndSucceed = std::shared_ptr<PointPathAction>(new PointPathAction(points,
+    WaypointsCommand::setExecutorCreateFunction(std::bind(&WaypointsSimCommandExecutor::create, std::placeholders::_1,  nhExecuteAndSucceed, info));
+    actionExecuteAndSucceed = std::shared_ptr<WaypointsCommand>(new WaypointsCommand(points,
                                                                                     1,
                                                                                     2,
                                                                                     3,
                                                                                     std::unique_ptr<OperationRegion>(new BoxOperationRegion()),
-                                                                                    PointPathAction::ReplanType::NONE,
+                                                                                    WaypointsCommand::ReplanType::NONE,
                                                                                     3));
-    actionExecuteAndSucceed->initActionExecutor();
+    actionExecuteAndSucceed->initCommandExecutor();
 
     ros::NodeHandle nhExecuteAndOutOfRegion("ExecuteAndOutOfRegion");
-    PointPathAction::setExecutorCreateFunction(std::bind(&PointPathSimActionExecutor::create, std::placeholders::_1,  nhExecuteAndOutOfRegion, info));
-    actionExecuteAndOutOfRegion = std::shared_ptr<PointPathAction>(new PointPathAction(points,
+    WaypointsCommand::setExecutorCreateFunction(std::bind(&WaypointsSimCommandExecutor::create, std::placeholders::_1,  nhExecuteAndOutOfRegion, info));
+    actionExecuteAndOutOfRegion = std::shared_ptr<WaypointsCommand>(new WaypointsCommand(points,
                                                                                         1,
                                                                                         2,
                                                                                         3,
                                                                                         std::unique_ptr<OperationRegion>(new BoxOperationRegion(0, 0, 0, 100, 100, 100)),
-                                                                                        PointPathAction::ReplanType::NONE,
+                                                                                        WaypointsCommand::ReplanType::NONE,
                                                                                         3));
-    actionExecuteAndOutOfRegion->initActionExecutor();
+    actionExecuteAndOutOfRegion->initCommandExecutor();
 
     ros::NodeHandle nhTimeReplan("TimeReplan");
-    PointPathAction::setExecutorCreateFunction(std::bind(&PointPathSimActionExecutor::create, std::placeholders::_1,  nhTimeReplan, info));
-    actionTimeReplan = std::shared_ptr<PointPathAction>(new PointPathAction(points,
+    WaypointsCommand::setExecutorCreateFunction(std::bind(&WaypointsSimCommandExecutor::create, std::placeholders::_1,  nhTimeReplan, info));
+    actionTimeReplan = std::shared_ptr<WaypointsCommand>(new WaypointsCommand(points,
                                                                             1,
                                                                             2,
                                                                             3,
                                                                             std::unique_ptr<OperationRegion>(new BoxOperationRegion()),
-                                                                            PointPathAction::ReplanType::PERIODIC_TIME,
+                                                                            WaypointsCommand::ReplanType::PERIODIC_TIME,
                                                                             3));
-    actionTimeReplan->initActionExecutor();
+    actionTimeReplan->initCommandExecutor();
 
     ros::NodeHandle nhDistanceReplan("DistanceReplan");
-    PointPathAction::setExecutorCreateFunction(std::bind(&PointPathSimActionExecutor::create, std::placeholders::_1,  nhDistanceReplan, info));
-    actionDistanceReplan = std::shared_ptr<PointPathAction>(new PointPathAction(points,
+    WaypointsCommand::setExecutorCreateFunction(std::bind(&WaypointsSimCommandExecutor::create, std::placeholders::_1,  nhDistanceReplan, info));
+    actionDistanceReplan = std::shared_ptr<WaypointsCommand>(new WaypointsCommand(points,
                                                                                 1,
                                                                                 2,
                                                                                 3,
                                                                                 std::unique_ptr<OperationRegion>(new BoxOperationRegion()),
-                                                                                PointPathAction::ReplanType::PERIODIC_DISTANCE,
+                                                                                WaypointsCommand::ReplanType::PERIODIC_DISTANCE,
                                                                                 3));
-    actionDistanceReplan->initActionExecutor();
+    actionDistanceReplan->initCommandExecutor();
 
     ros::NodeHandle nhPointReachedReplan("PointReachedReplan");
-    PointPathAction::setExecutorCreateFunction(std::bind(&PointPathSimActionExecutor::create, std::placeholders::_1,  nhPointReachedReplan, info));
-    actionPointReachedReplan = std::shared_ptr<PointPathAction>(new PointPathAction(points,
+    WaypointsCommand::setExecutorCreateFunction(std::bind(&WaypointsSimCommandExecutor::create, std::placeholders::_1,  nhPointReachedReplan, info));
+    actionPointReachedReplan = std::shared_ptr<WaypointsCommand>(new WaypointsCommand(points,
                                                                                     1,
                                                                                     2,
                                                                                     3,
                                                                                     std::unique_ptr<OperationRegion>(new BoxOperationRegion()),
-                                                                                    PointPathAction::ReplanType::ON_POINT_REACHED,
+                                                                                    WaypointsCommand::ReplanType::ON_POINT_REACHED,
                                                                                     3));
-    actionPointReachedReplan->initActionExecutor();
+    actionPointReachedReplan->initCommandExecutor();
 
 
     return RUN_ALL_TESTS();

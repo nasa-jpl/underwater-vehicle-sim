@@ -1,5 +1,5 @@
-#ifndef CIRCLE_SIM_ACTION_EXECUTOR_H
-#define CIRCLE_SIM_ACTION_EXECUTOR_H
+#ifndef YOYO_SIM_COMMAND_EXECUTOR_H
+#define YOYO_SIM_COMMAND_EXECUTOR_H
 
 #include <vector>
 #include <unordered_map>
@@ -10,29 +10,31 @@
 #include "tf2/LinearMath/Transform.h"
 
 #include "nav_msgs/Odometry.h"
-#include "underwater_vehicle_msgs/PropulsionControllerState.h"
 #include "std_msgs/Bool.h"
+#include "underwater_vehicle_msgs/PropulsionControllerState.h"
 
-#include "underwater_autonomy/planner/ActionExecutor.h"
+#include "underwater_autonomy/planner/CommandExecutor.h"
+#include "underwater_autonomy/planner/commands/YoYoCommand.h"
+
 #include "underwater_autonomy/util/VehiclePose.h"
-#include "underwater_autonomy/planner/actions/CircleAction.h"
 
 #include "underwater_vehicle_msgs/VehicleInfo.h"
 
-#include "ros_sim_plan_server/action_executors/SimActionExecutorFactoryMethod.h"
+#include "ros_sim_plan_server/command_executors/SimCommandExecutorFactoryMethod.h"
 
-class CircleSimActionExecutor : public underwater_autonomy::ActionExecutor<underwater_autonomy::CircleAction>,
-                                   public SimActionExecutorFactoryMethod<CircleSimActionExecutor, underwater_autonomy::CircleAction>
+class YoYoSimCommandExecutor : public underwater_autonomy::CommandExecutor<underwater_autonomy::YoYoCommand>,
+                              public SimCommandExecutorFactoryMethod<YoYoSimCommandExecutor, underwater_autonomy::YoYoCommand>
 {
 public:
-    CircleSimActionExecutor(underwater_autonomy::CircleAction& action, ros::NodeHandle& nh, VehicleInfo& info);
-    CircleSimActionExecutor(const CircleSimActionExecutor&&) = delete;
-    CircleSimActionExecutor(const CircleSimActionExecutor&) = delete;
+    YoYoSimCommandExecutor(underwater_autonomy::YoYoCommand& action, ros::NodeHandle& nh, VehicleInfo& vehicleInfo);
 
-    CircleSimActionExecutor& operator=(CircleSimActionExecutor&& ) = delete;
-    CircleSimActionExecutor& operator=(CircleSimActionExecutor& ) = delete;
+    YoYoSimCommandExecutor(const YoYoSimCommandExecutor&&) = delete;
+    YoYoSimCommandExecutor(const YoYoSimCommandExecutor&) = delete;
 
-    ~CircleSimActionExecutor() {}
+    YoYoSimCommandExecutor& operator=(YoYoSimCommandExecutor&& ) = delete;
+    YoYoSimCommandExecutor& operator=(YoYoSimCommandExecutor& ) = delete;
+
+    ~YoYoSimCommandExecutor() {}
 
     /**
     * Executes the yoyo action in the ros simulation with the given parameters
@@ -55,34 +57,27 @@ public:
 private:
     void navigationFilterCallback(const nav_msgs::Odometry odo);
     void propStateCallback(const underwater_vehicle_msgs::PropulsionControllerState state);
-
     void waitForPropStateSetup();
-
-    bool sendNextGoToXYGoal();
-    void createCirclePoints();
-
+    bool sendNewGoToZGoal();
 
     bool doubleEq(double d1, double d2);
-    
+
 private:
     VehicleInfo vehicleInfo;
 
-    ros::ServiceClient goToXYClient;
+    ros::ServiceClient goToZClient;
     ros::Subscriber propStateSub;
     
     bool replanNextUpdate;
     double lastReplanTime;
     double distanceSinceReplan;
 
+    tf2::Vector3 lastLocation;
     ros::Subscriber poseSub;
-    
     underwater_autonomy::VehiclePose currentPose;
 
     bool statePropSetup;
-    long prevXYSeqNum;
-
-    std::vector<Eigen::Vector2d> circlePoints;
-    uint currentCirclePoint = 0;
+    long prevZSeqNum;
 };
 
 #endif

@@ -1,5 +1,5 @@
-#ifndef YOYO_SIM_ACTION_EXECUTOR_H
-#define YOYO_SIM_ACTION_EXECUTOR_H
+#ifndef WAYPOINTS_SIM_COMMAND_EXECUTOR_H
+#define WAYPOINTS_SIM_COMMAND_EXECUTOR_H
 
 #include <vector>
 #include <unordered_map>
@@ -10,31 +10,28 @@
 #include "tf2/LinearMath/Transform.h"
 
 #include "nav_msgs/Odometry.h"
-#include "std_msgs/Bool.h"
 #include "underwater_vehicle_msgs/PropulsionControllerState.h"
+#include "std_msgs/Bool.h"
 
-#include "underwater_autonomy/planner/ActionExecutor.h"
-#include "underwater_autonomy/planner/actions/YoYoAction.h"
-
-#include "underwater_autonomy/util/VehiclePose.h"
+#include "underwater_autonomy/planner/CommandExecutor.h"
+#include "underwater_autonomy/planner/commands/WaypointsCommand.h"
 
 #include "underwater_vehicle_msgs/VehicleInfo.h"
 
-#include "ros_sim_plan_server/action_executors/SimActionExecutorFactoryMethod.h"
+#include "ros_sim_plan_server/command_executors/SimCommandExecutorFactoryMethod.h"
 
-class YoYoSimActionExecutor : public underwater_autonomy::ActionExecutor<underwater_autonomy::YoYoAction>,
-                              public SimActionExecutorFactoryMethod<YoYoSimActionExecutor, underwater_autonomy::YoYoAction>
+class WaypointsSimCommandExecutor : public underwater_autonomy::CommandExecutor<underwater_autonomy::WaypointsCommand>,
+                                   public SimCommandExecutorFactoryMethod<WaypointsSimCommandExecutor, underwater_autonomy::WaypointsCommand>
 {
 public:
-    YoYoSimActionExecutor(underwater_autonomy::YoYoAction& action, ros::NodeHandle& nh, VehicleInfo& vehicleInfo);
+    WaypointsSimCommandExecutor(underwater_autonomy::WaypointsCommand& action, ros::NodeHandle& nh, VehicleInfo& info);
+    WaypointsSimCommandExecutor(const WaypointsSimCommandExecutor&&) = delete;
+    WaypointsSimCommandExecutor(const WaypointsSimCommandExecutor&) = delete;
 
-    YoYoSimActionExecutor(const YoYoSimActionExecutor&&) = delete;
-    YoYoSimActionExecutor(const YoYoSimActionExecutor&) = delete;
+    WaypointsSimCommandExecutor& operator=(WaypointsSimCommandExecutor&& ) = delete;
+    WaypointsSimCommandExecutor& operator=(WaypointsSimCommandExecutor& ) = delete;
 
-    YoYoSimActionExecutor& operator=(YoYoSimActionExecutor&& ) = delete;
-    YoYoSimActionExecutor& operator=(YoYoSimActionExecutor& ) = delete;
-
-    ~YoYoSimActionExecutor() {}
+    ~WaypointsSimCommandExecutor() {}
 
     /**
     * Executes the yoyo action in the ros simulation with the given parameters
@@ -57,27 +54,32 @@ public:
 private:
     void navigationFilterCallback(const nav_msgs::Odometry odo);
     void propStateCallback(const underwater_vehicle_msgs::PropulsionControllerState state);
+
     void waitForPropStateSetup();
-    bool sendNewGoToZGoal();
+
+    bool sendNextGoToXYGoal();
 
     bool doubleEq(double d1, double d2);
-
+    
 private:
     VehicleInfo vehicleInfo;
 
-    ros::ServiceClient goToZClient;
+    ros::ServiceClient goToXYClient;
     ros::Subscriber propStateSub;
     
     bool replanNextUpdate;
     double lastReplanTime;
     double distanceSinceReplan;
 
-    tf2::Vector3 lastLocation;
     ros::Subscriber poseSub;
+    
     underwater_autonomy::VehiclePose currentPose;
 
     bool statePropSetup;
-    long prevZSeqNum;
+    long prevXYSeqNum;
+
+    bool poseAtFirstExecuteValid;
+    underwater_autonomy::VehiclePose poseAtFirstExecute;
 };
 
 #endif
