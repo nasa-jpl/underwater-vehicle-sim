@@ -98,10 +98,6 @@ int main(int argc, char **argv)
 
     ROSSimBehaviorServer server(std::move(behavior), interface);
 
-    // make a publisher to send behavior status messages
-    ros::Publisher plannerStatePub = nh.advertise<std_msgs::String>("planner_status", 1);
-    std_msgs::String plannerStateMsg;
-
     ROS_INFO("Behavior Initalized");
 
     //Wait until valid data starts streaming

@@ -25,7 +25,6 @@ public:
     ROSSimVehicleInterface(VehicleInfo info);
     ~ROSSimVehicleInterface() override = default;
 
-    void sendPlannerStatus(underwater_autonomy::PlannerStatus status) override;
     void log(underwater_autonomy::LogLevel level, std::string string) override;
     void log(std::string channel, underwater_autonomy::LogData data) override;
 

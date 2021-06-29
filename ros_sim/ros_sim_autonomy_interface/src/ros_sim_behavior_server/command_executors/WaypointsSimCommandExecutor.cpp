@@ -43,9 +43,10 @@ void WaypointsSimCommandExecutor::execute()
         action.fail(action.getLatestTime());
         return;
     }
-
+    ROS_INFO("CLIENT EXISTS");
     //Wait for the propulsion controller state subscriber to be setup
     waitForPropStateSetup();
+    ROS_INFO("SUB SETUP");
 
     if(!poseAtFirstExecuteValid) {
         poseAtFirstExecute = currentPose;
@@ -55,8 +56,11 @@ void WaypointsSimCommandExecutor::execute()
     //Creates an action goal and sends it to the action server for point path movement
     if(!action.isDone())
     {
+        ROS_INFO("NOT DONE");
+
         if(sendNextGoToXYGoal())
         {
+            ROS_INFO("SENT");
             action.dispatchDone();
         }
     }
