@@ -158,7 +158,7 @@ void HoldDepthSimCommandExecutor::navigationFilterCallback(const nav_msgs::Odome
     currentPose.setAngularVelocity(angularVelocity);
     currentPose.setTwistCovariance(twistCovariance);
 
-    if((action.getState() == Command::State::DISPATCHED ||
+    if((action.getState() == Command::State::DISPATCHING ||
         action.getState() == Command::State::EXECUTING ||
         action.getState() == Command::State::PAUSING ||
         action.getState() == Command::State::COMPLETING) &&

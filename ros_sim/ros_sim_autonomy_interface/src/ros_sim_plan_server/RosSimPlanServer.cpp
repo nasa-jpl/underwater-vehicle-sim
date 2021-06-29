@@ -47,7 +47,7 @@ void ROSSimPlanServer::update()
         slowSim.data = 1;
         clockSpeedPub.publish(slowSim);
 
-        std::shared_ptr<Plan> newPlan = planner->plan();
+        std::shared_ptr<Plan> newPlan = planner->update();
     
         planDispatcher.setPlan(newPlan);
     }

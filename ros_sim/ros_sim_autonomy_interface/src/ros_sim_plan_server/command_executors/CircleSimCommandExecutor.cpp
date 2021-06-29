@@ -228,7 +228,7 @@ void CircleSimCommandExecutor::navigationFilterCallback(const nav_msgs::Odometry
     currentPose.setTwistCovariance(twistCovariance);
 
     //Check if out of region
-    if((action.getState() == Command::State::DISPATCHED ||
+    if((action.getState() == Command::State::DISPATCHING ||
         action.getState() == Command::State::EXECUTING ||
         action.getState() == Command::State::PAUSING ||
         action.getState() == Command::State::COMPLETING) && 
