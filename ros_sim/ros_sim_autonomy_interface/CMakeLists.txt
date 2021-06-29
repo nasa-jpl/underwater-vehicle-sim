@@ -26,12 +26,12 @@ find_package (Eigen3 3.3 REQUIRED NO_MODULE)
 find_library(ALG_LIB alg_lib)
 find_library(UNDERWATER_AUTONOMY_LIB underwater_autonomy)
 find_path(UNDERWATER_AUTONOMY_INCLUDE underwater_autonomy)
-find_library(VENT_PLANNER_LIB vent_planner)
-find_path(VENT_PLANNER_INCLUDE vent_planner)
-find_library(NAVIGATION_PLANNER_LIB navigation_planner)
-find_path(NAVIGATION_PLANNER_INCLUDE navigation_planner)
-find_library(EXPLORE_PLANNER_LIB explore_planner)
-find_path(EXPLORE_PLANNER_INCLUDE explore_planner)
+find_library(VENT_PLANNER_LIB vent_behaviors)
+find_path(VENT_PLANNER_INCLUDE vent_behaviors)
+find_library(NAVIGATION_PLANNER_LIB navigation_behaviors)
+find_path(NAVIGATION_PLANNER_INCLUDE navigation_behaviors)
+find_library(EXPLORE_PLANNER_LIB explore_behaviors)
+find_path(EXPLORE_PLANNER_INCLUDE explore_behaviors)
 
 find_package (Eigen3 3.3 REQUIRED NO_MODULE)
 
@@ -77,16 +77,16 @@ find_package (Eigen3 3.3 REQUIRED NO_MODULE)
 # add_action_files(
 #   FILES
 #   DynamicLawnmowerRos.action
-#   PointPathRos.action
+#   WaypointsRos.action
 # )
 
 ## Generate added messages and services with any dependencies listed here
- generate_messages(
-   DEPENDENCIES
-   geometry_msgs
-   propulsion_controller
-   actionlib_msgs  # Or other packages containing msgs
- )
+# generate_messages(
+#   DEPENDENCIES
+#   geometry_msgs
+#   propulsion_controller
+#   actionlib_msgs  # Or other packages containing msgs
+# )
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##
@@ -137,15 +137,15 @@ include_directories(
 
 ## Declare a C++ library
 add_library(${PROJECT_NAME}
-    src/ros_sim_plan_server/RosSimPlanServer.cpp
+    src/ros_sim_behavior_server/RosSimBehaviorServer.cpp
     src/ros_sim_autonomy_interface/ROSSimVehicleInterface.cpp
-    src/ros_sim_plan_server/action_executors/PointPathSimActionExecutor.cpp
-    src/ros_sim_plan_server/action_executors/FollowHeadingSimActionExecutor.cpp
-    src/ros_sim_plan_server/action_executors/HoldDepthSimActionExecutor.cpp
-    src/ros_sim_plan_server/action_executors/YoYoSimActionExecutor.cpp
-    src/ros_sim_plan_server/action_executors/CircleSimActionExecutor.cpp
+    src/ros_sim_behavior_server/command_executors/WaypointsSimCommandExecutor.cpp
+    src/ros_sim_behavior_server/command_executors/FollowHeadingSimCommandExecutor.cpp
+    src/ros_sim_behavior_server/command_executors/HoldDepthSimCommandExecutor.cpp
+    src/ros_sim_behavior_server/command_executors/YoYoSimCommandExecutor.cpp
+    src/ros_sim_behavior_server/command_executors/CircleSimCommandExecutor.cpp
 )
-target_include_directories(${PROJECT_NAME} PUBLIC /usr/local/include/bfl)
+#target_include_directories(${PROJECT_NAME} PUBLIC /usr/local/include/bfl)
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
@@ -166,15 +166,15 @@ target_include_directories(${PROJECT_NAME} PUBLIC /usr/local/include/bfl)
  )
 
 ## Declare a C++ executable
- add_executable(ros_sim_plan_server_node src/ROSSimPlanServerNode.cpp)
-# set_target_properties(ros_sim_plan_server_node PROPERTIES OUTPUT_NAME node PREFIX "")
- add_dependencies(ros_sim_plan_server_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
- target_include_directories(ros_sim_plan_server_node PRIVATE 
+ add_executable(ros_sim_behavior_server_node src/ROSSimBehaviorServerNode.cpp)
+# set_target_properties(ros_sim_behavior_server_node PROPERTIES OUTPUT_NAME node PREFIX "")
+ add_dependencies(ros_sim_behavior_server_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+ target_include_directories(ros_sim_behavior_server_node PRIVATE 
   ${NAVIGATION_PLANNER_INCLUDE} 
   ${VENT_PLANNER_INCLUDE}
   ${EXPLORE_PLANNER_INCLUDE} 
   ${UNDERWATER_AUTONOMY_INCLUDE})
- target_link_libraries(ros_sim_plan_server_node
+ target_link_libraries(ros_sim_behavior_server_node
    ros_sim_autonomy_interface
    ${NAVIGATION_PLANNER_LIB}
    ${VENT_PLANNER_LIB}
@@ -261,25 +261,25 @@ target_include_directories(${PROJECT_NAME} PUBLIC /usr/local/include/bfl)
 if (CATKIN_ENABLE_TESTING)
  find_package(rostest REQUIRED)
 
- add_rostest_gtest(follow_heading_sim_action_executor_test
-                   test/ros_sim_plan_server/action_executors/FollowHeadingSimActionExecutor.test
-                   test/ros_sim_plan_server/action_executors/FollowHeadingSimActionExecutor_test.cpp)
- target_link_libraries(follow_heading_sim_action_executor_test ros_sim_autonomy_interface ${catkin_LIBRARIES} )
+ add_rostest_gtest(follow_heading_sim_command_executor_test
+                   test/ros_sim_behavior_server/command_executors/FollowHeadingSimCommandExecutor.test
+                   test/ros_sim_behavior_server/command_executors/FollowHeadingSimCommandExecutor_test.cpp)
+ target_link_libraries(follow_heading_sim_command_executor_test ros_sim_autonomy_interface ${catkin_LIBRARIES} )
 
- add_rostest_gtest(hold_depth_sim_action_executor_test
-                   test/ros_sim_plan_server/action_executors/HoldDepthSimActionExecutor.test
-                   test/ros_sim_plan_server/action_executors/HoldDepthSimActionExecutor_test.cpp)
- target_link_libraries(hold_depth_sim_action_executor_test ros_sim_autonomy_interface ${catkin_LIBRARIES} )
+ add_rostest_gtest(hold_depth_sim_command_executor_test
+                   test/ros_sim_behavior_server/command_executors/HoldDepthSimCommandExecutor.test
+                   test/ros_sim_behavior_server/command_executors/HoldDepthSimCommandExecutor_test.cpp)
+ target_link_libraries(hold_depth_sim_command_executor_test ros_sim_autonomy_interface ${catkin_LIBRARIES} )
 
- add_rostest_gtest(yoyo_sim_action_executor_test
-                   test/ros_sim_plan_server/action_executors/YoYoSimActionExecutor.test
-                   test/ros_sim_plan_server/action_executors/YoYoSimActionExecutor_test.cpp)
- target_link_libraries(yoyo_sim_action_executor_test ros_sim_autonomy_interface ${catkin_LIBRARIES} )
+ add_rostest_gtest(yoyo_sim_command_executor_test
+                   test/ros_sim_behavior_server/command_executors/YoYoSimCommandExecutor.test
+                   test/ros_sim_behavior_server/command_executors/YoYoSimCommandExecutor_test.cpp)
+ target_link_libraries(yoyo_sim_command_executor_test ros_sim_autonomy_interface ${catkin_LIBRARIES} )
 
- add_rostest_gtest(point_path_sim_action_executor_test
-                   test/ros_sim_plan_server/action_executors/PointPathSimActionExecutor.test
-                   test/ros_sim_plan_server/action_executors/PointPathSimActionExecutor_test.cpp)
- target_link_libraries(point_path_sim_action_executor_test ros_sim_autonomy_interface ${catkin_LIBRARIES} )
+ add_rostest_gtest(waypoints_sim_command_executor_test
+                   test/ros_sim_behavior_server/command_executors/WaypointsSimCommandExecutor.test
+                   test/ros_sim_behavior_server/command_executors/WaypointsSimCommandExecutor_test.cpp)
+ target_link_libraries(waypoints_sim_command_executor_test ros_sim_autonomy_interface ${catkin_LIBRARIES} )
 
  add_rostest_gtest(ros_sim_vehicle_interface_test
                    test/ros_sim_autonomy_interface/ROSSimVehicleInterface.test

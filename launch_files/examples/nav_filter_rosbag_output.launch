@@ -89,7 +89,7 @@
     </node>
 
     <!--Autonomy-->
-    <node pkg="ros_sim_autonomy_interface" type="ros_sim_plan_server_node" name="ros_sim_plan_server" ns="v1" output="screen">
+    <node pkg="ros_sim_autonomy_interface" type="ros_sim_behavior_server_node" name="ros_sim_behavior_server" ns="v1" output="screen">
         <param name="planner_config_file" value="$(dirname)/planner_parameters/nav_filter_rosbag_output.toml"/>
 
         <rosparam param="fail_time">5011200</rosparam>

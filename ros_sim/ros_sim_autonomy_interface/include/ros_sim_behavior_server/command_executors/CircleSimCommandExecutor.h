@@ -1,5 +1,5 @@
-#ifndef POINT_PATH_SIM_ACTION_EXECUTOR_H
-#define POINT_PATH_SIM_ACTION_EXECUTOR_H
+#ifndef CIRCLE_SIM_COMMAND_EXECUTOR_H
+#define CIRCLE_SIM_COMMAND_EXECUTOR_H
 
 #include <vector>
 #include <unordered_map>
@@ -13,25 +13,26 @@
 #include "underwater_vehicle_msgs/PropulsionControllerState.h"
 #include "std_msgs/Bool.h"
 
-#include "underwater_autonomy/planner/ActionExecutor.h"
-#include "underwater_autonomy/planner/actions/PointPathAction.h"
+#include "underwater_autonomy/planner/CommandExecutor.h"
+#include "underwater_autonomy/util/VehiclePose.h"
+#include "underwater_autonomy/planner/commands/CircleCommand.h"
 
 #include "underwater_vehicle_msgs/VehicleInfo.h"
 
-#include "ros_sim_plan_server/action_executors/SimActionExecutorFactoryMethod.h"
+#include "ros_sim_behavior_server/command_executors/SimCommandExecutorFactoryMethod.h"
 
-class PointPathSimActionExecutor : public underwater_autonomy::ActionExecutor<underwater_autonomy::PointPathAction>,
-                                   public SimActionExecutorFactoryMethod<PointPathSimActionExecutor, underwater_autonomy::PointPathAction>
+class CircleSimCommandExecutor : public underwater_autonomy::CommandExecutor<underwater_autonomy::CircleCommand>,
+                                   public SimCommandExecutorFactoryMethod<CircleSimCommandExecutor, underwater_autonomy::CircleCommand>
 {
 public:
-    PointPathSimActionExecutor(underwater_autonomy::PointPathAction& action, ros::NodeHandle& nh, VehicleInfo& info);
-    PointPathSimActionExecutor(const PointPathSimActionExecutor&&) = delete;
-    PointPathSimActionExecutor(const PointPathSimActionExecutor&) = delete;
+    CircleSimCommandExecutor(underwater_autonomy::CircleCommand& action, ros::NodeHandle& nh, VehicleInfo& info);
+    CircleSimCommandExecutor(const CircleSimCommandExecutor&&) = delete;
+    CircleSimCommandExecutor(const CircleSimCommandExecutor&) = delete;
 
-    PointPathSimActionExecutor& operator=(PointPathSimActionExecutor&& ) = delete;
-    PointPathSimActionExecutor& operator=(PointPathSimActionExecutor& ) = delete;
+    CircleSimCommandExecutor& operator=(CircleSimCommandExecutor&& ) = delete;
+    CircleSimCommandExecutor& operator=(CircleSimCommandExecutor& ) = delete;
 
-    ~PointPathSimActionExecutor() {}
+    ~CircleSimCommandExecutor() {}
 
     /**
     * Executes the yoyo action in the ros simulation with the given parameters
@@ -58,6 +59,8 @@ private:
     void waitForPropStateSetup();
 
     bool sendNextGoToXYGoal();
+    void createCirclePoints();
+
 
     bool doubleEq(double d1, double d2);
     
@@ -78,8 +81,8 @@ private:
     bool statePropSetup;
     long prevXYSeqNum;
 
-    bool poseAtFirstExecuteValid;
-    underwater_autonomy::VehiclePose poseAtFirstExecute;
+    std::vector<Eigen::Vector2d> circlePoints;
+    uint currentCirclePoint = 0;
 };
 
 #endif

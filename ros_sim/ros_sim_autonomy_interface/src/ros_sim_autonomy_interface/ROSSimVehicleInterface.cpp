@@ -22,38 +22,6 @@ ROSSimVehicleInterface::ROSSimVehicleInterface(VehicleInfo info) :
     initializeCallbacks();
 }
 
-void ROSSimVehicleInterface::sendPlannerStatus(PlannerStatus status)
-{
-    std_msgs::String msg;
-    if(status == PlannerStatus::RUNNING)
-    {
-        log(LogLevel::INFO, "Planner Status: Running");
-        msg.data = "running";
-    }
-    else if(status == PlannerStatus::SUCCESS)
-    {
-        log(LogLevel::INFO, "Planner Status: Success");
-        msg.data = "success";
-    }
-    else if(status == PlannerStatus::FAILED)
-    {
-        log(LogLevel::INFO, "Planner Status: Failed");
-        msg.data = "failed";
-    }
-    else if(status == PlannerStatus::PAUSED)
-    {
-        log(LogLevel::INFO, "Planner Status: Paused");
-        msg.data = "paused";
-    }
-    else
-    {
-        log(LogLevel::WARN, "Unexpected Planner Status");
-        msg.data = "unexpected_status";
-    }
-
-    statusPub.publish(msg);
-}
-
 void ROSSimVehicleInterface::log(LogLevel level, std::string string)
 {
     if(level == LogLevel::DEBUG)

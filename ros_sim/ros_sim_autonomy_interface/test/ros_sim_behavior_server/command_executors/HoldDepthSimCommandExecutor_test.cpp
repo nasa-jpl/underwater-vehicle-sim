@@ -15,18 +15,18 @@
 #include "underwater_vehicle_msgs/VehicleInfo.h"
 #include "underwater_vehicle_msgs/GoToZ.h"
 
-#include "ros_sim_plan_server/action_executors/HoldDepthSimActionExecutor.h"
+#include "ros_sim_behavior_server/command_executors/HoldDepthSimCommandExecutor.h"
 
 #include "underwater_autonomy/util/BoxOperationRegion.h"
 
 using namespace underwater_autonomy;
 
-std::shared_ptr<HoldDepthAction> actionExecutePropModuleTypeFail;
-std::shared_ptr<HoldDepthAction> actionExecuteAndPause;
-std::shared_ptr<HoldDepthAction> actionExecuteAndSucceed;
-std::shared_ptr<HoldDepthAction> actionTimeReplan;
-std::shared_ptr<HoldDepthAction> actionDistanceReplan;
-std::shared_ptr<HoldDepthAction> actionExecuteAndOutOfRegion;
+std::shared_ptr<HoldDepthCommand> actionExecutePropModuleTypeFail;
+std::shared_ptr<HoldDepthCommand> actionExecuteAndPause;
+std::shared_ptr<HoldDepthCommand> actionExecuteAndSucceed;
+std::shared_ptr<HoldDepthCommand> actionTimeReplan;
+std::shared_ptr<HoldDepthCommand> actionDistanceReplan;
+std::shared_ptr<HoldDepthCommand> actionExecuteAndOutOfRegion;
 
 
 struct CallbackInfo {
@@ -71,7 +71,7 @@ void setupCallbacks(ros::NodeHandle& nh, CallbackInfo& callbackInfo)
     propServiceClient.waitForExistence();
 }
 
-void waitForState(Action& action, Action::State state) {
+void waitForState(Command& action, Command::State state) {
     while(action.getState() != state)
     {
         action.monitor(ros::Time::now().toSec());
@@ -79,7 +79,7 @@ void waitForState(Action& action, Action::State state) {
     }
 }
 
-TEST(HoldDepthSimActionExecutor, ExecuteAndPause)
+TEST(HoldDepthSimCommandExecutor, ExecuteAndPause)
 {
     ros::NodeHandle nh("ExecuteAndPause");
 
@@ -97,15 +97,15 @@ TEST(HoldDepthSimActionExecutor, ExecuteAndPause)
     EXPECT_EQ(1u, callbackInfo.goToZCalls);
     EXPECT_TRUE(callbackInfo.enable);
     EXPECT_EQ(5, callbackInfo.depth);
-    EXPECT_EQ(Action::State::EXECUTING, actionExecuteAndPause->getState());
+    EXPECT_EQ(Command::State::EXECUTING, actionExecuteAndPause->getState());
 
     actionExecuteAndPause->pause(ros::Time::now().toSec());
     EXPECT_EQ(2u, callbackInfo.goToZCalls);
     EXPECT_FALSE(callbackInfo.enable);
-    EXPECT_EQ(Action::State::PAUSED, actionExecuteAndPause->getState());
+    EXPECT_EQ(Command::State::PAUSED, actionExecuteAndPause->getState());
 }
 
-TEST(HoldDepthSimActionExecutor, ExecuteAndSucceed)
+TEST(HoldDepthSimCommandExecutor, ExecuteAndSucceed)
 {
     ros::NodeHandle nh("ExecuteAndSucceed");
 
@@ -121,18 +121,18 @@ TEST(HoldDepthSimActionExecutor, ExecuteAndSucceed)
 
     EXPECT_EQ(1, callbackInfo.zLinearVelocity);
     EXPECT_EQ(1u, callbackInfo.goToZCalls);
-    EXPECT_EQ(Action::State::EXECUTING, actionExecuteAndSucceed->getState());
+    EXPECT_EQ(Command::State::EXECUTING, actionExecuteAndSucceed->getState());
     EXPECT_EQ(5, callbackInfo.depth);
 
     actionExecuteAndSucceed->monitor(2.1);
-    while(actionExecuteAndSucceed->getState() != Action::State::COMPLETED)
+    while(actionExecuteAndSucceed->getState() != Command::State::COMPLETED)
     {
         ros::spinOnce();
     }
-    EXPECT_EQ(Action::State::COMPLETED, actionExecuteAndSucceed->getState());
+    EXPECT_EQ(Command::State::COMPLETED, actionExecuteAndSucceed->getState());
 }
 
-TEST(YoYoSimActionExecutor, ExecuteAndOutOfRegion)
+TEST(YoYoSimCommandExecutor, ExecuteAndOutOfRegion)
 {
     ros::NodeHandle nh("ExecuteAndOutOfRegion");
 
@@ -147,7 +147,7 @@ TEST(YoYoSimActionExecutor, ExecuteAndOutOfRegion)
     actionExecuteAndOutOfRegion->execute(ros::Time::now().toSec());
     EXPECT_EQ(1, callbackInfo.zLinearVelocity);
     EXPECT_EQ(1u, callbackInfo.goToZCalls);
-    EXPECT_EQ(Action::State::EXECUTING, actionExecuteAndOutOfRegion->getState());
+    EXPECT_EQ(Command::State::EXECUTING, actionExecuteAndOutOfRegion->getState());
 
     nav_msgs::Odometry poseMsg;
     poseMsg.pose.pose.position.x = 0;
@@ -157,11 +157,11 @@ TEST(YoYoSimActionExecutor, ExecuteAndOutOfRegion)
     posePub.publish(poseMsg);
     actionExecuteAndOutOfRegion->monitor(ros::Time::now().toSec());
 
-    waitForState(*actionExecuteAndOutOfRegion, Action::State::FAILED);
-    EXPECT_EQ(Action::State::FAILED, actionExecuteAndOutOfRegion->getState());
+    waitForState(*actionExecuteAndOutOfRegion, Command::State::FAILED);
+    EXPECT_EQ(Command::State::FAILED, actionExecuteAndOutOfRegion->getState());
 }
 
-TEST(HoldDepthSimActionExecutor, TimeReplan)
+TEST(HoldDepthSimCommandExecutor, TimeReplan)
 {
     ros::NodeHandle nh("TimeReplan");
 
@@ -178,14 +178,14 @@ TEST(HoldDepthSimActionExecutor, TimeReplan)
     EXPECT_EQ(1u, callbackInfo.goToZCalls);
     EXPECT_TRUE(callbackInfo.enable);
     EXPECT_EQ(5, callbackInfo.depth);
-    EXPECT_EQ(Action::State::EXECUTING, actionTimeReplan->getState());
+    EXPECT_EQ(Command::State::EXECUTING, actionTimeReplan->getState());
 
     actionTimeReplan->monitor(3.1);
     EXPECT_TRUE(actionTimeReplan->triggerReplan());
     EXPECT_FALSE(actionTimeReplan->triggerReplan());
 }
 
-TEST(HoldDepthSimActionExecutor, DistanceReplan)
+TEST(HoldDepthSimCommandExecutor, DistanceReplan)
 {
     ros::NodeHandle nh("DistanceReplan");
 
@@ -202,7 +202,7 @@ TEST(HoldDepthSimActionExecutor, DistanceReplan)
     EXPECT_EQ(1u, callbackInfo.goToZCalls);
     EXPECT_TRUE(callbackInfo.enable);
     EXPECT_EQ(5, callbackInfo.depth);
-    EXPECT_EQ(Action::State::EXECUTING, actionTimeReplan->getState());
+    EXPECT_EQ(Command::State::EXECUTING, actionTimeReplan->getState());
 
     actionDistanceReplan->monitor(ros::Time::now().toSec());
     EXPECT_FALSE(actionDistanceReplan->triggerReplan());
@@ -263,59 +263,59 @@ int main(int argc, char** argv){
     VehicleInfo info(infoMsg);
 
     ros::NodeHandle nhExecuteAndPause("ExecuteAndPause");
-    HoldDepthAction::setExecutorCreateFunction(std::bind(&HoldDepthSimActionExecutor::create, std::placeholders::_1,  nhExecuteAndPause, info));
-    actionExecuteAndPause = std::shared_ptr<HoldDepthAction>(new HoldDepthAction(5,
+    HoldDepthCommand::setExecutorCreateFunction(std::bind(&HoldDepthSimCommandExecutor::create, std::placeholders::_1,  nhExecuteAndPause, info));
+    actionExecuteAndPause = std::shared_ptr<HoldDepthCommand>(new HoldDepthCommand(5,
                                                                                 1,
                                                                                 2,
                                                                                 3,
                                                                                 std::unique_ptr<OperationRegion>(new BoxOperationRegion()),
-                                                                                HoldDepthAction::ReplanType::NONE,
+                                                                                HoldDepthCommand::ReplanType::NONE,
                                                                                 4));
-    actionExecuteAndPause->initActionExecutor();
+    actionExecuteAndPause->initCommandExecutor();
 
     ros::NodeHandle nhExecuteAndSucceed("ExecuteAndSucceed");
-    HoldDepthAction::setExecutorCreateFunction(std::bind(&HoldDepthSimActionExecutor::create, std::placeholders::_1,  nhExecuteAndSucceed, info));
-    actionExecuteAndSucceed = std::shared_ptr<HoldDepthAction>(new HoldDepthAction(5,
+    HoldDepthCommand::setExecutorCreateFunction(std::bind(&HoldDepthSimCommandExecutor::create, std::placeholders::_1,  nhExecuteAndSucceed, info));
+    actionExecuteAndSucceed = std::shared_ptr<HoldDepthCommand>(new HoldDepthCommand(5,
                                                                                 1,
                                                                                 2,
                                                                                 3,
                                                                                 std::unique_ptr<OperationRegion>(new BoxOperationRegion()),
-                                                                                HoldDepthAction::ReplanType::NONE,
+                                                                                HoldDepthCommand::ReplanType::NONE,
                                                                                 4));
-    actionExecuteAndSucceed->initActionExecutor();
+    actionExecuteAndSucceed->initCommandExecutor();
 
     ros::NodeHandle nhExecuteAndOutOfRegion("ExecuteAndOutOfRegion");
-    HoldDepthAction::setExecutorCreateFunction(std::bind(&HoldDepthSimActionExecutor::create, std::placeholders::_1,  nhExecuteAndOutOfRegion, info));
-    actionExecuteAndOutOfRegion = std::shared_ptr<HoldDepthAction>(new HoldDepthAction(5,
+    HoldDepthCommand::setExecutorCreateFunction(std::bind(&HoldDepthSimCommandExecutor::create, std::placeholders::_1,  nhExecuteAndOutOfRegion, info));
+    actionExecuteAndOutOfRegion = std::shared_ptr<HoldDepthCommand>(new HoldDepthCommand(5,
                                                                                 1,
                                                                                 100,
                                                                                 100,
                                                                                 std::unique_ptr<OperationRegion>(new BoxOperationRegion(0, 0, 0, 100, 100, 100)),
-                                                                                HoldDepthAction::ReplanType::PERIODIC_DISTANCE,
+                                                                                HoldDepthCommand::ReplanType::PERIODIC_DISTANCE,
                                                                                 3));
-    actionExecuteAndOutOfRegion->initActionExecutor();
+    actionExecuteAndOutOfRegion->initCommandExecutor();
 
     ros::NodeHandle nhTimeReplan("TimeReplan");
-    HoldDepthAction::setExecutorCreateFunction(std::bind(&HoldDepthSimActionExecutor::create, std::placeholders::_1,  nhTimeReplan, info));
-    actionTimeReplan = std::shared_ptr<HoldDepthAction>(new HoldDepthAction(5,
+    HoldDepthCommand::setExecutorCreateFunction(std::bind(&HoldDepthSimCommandExecutor::create, std::placeholders::_1,  nhTimeReplan, info));
+    actionTimeReplan = std::shared_ptr<HoldDepthCommand>(new HoldDepthCommand(5,
                                                                             1,
                                                                             100,
                                                                             100,
                                                                             std::unique_ptr<OperationRegion>(new BoxOperationRegion()),
-                                                                            HoldDepthAction::ReplanType::PERIODIC_TIME,
+                                                                            HoldDepthCommand::ReplanType::PERIODIC_TIME,
                                                                             3));
-    actionTimeReplan->initActionExecutor();
+    actionTimeReplan->initCommandExecutor();
 
     ros::NodeHandle nhDistanceReplan("DistanceReplan");
-    HoldDepthAction::setExecutorCreateFunction(std::bind(&HoldDepthSimActionExecutor::create, std::placeholders::_1,  nhDistanceReplan, info));
-    actionDistanceReplan = std::shared_ptr<HoldDepthAction>(new HoldDepthAction(5,
+    HoldDepthCommand::setExecutorCreateFunction(std::bind(&HoldDepthSimCommandExecutor::create, std::placeholders::_1,  nhDistanceReplan, info));
+    actionDistanceReplan = std::shared_ptr<HoldDepthCommand>(new HoldDepthCommand(5,
                                                                                 1,
                                                                                 100,
                                                                                 100,
                                                                                 std::unique_ptr<OperationRegion>(new BoxOperationRegion()),
-                                                                                HoldDepthAction::ReplanType::PERIODIC_DISTANCE,
+                                                                                HoldDepthCommand::ReplanType::PERIODIC_DISTANCE,
                                                                                 3));
-    actionDistanceReplan->initActionExecutor();
+    actionDistanceReplan->initCommandExecutor();
 
     return RUN_ALL_TESTS();
 }

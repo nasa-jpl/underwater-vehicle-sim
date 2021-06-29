@@ -1,4 +1,4 @@
-#include "ros_sim_plan_server/action_executors/YoYoSimActionExecutor.h"
+#include "ros_sim_behavior_server/command_executors/YoYoSimCommandExecutor.h"
 
 #include <vector>
 #include <unordered_map>
@@ -13,26 +13,26 @@
 
 #include "underwater_vehicle_msgs/PropulsionControllerState.h"
 
-#include "underwater_autonomy/planner/actions/Action.h"
-#include "underwater_autonomy/planner/actions/YoYoAction.h"
+#include "underwater_autonomy/planner/commands/Command.h"
+#include "underwater_autonomy/planner/commands/YoYoCommand.h"
 
 using namespace underwater_autonomy;
 
-YoYoSimActionExecutor::YoYoSimActionExecutor(underwater_autonomy::YoYoAction& action, ros::NodeHandle& nh, VehicleInfo& vehicleInfo) :
-    ActionExecutor(action),
+YoYoSimCommandExecutor::YoYoSimCommandExecutor(underwater_autonomy::YoYoCommand& action, ros::NodeHandle& nh, VehicleInfo& vehicleInfo) :
+    CommandExecutor(action),
     vehicleInfo(vehicleInfo),
     replanNextUpdate(false),
     lastReplanTime(0),
     distanceSinceReplan(0)
 {
-    propStateSub = nh.subscribe("prop_state", 1, &YoYoSimActionExecutor::propStateCallback, this);
-    poseSub = nh.subscribe("primary_navigation", 1, &YoYoSimActionExecutor::navigationFilterCallback, this);
+    propStateSub = nh.subscribe("prop_state", 1, &YoYoSimCommandExecutor::propStateCallback, this);
+    poseSub = nh.subscribe("primary_navigation", 1, &YoYoSimCommandExecutor::navigationFilterCallback, this);
     goToZClient = nh.serviceClient<underwater_vehicle_msgs::GoToZ>("go_to_z");
 }
 
-void YoYoSimActionExecutor::execute()
+void YoYoSimCommandExecutor::execute()
 {
-    ROS_INFO("ROS: Execute YoYo Action");
+    ROS_INFO("ROS: Execute YoYo Command");
 
     //Check that we have someone listening to us
     goToZClient.waitForExistence(ros::Duration(10));
@@ -54,7 +54,7 @@ void YoYoSimActionExecutor::execute()
     distanceSinceReplan = 0;
 }
 
-void YoYoSimActionExecutor::stop()
+void YoYoSimCommandExecutor::stop()
 {
     underwater_vehicle_msgs::GoToZ enableMsg;
     enableMsg.request.enable = false;
@@ -64,10 +64,10 @@ void YoYoSimActionExecutor::stop()
         action.stopDone();
     }
 
-    ROS_INFO("ROS: Stop YoYo Action");
+    ROS_INFO("ROS: Stop YoYo Command");
 }
 
-bool YoYoSimActionExecutor::triggerReplan()
+bool YoYoSimCommandExecutor::triggerReplan()
 {
     if(replanNextUpdate)
     {
@@ -80,7 +80,7 @@ bool YoYoSimActionExecutor::triggerReplan()
     return false;
 }
 
-void YoYoSimActionExecutor::propStateCallback(const underwater_vehicle_msgs::PropulsionControllerState state)
+void YoYoSimCommandExecutor::propStateCallback(const underwater_vehicle_msgs::PropulsionControllerState state)
 {    
     if(!statePropSetup) {
         statePropSetup = true;
@@ -113,21 +113,21 @@ void YoYoSimActionExecutor::propStateCallback(const underwater_vehicle_msgs::Pro
     }
 }
 
-void YoYoSimActionExecutor::waitForPropStateSetup()
+void YoYoSimCommandExecutor::waitForPropStateSetup()
 {
     while(!statePropSetup) {
         ros::spinOnce();
     }
 }
 
-void YoYoSimActionExecutor::monitor()
+void YoYoSimCommandExecutor::monitor()
 {
-    if(action.getState() == Action::State::EXECUTING && 
+    if(action.getState() == Command::State::EXECUTING && 
        action.getYoYoTime() >= 0 && 
        action.getTimeRunning() >= action.getYoYoTime())
     {
         action.complete(action.getLatestTime());
-        ROS_INFO("ROS: Complete YoYo Action");
+        ROS_INFO("ROS: Complete YoYo Command");
     }
     else if(action.doReplan(false, action.getLatestTime() - lastReplanTime, distanceSinceReplan))
     {
@@ -135,7 +135,7 @@ void YoYoSimActionExecutor::monitor()
     }
 }
 
-bool YoYoSimActionExecutor::sendNewGoToZGoal()
+bool YoYoSimCommandExecutor::sendNewGoToZGoal()
 {
     underwater_vehicle_msgs::GoToZ goToZMsg;
     if(action.getGoingUp())
@@ -159,7 +159,7 @@ bool YoYoSimActionExecutor::sendNewGoToZGoal()
     return true;
 }
 
-void YoYoSimActionExecutor::navigationFilterCallback(const nav_msgs::Odometry odo)
+void YoYoSimCommandExecutor::navigationFilterCallback(const nav_msgs::Odometry odo)
 {    
     Eigen::Vector3d position(odo.pose.pose.position.x,
                              odo.pose.pose.position.y,
@@ -213,17 +213,17 @@ void YoYoSimActionExecutor::navigationFilterCallback(const nav_msgs::Odometry od
     currentPose.setAngularVelocity(angularVelocity);
     currentPose.setTwistCovariance(twistCovariance);
 
-    if((action.getState() == Action::State::DISPATCHED ||
-        action.getState() == Action::State::EXECUTING ||
-        action.getState() == Action::State::PAUSING ||
-        action.getState() == Action::State::COMPLETING) &&
+    if((action.getState() == Command::State::DISPATCHING ||
+        action.getState() == Command::State::EXECUTING ||
+        action.getState() == Command::State::PAUSING ||
+        action.getState() == Command::State::COMPLETING) &&
         !action.inOperationRegion(currentPose.getPosition()))
     {
         action.fail(action.getLatestTime());
     }  
 }
 
-bool YoYoSimActionExecutor::doubleEq(double d1, double d2)
+bool YoYoSimCommandExecutor::doubleEq(double d1, double d2)
 {
     return abs(d1 - d2) < 0.001;
 }

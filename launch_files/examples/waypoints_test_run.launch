@@ -1,4 +1,6 @@
 <launch>
+    <remap from="primary_navigation" to="true_nav/pose" />
+
     <!--Simulation-->
     <node pkg="underwater_vehicle_sim" type="underwater_vehicle_sim_node" name="vehicle_sim" ns="v1">
         <rosparam param="sim_hertz">10</rosparam>
@@ -59,35 +61,28 @@
         <rosparam param="rudder_angle">[-45,0,45]</rosparam>
         <rosparam param="rudder_velocity">[-0.349066,0,0.349066]</rosparam>
 
-        <remap from="primary_navigation" to="nav_filters/dead_reckon" />
         <remap from="get_state" to="get_propulsion_state" />
         <remap from="state" to="prop_state" />
 
     </node>
 
     <!--Navigation-->
-    <node pkg="ros_sim_autonomy_interface" type="ros_sim_navigation_node" name="ros_sim_navigation" ns="v1" output="screen">
-        <rosparam param="hertz">10</rosparam>
-        <rosparam param="filter_names">[true_nav, dead_reckon]</rosparam>
-        <rosparam param="filter/true_nav/type">TrueNavigation</rosparam>
-
-        <rosparam param="filter/dead_reckon/type">DeadReckoning</rosparam>
-
-        <remap from="primary_navigation" to="nav_filters/dead_reckon" />
+    <node pkg="ros_sim_autonomy_interface" type="ros_sim_true_navigation_node" name="ros_sim_true_navigation" ns="v1">
+        <rosparam param="hertz">5</rosparam>
     </node>
 
+
     <!--Autonomy-->
-    <node pkg="ros_sim_autonomy_interface" type="ros_sim_plan_server_node" name="ros_sim_plan_server" ns="v1">
+    <node pkg="ros_sim_autonomy_interface" type="ros_sim_behavior_server_node" name="ros_sim_behavior_server" ns="v1" output="screen">
         <param name="planner_config_file" value="$(dirname)/planner_parameters/waypoints_test.toml"/>
 
         <rosparam param="fail_time">5011200</rosparam>
         <rosparam param="cancel_timeout">60</rosparam>
         <rosparam param="hertz">1</rosparam>
-        <remap from="primary_navigation" to="nav_filters/dead_reckon" />
     </node>
 
     <param name="use_sim_time" value="true" />
-    <rosparam param="speed_up_factor">50</rosparam>
+    <rosparam param="speed_up_factor">100</rosparam>
     <rosparam param="sim_start_time">2592000</rosparam>
 
 

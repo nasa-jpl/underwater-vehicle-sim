@@ -1,0 +1,5 @@
+<launch>
+ 
+ <test test-name="waypoints_sim_action_executor_test" pkg="ros_sim_autonomy_interface" type="waypoints_sim_action_executor_test" ns="v1">
+ </test>
+</launch>

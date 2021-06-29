@@ -68,8 +68,8 @@ find_path(OCEAN_MODELS_INCLUDE ocean_models)
 ## Generate actions in the 'action' folder
 # add_action_files(
 #   FILES
-#   Action1.action
-#   Action2.action
+#   Command1.action
+#   Command2.action
 # )
 
 ## Generate added messages and services with any dependencies listed here

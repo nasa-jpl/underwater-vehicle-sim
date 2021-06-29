@@ -102,7 +102,7 @@
 
 
     <!--Autonomy-->
-    <node pkg="ros_sim_autonomy_interface" type="ros_sim_plan_server_node" name="ros_sim_plan_server" ns="v1">
+    <node pkg="ros_sim_autonomy_interface" type="ros_sim_behavior_server_node" name="ros_sim_behavior_server" ns="v1">
         <param name="planner_config_file" value="$(dirname)/single_beacon_nav_waypoints.toml"/>
 
         <rosparam param="fail_time">5011200</rosparam>

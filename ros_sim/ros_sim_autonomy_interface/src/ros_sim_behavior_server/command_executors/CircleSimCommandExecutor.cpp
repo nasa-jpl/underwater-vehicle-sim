@@ -11,29 +11,29 @@
 
 #include "underwater_vehicle_msgs/PropulsionControllerState.h"
 
-#include "underwater_autonomy/planner/actions/Action.h"
+#include "underwater_autonomy/planner/commands/Command.h"
 
-#include "ros_sim_plan_server/action_executors/CircleSimActionExecutor.h"
-#include "underwater_autonomy/planner/actions/CircleAction.h"
+#include "ros_sim_behavior_server/command_executors/CircleSimCommandExecutor.h"
+#include "underwater_autonomy/planner/commands/CircleCommand.h"
 
 using namespace underwater_autonomy;
 
-CircleSimActionExecutor::CircleSimActionExecutor(underwater_autonomy::CircleAction& action, ros::NodeHandle& nh, VehicleInfo& vehicleInfo) :
-    ActionExecutor(action),
+CircleSimCommandExecutor::CircleSimCommandExecutor(underwater_autonomy::CircleCommand& action, ros::NodeHandle& nh, VehicleInfo& vehicleInfo) :
+    CommandExecutor(action),
     vehicleInfo(vehicleInfo),
     replanNextUpdate(false),
     lastReplanTime(0),
     distanceSinceReplan(0),
     statePropSetup(false)
 {
-    propStateSub = nh.subscribe("prop_state", 10, &CircleSimActionExecutor::propStateCallback, this);
-    poseSub = nh.subscribe("primary_navigation", 1, &CircleSimActionExecutor::navigationFilterCallback, this);
+    propStateSub = nh.subscribe("prop_state", 10, &CircleSimCommandExecutor::propStateCallback, this);
+    poseSub = nh.subscribe("primary_navigation", 1, &CircleSimCommandExecutor::navigationFilterCallback, this);
     goToXYClient = nh.serviceClient<underwater_vehicle_msgs::GoToXY>("go_to_xy");
 }
 
-void CircleSimActionExecutor::execute()
+void CircleSimCommandExecutor::execute()
 {
-    ROS_INFO("ROS: Execute Circle Action");
+    ROS_INFO("ROS: Execute Circle Command");
 
     //Check that we have someone listening to us
     goToXYClient.waitForExistence(ros::Duration(10));
@@ -59,14 +59,14 @@ void CircleSimActionExecutor::execute()
     distanceSinceReplan = 0;
 }
 
-void CircleSimActionExecutor::monitor()
+void CircleSimCommandExecutor::monitor()
 {
-    if(action.getState() == Action::State::EXECUTING &&
+    if(action.getState() == Command::State::EXECUTING &&
        action.getCircleTime() >= 0 &&
        action.getTimeRunning() >= action.getCircleTime())
     {
         action.complete(action.getLatestTime());
-        ROS_INFO("ROS: Complete Circle Action");
+        ROS_INFO("ROS: Complete Circle Command");
     }
 
     if(action.doReplan(action.getLatestTime() - lastReplanTime, distanceSinceReplan)) 
@@ -75,7 +75,7 @@ void CircleSimActionExecutor::monitor()
     }
 }
 
-void CircleSimActionExecutor::stop()
+void CircleSimCommandExecutor::stop()
 {
     underwater_vehicle_msgs::GoToXY enableMsg;
     enableMsg.request.enable = false;
@@ -85,10 +85,10 @@ void CircleSimActionExecutor::stop()
         action.stopDone();
     }
 
-    ROS_INFO("ROS: Circle Action Stopped");
+    ROS_INFO("ROS: Circle Command Stopped");
 }
 
-bool CircleSimActionExecutor::triggerReplan()
+bool CircleSimCommandExecutor::triggerReplan()
 {
     if(replanNextUpdate)
     {
@@ -101,7 +101,7 @@ bool CircleSimActionExecutor::triggerReplan()
     return false;
 }
 
-void CircleSimActionExecutor::propStateCallback(const underwater_vehicle_msgs::PropulsionControllerState state)
+void CircleSimCommandExecutor::propStateCallback(const underwater_vehicle_msgs::PropulsionControllerState state)
 {
     if(!statePropSetup) {
         statePropSetup = true;
@@ -117,7 +117,7 @@ void CircleSimActionExecutor::propStateCallback(const underwater_vehicle_msgs::P
     if(state.xyComplete && 
        doubleEq(currentTargetPoint[0], state.x) &&
        doubleEq(currentTargetPoint[1], state.y) &&
-       action.getState() == Action::State::EXECUTING &&
+       action.getState() == Command::State::EXECUTING &&
        (prevXYSeqNum != state.xySeqNum))
     {
         prevXYSeqNum = state.xySeqNum;
@@ -130,14 +130,14 @@ void CircleSimActionExecutor::propStateCallback(const underwater_vehicle_msgs::P
     }
 }
 
-void CircleSimActionExecutor::waitForPropStateSetup()
+void CircleSimCommandExecutor::waitForPropStateSetup()
 {
     while(!statePropSetup) {
         ros::spinOnce();
     }
 }
 
-bool CircleSimActionExecutor::sendNextGoToXYGoal()
+bool CircleSimCommandExecutor::sendNextGoToXYGoal()
 {
     if(circlePoints.size() == 0) {
         return false;
@@ -160,7 +160,7 @@ bool CircleSimActionExecutor::sendNextGoToXYGoal()
     return true;
 }
 
-void CircleSimActionExecutor::createCirclePoints() {
+void CircleSimCommandExecutor::createCirclePoints() {
     const double pi = 3.14159265358979323846;
 
     circlePoints.clear();
@@ -175,7 +175,7 @@ void CircleSimActionExecutor::createCirclePoints() {
     }
 }
 
-void CircleSimActionExecutor::navigationFilterCallback(const nav_msgs::Odometry odo)
+void CircleSimCommandExecutor::navigationFilterCallback(const nav_msgs::Odometry odo)
 {    
     Eigen::Vector3d position(odo.pose.pose.position.x,
                              odo.pose.pose.position.y,
@@ -228,17 +228,17 @@ void CircleSimActionExecutor::navigationFilterCallback(const nav_msgs::Odometry 
     currentPose.setTwistCovariance(twistCovariance);
 
     //Check if out of region
-    if((action.getState() == Action::State::DISPATCHED ||
-        action.getState() == Action::State::EXECUTING ||
-        action.getState() == Action::State::PAUSING ||
-        action.getState() == Action::State::COMPLETING) && 
+    if((action.getState() == Command::State::DISPATCHING ||
+        action.getState() == Command::State::EXECUTING ||
+        action.getState() == Command::State::PAUSING ||
+        action.getState() == Command::State::COMPLETING) && 
         !action.inOperationRegion(currentPose.getPosition()))
     {
         action.fail(action.getLatestTime());
     }
 }
 
-bool CircleSimActionExecutor::doubleEq(double d1, double d2)
+bool CircleSimCommandExecutor::doubleEq(double d1, double d2)
 {
     return abs(d1 - d2) < 0.001;
 }

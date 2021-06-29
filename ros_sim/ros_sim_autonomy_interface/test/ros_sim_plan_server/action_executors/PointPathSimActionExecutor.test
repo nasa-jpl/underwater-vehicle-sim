@@ -1,5 +1,0 @@
-<launch>
- 
- <test test-name="point_path_sim_action_executor_test" pkg="ros_sim_autonomy_interface" type="point_path_sim_action_executor_test" ns="v1">
- </test>
-</launch>
