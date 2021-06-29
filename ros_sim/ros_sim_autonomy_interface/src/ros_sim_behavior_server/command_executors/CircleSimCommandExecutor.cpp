@@ -13,7 +13,7 @@
 
 #include "underwater_autonomy/planner/commands/Command.h"
 
-#include "ros_sim_plan_server/command_executors/CircleSimCommandExecutor.h"
+#include "ros_sim_behavior_server/command_executors/CircleSimCommandExecutor.h"
 #include "underwater_autonomy/planner/commands/CircleCommand.h"
 
 using namespace underwater_autonomy;

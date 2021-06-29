@@ -137,13 +137,13 @@ include_directories(
 
 ## Declare a C++ library
 add_library(${PROJECT_NAME}
-    src/ros_sim_plan_server/RosSimPlanServer.cpp
+    src/ros_sim_behavior_server/RosSimBehaviorServer.cpp
     src/ros_sim_autonomy_interface/ROSSimVehicleInterface.cpp
-    src/ros_sim_plan_server/command_executors/WaypointsSimCommandExecutor.cpp
-    src/ros_sim_plan_server/command_executors/FollowHeadingSimCommandExecutor.cpp
-    src/ros_sim_plan_server/command_executors/HoldDepthSimCommandExecutor.cpp
-    src/ros_sim_plan_server/command_executors/YoYoSimCommandExecutor.cpp
-    src/ros_sim_plan_server/command_executors/CircleSimCommandExecutor.cpp
+    src/ros_sim_behavior_server/command_executors/WaypointsSimCommandExecutor.cpp
+    src/ros_sim_behavior_server/command_executors/FollowHeadingSimCommandExecutor.cpp
+    src/ros_sim_behavior_server/command_executors/HoldDepthSimCommandExecutor.cpp
+    src/ros_sim_behavior_server/command_executors/YoYoSimCommandExecutor.cpp
+    src/ros_sim_behavior_server/command_executors/CircleSimCommandExecutor.cpp
 )
 #target_include_directories(${PROJECT_NAME} PUBLIC /usr/local/include/bfl)
 
@@ -166,15 +166,15 @@ add_library(${PROJECT_NAME}
  )
 
 ## Declare a C++ executable
- add_executable(ros_sim_plan_server_node src/ROSSimPlanServerNode.cpp)
-# set_target_properties(ros_sim_plan_server_node PROPERTIES OUTPUT_NAME node PREFIX "")
- add_dependencies(ros_sim_plan_server_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
- target_include_directories(ros_sim_plan_server_node PRIVATE 
+ add_executable(ros_sim_behavior_server_node src/ROSSimBehaviorServerNode.cpp)
+# set_target_properties(ros_sim_behavior_server_node PROPERTIES OUTPUT_NAME node PREFIX "")
+ add_dependencies(ros_sim_behavior_server_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+ target_include_directories(ros_sim_behavior_server_node PRIVATE 
   ${NAVIGATION_PLANNER_INCLUDE} 
   ${VENT_PLANNER_INCLUDE}
   ${EXPLORE_PLANNER_INCLUDE} 
   ${UNDERWATER_AUTONOMY_INCLUDE})
- target_link_libraries(ros_sim_plan_server_node
+ target_link_libraries(ros_sim_behavior_server_node
    ros_sim_autonomy_interface
    ${NAVIGATION_PLANNER_LIB}
    ${VENT_PLANNER_LIB}
@@ -262,23 +262,23 @@ if (CATKIN_ENABLE_TESTING)
  find_package(rostest REQUIRED)
 
  add_rostest_gtest(follow_heading_sim_command_executor_test
-                   test/ros_sim_plan_server/command_executors/FollowHeadingSimCommandExecutor.test
-                   test/ros_sim_plan_server/command_executors/FollowHeadingSimCommandExecutor_test.cpp)
+                   test/ros_sim_behavior_server/command_executors/FollowHeadingSimCommandExecutor.test
+                   test/ros_sim_behavior_server/command_executors/FollowHeadingSimCommandExecutor_test.cpp)
  target_link_libraries(follow_heading_sim_command_executor_test ros_sim_autonomy_interface ${catkin_LIBRARIES} )
 
  add_rostest_gtest(hold_depth_sim_command_executor_test
-                   test/ros_sim_plan_server/command_executors/HoldDepthSimCommandExecutor.test
-                   test/ros_sim_plan_server/command_executors/HoldDepthSimCommandExecutor_test.cpp)
+                   test/ros_sim_behavior_server/command_executors/HoldDepthSimCommandExecutor.test
+                   test/ros_sim_behavior_server/command_executors/HoldDepthSimCommandExecutor_test.cpp)
  target_link_libraries(hold_depth_sim_command_executor_test ros_sim_autonomy_interface ${catkin_LIBRARIES} )
 
  add_rostest_gtest(yoyo_sim_command_executor_test
-                   test/ros_sim_plan_server/command_executors/YoYoSimCommandExecutor.test
-                   test/ros_sim_plan_server/command_executors/YoYoSimCommandExecutor_test.cpp)
+                   test/ros_sim_behavior_server/command_executors/YoYoSimCommandExecutor.test
+                   test/ros_sim_behavior_server/command_executors/YoYoSimCommandExecutor_test.cpp)
  target_link_libraries(yoyo_sim_command_executor_test ros_sim_autonomy_interface ${catkin_LIBRARIES} )
 
  add_rostest_gtest(waypoints_sim_command_executor_test
-                   test/ros_sim_plan_server/command_executors/WaypointsSimCommandExecutor.test
-                   test/ros_sim_plan_server/command_executors/WaypointsSimCommandExecutor_test.cpp)
+                   test/ros_sim_behavior_server/command_executors/WaypointsSimCommandExecutor.test
+                   test/ros_sim_behavior_server/command_executors/WaypointsSimCommandExecutor_test.cpp)
  target_link_libraries(waypoints_sim_command_executor_test ros_sim_autonomy_interface ${catkin_LIBRARIES} )
 
  add_rostest_gtest(ros_sim_vehicle_interface_test

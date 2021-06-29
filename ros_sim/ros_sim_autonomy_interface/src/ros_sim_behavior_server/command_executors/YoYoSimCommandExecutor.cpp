@@ -1,4 +1,4 @@
-#include "ros_sim_plan_server/command_executors/YoYoSimCommandExecutor.h"
+#include "ros_sim_behavior_server/command_executors/YoYoSimCommandExecutor.h"
 
 #include <vector>
 #include <unordered_map>

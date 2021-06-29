@@ -10,7 +10,7 @@
 #include "underwater_autonomy/planner/BehaviorFactory.h"
 #include "underwater_autonomy/planner/WaypointsBehavior.h"
 
-#include "ros_sim_plan_server/ROSSimPlanServer.h"
+#include "ros_sim_behavior_server/ROSSimBehaviorServer.h"
 #include "ros_sim_autonomy_interface/ROSSimVehicleInterface.h"
 
 #include "vent_behaviors/NestedBinVentBehavior.h"
@@ -23,11 +23,11 @@
 #include "explore_behaviors/OutAndBackExploreBehavior.h"
 #include "explore_behaviors/InWaterTestBehavior.h"
 
-#include "ros_sim_plan_server/command_executors/YoYoSimCommandExecutor.h"
-#include "ros_sim_plan_server/command_executors/HoldDepthSimCommandExecutor.h"
-#include "ros_sim_plan_server/command_executors/WaypointsSimCommandExecutor.h"
-#include "ros_sim_plan_server/command_executors/FollowHeadingSimCommandExecutor.h"
-#include "ros_sim_plan_server/command_executors/CircleSimCommandExecutor.h"
+#include "ros_sim_behavior_server/command_executors/YoYoSimCommandExecutor.h"
+#include "ros_sim_behavior_server/command_executors/HoldDepthSimCommandExecutor.h"
+#include "ros_sim_behavior_server/command_executors/WaypointsSimCommandExecutor.h"
+#include "ros_sim_behavior_server/command_executors/FollowHeadingSimCommandExecutor.h"
+#include "ros_sim_behavior_server/command_executors/CircleSimCommandExecutor.h"
 
 using namespace underwater_autonomy;
 using namespace vent_behaviors;
@@ -49,7 +49,7 @@ void receiveNav(const nav_msgs::Odometry::ConstPtr& msg)
 
 int main(int argc, char **argv)
 {
-    ros::init(argc, argv, "ros_sim_plan_server");
+    ros::init(argc, argv, "ros_sim_behavior_server");
     ros::NodeHandle nh;
     ros::NodeHandle nhPriv("~");
 
@@ -94,11 +94,11 @@ int main(int argc, char **argv)
     BehaviorFactory::registerBehavior("InWaterTest", &InWaterTestBehavior::create);
 
     std::string plannerType = config.readSimpleEntry<std::string>("planner_type");
-    std::unique_ptr<Behavior> planner = BehaviorFactory::create(plannerType, interface, config);
+    std::unique_ptr<Behavior> behavior = BehaviorFactory::create(plannerType, interface, config);
 
-    ROSSimPlanServer server(std::move(planner), interface, cancelTimeout);
+    ROSSimBehaviorServer server(std::move(behavior), interface);
 
-    // make a publisher to send planner status messages
+    // make a publisher to send behavior status messages
     ros::Publisher plannerStatePub = nh.advertise<std_msgs::String>("planner_status", 1);
     std_msgs::String plannerStateMsg;
 
@@ -128,9 +128,6 @@ int main(int argc, char **argv)
     while(ros::ok())
     {
         server.update();
-
-        plannerStateMsg.data = server.getPlannerState();
-        plannerStatePub.publish(plannerStateMsg);
 
         ros::spinOnce();
         r.sleep();

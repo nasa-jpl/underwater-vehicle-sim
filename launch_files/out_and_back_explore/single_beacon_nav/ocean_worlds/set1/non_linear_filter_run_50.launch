@@ -94,7 +94,7 @@
 
 
     <!--Autonomy-->
-    <node pkg="ros_sim_autonomy_interface" type="ros_sim_plan_server_node" name="ros_sim_plan_server" ns="v1" output="screen">
+    <node pkg="ros_sim_autonomy_interface" type="ros_sim_behavior_server_node" name="ros_sim_behavior_server" ns="v1" output="screen">
         <param name="planner_config_file" value="$(dirname)/planner_params/non_linear_filter_waypoints_50.toml"/>
         <rosparam param="fail_time">2764800</rosparam>
         <rosparam param="cancel_timeout">60</rosparam>

@@ -15,7 +15,7 @@
 #include "underwater_vehicle_msgs/VehicleInfo.h"
 #include "underwater_vehicle_msgs/GoToZ.h"
 
-#include "ros_sim_plan_server/command_executors/YoYoSimCommandExecutor.h"
+#include "ros_sim_behavior_server/command_executors/YoYoSimCommandExecutor.h"
 
 #include "underwater_autonomy/util/BoxOperationRegion.h"
 

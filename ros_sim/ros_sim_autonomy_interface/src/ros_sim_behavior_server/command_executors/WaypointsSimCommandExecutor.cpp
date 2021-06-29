@@ -13,7 +13,7 @@
 
 #include "underwater_autonomy/planner/commands/Command.h"
 
-#include "ros_sim_plan_server/command_executors/WaypointsSimCommandExecutor.h"
+#include "ros_sim_behavior_server/command_executors/WaypointsSimCommandExecutor.h"
 #include "underwater_autonomy/planner/commands/WaypointsCommand.h"
 
 using namespace underwater_autonomy;

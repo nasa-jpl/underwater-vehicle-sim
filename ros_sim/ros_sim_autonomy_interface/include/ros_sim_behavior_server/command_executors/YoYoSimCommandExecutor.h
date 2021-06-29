@@ -1,5 +1,5 @@
-#ifndef HOLD_DEPTH_SIM_COMMAND_EXECUTOR_H
-#define HOLD_DEPTH_SIM_COMMAND_EXECUTOR_H
+#ifndef YOYO_SIM_COMMAND_EXECUTOR_H
+#define YOYO_SIM_COMMAND_EXECUTOR_H
 
 #include <vector>
 #include <unordered_map>
@@ -11,29 +11,30 @@
 
 #include "nav_msgs/Odometry.h"
 #include "std_msgs/Bool.h"
-
 #include "underwater_vehicle_msgs/PropulsionControllerState.h"
-#include "underwater_vehicle_msgs/VehicleInfo.h"
 
 #include "underwater_autonomy/planner/CommandExecutor.h"
-#include "underwater_autonomy/planner/commands/HoldDepthCommand.h"
+#include "underwater_autonomy/planner/commands/YoYoCommand.h"
+
 #include "underwater_autonomy/util/VehiclePose.h"
 
-#include "ros_sim_plan_server/command_executors/SimCommandExecutorFactoryMethod.h"
+#include "underwater_vehicle_msgs/VehicleInfo.h"
 
-class HoldDepthSimCommandExecutor : public underwater_autonomy::CommandExecutor<underwater_autonomy::HoldDepthCommand>,
-                                   public SimCommandExecutorFactoryMethod<HoldDepthSimCommandExecutor, underwater_autonomy::HoldDepthCommand>
+#include "ros_sim_behavior_server/command_executors/SimCommandExecutorFactoryMethod.h"
+
+class YoYoSimCommandExecutor : public underwater_autonomy::CommandExecutor<underwater_autonomy::YoYoCommand>,
+                              public SimCommandExecutorFactoryMethod<YoYoSimCommandExecutor, underwater_autonomy::YoYoCommand>
 {
 public:
-    HoldDepthSimCommandExecutor(underwater_autonomy::HoldDepthCommand& action, ros::NodeHandle& nh, VehicleInfo& vehicleInfo);
+    YoYoSimCommandExecutor(underwater_autonomy::YoYoCommand& action, ros::NodeHandle& nh, VehicleInfo& vehicleInfo);
 
-    HoldDepthSimCommandExecutor(const HoldDepthSimCommandExecutor&&) = delete;
-    HoldDepthSimCommandExecutor(const HoldDepthSimCommandExecutor&) = delete;
+    YoYoSimCommandExecutor(const YoYoSimCommandExecutor&&) = delete;
+    YoYoSimCommandExecutor(const YoYoSimCommandExecutor&) = delete;
 
-    HoldDepthSimCommandExecutor& operator=(HoldDepthSimCommandExecutor&& ) = delete;
-    HoldDepthSimCommandExecutor& operator=(HoldDepthSimCommandExecutor& ) = delete;
+    YoYoSimCommandExecutor& operator=(YoYoSimCommandExecutor&& ) = delete;
+    YoYoSimCommandExecutor& operator=(YoYoSimCommandExecutor& ) = delete;
 
-    ~HoldDepthSimCommandExecutor() {}
+    ~YoYoSimCommandExecutor() {}
 
     /**
     * Executes the yoyo action in the ros simulation with the given parameters
@@ -55,6 +56,9 @@ public:
 
 private:
     void navigationFilterCallback(const nav_msgs::Odometry odo);
+    void propStateCallback(const underwater_vehicle_msgs::PropulsionControllerState state);
+    void waitForPropStateSetup();
+    bool sendNewGoToZGoal();
 
     bool doubleEq(double d1, double d2);
 
@@ -62,9 +66,8 @@ private:
     VehicleInfo vehicleInfo;
 
     ros::ServiceClient goToZClient;
-    ros::Subscriber propState;
-    bool propStateSetup;
-
+    ros::Subscriber propStateSub;
+    
     bool replanNextUpdate;
     double lastReplanTime;
     double distanceSinceReplan;
@@ -72,6 +75,9 @@ private:
     tf2::Vector3 lastLocation;
     ros::Subscriber poseSub;
     underwater_autonomy::VehiclePose currentPose;
+
+    bool statePropSetup;
+    long prevZSeqNum;
 };
 
 #endif

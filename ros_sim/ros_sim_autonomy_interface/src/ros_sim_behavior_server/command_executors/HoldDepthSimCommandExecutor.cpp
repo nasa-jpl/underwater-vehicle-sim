@@ -1,3 +1,5 @@
+#include "ros_sim_behavior_server/command_executors/HoldDepthSimCommandExecutor.h"
+
 #include <vector>
 #include <unordered_map>
 #include <limits>
@@ -6,80 +8,78 @@
 
 #include "geometry_msgs/Point.h"
 #include "geometry_msgs/Twist.h"
-#include "underwater_vehicle_msgs/FollowHeading.h"
-
-#include "underwater_vehicle_msgs/PropulsionControllerState.h"
+#include "underwater_vehicle_msgs/GoToZ.h"
 
 #include "tf2_geometry_msgs/tf2_geometry_msgs.h"
+#include "underwater_vehicle_msgs/PropulsionControllerState.h"
 
 #include "underwater_autonomy/planner/commands/Command.h"
 
-#include "ros_sim_plan_server/command_executors/FollowHeadingSimCommandExecutor.h"
+#include "underwater_autonomy/planner/commands/HoldDepthCommand.h"
 
 using namespace underwater_autonomy;
 
-FollowHeadingSimCommandExecutor::FollowHeadingSimCommandExecutor(underwater_autonomy::FollowHeadingCommand& action, ros::NodeHandle& nh, VehicleInfo& vehicleInfo) :
+HoldDepthSimCommandExecutor::HoldDepthSimCommandExecutor(underwater_autonomy::HoldDepthCommand& action, ros::NodeHandle& nh, VehicleInfo& vehicleInfo) :
     CommandExecutor(action),
     vehicleInfo(vehicleInfo),
     replanNextUpdate(false),
     lastReplanTime(0),
     distanceSinceReplan(0)
 {
-    poseSub = nh.subscribe("primary_navigation", 1, &FollowHeadingSimCommandExecutor::navigationFilterCallback, this);
-
-    followHeadingClient = nh.serviceClient<underwater_vehicle_msgs::FollowHeading>("follow_heading");
+    poseSub = nh.subscribe("primary_navigation", 1, &HoldDepthSimCommandExecutor::navigationFilterCallback, this);
+    goToZClient = nh.serviceClient<underwater_vehicle_msgs::GoToZ>("go_to_z");
 }
 
-void FollowHeadingSimCommandExecutor::execute()
+void HoldDepthSimCommandExecutor::execute()
 {
-    ROS_INFO("ROS: Execute Follow Heading Command");
+    ROS_INFO("ROS: Execute Hold Depth Command");
 
     //Check that we have someone listening to us
-    followHeadingClient.waitForExistence(ros::Duration(10));
-    if(!followHeadingClient.exists())
+    goToZClient.waitForExistence(ros::Duration(10));
+    if(!goToZClient.exists())
     {
         action.fail(action.getLatestTime());
         return;
     }
 
-    //Send message to Follow Heading Controller
-    //Reset complete callback
-    underwater_vehicle_msgs::FollowHeading followHeadingMsg;
-    followHeadingMsg.request.heading = action.getHeading();
-    followHeadingMsg.request.enable = true;
-    followHeadingMsg.request.xLinearVelocity = action.getTargetHorizontalVelocity();
-    followHeadingMsg.request.zAngularVelocity = action.getTargetRotationalVelocity();
+    //Send message to Go To Z Controller
+    underwater_vehicle_msgs::GoToZ goToZMsg;
+    goToZMsg.request.depth = action.getDepth();
+    goToZMsg.request.enable = true;
+    goToZMsg.request.holdDepth = true;
+    goToZMsg.request.zLinearVelocity = action.getTargetVerticalVelocity();
 
-    if(followHeadingClient.call(followHeadingMsg)) 
+    if(goToZClient.call(goToZMsg))
     {
         action.dispatchDone();
-    } 
-    else 
+    }
+    else
     {
         action.fail(action.getLatestTime());
         return;
-    }
+    }   
 
     lastReplanTime = action.getLatestTime();
     distanceSinceReplan = 0;
 }
 
-void FollowHeadingSimCommandExecutor::stop()
+void HoldDepthSimCommandExecutor::stop()
 {
-    underwater_vehicle_msgs::FollowHeading enableMsg;
+    underwater_vehicle_msgs::GoToZ enableMsg;
     enableMsg.request.enable = false;
-    if(followHeadingClient.exists() &&
-       followHeadingClient.call(enableMsg))
+    if(goToZClient.exists() &&
+       goToZClient.call(enableMsg))
     {
         action.stopDone();
     }
-    ROS_INFO("ROS: Stop Follow Heading Command");
+
+    ROS_INFO("ROS: Stop Hold Depth Command");
 }
 
-bool FollowHeadingSimCommandExecutor::triggerReplan()
+bool HoldDepthSimCommandExecutor::triggerReplan()
 {
     if(replanNextUpdate)
-    {
+    {        
         replanNextUpdate = false;
         lastReplanTime = action.getLatestTime();
         distanceSinceReplan = 0;
@@ -89,14 +89,14 @@ bool FollowHeadingSimCommandExecutor::triggerReplan()
     return false;
 }
 
-void FollowHeadingSimCommandExecutor::monitor()
+void HoldDepthSimCommandExecutor::monitor()
 {
-    if(action.getFollowHeadingTime() >= 0 && 
-       action.getTimeRunning() >= action.getFollowHeadingTime() &&
-       action.getState() == Command::State::EXECUTING)
+    if(action.getState() == Command::State::EXECUTING &&
+       action.getHoldDepthTime() >= 0 &&
+       action.getTimeRunning() >= action.getHoldDepthTime())
     {
         action.complete(action.getLatestTime());
-        ROS_INFO("ROS: Complete Follow Heading Command");
+        ROS_INFO("ROS: Complete Hold Depth Command");
     }
     else if(action.doReplan(action.getLatestTime() - lastReplanTime, distanceSinceReplan))
     {
@@ -104,7 +104,7 @@ void FollowHeadingSimCommandExecutor::monitor()
     }
 }
 
-void FollowHeadingSimCommandExecutor::navigationFilterCallback(const nav_msgs::Odometry odo)
+void HoldDepthSimCommandExecutor::navigationFilterCallback(const nav_msgs::Odometry odo)
 {    
     Eigen::Vector3d position(odo.pose.pose.position.x,
                              odo.pose.pose.position.y,
@@ -144,8 +144,10 @@ void FollowHeadingSimCommandExecutor::navigationFilterCallback(const nav_msgs::O
     //Update the distance since replanning
     Eigen::Vector3d zeroedPosition = position;
     Eigen::Vector3d zeroedCurrentPosition = currentPose.getPosition();
-    zeroedPosition[2] = 0;
-    zeroedCurrentPosition[2] = 0;
+    zeroedPosition[0] = 0;
+    zeroedPosition[1] = 0;
+    zeroedCurrentPosition[0] = 0;
+    zeroedCurrentPosition[1] = 0;
     distanceSinceReplan += (zeroedPosition - zeroedCurrentPosition).norm();
 
     currentPose.setPosition(position);
@@ -164,4 +166,9 @@ void FollowHeadingSimCommandExecutor::navigationFilterCallback(const nav_msgs::O
     {
         action.fail(action.getLatestTime());
     }
+}
+
+bool HoldDepthSimCommandExecutor::doubleEq(double d1, double d2)
+{
+    return abs(d1 - d2) < 0.001;
 }

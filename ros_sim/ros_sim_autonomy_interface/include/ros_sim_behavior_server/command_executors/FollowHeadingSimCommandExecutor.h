@@ -17,7 +17,7 @@
 
 #include "underwater_vehicle_msgs/VehicleInfo.h"
 
-#include "ros_sim_plan_server/command_executors/SimCommandExecutorFactoryMethod.h"
+#include "ros_sim_behavior_server/command_executors/SimCommandExecutorFactoryMethod.h"
 
 class FollowHeadingSimCommandExecutor : public underwater_autonomy::CommandExecutor<underwater_autonomy::FollowHeadingCommand>,
                                        public SimCommandExecutorFactoryMethod<FollowHeadingSimCommandExecutor, underwater_autonomy::FollowHeadingCommand>
