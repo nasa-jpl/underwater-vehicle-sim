@@ -2,7 +2,7 @@ planner_type = "Waypoints"
 
 waypoints_x = [1000, 1000, 1000, 1000]
 waypoints_y = [1000, 2000, 2000, 1000]
-waypoints_z = [1000, 100, 100, 100]
+waypoints_z = [100, 100, 100, 100]
 
 yoyo = true
 upper_depth = 10

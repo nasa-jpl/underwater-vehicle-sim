@@ -13,6 +13,8 @@
 #include "ocean_models/general_models/OceanFrontModel.h"
 #include "ocean_models/fvcom/FVCOM.h"
 
+#include "underwater_autonomy/util/ConfigurationFile.h"
+
 #include "std_msgs/Float64.h"
 #include <string>
 #include <stdexcept>
@@ -89,13 +91,18 @@ int main(int argc, char **argv)
         exit(1);
     }
 
-    n.getParam("model/model_time_offset", modelTimeOffset);
-    n.getParam("model/model_x_offset", modelXOffset);
-    n.getParam("model/model_y_offset", modelYOffset);
+    float offsetX = 0;
+    float offsetY = 0;
+    float offsetHeight = 0;
+    float offsetTime = 0;
+    n.getParam("/model/offset_x", offsetX);
+    n.getParam("/model/offset_y", offsetY);
+    n.getParam("/model/offset_height", offsetHeight);
+    n.getParam("/model/offset_time", offsetTime);
 
-    ROS_INFO("Model time offset: %f", modelTimeOffset);
-    ROS_INFO("Model X offset: %f", modelXOffset);
-    ROS_INFO("Model Y offset: %f", modelYOffset);
+    ROS_INFO("Model time offset: %f", offsetTime);
+    ROS_INFO("Model X offset: %f", offsetX);
+    ROS_INFO("Model Y offset: %f", offsetY);
 
     if(model_type == "FVCOM" || model_type == "fvcom")
     {
@@ -106,73 +113,78 @@ int main(int argc, char **argv)
             exit(1);
         }
 
-        model.reset(new FVCOM(fvcom_directory, &startModelLoad, &endModelLoad, 500, 500, 15, 10, 100));
+        model.reset(new FVCOM(fvcom_directory, startModelLoad, endModelLoad, 500, 500, 15, 10, 100));
+        model->setOffsets(offsetX, offsetY, offsetHeight, offsetTime);
+
         ROS_INFO("FVCOM Model Loaded: %s", fvcom_directory.c_str());
     }
     else if(model_type == "constant")
     {
-        float u = 0;
-        float v = 0;
-        float temp = 0;
-        float salt = 0;
-        float dye = 0;
-        float depth = -100;
+        ConstantModel::Parameters parameters;
 
-        n.getParam("model/u", u);
-        n.getParam("model/v", v);
-        n.getParam("model/temp", temp);
-        n.getParam("model/salt", salt);
-        n.getParam("model/dye", dye);
-        n.getParam("model/depth", depth);
+        n.getParam("model/u", parameters.u);
+        n.getParam("model/v", parameters.v);
+        n.getParam("model/temp", parameters.temp);
+        n.getParam("model/salt", parameters.salt);
+        n.getParam("model/dye", parameters.dye);
+        n.getParam("model/depth", parameters.depth);
 
-        model.reset(new ConstantModel(u, v, temp, salt, dye, depth));
+        model.reset(new ConstantModel(parameters));
+        model->setOffsets(offsetX, offsetY, offsetHeight, offsetTime);
+
         ROS_INFO("Constant Model Loaded");
     }
     else if(model_type == "linear")
     {
-        float u = 0;
-        float v = 0;
-        float temp = 0;
-        float salt = 0;
-        float dye = 0;
-        float depth = -100;
+        LinearModel::Parameters parameters;
 
-        float centerX = 0;
-        float centerY = 0;
-        float centerZ = 0;
-        float zeroDistance = 100;
-        std::string type = "circle";
+        n.getParam("model/centerX", parameters.centerX);
+        n.getParam("model/centerY", parameters.centerY);
+        n.getParam("model/centerZ", parameters.centerZ);
+        n.getParam("model/zeroDistance", parameters.zeroDistance);
 
-        n.getParam("model/centerX", centerX);
-        n.getParam("model/centerY", centerY);
-        n.getParam("model/centerZ", centerZ);
-        n.getParam("model/zeroDistance", zeroDistance);
-        n.getParam("model/type", type);
+        std::string typeStr;
+        n.getParam("model/type", typeStr);
 
-        n.getParam("model/u", u);
-        n.getParam("model/v", v);
-        n.getParam("model/temp", temp);
-        n.getParam("model/salt", salt);
-        n.getParam("model/dye", dye);
-        n.getParam("model/depth", depth);
+        if(typeStr == "euclidean") {
+            parameters.type = LinearModel::DistanceFunction::EUCLIDEAN;
+        } else if(typeStr == "manhattan") {
+            parameters.type = LinearModel::DistanceFunction::MANHATTAN;
+        }
 
-        model.reset(new LinearModel(u, v, temp, salt, dye, depth, zeroDistance, centerX, centerY, centerZ, type));
+        n.getParam("model/u", parameters.u);
+        n.getParam("model/v", parameters.v );
+        n.getParam("model/temp", parameters.temp);
+        n.getParam("model/salt", parameters.salt);
+        n.getParam("model/dye", parameters.dye);
+        n.getParam("model/depth", parameters.depth);
+
+        model.reset(new LinearModel(parameters));
+        model->setOffsets(offsetX, offsetY, offsetHeight, offsetTime);
+
         ROS_INFO("Linear Model Loaded");
     } else if(model_type == "front") {
-        float offsetX = 0;
-        float offsetY = 0;
-        float offsetHeight = 0;
-        float offsetTime = 0;
-
         std::string paramFilename;
-        n.getParam("/model/param_file", paramFilename);
-        n.getParam("/model/offset_x", offsetX);
-        n.getParam("/model/offset_y", offsetY);
-        n.getParam("/model/offset_height", offsetHeight);
-        n.getParam("/model/offset_time", offsetTime);
+        n.getParam("model/param_file", paramFilename);
 
         underwater_autonomy::ConfigurationFile configFile(paramFilename);
-        OceanFrontModel::Parameters parameters(configFile);
+        OceanFrontModel::Parameters parameters;
+
+        parameters.frontX = configFile.readSimpleEntry<double>("front_x", parameters.frontX);
+        parameters.frontY = configFile.readSimpleEntry<double>("front_y", parameters.frontY);
+        parameters.frontOrientation = configFile.readSimpleEntry<double>("front_orientation", parameters.frontOrientation);
+        parameters.frontWidth = configFile.readSimpleEntry<double>("front_width", parameters.frontWidth);
+
+        parameters.depths = configFile.readArrayEntry<double>("depths", parameters.depths);
+        parameters.side1Temps = configFile.readArrayEntry<double>("side1_temp", parameters.side1Temps);
+        parameters.side2Temps = configFile.readArrayEntry<double>("side2_temp", parameters.side2Temps);
+        parameters.side1Salts = configFile.readArrayEntry<double>("side1_salt", parameters.side1Salts);
+        parameters.side2Salts = configFile.readArrayEntry<double>("side2_salt", parameters.side2Salts);
+
+        parameters.currentU = configFile.readSimpleEntry<double>("current_u", parameters.currentU);
+        parameters.currentV = configFile.readSimpleEntry<double>("current_v", parameters.currentV);
+        parameters.dye = configFile.readSimpleEntry<double>("dye", parameters.dye);
+
         model.reset(new OceanFrontModel(parameters));
         model->setOffsets(offsetX, offsetY, offsetHeight, offsetTime);
 
