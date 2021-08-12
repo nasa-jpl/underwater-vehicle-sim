@@ -4,8 +4,8 @@
     <!--Simulation-->
     <node pkg="underwater_vehicle_sim" type="underwater_vehicle_sim_node" name="vehicle_sim" ns="v1">
         <rosparam param="sim_hertz">10</rosparam>
-        <rosparam param="start_x">-1000</rosparam>
-        <rosparam param="start_y">-1000</rosparam>
+        <rosparam param="start_x">-8000</rosparam>
+        <rosparam param="start_y">-8000</rosparam>
 
         <rosparam param="start_z">1</rosparam>
         <rosparam param="evect_by_currents">false</rosparam>
@@ -16,7 +16,7 @@
         <rosparam param="rudder_sensor_random_noise">0.0872665</rosparam>
         <rosparam param="propulsion_hertz">10</rosparam>
         <rosparam param="forward_thruster_thrust">[-100, -75, -50, -25, 0, 25, 50, 75, 100]</rosparam>
-        <rosparam param="forward_thruster_velocity">[-1.40625, -1.3125, -1.125, -0.75, 0, 0.75, 1.125, 1.3125, 1.40625]</rosparam>
+        <rosparam param="forward_thruster_velocity">[-1.40625, -1.3125, -1.125, -0.75, 0, 0.75, 1.125, 2.3125, 3.40625]</rosparam>
         <rosparam param="lateral_thruster_thrust">[-100, -75, -50, -25, 0, 25, 50, 75, 100]</rosparam>
         <rosparam param="lateral_thruster_velocity">[-1.40625, -1.3125, -1.125, -0.75, 0, 0.75, 1.125, 1.3125, 1.40625]</rosparam>
         <rosparam param="vertical_thruster_thrust">[-100, -75, -50, -25, 0, 25, 50, 75, 100]</rosparam>
@@ -62,10 +62,10 @@
     </node>
 
     <!--High Level Control-->
-    <node pkg="propulsion_controller" type="four_dof_propulsion_control_node" name="controller" ns="v1">
+    <node pkg="propulsion_controller" type="four_dof_propulsion_control_node" name="controller" ns="v1" output="screen">
         <param name="use_pid" value="false"/>
         <rosparam param="forward_thruster_thrust">[-100, -75, -50, -25, 0, 25, 50, 75, 100]</rosparam>
-        <rosparam param="forward_thruster_velocity">[-1.40625, -1.3125, -1.125, -0.75, 0, 0.75, 1.125, 1.3125, 1.40625]</rosparam>
+        <rosparam param="forward_thruster_velocity">[-1.40625, -1.3125, -1.125, -0.75, 0, 0.75, 1.125, 2.3125, 3.40625]</rosparam>
         <rosparam param="vertical_thruster_thrust">[-100, -75, -50, -25, 0, 25, 50, 75, 100]</rosparam>
         <rosparam param="vertical_thruster_velocity">[-1.40625, -1.3125, -1.125, -0.75, 0, 0.75, 1.125, 1.3125, 1.40625]</rosparam>
         <rosparam param="rudder_angle">[-45,0,45]</rosparam>

@@ -44,11 +44,6 @@ public:
     */
     void monitor() override;
 
-    /**
-    * Allows the yoyo action to trigger a replan in the ros simulation 
-    */
-    bool triggerReplan() override;
-
     void stop() override;
 
 private:
@@ -60,11 +55,7 @@ private:
 
     ros::ServiceClient followHeadingClient;
     ros::Subscriber followHeadingComplete;
-    
-    bool replanNextUpdate;
-    double lastReplanTime;
-    double distanceSinceReplan;
-    
+        
     tf2::Vector3 lastLocation;
     ros::Subscriber poseSub;
     underwater_autonomy::VehiclePose currentPose;

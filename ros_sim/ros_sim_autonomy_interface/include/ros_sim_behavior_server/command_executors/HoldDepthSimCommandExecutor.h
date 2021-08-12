@@ -46,11 +46,6 @@ public:
     */
     void monitor() override;
 
-    /**
-    * Allows the yoyo action to trigger a replan in the ros simulation 
-    */
-    bool triggerReplan() override;
-
     void stop() override;
 
 private:
@@ -64,10 +59,6 @@ private:
     ros::ServiceClient goToZClient;
     ros::Subscriber propState;
     bool propStateSetup;
-
-    bool replanNextUpdate;
-    double lastReplanTime;
-    double distanceSinceReplan;
 
     tf2::Vector3 lastLocation;
     ros::Subscriber poseSub;

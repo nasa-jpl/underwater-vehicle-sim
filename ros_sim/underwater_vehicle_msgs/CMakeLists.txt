@@ -32,6 +32,7 @@ add_message_files(
     DoubleArray.msg
     StringArray.msg
     LogData.msg
+    TakeSample.msg
 )
 
 ## Generate services in the 'srv' folder
@@ -41,6 +42,7 @@ add_service_files(
     GoToZ.srv
     FollowHeading.srv
     GetVehicleInfo.srv
+    RequestSample.srv
 )
 
 ## Generate actions in the 'action' folder

@@ -93,11 +93,11 @@ int main(int argc, char **argv)
 
     float offsetX = 0;
     float offsetY = 0;
-    float offsetHeight = 0;
+    float offsetZ = 0;
     float offsetTime = 0;
     n.getParam("/model/offset_x", offsetX);
     n.getParam("/model/offset_y", offsetY);
-    n.getParam("/model/offset_height", offsetHeight);
+    n.getParam("/model/offset_height", offsetZ);
     n.getParam("/model/offset_time", offsetTime);
 
     ROS_INFO("Model time offset: %f", offsetTime);
@@ -114,7 +114,7 @@ int main(int argc, char **argv)
         }
 
         model.reset(new FVCOM(fvcom_directory, startModelLoad, endModelLoad, 500, 500, 15, 10, 100));
-        model->setOffsets(offsetX, offsetY, offsetHeight, offsetTime);
+        model->setOffsets(offsetX, offsetY, offsetZ, offsetTime);
 
         ROS_INFO("FVCOM Model Loaded: %s", fvcom_directory.c_str());
     }
@@ -130,7 +130,7 @@ int main(int argc, char **argv)
         n.getParam("model/depth", parameters.depth);
 
         model.reset(new ConstantModel(parameters));
-        model->setOffsets(offsetX, offsetY, offsetHeight, offsetTime);
+        model->setOffsets(offsetX, offsetY, offsetZ, offsetTime);
 
         ROS_INFO("Constant Model Loaded");
     }
@@ -160,7 +160,7 @@ int main(int argc, char **argv)
         n.getParam("model/depth", parameters.depth);
 
         model.reset(new LinearModel(parameters));
-        model->setOffsets(offsetX, offsetY, offsetHeight, offsetTime);
+        model->setOffsets(offsetX, offsetY, offsetZ, offsetTime);
 
         ROS_INFO("Linear Model Loaded");
     } else if(model_type == "front") {
@@ -186,7 +186,7 @@ int main(int argc, char **argv)
         parameters.dye = configFile.readSimpleEntry<double>("dye", parameters.dye);
 
         model.reset(new OceanFrontModel(parameters));
-        model->setOffsets(offsetX, offsetY, offsetHeight, offsetTime);
+        model->setOffsets(offsetX, offsetY, offsetZ, offsetTime);
 
         ROS_INFO("Ocean Front Model Loaded");
     }  

@@ -144,6 +144,7 @@ add_library(${PROJECT_NAME}
     src/ros_sim_behavior_server/command_executors/HoldDepthSimCommandExecutor.cpp
     src/ros_sim_behavior_server/command_executors/YoYoSimCommandExecutor.cpp
     src/ros_sim_behavior_server/command_executors/CircleSimCommandExecutor.cpp
+    src/ros_sim_behavior_server/command_executors/SampleSimCommandExecutor.cpp
 )
 #target_include_directories(${PROJECT_NAME} PUBLIC /usr/local/include/bfl)
 

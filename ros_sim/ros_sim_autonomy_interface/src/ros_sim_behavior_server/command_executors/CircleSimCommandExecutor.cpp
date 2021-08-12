@@ -21,9 +21,6 @@ using namespace underwater_autonomy;
 CircleSimCommandExecutor::CircleSimCommandExecutor(underwater_autonomy::CircleCommand& action, ros::NodeHandle& nh, VehicleInfo& vehicleInfo) :
     CommandExecutor(action),
     vehicleInfo(vehicleInfo),
-    replanNextUpdate(false),
-    lastReplanTime(0),
-    distanceSinceReplan(0),
     statePropSetup(false)
 {
     propStateSub = nh.subscribe("prop_state", 10, &CircleSimCommandExecutor::propStateCallback, this);
@@ -54,9 +51,6 @@ void CircleSimCommandExecutor::execute()
     {
         action.dispatchDone();
     }
-
-    lastReplanTime = action.getLatestTime();
-    distanceSinceReplan = 0;
 }
 
 void CircleSimCommandExecutor::monitor()
@@ -67,11 +61,6 @@ void CircleSimCommandExecutor::monitor()
     {
         action.complete(action.getLatestTime());
         ROS_INFO("ROS: Complete Circle Command");
-    }
-
-    if(action.doReplan(action.getLatestTime() - lastReplanTime, distanceSinceReplan)) 
-    {
-        replanNextUpdate = true;
     }
 }
 
@@ -86,19 +75,6 @@ void CircleSimCommandExecutor::stop()
     }
 
     ROS_INFO("ROS: Circle Command Stopped");
-}
-
-bool CircleSimCommandExecutor::triggerReplan()
-{
-    if(replanNextUpdate)
-    {
-        replanNextUpdate = false;
-        lastReplanTime = action.getLatestTime();
-        distanceSinceReplan = 0;
-        return true;
-    }
-
-    return false;
 }
 
 void CircleSimCommandExecutor::propStateCallback(const underwater_vehicle_msgs::PropulsionControllerState state)
@@ -211,13 +187,6 @@ void CircleSimCommandExecutor::navigationFilterCallback(const nav_msgs::Odometry
             twistCovariance(i, j) = odo.twist.covariance[(i * 6) + j];
         }
     }
-
-    //Update the distance since replanning
-    Eigen::Vector3d zeroedPosition = position;
-    Eigen::Vector3d zeroedCurrentPosition = currentPose.getPosition();
-    zeroedPosition[2] = 0;
-    zeroedCurrentPosition[2] = 0;
-    distanceSinceReplan += (zeroedPosition - zeroedCurrentPosition).norm();
 
     currentPose.setPosition(position);
     currentPose.setOrientation(orientation);

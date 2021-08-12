@@ -14,11 +14,11 @@
 using namespace underwater_autonomy;
 
 FourDOFPropulsion::FourDOFPropulsion(VehicleState& vehicleState) :
-	PropulsionModule("FourDOFPropulsion", vehicleState),
+    PropulsionModule("FourDOFPropulsion", vehicleState),
     forwardThrust(0),
-	lateralThrust(0),
-	verticalThrust(0),
-	rudder(0)
+    lateralThrust(0),
+    verticalThrust(0),
+    rudder(0)
 {
     ros::NodeHandle nhPriv("~");
     
@@ -169,9 +169,9 @@ FourDOFPropulsion::FourDOFPropulsion(VehicleState& vehicleState) :
     }
 
     forwardThrusterSub = nh.subscribe("command_forward_thruster", 1, &FourDOFPropulsion::forwardThrusterCallback, this);
-	lateralThrusterSub = nh.subscribe("command_lateral_thruster", 1, &FourDOFPropulsion::lateralThrusterCallback, this);
+    lateralThrusterSub = nh.subscribe("command_lateral_thruster", 1, &FourDOFPropulsion::lateralThrusterCallback, this);
     verticalThrusterSub = nh.subscribe("command_vertical_thruster", 1, &FourDOFPropulsion::verticalThrusterCallback, this);
-	rudderSub = nh.subscribe("command_rudder", 1, &FourDOFPropulsion::rudderCallback, this);
+    rudderSub = nh.subscribe("command_rudder", 1, &FourDOFPropulsion::rudderCallback, this);
 
     vehicleState.setLinearVelocityNED(tf2::Vector3(0,0,0));
     vehicleState.setAngularVelocityNED(tf2::Vector3(0,0,0));

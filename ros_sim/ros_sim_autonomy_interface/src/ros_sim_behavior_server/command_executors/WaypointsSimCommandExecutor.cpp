@@ -21,9 +21,6 @@ using namespace underwater_autonomy;
 WaypointsSimCommandExecutor::WaypointsSimCommandExecutor(underwater_autonomy::WaypointsCommand& action, ros::NodeHandle& nh, VehicleInfo& vehicleInfo) :
     CommandExecutor(action),
     vehicleInfo(vehicleInfo),
-    replanNextUpdate(false),
-    lastReplanTime(0),
-    distanceSinceReplan(0),
     statePropSetup(false),
     poseAtFirstExecuteValid(false)
 {
@@ -43,10 +40,8 @@ void WaypointsSimCommandExecutor::execute()
         action.fail(action.getLatestTime());
         return;
     }
-    ROS_INFO("CLIENT EXISTS");
     //Wait for the propulsion controller state subscriber to be setup
     waitForPropStateSetup();
-    ROS_INFO("SUB SETUP");
 
     if(!poseAtFirstExecuteValid) {
         poseAtFirstExecute = currentPose;
@@ -56,11 +51,8 @@ void WaypointsSimCommandExecutor::execute()
     //Creates an action goal and sends it to the action server for point path movement
     if(!action.isDone())
     {
-        ROS_INFO("NOT DONE");
-
         if(sendNextGoToXYGoal())
         {
-            ROS_INFO("SENT");
             action.dispatchDone();
         }
     }
@@ -70,18 +62,9 @@ void WaypointsSimCommandExecutor::execute()
         action.complete(action.getLatestTime());
         ROS_INFO("ROS: Point Path Command Completed");
     }
-
-    lastReplanTime = action.getLatestTime();
-    distanceSinceReplan = 0;
 }
 
-void WaypointsSimCommandExecutor::monitor()
-{
-    if(action.doReplan(false, action.getLatestTime() - lastReplanTime, distanceSinceReplan)) 
-    {
-        replanNextUpdate = true;
-    }
-}
+void WaypointsSimCommandExecutor::monitor() {}
 
 void WaypointsSimCommandExecutor::stop()
 {
@@ -107,19 +90,6 @@ void WaypointsSimCommandExecutor::stop()
     }
 
     ROS_INFO("ROS: Point Path Command Stopped");
-}
-
-bool WaypointsSimCommandExecutor::triggerReplan()
-{
-    if(replanNextUpdate)
-    {
-        replanNextUpdate = false;
-        lastReplanTime = action.getLatestTime();
-        distanceSinceReplan = 0;
-        return true;
-    }
-
-    return false;
 }
 
 void WaypointsSimCommandExecutor::propStateCallback(const underwater_vehicle_msgs::PropulsionControllerState state)
@@ -158,11 +128,6 @@ void WaypointsSimCommandExecutor::propStateCallback(const underwater_vehicle_msg
         if(!action.isDone())
         {
             sendNextGoToXYGoal();
-
-            if(action.doReplan(true, action.getLatestTime() - lastReplanTime, distanceSinceReplan)) 
-            {
-                replanNextUpdate = true;
-            }
         }    
         else
         {
@@ -249,13 +214,6 @@ void WaypointsSimCommandExecutor::navigationFilterCallback(const nav_msgs::Odome
             twistCovariance(i, j) = odo.twist.covariance[(i * 6) + j];
         }
     }
-
-    //Update the distance since replanning
-    Eigen::Vector3d zeroedPosition = position;
-    Eigen::Vector3d zeroedCurrentPosition = currentPose.getPosition();
-    zeroedPosition[2] = 0;
-    zeroedCurrentPosition[2] = 0;
-    distanceSinceReplan += (zeroedPosition - zeroedCurrentPosition).norm();
 
     currentPose.setPosition(position);
     currentPose.setOrientation(orientation);

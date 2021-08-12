@@ -12,39 +12,39 @@
 using namespace ocean_models;
 
 DepthModule::DepthModule(std::string name) :
-	GeneralModule(name, "Depth")
+    GeneralModule(name, "Depth")
 {
-	ros::NodeHandle nhPriv("~/" + name);
-	nhPriv.param("depth_random_error", depthStdDev, 0.0);
-	nhPriv.param("depth_bias_error", depthBiasError, 0.0);
-	
-	int randomSeed;
-	if(nhPriv.getParam("random_seed", randomSeed))
-	{
-		generator.seed(randomSeed);
-	}
+    ros::NodeHandle nhPriv("~/" + name);
+    nhPriv.param("depth_random_error", depthStdDev, 0.0);
+    nhPriv.param("depth_bias_error", depthBiasError, 0.0);
+    
+    int randomSeed;
+    if(nhPriv.getParam("random_seed", randomSeed))
+    {
+        generator.seed(randomSeed);
+    }
 
-	depthDistribution = std::normal_distribution<double>(depthBiasError, depthStdDev);
+    depthDistribution = std::normal_distribution<double>(depthBiasError, depthStdDev);
 
-	depth = nh.advertise<underwater_vehicle_msgs::FloatMeasurement>("data", 1000);
+    depth = nh.advertise<underwater_vehicle_msgs::FloatMeasurement>("data", 1000);
 }
 
 void DepthModule::update(const ros::Time& lastTime, VehicleState& vehicleState, ModelData& modelData) 
 {
-	double depthReading = vehicleState.getPositionNED().getZ();
-	
-	//Only apply error if the std dev of the distribution is positive
-	if(depthStdDev > 0)
-	{
-		depthReading += depthDistribution(generator);
-	}
+    double depthReading = vehicleState.getPositionNED().getZ();
+    
+    //Only apply error if the std dev of the distribution is positive
+    if(depthStdDev > 0)
+    {
+        depthReading += depthDistribution(generator);
+    }
 
-	underwater_vehicle_msgs::FloatMeasurementPtr depthMsg(new underwater_vehicle_msgs::FloatMeasurement);
+    underwater_vehicle_msgs::FloatMeasurementPtr depthMsg(new underwater_vehicle_msgs::FloatMeasurement);
 
-	depthMsg->header.frame_id = "world_ned";
-	depthMsg->header.stamp = lastTime;
-	depthMsg->data = depthReading;
-	depthMsg->variance = depthStdDev * depthStdDev;
+    depthMsg->header.frame_id = "world_ned";
+    depthMsg->header.stamp = lastTime;
+    depthMsg->data = depthReading;
+    depthMsg->variance = depthStdDev * depthStdDev;
 
-	depth.publish(depthMsg);
+    depth.publish(depthMsg);
 }

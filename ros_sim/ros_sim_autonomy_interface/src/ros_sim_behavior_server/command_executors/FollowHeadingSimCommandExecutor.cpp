@@ -20,10 +20,7 @@ using namespace underwater_autonomy;
 
 FollowHeadingSimCommandExecutor::FollowHeadingSimCommandExecutor(underwater_autonomy::FollowHeadingCommand& action, ros::NodeHandle& nh, VehicleInfo& vehicleInfo) :
     CommandExecutor(action),
-    vehicleInfo(vehicleInfo),
-    replanNextUpdate(false),
-    lastReplanTime(0),
-    distanceSinceReplan(0)
+    vehicleInfo(vehicleInfo)
 {
     poseSub = nh.subscribe("primary_navigation", 1, &FollowHeadingSimCommandExecutor::navigationFilterCallback, this);
 
@@ -59,9 +56,6 @@ void FollowHeadingSimCommandExecutor::execute()
         action.fail(action.getLatestTime());
         return;
     }
-
-    lastReplanTime = action.getLatestTime();
-    distanceSinceReplan = 0;
 }
 
 void FollowHeadingSimCommandExecutor::stop()
@@ -76,19 +70,6 @@ void FollowHeadingSimCommandExecutor::stop()
     ROS_INFO("ROS: Stop Follow Heading Command");
 }
 
-bool FollowHeadingSimCommandExecutor::triggerReplan()
-{
-    if(replanNextUpdate)
-    {
-        replanNextUpdate = false;
-        lastReplanTime = action.getLatestTime();
-        distanceSinceReplan = 0;
-        return true;
-    }
-
-    return false;
-}
-
 void FollowHeadingSimCommandExecutor::monitor()
 {
     if(action.getFollowHeadingTime() >= 0 && 
@@ -97,10 +78,6 @@ void FollowHeadingSimCommandExecutor::monitor()
     {
         action.complete(action.getLatestTime());
         ROS_INFO("ROS: Complete Follow Heading Command");
-    }
-    else if(action.doReplan(action.getLatestTime() - lastReplanTime, distanceSinceReplan))
-    {
-        replanNextUpdate = true;
     }
 }
 
@@ -140,13 +117,6 @@ void FollowHeadingSimCommandExecutor::navigationFilterCallback(const nav_msgs::O
             twistCovariance(i, j) = odo.twist.covariance[(i * 6) + j];
         }
     }
-
-    //Update the distance since replanning
-    Eigen::Vector3d zeroedPosition = position;
-    Eigen::Vector3d zeroedCurrentPosition = currentPose.getPosition();
-    zeroedPosition[2] = 0;
-    zeroedCurrentPosition[2] = 0;
-    distanceSinceReplan += (zeroedPosition - zeroedCurrentPosition).norm();
 
     currentPose.setPosition(position);
     currentPose.setOrientation(orientation);

@@ -21,8 +21,8 @@ find_package(catkin REQUIRED COMPONENTS
 
 find_library(UNDERWATER_AUTONOMY_LIB underwater_autonomy)
 find_path(UNDERWATER_AUTONOMY_INCLUDE underwater_autonomy)
-find_library(OCEAN_MODELS_LIB ocean_models)
-find_path(OCEAN_MODELS_INCLUDE ocean_models)
+
+find_package(OceanModels REQUIRED)
 
 
 #find_package(UnderwaterAutonomy REQUIRED)
@@ -141,13 +141,14 @@ catkin_package(
    src/vehicles/USBLModule.cpp
    src/vehicles/DVLModule.cpp
    src/vehicles/DepthModule.cpp
+   src/vehicles/SampleModule.cpp
    src/vehicles/VehicleState.cpp
  )
 
- target_include_directories(underwater_vehicles PUBLIC ${OCEAN_MODELS_INCLUDE} ${UNDERWATER_AUTONOMY_INCLUDE})
+ target_include_directories(underwater_vehicles PUBLIC ${UNDERWATER_AUTONOMY_INCLUDE})
  target_link_libraries(underwater_vehicles 
     ${UNDERWATER_AUTONOMY_LIB} 
-    ${OCEAN_MODELS_LIB}
+    OceanModels::ocean_models
     ${catkin_LIBRARIES})
 
 ## Add cmake target dependencies of the library
@@ -175,11 +176,10 @@ catkin_package(
    ${catkin_LIBRARIES}
  )
  
- target_include_directories(${PROJECT_NAME}_node PRIVATE ${OCEAN_MODELS_INCLUDE})
  target_link_libraries(${PROJECT_NAME}_node
    underwater_vehicles
    ${UNDERWATER_AUTONOMY_LIB} 
-   ${OCEAN_MODELS_LIB}
+   OceanModels::ocean_models
    ${catkin_LIBRARIES}
  )
 

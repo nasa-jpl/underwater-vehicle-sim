@@ -3,7 +3,6 @@
 #include "std_msgs/String.h"
 
 #include "underwater_autonomy/planner/Behavior.h"
-#include "underwater_autonomy/planner/PlanDispatcher.h"
 #include "underwater_autonomy/util/BoxOperationRegion.h"
 #include "underwater_autonomy/planner/SingleCommandBehavior.h"
 #include "underwater_autonomy/util/ConfigurationFile.h"
@@ -28,6 +27,7 @@
 #include "ros_sim_behavior_server/command_executors/WaypointsSimCommandExecutor.h"
 #include "ros_sim_behavior_server/command_executors/FollowHeadingSimCommandExecutor.h"
 #include "ros_sim_behavior_server/command_executors/CircleSimCommandExecutor.h"
+#include "ros_sim_behavior_server/command_executors/SampleSimCommandExecutor.h"
 
 using namespace underwater_autonomy;
 using namespace vent_behaviors;
@@ -77,6 +77,7 @@ int main(int argc, char **argv)
     WaypointsCommand::setExecutorCreateFunction(std::bind(&WaypointsSimCommandExecutor::create, std::placeholders::_1, nh, info));
     FollowHeadingCommand::setExecutorCreateFunction(std::bind(&FollowHeadingSimCommandExecutor::create, std::placeholders::_1, nh, info));
     CircleCommand::setExecutorCreateFunction(std::bind(&CircleSimCommandExecutor::create, std::placeholders::_1, nh, info));
+    SampleCommand::setExecutorCreateFunction(std::bind(&SampleSimCommandExecutor::create, std::placeholders::_1, nh, info));
 
 
     std::string configFilename;

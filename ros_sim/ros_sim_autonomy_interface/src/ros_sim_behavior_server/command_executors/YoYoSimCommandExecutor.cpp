@@ -20,10 +20,7 @@ using namespace underwater_autonomy;
 
 YoYoSimCommandExecutor::YoYoSimCommandExecutor(underwater_autonomy::YoYoCommand& action, ros::NodeHandle& nh, VehicleInfo& vehicleInfo) :
     CommandExecutor(action),
-    vehicleInfo(vehicleInfo),
-    replanNextUpdate(false),
-    lastReplanTime(0),
-    distanceSinceReplan(0)
+    vehicleInfo(vehicleInfo)
 {
     propStateSub = nh.subscribe("prop_state", 1, &YoYoSimCommandExecutor::propStateCallback, this);
     poseSub = nh.subscribe("primary_navigation", 1, &YoYoSimCommandExecutor::navigationFilterCallback, this);
@@ -49,9 +46,6 @@ void YoYoSimCommandExecutor::execute()
     {
         action.dispatchDone();
     }
-
-    lastReplanTime = action.getLatestTime();
-    distanceSinceReplan = 0;
 }
 
 void YoYoSimCommandExecutor::stop()
@@ -65,19 +59,6 @@ void YoYoSimCommandExecutor::stop()
     }
 
     ROS_INFO("ROS: Stop YoYo Command");
-}
-
-bool YoYoSimCommandExecutor::triggerReplan()
-{
-    if(replanNextUpdate)
-    {
-        replanNextUpdate = false;
-        lastReplanTime = action.getLatestTime();
-        distanceSinceReplan = 0;
-        return true;
-    }
-
-    return false;
 }
 
 void YoYoSimCommandExecutor::propStateCallback(const underwater_vehicle_msgs::PropulsionControllerState state)
@@ -105,11 +86,6 @@ void YoYoSimCommandExecutor::propStateCallback(const underwater_vehicle_msgs::Pr
         prevZSeqNum = state.zSeqNum;
         action.setGoingUp(!action.getGoingUp());
         sendNewGoToZGoal();
-
-        if(action.doReplan(true, action.getLatestTime() - lastReplanTime, distanceSinceReplan)) 
-        {
-            replanNextUpdate = true;
-        }
     }
 }
 
@@ -128,10 +104,6 @@ void YoYoSimCommandExecutor::monitor()
     {
         action.complete(action.getLatestTime());
         ROS_INFO("ROS: Complete YoYo Command");
-    }
-    else if(action.doReplan(false, action.getLatestTime() - lastReplanTime, distanceSinceReplan))
-    {
-        replanNextUpdate = true;
     }
 }
 
@@ -195,15 +167,6 @@ void YoYoSimCommandExecutor::navigationFilterCallback(const nav_msgs::Odometry o
             twistCovariance(i, j) = odo.twist.covariance[(i * 6) + j];
         }
     }
-
-    //Update the distance since replanning
-    Eigen::Vector3d zeroedPosition = position;
-    Eigen::Vector3d zeroedCurrentPosition = currentPose.getPosition();
-    zeroedPosition[0] = 0;
-    zeroedPosition[1] = 0;
-    zeroedCurrentPosition[0] = 0;
-    zeroedCurrentPosition[1] = 0;
-    distanceSinceReplan += (zeroedPosition - zeroedCurrentPosition).norm();
 
     currentPose.setPosition(position);
     currentPose.setOrientation(orientation);

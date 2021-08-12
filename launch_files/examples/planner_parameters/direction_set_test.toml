@@ -14,8 +14,8 @@ yoyo_during_sprial = true
 yoyo_min_depth = 100
 yoyo_max_depth = 2000
 
-spiral_start_x = -1432.16016854
-spiral_start_y = -1054.18858199
+spiral_start_x = -8000
+spiral_start_y = -8000
 spiral_start_z = 0
 
 min_leg_length = 100

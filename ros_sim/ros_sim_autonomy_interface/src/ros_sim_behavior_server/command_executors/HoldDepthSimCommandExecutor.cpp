@@ -21,10 +21,7 @@ using namespace underwater_autonomy;
 
 HoldDepthSimCommandExecutor::HoldDepthSimCommandExecutor(underwater_autonomy::HoldDepthCommand& action, ros::NodeHandle& nh, VehicleInfo& vehicleInfo) :
     CommandExecutor(action),
-    vehicleInfo(vehicleInfo),
-    replanNextUpdate(false),
-    lastReplanTime(0),
-    distanceSinceReplan(0)
+    vehicleInfo(vehicleInfo)
 {
     poseSub = nh.subscribe("primary_navigation", 1, &HoldDepthSimCommandExecutor::navigationFilterCallback, this);
     goToZClient = nh.serviceClient<underwater_vehicle_msgs::GoToZ>("go_to_z");
@@ -58,9 +55,6 @@ void HoldDepthSimCommandExecutor::execute()
         action.fail(action.getLatestTime());
         return;
     }   
-
-    lastReplanTime = action.getLatestTime();
-    distanceSinceReplan = 0;
 }
 
 void HoldDepthSimCommandExecutor::stop()
@@ -76,19 +70,6 @@ void HoldDepthSimCommandExecutor::stop()
     ROS_INFO("ROS: Stop Hold Depth Command");
 }
 
-bool HoldDepthSimCommandExecutor::triggerReplan()
-{
-    if(replanNextUpdate)
-    {        
-        replanNextUpdate = false;
-        lastReplanTime = action.getLatestTime();
-        distanceSinceReplan = 0;
-        return true;
-    }
-
-    return false;
-}
-
 void HoldDepthSimCommandExecutor::monitor()
 {
     if(action.getState() == Command::State::EXECUTING &&
@@ -97,10 +78,6 @@ void HoldDepthSimCommandExecutor::monitor()
     {
         action.complete(action.getLatestTime());
         ROS_INFO("ROS: Complete Hold Depth Command");
-    }
-    else if(action.doReplan(action.getLatestTime() - lastReplanTime, distanceSinceReplan))
-    {
-        replanNextUpdate = true;
     }
 }
 
@@ -140,15 +117,6 @@ void HoldDepthSimCommandExecutor::navigationFilterCallback(const nav_msgs::Odome
             twistCovariance(i, j) = odo.twist.covariance[(i * 6) + j];
         }
     }
-
-    //Update the distance since replanning
-    Eigen::Vector3d zeroedPosition = position;
-    Eigen::Vector3d zeroedCurrentPosition = currentPose.getPosition();
-    zeroedPosition[0] = 0;
-    zeroedPosition[1] = 0;
-    zeroedCurrentPosition[0] = 0;
-    zeroedCurrentPosition[1] = 0;
-    distanceSinceReplan += (zeroedPosition - zeroedCurrentPosition).norm();
 
     currentPose.setPosition(position);
     currentPose.setOrientation(orientation);

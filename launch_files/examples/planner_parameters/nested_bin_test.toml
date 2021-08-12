@@ -1,7 +1,7 @@
 planner_type = "NestedBin"
 
 spiral_spacing = 5000
-initial_spacing = 4000
+initial_spacing = 3000
 final_spacing = 200
 fail_time = 5011200
 
@@ -10,7 +10,7 @@ yoyo_min_depth = 100
 yoyo_max_depth = 2000
 target_vertical_velocity_spiral = 0.25
 target_vertical_velocity_gd_yoyo = 0.25
-target_horizontal_velocity = 0.5
+target_horizontal_velocity = 2
 target_rotational_velocity = 0.349066
 
 detection_threshold = 0.5
@@ -18,8 +18,8 @@ detection_threshold = 0.5
 target_data = "plume"
 lawnmower_data_range = 100000000
 
-start_location.x = -1000
-start_location.y = -1000
+start_location.x = -8000
+start_location.y = -8000
 start_location.z = 0
 
 has_sim_target = true
