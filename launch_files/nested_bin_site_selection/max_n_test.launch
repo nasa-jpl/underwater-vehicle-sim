@@ -1,6 +1,8 @@
 <launch>
     <remap from="primary_navigation" to="true_nav/pose" />
 
+    <node pkg="rosbag" type="record" name="my_bag" output="screen" args="rosout -e '/v1/(.*)' -O $(dirname)/max_n_test.bag"/>
+
     <!--Simulation-->
     <node pkg="underwater_vehicle_sim" type="underwater_vehicle_sim_node" name="vehicle_sim" ns="v1">
         <rosparam param="sim_hertz">10</rosparam>
@@ -61,6 +63,7 @@
         <rosparam param="usbl/hertz">10</rosparam>
     </node>
 
+
     <!--High Level Control-->
     <node pkg="propulsion_controller" type="four_dof_propulsion_control_node" name="controller" ns="v1" output="screen">
         <param name="use_pid" value="false"/>
@@ -74,107 +77,29 @@
         <remap from="state" to="prop_state" />
     </node>
 
-     <!-- PID Controllers-->
-<!--
-    <node name="forward_thruster_pid" pkg="pid" type="controller" ns="v1" >
-        <param name="node_name" value="forward_thruster_pid" />
-        <param name="Kp" value="8" />
-        <param name="Ki" value="20" />
-        <param name="Kd" value="3" />
-        <param name="upper_limit" value="100" />
-        <param name="lower_limit" value="-100" />
-        <param name="windup_limit" value="10" />
-        <param name="max_loop_frequency" value="1" />
-        <param name="min_loop_frequency" value="3" />
-
-        <param name="topic_from_controller" value="forward_thruster/control_effort" />
-        <param name="topic_from_plant" value="forward_thruster/state" />
-        <param name="setpoint_topic" value="forward_thruster/setpoint" />
-        <param name="pid_enable_topic" value="forward_thruster/pid_enable" />
-    </node>
-
-    <node name="vertical_thruster_pid" pkg="pid" type="controller" ns="v1"  >
-        <param name="node_name" value="vertical_thruster_pid" />
-        <param name="Kp" value="8" />
-        <param name="Ki" value="20" />
-        <param name="Kd" value="3" />
-        <param name="upper_limit" value="100" />
-        <param name="lower_limit" value="-100" />
-        <param name="windup_limit" value="10" />
-        <param name="max_loop_frequency" value="1" />
-        <param name="min_loop_frequency" value="3" />
-
-        <param name="topic_from_controller" value="vertical_thruster/control_effort" />
-        <param name="topic_from_plant" value="vertical_thruster/state" />
-        <param name="setpoint_topic" value="vertical_thruster/setpoint" />
-        <param name="pid_enable_topic" value="vertical_thruster/pid_enable" />
-    </node>
--->
-<!-- Note: This was previously commented out before PID removal
-    <node name="lateral_thruster_pid" pkg="pid" type="controller" ns="v1" output="screen" >
-        <param name="node_name" value="lateral_thruster_pid" />
-        <param name="Kp" value="8" />
-        <param name="Ki" value="20" />
-        <param name="Kd" value="3" />
-        <param name="upper_limit" value="100" />
-        <param name="lower_limit" value="-100" />
-        <param name="windup_limit" value="10" />
-        <param name="max_loop_frequency" value="1" />
-        <param name="min_loop_frequency" value="3" />
-
-        <param name="topic_from_controller" value="lateral_thruster/control_effort" />
-        <param name="topic_from_plant" value="lateral_thruster/state" />
-        <param name="setpoint_topic" value="lateral_thruster/setpoint" />
-        <param name="pid_enable_topic" value="lateral_thruster/pid_enable" />
-    </node>
--->
-<!--
-    <node name="rudder_pid" pkg="pid" type="controller" ns="v1" >
-        <param name="node_name" value="rudder_pid" />
-        <param name="Kp" value="-30" />
-        <param name="Ki" value="0" />
-        <param name="Kd" value="0" />
-        <param name="upper_limit" value="45" />
-        <param name="lower_limit" value="-45" />
-        <param name="windup_limit" value="25" />
-        <param name="max_loop_frequency" value="1" />
-        <param name="min_loop_frequency" value="3" />
-
-        <param name="topic_from_controller" value="rudder/control_effort" />
-        <param name="topic_from_plant" value="rudder/state" />
-        <param name="setpoint_topic" value="rudder/setpoint" />
-        <param name="pid_enable_topic" value="rudder/pid_enable" />
-    </node>
--->
-
-
     <!--Navigation-->
     <node pkg="ros_sim_autonomy_interface" type="ros_sim_true_navigation_node" name="ros_sim_true_navigation" ns="v1">
         <rosparam param="hertz">5</rosparam>
     </node>
 
-    <!--Autonomy-->
+    <!--Autonomy  launch-prefix="xterm -e gdb args" -->
     <node pkg="ros_sim_autonomy_interface" type="ros_sim_behavior_server_node" name="ros_sim_behavior_server" ns="v1" output="screen">
-        <param name="planner_config_file" value="$(dirname)/planner_parameters/nested_bin_test.toml"/>
+        <param name="planner_config_file" value="$(dirname)/parameters/max_n_test.toml"/>
 
         <rosparam param="hertz">1</rosparam>
         <rosparam param="fail_time">5011200</rosparam>
         <rosparam param="cancel_timeout">60</rosparam>
     </node>
 
+
     <param name="use_sim_time" value="true" />
     <rosparam param="speed_up_factor">250</rosparam>
     <rosparam param="sim_start_time">2592000</rosparam>
 
-<!--
-    <rosparam param="model_type">constant</rosparam>
-    <rosparam param="model/depth">200</rosparam>
--->
     <rosparam param="model_type">fvcom</rosparam>
     <rosparam param="model/fvcom_directory" subst_value="True">/home/dev/proj/axial/</rosparam>
-    <!--<rosparam param="model/fvcom_directory" subst_value="True">/home/dev/proj/axial/</rosparam>-->
 
     <node pkg="tf2_ros" type="static_transform_publisher" name="ned_publisher" args="0 0 0 1.57079632679 0 3.14159265359 world world_ned"/>
     <node pkg="underwater_vehicle_sim" type="clock_server_node" name="clock_server" output="screen"/>
- <!-->   <node pkg="model_server" type="model_server_node" name="model_server" output="screen"/>-->
+
 </launch>
