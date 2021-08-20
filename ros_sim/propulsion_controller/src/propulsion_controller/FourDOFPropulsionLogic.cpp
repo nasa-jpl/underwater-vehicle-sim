@@ -28,7 +28,7 @@ FourDOFPropulsionLogic::FourDOFPropulsionLogic(VehicleInfo& vehicleInfo,
     latestSonarDepth(1000),
     minSeafloorDistance(3.0),
     horizontalErrorScale(25),
-    verticalErrorScale(15),
+    verticalErrorScale(5),
     angleErrorScale(3.14159265359) //180 degrees
 {
     ros::NodeHandle nh;

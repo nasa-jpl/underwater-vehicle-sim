@@ -49,6 +49,7 @@ void ROSSimVehicleInterface::log(LogLevel level, std::string string)
 void ROSSimVehicleInterface::log(std::string channel, underwater_autonomy::LogData data) {
 
     underwater_vehicle_msgs::LogData logMsg;
+    logMsg.header.stamp = ros::Time::now();
     std::vector<underwater_vehicle_msgs::DoubleArray> doubleArrays;
     std::vector<underwater_vehicle_msgs::IntArray> intArrays;
     std::vector<underwater_vehicle_msgs::ByteArray> byteArrays;

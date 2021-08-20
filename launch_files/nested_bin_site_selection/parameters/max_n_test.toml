@@ -13,7 +13,7 @@ target_vertical_velocity_gd_yoyo = 0.25
 target_horizontal_velocity = 0.5
 target_rotational_velocity = 0.349066
 
-detection_threshold = 0.5
+detection_threshold = 0.1
 
 target_data = "plume"
 lawnmower_data_range = 10
@@ -37,13 +37,18 @@ operation_region.max.z = 5000
 sonar_depth_enabled = true
 sonar_data = "sonar_depth"
 
-gradient_descent_time = 90
+gradient_descent_time = 120
 
 depth_buffer = 15
 seafloor_buffer = 20
 yo_gradient_threshold = 0
+vertical_peak_detection_threshold = 0.01
+depth_window = 25
 
 yoyo_replan_time = 10
 
 site_selection_strategy = "max_n_sites"
 num_samples = 3
+
+dynamic_min_track_sections = 3
+dynamic_track_sections_threshold = 1

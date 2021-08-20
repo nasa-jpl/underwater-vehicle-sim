@@ -39,7 +39,5 @@ void ROSSimBehaviorServer::update()
     clockSpeedPub.publish(startSim);
 
     vehicleInterface->updateCommands();
-    if(behaviorController->getBehaviorState() == Behavior::ExecutionState::RUNNING) {
-        vehicleInterface->handleRequestedCommands();
-    }
+    vehicleInterface->handleRequestedCommands();
 }

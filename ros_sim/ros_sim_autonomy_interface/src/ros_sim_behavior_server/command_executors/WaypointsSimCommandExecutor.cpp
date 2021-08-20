@@ -40,6 +40,14 @@ void WaypointsSimCommandExecutor::execute()
         action.fail(action.getLatestTime());
         return;
     }
+
+    if(action.isDone()) {
+        action.dispatchDone();
+        action.complete(action.getLatestTime());
+        ROS_INFO("ROS: Point Path Command Complete");
+        return;
+    }
+
     //Wait for the propulsion controller state subscriber to be setup
     waitForPropStateSetup();
 
@@ -49,18 +57,8 @@ void WaypointsSimCommandExecutor::execute()
     }
 
     //Creates an action goal and sends it to the action server for point path movement
-    if(!action.isDone())
-    {
-        if(sendNextGoToXYGoal())
-        {
-            action.dispatchDone();
-        }
-    }
-    else
-    {
+    if(sendNextGoToXYGoal()) {
         action.dispatchDone();
-        action.complete(action.getLatestTime());
-        ROS_INFO("ROS: Point Path Command Completed");
     }
 }
 
@@ -97,6 +95,13 @@ void WaypointsSimCommandExecutor::propStateCallback(const underwater_vehicle_msg
     if(!statePropSetup) {
         statePropSetup = true;
         prevXYSeqNum = state.xySeqNum;
+    }
+
+    if(action.isDone())
+    {
+        action.complete(action.getLatestTime());
+        ROS_INFO("ROS: Point Path Command Complete");
+        return;
     }
 
     Eigen::Vector3d currentTargetPoint = action.getCurrentTargetPoint();

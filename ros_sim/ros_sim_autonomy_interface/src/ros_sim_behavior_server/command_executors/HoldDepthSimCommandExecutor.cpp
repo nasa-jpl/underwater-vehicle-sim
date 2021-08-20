@@ -72,6 +72,10 @@ void HoldDepthSimCommandExecutor::stop()
 
 void HoldDepthSimCommandExecutor::monitor()
 {
+    if(std::abs(action.getDepth() - currentPose.getPosition()[2]) < 3) {
+        action.callDepthReached();
+    }
+
     if(action.getState() == Command::State::EXECUTING &&
        action.getHoldDepthTime() >= 0 &&
        action.getTimeRunning() >= action.getHoldDepthTime())
