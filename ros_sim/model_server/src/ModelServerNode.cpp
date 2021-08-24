@@ -2,16 +2,16 @@
 
 #include "ros/ros.h"
 
-#include "ocean_models/model_interface/ModelInterface.h"
-#include "ocean_models/model_interface/ModelData.h"
+#include "ocean_model_interfaces/model_interface/ModelInterface.h"
+#include "ocean_model_interfaces/model_interface/ModelData.h"
 
 #include "model_server/GetModelData.h"
 
 
-#include "ocean_models/general_models/LinearModel.h"
-#include "ocean_models/general_models/ConstantModel.h"
-#include "ocean_models/general_models/OceanFrontModel.h"
-#include "ocean_models/fvcom/FVCOM.h"
+#include "ocean_model_interfaces/general_models/LinearModel.h"
+#include "ocean_model_interfaces/general_models/ConstantModel.h"
+#include "ocean_model_interfaces/general_models/OceanFrontModel.h"
+#include "ocean_model_interfaces/fvcom/FVCOM.h"
 
 #include "underwater_autonomy/util/ConfigurationFile.h"
 

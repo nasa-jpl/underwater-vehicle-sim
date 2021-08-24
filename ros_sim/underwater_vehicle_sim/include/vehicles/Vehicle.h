@@ -13,8 +13,8 @@
 
 #include "underwater_vehicle_msgs/GetVehicleInfo.h"
 
-#include "ocean_models/model_interface/ModelInterface.h"
-#include "ocean_models/model_interface/ModelData.h"
+#include "ocean_model_interfaces/model_interface/ModelInterface.h"
+#include "ocean_model_interfaces/model_interface/ModelData.h"
 #include "model_server/GetModelData.h"
 
 /**

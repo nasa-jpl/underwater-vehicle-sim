@@ -17,7 +17,7 @@ find_package(catkin REQUIRED COMPONENTS
 find_library(UNDERWATER_AUTONOMY_LIB underwater_autonomy)
 find_path(UNDERWATER_AUTONOMY_INCLUDE underwater_autonomy)
 
-find_package(OceanModels REQUIRED)
+find_package(OceanModelInterfaces REQUIRED)
 
 ## System dependencies are found with CMake's conventions
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/modules)
@@ -146,7 +146,7 @@ include_directories(
 ## Specify libraries to link a library or executable target against
  target_include_directories(${PROJECT_NAME}_node PRIVATE ${UNDERWATER_AUTONOMY_INCLUDE})
  target_link_libraries(${PROJECT_NAME}_node
-   OceanModels::ocean_models
+   OceanModelInterfaces::ocean_model_interfaces
    ${UNDERWATER_AUTONOMY_LIB}
    ${catkin_LIBRARIES}
  )

@@ -15,8 +15,7 @@ find_package(catkin REQUIRED
             underwater_vehicle_msgs
 )
 
-find_library(OCEAN_MODELS_LIB ocean_models)
-find_path(OCEAN_MODELS_INCLUDE ocean_models)
+find_package(OceanModelInterfaces REQUIRED)
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -114,9 +113,6 @@ catkin_package(
 #  DEPENDS system_lib
 )
 
-find_library(OCEAN_MODELS_LIB ocean_models)
-find_path(OCEAN_MODELS_INCLUDE ocean_models)
-
 ###########
 ## Build ##
 ###########
@@ -154,10 +150,10 @@ add_executable(model_fetcher src/misc/model_data_fetcher.cpp)
 add_dependencies(model_fetcher ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS} underwater_vehicle_msgs)
 
 ## Specify libraries to link a library or executable target against
-target_include_directories(model_fetcher PRIVATE ${OCEAN_MODELS_INCLUDE})
+
 target_link_libraries(model_fetcher
   ${catkin_LIBRARIES}
-  ${OCEAN_MODELS_LIB}
+  OceanModelInterfaces::ocean_model_interfaces
   underwater_vehicle_msgs
 )
 

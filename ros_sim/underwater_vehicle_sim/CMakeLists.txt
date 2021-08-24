@@ -22,7 +22,7 @@ find_package(catkin REQUIRED COMPONENTS
 find_library(UNDERWATER_AUTONOMY_LIB underwater_autonomy)
 find_path(UNDERWATER_AUTONOMY_INCLUDE underwater_autonomy)
 
-find_package(OceanModels REQUIRED)
+find_package(OceanModelInterfaces REQUIRED)
 
 
 #find_package(UnderwaterAutonomy REQUIRED)
@@ -148,7 +148,7 @@ catkin_package(
  target_include_directories(underwater_vehicles PUBLIC ${UNDERWATER_AUTONOMY_INCLUDE})
  target_link_libraries(underwater_vehicles 
     ${UNDERWATER_AUTONOMY_LIB} 
-    OceanModels::ocean_models
+    OceanModelInterfaces::ocean_model_interfaces
     ${catkin_LIBRARIES})
 
 ## Add cmake target dependencies of the library
@@ -179,7 +179,7 @@ catkin_package(
  target_link_libraries(${PROJECT_NAME}_node
    underwater_vehicles
    ${UNDERWATER_AUTONOMY_LIB} 
-   OceanModels::ocean_models
+   OceanModelInterfaces::ocean_model_interfaces
    ${catkin_LIBRARIES}
  )
 

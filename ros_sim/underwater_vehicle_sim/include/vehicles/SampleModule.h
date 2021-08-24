@@ -9,7 +9,7 @@
 #include "vehicles/GeneralModule.h"
 #include "underwater_vehicle_msgs/RequestSample.h"
 
-#include "ocean_models/model_interface/ModelData.h"
+#include "ocean_model_interfaces/model_interface/ModelData.h"
 
 class SampleModule : public GeneralModule
 {
