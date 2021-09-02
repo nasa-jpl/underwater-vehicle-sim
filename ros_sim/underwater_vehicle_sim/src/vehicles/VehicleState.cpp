@@ -7,7 +7,7 @@
 #include <tf2_ros/transform_listener.h>
 #include "tf2_geometry_msgs/tf2_geometry_msgs.h"
 
-using namespace ocean_models;
+using namespace ocean_model_interfaces;
 
 VehicleState::VehicleState() :
     linearVelocity(0,0,0),
@@ -99,7 +99,7 @@ bool VehicleState::seafloorCollision(ModelData& data)
     return false;
 }
 
-void VehicleState::updateModelData(ocean_models::ModelData& data)
+void VehicleState::updateModelData(ocean_model_interfaces::ModelData& data)
 {
     if(!std::isnan(data.u) &&
        !std::isnan(data.v) &&

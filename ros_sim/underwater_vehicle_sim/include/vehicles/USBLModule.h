@@ -16,7 +16,7 @@ public:
 	USBLModule(std::string name);
 	~USBLModule() {}
 
-	void update(const ros::Time& lastTime, VehicleState& vehicleState, ocean_models::ModelData& modelData);
+	void update(const ros::Time& lastTime, VehicleState& vehicleState, ocean_model_interfaces::ModelData& modelData);
 
 private:
 	enum Type {Standard, Inverted};

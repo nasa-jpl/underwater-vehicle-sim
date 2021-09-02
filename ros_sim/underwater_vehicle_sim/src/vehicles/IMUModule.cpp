@@ -9,7 +9,7 @@
 
 #include "sensor_msgs/Imu.h"
 
-using namespace ocean_models;
+using namespace ocean_model_interfaces;
 
 IMUModule::IMUModule(std::string name) :
 	GeneralModule(name, "IMU")

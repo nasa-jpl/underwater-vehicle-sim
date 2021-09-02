@@ -8,7 +8,7 @@
 
 #include "vehicles/IMUModule.h"
 
-using namespace ocean_models;
+using namespace ocean_model_interfaces;
 
 std::vector<sensor_msgs::Imu> errorMessages;
 std::vector<sensor_msgs::Imu> noErrorMessages;

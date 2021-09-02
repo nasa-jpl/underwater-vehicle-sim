@@ -11,7 +11,7 @@
 
 #include "vehicles/VehicleState.h"
 
-using namespace ocean_models;
+using namespace ocean_model_interfaces;
 
 ros::ServiceClient client;
 

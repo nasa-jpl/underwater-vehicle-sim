@@ -77,16 +77,16 @@ int main(int argc,      // Number of strings in array argv
     // now we need to find the height of the max plume value for each (x,y,time) tuple
     // we can get model data using ModelInterface
 
-    ocean_models::FVCOM interface ("/home/dev/Documents/model-data/axial/");
+    ocean_model_interfaces::FVCOM interface ("/home/dev/Documents/model-data/axial/");
 
-    std::unique_ptr<ocean_models::ModelInterface> model;
+    std::unique_ptr<ocean_model_interfaces::ModelInterface> model;
 
     double modelTimeOffset = 0;
     double modelXOffset = 0;
     double modelYOffset = 0;
 
     std::string fvcom_directory = "/home/dev/Documents/model-data/axial/";
-    model.reset(new ocean_models::FVCOM(fvcom_directory, &startModelLoad, &endModelLoad, 500, 500, 15, 10, 100));
+    model.reset(new ocean_model_interfaces::FVCOM(fvcom_directory, &startModelLoad, &endModelLoad, 500, 500, 15, 10, 100));
 
     std::vector<double> zs;
 

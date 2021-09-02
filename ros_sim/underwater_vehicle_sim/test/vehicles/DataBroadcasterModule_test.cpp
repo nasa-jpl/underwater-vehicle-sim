@@ -13,7 +13,7 @@
 #include "underwater_vehicle_msgs/VehicleData.h"
 #include "vehicles/DataBroadcasterModule.h"
 
-using namespace ocean_models;
+using namespace ocean_model_interfaces;
 
 std::vector<underwater_vehicle_msgs::VehicleData> receivedMessages;
 

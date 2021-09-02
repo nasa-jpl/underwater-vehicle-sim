@@ -26,7 +26,7 @@ class Vehicle
 {
 public:
 	Vehicle();
-	Vehicle(std::unique_ptr<ocean_models::ModelInterface> model);
+	Vehicle(std::unique_ptr<ocean_model_interfaces::ModelInterface> model);
 	
 	void update();
 
@@ -59,7 +59,7 @@ private:
 	/**
 	* Get data from the model at the current vehicle state and last transform time
 	*/
-	ocean_models::ModelData getModelData();
+	ocean_model_interfaces::ModelData getModelData();
 
 	/**
 	 * Callback to call module update. This is called by a timer callback
@@ -91,7 +91,7 @@ private:
 	/**
 	* Model data from the last transform location and time
 	*/
-	ocean_models::ModelData dataAtLastTransform;
+	ocean_model_interfaces::ModelData dataAtLastTransform;
 
 	/**
 	 * Module that handles the vehicles propulsion system
@@ -157,7 +157,7 @@ private:
 	/**
 	* Local model used if speed is important
 	*/
-	std::unique_ptr<ocean_models::ModelInterface> model;
+	std::unique_ptr<ocean_model_interfaces::ModelInterface> model;
 
 };
 

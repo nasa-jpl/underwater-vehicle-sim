@@ -9,7 +9,7 @@
 
 #include "underwater_vehicle_msgs/TakeSample.h"
 
-using namespace ocean_models;
+using namespace ocean_model_interfaces;
 
 SampleModule::SampleModule(std::string name) :
     GeneralModule(name, "Sample")

@@ -16,7 +16,7 @@ public:
 	DepthModule(std::string name);
 	~DepthModule() {}
 
-	void update(const ros::Time& lastTime, VehicleState& vehicleState, ocean_models::ModelData& modelData);
+	void update(const ros::Time& lastTime, VehicleState& vehicleState, ocean_model_interfaces::ModelData& modelData);
 
 private:
 	

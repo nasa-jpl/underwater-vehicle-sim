@@ -17,7 +17,7 @@ public:
 
 	virtual ~GeneralModule(){}
 
-	virtual void update(const ros::Time& lastTime, VehicleState& vehicleState, ocean_models::ModelData& modelData)=0;
+	virtual void update(const ros::Time& lastTime, VehicleState& vehicleState, ocean_model_interfaces::ModelData& modelData)=0;
 
 	static std::unique_ptr<GeneralModule> makeGeneralModule(std::string moduleName);
 

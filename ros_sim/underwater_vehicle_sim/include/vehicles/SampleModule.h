@@ -18,7 +18,7 @@ public:
     SampleModule(std::string name);
     ~SampleModule() {}
 
-    void update(const ros::Time& lastTime, VehicleState& vehicleState, ocean_models::ModelData& modelData);
+    void update(const ros::Time& lastTime, VehicleState& vehicleState, ocean_model_interfaces::ModelData& modelData);
 
 private:
 bool requestSample(underwater_vehicle_msgs::RequestSample::Request  &req,
@@ -29,7 +29,7 @@ private:
 
     ros::Time lastTimeUpdate;
     tf2::Vector3 lastPosition;
-    ocean_models::ModelData lastModelData;
+    ocean_model_interfaces::ModelData lastModelData;
 };
 
 #endif

@@ -19,7 +19,7 @@
 #include <string>
 #include <stdexcept>
 
-using namespace ocean_models;
+using namespace ocean_model_interfaces;
 std::unique_ptr<ModelInterface> model;
 
 

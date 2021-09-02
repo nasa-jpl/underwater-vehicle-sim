@@ -49,7 +49,7 @@ def plot_histogram(fig_histogram, bag, vehicle_namespace, measurment_type="dye",
     for s in sample_data:
         fig_histogram.add_vline(x=s)
 
-def plot_data(bag, vehicle_namespace, measurment_type="dye", data_step=1, fig_3d=None, fig_2d=None, fig_depth=None, fig_data=None, log_data=True):
+def plot_data(bag, vehicle_namespace, measurment_type="dye", data_step=1, fig_3d=None, fig_2d=None, fig_depth=None, fig_data=None, log_data=True, plot_threshold=0):
     """
     Plot data collected by a vehicle.
 
@@ -92,23 +92,31 @@ def plot_data(bag, vehicle_namespace, measurment_type="dye", data_step=1, fig_3d
                                                    '/' + vehicle_namespace + '/sample/take_sample']):
         if topic == '/' + vehicle_namespace + '/data_broadcaster/data':
             #X and Y flipped because NED reference frame is used in ROS
-            if current_step == data_step:
-                x.append(msg.y) 
+            if current_step >= data_step:
+                if measurment_type == "dye":
+                    new_data = msg.dye
+                elif measurment_type == "temp":
+                    new_data = msg.temp
+                elif measurment_type == "salt":
+                    new_data = msg.salt
+
+                if new_data < plot_threshold:
+                    new_data = plot_threshold
+
+                #x and y flipped to make north up
+                x.append(msg.y)
                 y.append(msg.x)
                 z.append(-msg.h)
                 data_sonar.append(msg.sonarDepth)
-                if measurment_type == "dye":
-                    data.append(msg.dye)
-                elif measurment_type == "temp":
-                    data.append(msg.temp)
-                elif measurment_type == "salt":
-                    data.append(msg.salt)
+                data.append(new_data)
+
                 current_step = 1
             else:
                 current_step += 1
         elif topic == '/' + vehicle_namespace + '/sample/take_sample':
-            sample_x.append(msg.location.x)
-            sample_y.append(msg.location.y)
+            #x and y flipped to make north up
+            sample_x.append(msg.location.y)
+            sample_y.append(msg.location.x)
             sample_z.append(-msg.location.z)
 
             sample_data.append(msg.data)
@@ -191,7 +199,7 @@ def main(args):
     fig_histogram = go.Figure()
     fig_data = go.Figure()
 
-    plot_data(bag, args.vehicle_namespace, data_step=50, fig_3d=fig_3d, fig_2d=fig_2d, fig_depth=fig_depth, fig_data=fig_data, log_data=False)
+    plot_data(bag, args.vehicle_namespace, data_step=50, fig_3d=fig_3d, fig_2d=fig_2d, fig_depth=fig_depth, fig_data=fig_data, log_data=True, plot_threshold=0.2)
     plot_histogram(fig_histogram, bag, args.vehicle_namespace)
 
     bag.close()

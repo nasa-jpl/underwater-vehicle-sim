@@ -36,13 +36,13 @@ public:
      * Update the vehicle state if it is below the seafloor
      * @data Model data containing depth at the current location
      */
-    bool seafloorCollision(ocean_models::ModelData& data);
+    bool seafloorCollision(ocean_model_interfaces::ModelData& data);
 
     /**
     * Update the most recent model data for the vehicle
     * @data Model data containing currents are the current location and time
     */
-    void updateModelData(ocean_models::ModelData& data);
+    void updateModelData(ocean_model_interfaces::ModelData& data);
 
     /**
      * Get the position of the vehicle in the NED frame.
@@ -141,7 +141,7 @@ private:
     /**
     * Stores the latest model data at the vehicles location
     */
-    ocean_models::ModelData latestModelData;
+    ocean_model_interfaces::ModelData latestModelData;
 
     tf2::Transform ENUtoNED;
     tf2::Transform NEDtoENU;

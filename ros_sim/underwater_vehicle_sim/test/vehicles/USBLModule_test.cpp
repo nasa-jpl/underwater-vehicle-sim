@@ -7,7 +7,7 @@
 #include "underwater_vehicle_msgs/USBL.h"
 #include "vehicles/USBLModule.h"
 
-using namespace ocean_models;
+using namespace ocean_model_interfaces;
 
 std::vector<underwater_vehicle_msgs::USBL> invertedUSBLMessages;
 std::vector<underwater_vehicle_msgs::USBL> validRangeMessages;
