@@ -95,6 +95,11 @@ void ROSSimVehicleInterface::log(std::string channel, underwater_autonomy::LogDa
     if( entry == logPublishers.end()) {
         ros::Publisher pub = nh.advertise<underwater_vehicle_msgs::LogData>(channel, 10);
         logPublishers.insert(std::pair<std::string,ros::Publisher>(channel, pub));
+
+        //Publish an empty message first so rosbag can then subscribe to the next channel.
+        underwater_vehicle_msgs::LogData emptyMsg;
+        emptyMsg.header.stamp = ros::Time::now();
+        logPublishers[channel].publish(emptyMsg);
     }
 
     logPublishers[channel].publish(logMsg);

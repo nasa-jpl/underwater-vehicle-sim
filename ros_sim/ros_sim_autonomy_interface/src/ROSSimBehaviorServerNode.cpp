@@ -67,6 +67,9 @@ int main(int argc, char **argv)
     ros::ServiceClient vehicleInfoClient = nh.serviceClient<underwater_vehicle_msgs::GetVehicleInfo>("get_info");
     vehicleInfoClient.waitForExistence();
     underwater_vehicle_msgs::GetVehicleInfo getInfo;
+
+    std::size_t found = nh.getNamespace().find_last_of("/");
+    getInfo.request.name = nh.getNamespace().substr(found+1);
     vehicleInfoClient.call(getInfo);
     VehicleInfo info(getInfo);
 
