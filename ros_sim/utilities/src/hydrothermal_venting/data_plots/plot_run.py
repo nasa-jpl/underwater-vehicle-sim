@@ -75,10 +75,13 @@ def plot_data(bag, vehicle_namespace, measurment_type="dye", data_step=1, fig_3d
         Take the log of the data for color before plotting
     """
 
+    start_time = None
+    end_time = None
     x = []
     y = []
     z = []
     data = []
+    data_time = []
     data_sonar = []
 
     sample_x = []
@@ -86,11 +89,15 @@ def plot_data(bag, vehicle_namespace, measurment_type="dye", data_step=1, fig_3d
     sample_z = []
     sample_data = []
     sample_pos_index = []
+    sample_time = []
 
     current_step = 1
     for topic, msg, t in bag.read_messages(topics=['/' + vehicle_namespace + '/data_broadcaster/data',
                                                    '/' + vehicle_namespace + '/sample/take_sample']):
         if topic == '/' + vehicle_namespace + '/data_broadcaster/data':
+            if start_time is None:
+                start_time = msg.time.to_sec()
+            end_time = msg.time.to_sec()
             #X and Y flipped because NED reference frame is used in ROS
             if current_step >= data_step:
                 if measurment_type == "dye":
@@ -109,11 +116,16 @@ def plot_data(bag, vehicle_namespace, measurment_type="dye", data_step=1, fig_3d
                 z.append(-msg.h)
                 data_sonar.append(msg.sonarDepth)
                 data.append(new_data)
+                
+                data_time.append((msg.time.to_sec() - start_time)/3600)
 
                 current_step = 1
             else:
                 current_step += 1
         elif topic == '/' + vehicle_namespace + '/sample/take_sample':
+            if start_time is None:
+                start_time = msg.header.stamp.to_sec()
+            end_time = msg.header.stamp.to_sec()
             #x and y flipped to make north up
             sample_x.append(msg.location.y)
             sample_y.append(msg.location.x)
@@ -121,7 +133,10 @@ def plot_data(bag, vehicle_namespace, measurment_type="dye", data_step=1, fig_3d
 
             sample_data.append(msg.data)
             sample_pos_index.append(len(x))
+            sample_time.append((msg.header.stamp.to_sec()-start_time)/3600)
 
+
+    clean_data = data
     if log_data:
         data = np.log(data)
 
@@ -159,7 +174,7 @@ def plot_data(bag, vehicle_namespace, measurment_type="dye", data_step=1, fig_3d
             )))
 
     if fig_depth is not None:
-        fig_depth.add_trace(go.Scatter(x=range(len(z)), y=z, mode='markers',
+        fig_depth.add_trace(go.Scatter(x=data_time, y=z, mode='markers',
             marker=dict(
                     size=6,
                     color=data,
@@ -167,7 +182,7 @@ def plot_data(bag, vehicle_namespace, measurment_type="dye", data_step=1, fig_3d
                     opacity=0.8
             )))
 
-        fig_depth.add_trace(go.Scatter(x=sample_pos_index, y=sample_z, mode='markers',
+        fig_depth.add_trace(go.Scatter(x=sample_time, y=sample_z, mode='markers',
             marker=dict(
                 size=10,
                 color='red',
@@ -175,19 +190,19 @@ def plot_data(bag, vehicle_namespace, measurment_type="dye", data_step=1, fig_3d
             )))
 
         bathy = [z_val - s_val for z_val, s_val in zip(z, data_sonar)]
-        fig_depth.add_trace(go.Scatter(x=range(len(z)), y=bathy, mode='lines'))
+        fig_depth.add_trace(go.Scatter(x=data_time, y=bathy, mode='lines'))
 
     if fig_data is not None:
-        fig_data.add_trace(go.Scatter(x=range(len(data)), y=data, mode='lines'))
+        fig_data.add_trace(go.Scatter(x=data_time, y=clean_data, mode='lines'))
 
-        fig_data.add_trace(go.Scatter(x=sample_pos_index, y=sample_data, mode='markers',
+        fig_data.add_trace(go.Scatter(x=sample_time, y=sample_data, mode='markers',
             marker=dict(
                 size=10,
                 color='red',
                 opacity=0.8
             )))
 
-
+    return start_time, end_time
 def main(args):
     print("Opening ROS Bag")
     bag = rosbag.Bag(args.rosbag)
@@ -199,7 +214,7 @@ def main(args):
     fig_histogram = go.Figure()
     fig_data = go.Figure()
 
-    plot_data(bag, args.vehicle_namespace, data_step=50, fig_3d=fig_3d, fig_2d=fig_2d, fig_depth=fig_depth, fig_data=fig_data, log_data=True, plot_threshold=0.2)
+    start_time, end_time = plot_data(bag, args.vehicle_namespace, data_step=50, fig_3d=fig_3d, fig_2d=fig_2d, fig_depth=fig_depth, fig_data=fig_data, log_data=True, plot_threshold=0.2)
     plot_histogram(fig_histogram, bag, args.vehicle_namespace)
 
     bag.close()
@@ -207,7 +222,12 @@ def main(args):
     external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
     app = dash.Dash(external_stylesheets=external_stylesheets)
 
+    start_end_str = "Start Time: {:.2f} End Time: {:.2f} Total Time: {:.2f} Model End: {:.2f}".format(start_time/3600, end_time/3600, (end_time-start_time)/3600, 5011200/3600)
+
     app.layout = html.Div([
+        html.Div([
+                html.P(children=start_end_str, className="info_pane")
+            ]),
         html.Div([
             html.Div([
                 dcc.Graph(id='g1', figure=fig_3d, style={'height': '90vh', 'width': '90vh'})
