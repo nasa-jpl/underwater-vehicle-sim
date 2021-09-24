@@ -174,9 +174,6 @@ def plot_data(bag, vehicle_namespace, measurment_type="dye", data_step=1, fig_3d
     sample_data = bag['/' + vehicle_namespace + '/sample/take_sample']["data"]
     sample_time = bag['/' + vehicle_namespace + '/sample/take_sample']["time"]
 
-    print(sample_time)
-    print(behavior_phase, behavior_phase_time)
-
     #Filter by phase if needed
     if phases is not None:
         x,_ = filter_by_phase(behavior_phase, behavior_phase_time, x, data_time, phases)
@@ -271,13 +268,25 @@ def main(args):
         file_data = pickle.load(open(args.filename,"rb"))
     print("Opened and Parsed ROS Bag\n")
 
+    all_phases,all_phase_times = process_behavior_state(file_data, args.vehicle_namespace)
     if args.list_phases:
-        all_phases,_ = process_behavior_state(file_data, args.vehicle_namespace)
         print_phases = set(all_phases)
         print("Behavior Phases:")
         for p in print_phases:
             print(p)
+        print()
 
+    if args.list_phase_transitions:
+        print("Beahvior Phase Transisions:")
+        for p,t in zip(all_phases, all_phase_times):
+            print("Phase: {}, Time: {}".format(p,t))
+        print()
+
+    if args.list_topics:
+        print("ROS Topics:")
+        for k in file_data.keys():
+            print(k)
+        print()
 
     if not args.no_plot:
         fig_3d = go.Figure()
@@ -334,7 +343,10 @@ def main(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Plot Data Run.')
     parser.add_argument("filename", type=str, help="Filename of the rosbag file or parsed pickle file to plot")
-    parser.add_argument("-lp", "--list-phases", action='store_true', help="List all beahvior phases")
+    parser.add_argument("-lp", "--list-phases", action='store_true', help="List all beahvior phases at are used")
+    parser.add_argument("-lpt", "--list-phase-transitions", action='store_true', help="List all beahvior phases and the transitions associated with them")
+    parser.add_argument("-lt", "--list-topics", action='store_true', help="List ros topics that were recorded.")
+
     parser.add_argument("-np", "--no-plot", action='store_true', help="Don't perform any plotting")
 
     parser.add_argument("-v", "--vehicle-namespace", type=str, help="Name of the vehicle namespace in the rosbag file")

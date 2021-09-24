@@ -31,12 +31,15 @@ void SampleSimCommandExecutor::execute()
     if(!requestSampleClient.exists())
     {
         action.fail(action.getLatestTime());
+        ROS_INFO("ROS: Sample Command Failed");
     } else {
         underwater_vehicle_msgs::RequestSample requestSampleMsg;
         if(requestSampleClient.call(requestSampleMsg)) {
             action.complete(action.getLatestTime());
+            ROS_INFO("ROS: Sample Command Complete");
         } else {
             action.fail(action.getLatestTime());
+            ROS_INFO("ROS: Sample Command Failed");
         }
     }
 }
