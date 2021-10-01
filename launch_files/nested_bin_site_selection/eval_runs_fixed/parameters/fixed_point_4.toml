@@ -1,0 +1,21 @@
+planner_type = "FixedPathSampler"
+
+center.x = 1500
+center.y = -3000
+lawnmower_along_track_size = 5000
+lawnmower_across_track_size = 5000
+lawnmower_rotation = 0
+lawnmower_spacing = 300
+
+min_depth = 1450
+max_depth = 1450
+
+target_vertical_velocity = 0.375
+target_horizontal_velocity = 0.75
+target_rotational_velocity = 0.349066
+
+target_data = "plume"
+
+site_selection_strategy = "fixed_point"
+num_samples = 5
+sample_seperation = 500

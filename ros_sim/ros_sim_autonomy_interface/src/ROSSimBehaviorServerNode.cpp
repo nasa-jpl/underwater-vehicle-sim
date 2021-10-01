@@ -15,6 +15,7 @@
 #include "vent_behaviors/NestedBinVentBehavior.h"
 #include "vent_behaviors/SurfaceGradientVentBehavior.h"
 #include "vent_behaviors/DirectionSetVentBehavior.h"
+#include "vent_behaviors/FixedPathSamplerBehavior.h"
 
 #include "navigation_behaviors/GoldenSelectionHomingBehavior.h"
 #include "navigation_behaviors/NonLinearFilterHomingBehavior.h"
@@ -96,6 +97,8 @@ int main(int argc, char **argv)
     BehaviorFactory::registerBehavior("NonLinearFilterHoming", &NonLinearFilterHomingBehavior::create);
     BehaviorFactory::registerBehavior("OutAndBackExplore", &OutAndBackExploreBehavior::create);
     BehaviorFactory::registerBehavior("InWaterTest", &InWaterTestBehavior::create);
+    BehaviorFactory::registerBehavior("FixedPathSampler", &FixedPathSamplerBehavior::create);
+
 
     std::string plannerType = config.readSimpleEntry<std::string>("planner_type");
     std::unique_ptr<Behavior> behavior = BehaviorFactory::create(plannerType, interface, config);

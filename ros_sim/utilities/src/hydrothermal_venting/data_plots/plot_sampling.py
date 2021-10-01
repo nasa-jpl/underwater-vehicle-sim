@@ -30,6 +30,8 @@ def eval_nested_keys(dict, keys):
 
     current_val = dict
     for k in keys:
+        if k not in current_val:
+            return None
         current_val = current_val[k]
     return current_val
 
@@ -55,12 +57,14 @@ def get_data_percentile(loaded_data, inputs):
     ----------
     loaded_data : dictionary
         Figure to plot data
-    inputs : (Iterable of str,Iterable of str,Iterable of str)
-        Data keys for plotted data, data keys for percentile data, data keys for percentile data times
+    inputs : (Iterable of str,Iterable of str,Iterable of str, bool)
+        Data keys for plotted data, data keys for percentile data, data keys for percentile data times, take all values
     """
-
-    phases, phase_times = process_behavior_state(loaded_data)
-    start_time = phase_times[phases.index("RUN_YOYO_LAWNMOWER")]
+    if inputs[3]:
+        start_time = 0
+    else:
+        phases, phase_times = process_behavior_state(loaded_data)
+        start_time = phase_times[phases.index("RUN_YOYO_LAWNMOWER")]
 
     sample_values = eval_nested_keys(loaded_data, inputs[0])
 
@@ -124,11 +128,9 @@ def seconds_to_days(time, start_time):
     return time/3600/24 - start_time/3600/24
 
 
-def get_secretary_data(filename, submodular=False):
+def get_secretary_data(filename, submodular=False, filter_after_threshold=None):
     data = {}
     loaded_data = pickle.load(open(filename,"rb"))
-    data["sample_values"] = eval_nested_keys(loaded_data, ("/v1/sample/take_sample", "data"))
-    data["sample_time"] = eval_nested_keys(loaded_data, ("/v1/sample/take_sample", "time"))
     
     behavior_event_indicies = []
 
@@ -146,6 +148,33 @@ def get_secretary_data(filename, submodular=False):
     max_n_observations = []
     max_n_observation_times = []
 
+    for i in behavior_event_indicies: #For each message
+        for e in loaded_data["/v1/behavior_event"]["doubles"][i]: #For each double array in the message
+            if e[0] == "transitions" and transitions is None:
+                transitions = e[2]
+
+    unfiltered_sample_values = eval_nested_keys(loaded_data, ("/v1/sample/take_sample", "data"))
+    unfiltered_sample_times = eval_nested_keys(loaded_data, ("/v1/sample/take_sample", "time"))
+    filtered_sample_values = []
+    filtered_sample_times = []
+    if filter_after_threshold is not None:
+        for v,t in zip(unfiltered_sample_values, unfiltered_sample_times):
+            include = True
+            for trans_time in transitions:
+                if t - trans_time > 0 and t - trans_time < filter_after_threshold:
+                    include = False
+                    break
+            if include:
+                filtered_sample_values.append(v)
+                filtered_sample_times.append(t)
+    else:
+        filtered_sample_values = unfiltered_sample_values
+        filtered_sample_times = unfiltered_sample_times
+
+    data["sample_values"] = filtered_sample_values
+    data["sample_time"] = filtered_sample_times
+
+
     data_step = 10
 
     data["sampler_start_time"] = loaded_data["/v1/behavior_event"]["time"][behavior_event_indicies[0]]
@@ -158,10 +187,6 @@ def get_secretary_data(filename, submodular=False):
     data["filtered_measurments"] = measurments[start_index:]
     data["filtered_measurment_times"] = measurment_times[start_index:]
 
-    for i in behavior_event_indicies: #For each message
-        for e in loaded_data["/v1/behavior_event"]["doubles"][i]: #For each double array in the message
-            if e[0] == "transitions" and transitions is None:
-                transitions = e[2]
 
     #Get all threshold values
     temp_thresholds = []
@@ -188,6 +213,8 @@ def get_secretary_data(filename, submodular=False):
             for transition in transitions:
                 if abs(t - transition) < 200:
                     thresholds[i] = -10
+    else:
+        thresholds[0] = -10
 
     for i in behavior_event_indicies: #For each message
         for e in loaded_data["/v1/behavior_event"]["doubles"][i]: #For each double array in the message
@@ -209,10 +236,11 @@ def get_secretary_frame_data_at_time(data, time):
     end_index = bisect.bisect(data["filtered_measurment_times"], time)
 
     frame_data.append(go.Scatter(x=update_list(data["filtered_measurment_times"][:end_index], seconds_to_days, args=(data["sampler_start_time"],)), y=data["filtered_measurments"][:end_index], mode='lines',
-                                 line=dict(
-                                 color='grey',
-                                 ),
-                                 name="Measurment Data"))
+                                line=dict(
+                                color='grey',
+                                ),
+                                name="Measurment Data",
+                                showlegend=True))
 
     end_index = bisect.bisect(data["sample_time"], time)
 
@@ -222,7 +250,8 @@ def get_secretary_frame_data_at_time(data, time):
                                      color='red',
                                      opacity=1.0
                                  ),
-                                 name="Samples"))
+                                 name="Samples",
+                                 showlegend=True))
 
     end_index = bisect.bisect(data["threshold_times"], time)
 
@@ -250,18 +279,18 @@ def get_secretary_frame_data_at_time(data, time):
 def plot_animated_recursive_secretary_visualization(filename):
     data = get_secretary_data(filename)
     frames = []
-    for t in range(int(data["sampler_start_time"]), int(data["sampler_end_time"] + 1000), 2000):
+    for t in range(int(data["sampler_start_time"]), int(data["sampler_start_time"] + (5*24*3600) + 1500), 1500):
             frames.append(go.Frame(data=get_secretary_frame_data_at_time(data, t)))
 
     fig = go.Figure(
         data=get_secretary_frame_data_at_time(data, data["sampler_start_time"]),
         layout=go.Layout(
-            xaxis=dict(range=update_list([data["sampler_start_time"] - 10, data["sampler_end_time"] + 2000], seconds_to_days, args=(data["sampler_start_time"],)), autorange=False, zeroline=False),
-            yaxis=dict(range=[-5, 50], autorange=False, zeroline=False),
+            xaxis=dict(range=(update_list([data["sampler_start_time"] - 10], seconds_to_days, args=(data["sampler_start_time"],)) + [5]), autorange=False, zeroline=False),
+            yaxis=dict(range=[-1, 50], autorange=False, zeroline=False),
             updatemenus=[dict(type="buttons",
                             buttons=[dict(label="Play",
                                             method="animate",
-                                            args=[None, {"frame": {"duration": 50,"redraw": False},
+                                            args=[None, {"frame": {"duration": 75,"redraw": False},
                                                               "fromcurrent": True, 
                                                               "transition": {"duration": 0}}]
                                             )])]),
@@ -288,6 +317,7 @@ def plot_static_recursive_secretary_visualization(fig, filename):
     for d in get_secretary_frame_data_at_time(data, data["sampler_end_time"] + 2000):
         fig.add_trace(d)
 
+    print(data["transitions"], data["sampler_start_time"])
     for t in update_list(data["transitions"], seconds_to_days, args=(data["sampler_start_time"],)):
         fig.add_vline(x=t)
 
@@ -305,14 +335,14 @@ def plot_static_recursive_secretary_visualization(fig, filename):
 def plot_animated_submodular_secretary_visualization(filename):
     data = get_secretary_data(filename, submodular=True)
     frames = []
-    for t in range(int(data["sampler_start_time"]), int(data["sampler_end_time"] + 2000), 5000):
+    for t in range(int(data["sampler_start_time"]), int(data["sampler_end_time"] + 5000), 500):
             frames.append(go.Frame(data=get_secretary_frame_data_at_time(data, t)))
 
     fig = go.Figure(
         data=get_secretary_frame_data_at_time(data, data["sampler_start_time"]),
         layout=go.Layout(
             xaxis=dict(range=update_list([data["sampler_start_time"] - 10, data["sampler_end_time"] + 2000], seconds_to_days, args=(data["sampler_start_time"],)), autorange=False, zeroline=False),
-            yaxis=dict(range=[-1, 50], autorange=False, zeroline=False),
+            yaxis=dict(range=[-1, 40], autorange=False, zeroline=False),
             updatemenus=[dict(type="buttons",
                             buttons=[dict(label="Play",
                                             method="animate",
@@ -349,8 +379,8 @@ def plot_animated_submodular_secretary_visualization(filename):
     )
     return fig
 
-def plot_static_submodular_secretary_visualization(fig, filename):
-    data = get_secretary_data(filename, submodular=True)
+def plot_static_submodular_secretary_visualization(fig, filename, filter_after_threshold=None):
+    data = get_secretary_data(filename, submodular=True, filter_after_threshold=filter_after_threshold)
     for d in get_secretary_frame_data_at_time(data, data["sampler_end_time"] + 2000):
         fig.add_trace(d)
 
@@ -451,7 +481,7 @@ def plot_xy_per_method(fig, bag_file_directory, filenames, x_data_func, y_data_f
         yaxis_title=y_axis_label
     )
 
-def plot_y_per_method(fig, bag_file_directory, filenames, data_func, data_mapping, data_func_input=[], y_axis_label="", category_order="mean ascending", range=None):
+def plot_y_per_method(fig, bag_file_directory, filenames, data_func, data_mapping, data_func_input=[], y_axis_label="", category_order="mean ascending", color='indianred', range=None, box_plot=False, box_plot_order=None):
     """
     Plot some data value seperated by sample method
 
@@ -473,13 +503,20 @@ def plot_y_per_method(fig, bag_file_directory, filenames, data_func, data_mappin
         Label to use for the y axis
     category_order : str
         Sets the order of the categories on the x axis
+    color : Plotly Color
+        Color of the plotted elements
     range : (float, float)
         Range for the y axis of the plot
+    box_plot : bool
+        Plot data as box plot instead of scatter plot
+    box_plot_order : list or None
+        order to plot data mapping values in
     """
 
     data_points = []
     labeled_points = []
 
+    box_points = {}
     for k,v in data_mapping.items():
         if k in filenames.keys():
             for f in filenames[k]:
@@ -487,29 +524,50 @@ def plot_y_per_method(fig, bag_file_directory, filenames, data_func, data_mappin
                 print("Loading " + filename)
                 loaded_data = pickle.load(open(filename,"rb"))
                 data = data_func(loaded_data, data_func_input)
-                data_points.extend(data)
-                labeled_points.extend([v] * len(data))
+                if data is not None:
+                    data_points.extend(data)
+                    labeled_points.extend([v] * len(data))
+                    if v not in box_points.keys():
+                        box_points[v] = []
+                    box_points[v].extend(data)
+
+    if not box_plot:
+        fig.add_trace(go.Scatter(x=labeled_points, y=data_points, mode='markers',
+                                marker=dict(
+                                    size=10,
+                                    color=color,
+                                    opacity=1.0
+                                )))
+        fig.update_xaxes(type='category', categoryorder=category_order)
+
+    else:
+        if box_plot_order is not None:
+            for k in box_plot_order:
+                v = box_points[k]
+                print(k, len(v))
+                fig.add_trace(go.Box(y=v, boxpoints=False, jitter=0.3, pointpos=-1.8, name=k, fillcolor=color,line=dict(color='black'), showlegend=False,))
+        else:
+            for k,v in box_points.items():
+                print(k, len(v))
+                fig.add_trace(go.Box(y=v, boxpoints=False, jitter=0.3, pointpos=-1.8, name=k, fillcolor=color,line=dict(color='black'), showlegend=False))
 
 
-    fig.add_trace(go.Scatter(x=labeled_points, y=data_points, mode='markers',
-                            marker=dict(
-                                size=10,
-                                color='red',
-                                opacity=1.0
-                            )))
-    fig.update_xaxes(type='category', categoryorder=category_order)
     fig.update_yaxes(range=range)
 
     fig.update_layout(
         title="",
-        xaxis_title="Sample Selection Method",
-        yaxis_title=y_axis_label
+        xaxis_title="Sample Time Relative to Search",
+        yaxis_title=y_axis_label,
+        font=dict(
+            size=20,
+        )
     )
-
 
 def main():
     bag_file_directory_small = "/media/psf/Home/projs/ocean_worlds/ros_workspace/src/ros-underwater-sim/launch_files/nested_bin_site_selection/eval_runs_small_sep/bag_files"
     bag_file_directory_large = "/media/psf/Home/projs/ocean_worlds/ros_workspace/src/ros-underwater-sim/launch_files/nested_bin_site_selection/eval_runs_large_sep/bag_files"
+
+    bag_file_directory_fixed = "/media/psf/Home/projs/ocean_worlds/ros_workspace/src/ros-underwater-sim/launch_files/nested_bin_site_selection/eval_runs_fixed/bag_files"
 
     filenames = {}
     filenames["revisit_on_complete_maxima"] = ["revisit_on_complete_maxima_1.p", "revisit_on_complete_maxima_2.p"]
@@ -537,46 +595,66 @@ def main():
     filenames["fixed_point_ht"] = ["fixed_point_5.p", "fixed_point_6.p"]
     filenames["fixed_point_mht"] = ["fixed_point_7.p", "fixed_point_8.p"]
 
-    fig = go.Figure()
-
     data_mapping = {}
 
-    data_mapping["revisit_on_complete_maxima"] = "Revisit On Complete Maxima"
-    data_mapping["revisit_on_complete_best"] = "Revisit On Complete Best"
-    data_mapping["revisit_on_maxima"] = "Revisit On Maxima"
+ #   data_mapping["revisit_on_complete_maxima"] = "Revisit On Complete Maxima"
+ #   data_mapping["revisit_on_complete_best"] = "Revisit On Complete"
+ #   data_mapping["revisit_on_maxima"] = "Revisit On Maxima"
 
-    data_mapping["recursive_secretary_track_before_active_lt"] = "Recursive Secretary (Track Before Active) Low"
-    data_mapping["recursive_secretary_track_before_active_mt"] = "Recursive Secretary (Track Before Active) Mid"
-    data_mapping["recursive_secretary_track_before_active_ht"] = "Recursive Secretary (Track Before Active) High"
-    data_mapping["recursive_secretary_track_before_active_mht"] = "Recursive Secretary (Track Before Active) Mid High"
+  #  data_mapping["recursive_secretary_track_before_active_lt"] = "Recursive Secretary (Track Before Active) Low"
+  #  data_mapping["recursive_secretary_track_before_active_mt"] = "Recursive Secretary w/ Initial Survey"
+  #  data_mapping["recursive_secretary_track_before_active_ht"] = "Recursive Secretary (Track Before Active) High"
+  #  data_mapping["recursive_secretary_track_before_active_mht"] = "Recursive Secretary (Track Before Active) Mid High"
 
-    data_mapping["recursive_secretary_lt"] = "Recursive Secretary Low"
-    data_mapping["recursive_secretary_mt"] = "Recursive Secretary Mid"
-    data_mapping["recursive_secretary_ht"] = "Recursive Secretary High"
-    data_mapping["recursive_secretary_mht"] = "Recursive Secretary Mid High"
+   # data_mapping["recursive_secretary_mt"] = "Recursive Secretary w/o Initial Survey"
+    data_mapping["submodular_secretary_mt"] = "Submodular Secretary"
 
-    data_mapping["submodular_secretary_lt"] = "Submodular Secretary Low"
-    data_mapping["submodular_secretary_mt"] = "Submodular Secretary Mid"
-    data_mapping["submodular_secretary_ht"] = "Submodular Secretary High"
-    data_mapping["submodular_secretary_mht"] = "Submodular Secretary Mid High"
+   # data_mapping["recursive_secretary_lt"] = "Less than"
+   # data_mapping["recursive_secretary_mt"] = "Approx. Equal"
+   # data_mapping["recursive_secretary_ht"] = "Greater Than"
+    #data_mapping["recursive_secretary_mht"] = "Recursive Secretary Mid High"
 
-    data_mapping["fixed_point_lt"] = "Fixed Point Low"
-    data_mapping["fixed_point_mt"] = "Fixed Point Mid"
-    data_mapping["fixed_point_ht"] = "Fixed Point High"
-    data_mapping["fixed_point_mht"] = "Fixed Point Mid High"
+  #  data_mapping["submodular_secretary_lt"] = "Less than"
+  #  data_mapping["submodular_secretary_mt"] = "Approx. Equal"
+  #  data_mapping["submodular_secretary_ht"] = "Greater Than"
+ #   data_mapping["submodular_secretary_mht"] = "Submodular Secretary Mid High"
+
+ #   data_mapping["fixed_point_lt"] = "Fixed Point Low"
+    data_mapping["fixed_point_mt"] = "Fixed Interval"
+ #   data_mapping["fixed_point_ht"] = "Fixed Point High"
+ #   data_mapping["fixed_point_mht"] = "Fixed Point Mid High"
 
 
-    #plot_static_submodular_secretary_visualization(fig, os.path.join(bag_file_directory_large, filenames["submodular_secretary_mt"][0]))
-    fig = plot_animated_submodular_secretary_visualization(os.path.join(bag_file_directory_large, filenames["submodular_secretary_mt"][0]))
+    fixed_path_filenames = {}
+
+    fixed_path_filenames["recursive_secretary"] = ["recursive_secretary_1_start_1.p", "recursive_secretary_1_start_2.p","recursive_secretary_2_start_1.p", "recursive_secretary_2_start_2.p", "recursive_secretary_3_start_1.p", "recursive_secretary_3_start_2.p", "recursive_secretary_4_start_1.p", "recursive_secretary_4_start_2.p"]
+    fixed_path_filenames["submodular_secretary"] = ["submodular_secretary_1_start_1.p", "submodular_secretary_1_start_2.p","submodular_secretary_2_start_1.p", "submodular_secretary_2_start_2.p", "submodular_secretary_3_start_1.p", "submodular_secretary_3_start_2.p", "submodular_secretary_4_start_1.p", "submodular_secretary_4_start_2.p"]
+    fixed_path_filenames["fixed_point"] = ["fixed_point_1_start_1.p", "fixed_point_1_start_2.p","fixed_point_2_start_1.p", "fixed_point_2_start_2.p", "fixed_point_3_start_1.p", "fixed_point_3_start_2.p", "fixed_point_4_start_1.p", "fixed_point_4_start_2.p"]
+
+    fixed_data_mapping = {}
+    fixed_data_mapping["fixed_point"] = "Fixed Interval"
+    fixed_data_mapping["recursive_secretary"] = "Recursive Secretary"
+    fixed_data_mapping["submodular_secretary"] = "Submodular Secretary"
+
+
+    fig = go.Figure()
+
+
+    #plot_static_submodular_secretary_visualization(fig, os.path.join(bag_file_directory_large, filenames["submodular_secretary_mt"][0]), filter_after_threshold=None)
+    #fig = plot_animated_submodular_secretary_visualization(os.path.join(bag_file_directory_large, filenames["submodular_secretary_lt"][1]))
 
     #plot_static_recursive_secretary_visualization(fig, os.path.join(bag_file_directory_small, filenames["recursive_secretary_mt"][0]))
-#    fig = plot_animated_recursive_secretary_visualization(os.path.join(bag_file_directory_small, filenames["recursive_secretary_mt"][0]))
+    #fig = plot_animated_recursive_secretary_visualization(os.path.join(bag_file_directory_small, filenames["recursive_secretary_mt"][0]))
+    
+    #plot_y_per_method(fig, bag_file_directory_small, filenames, get_data, data_mapping, data_func_input=["/v1/sample/take_sample", "data"], y_axis_label="Measurment Value", box_plot=True, box_plot_order=["Fixed Interval", "Less than","Approx. Equal","Greater Than"])
 
-    #plot_y_per_method(fig, bag_file_directory_small, filenames, get_data, data_mapping, data_func_input=["/v1/sample/take_sample", "data"], y_axis_label="Measurment Value")
+   # plot_y_per_method(fig, bag_file_directory_fixed, fixed_path_filenames, get_data, fixed_data_mapping, data_func_input=["/v1/sample/take_sample", "data"], y_axis_label="Measurment Value", box_plot=True, box_plot_order=["Fixed Interval", "Submodular Secretary", "Recursive Secretary"])
+    #plot_y_per_method(fig, bag_file_directory_small, filenames, get_data, data_mapping, data_func_input=["/v1/sample/take_sample", "data"], y_axis_label="Measurment Value", box_plot=True, box_plot_order=["Fixed Interval", "Revisit On Complete","Revisit On Maxima","Submodular Secretary","Recursive Secretary w/o Initial Survey","Recursive Secretary w/ Initial Survey"])
    # plot_y_per_method(fig, bag_file_directory, filenames, get_processed_times, data_mapping, data_func_input=["/v1/sample/take_sample", "time"], y_axis_label="Time (Days)")
-   # plot_y_per_method(fig, bag_file_directory, filenames, get_data_percentile, data_mapping, data_func_input=(("/v1/sample/take_sample", "data"), 
-   #                                                                                                         ("/v1/data_broadcaster/data", "dye"), 
-   #                                                                                                         ("/v1/data_broadcaster/data", "time")), y_axis_label="Measurment Percentile", range=(-5,105))
+    plot_y_per_method(fig, bag_file_directory_small, filenames, get_data_percentile, data_mapping, data_func_input=(("/v1/sample/take_sample", "data"), 
+                                                                                                                    ("/v1/data_broadcaster/data", "dye"), 
+                                                                                                                    ("/v1/data_broadcaster/data", "time"),
+                                                                                                                    False), y_axis_label="Measurment Percentile", range=(-5,105), box_plot=True,box_plot_order=["Fixed Interval", "Revisit On Complete","Revisit On Maxima","Submodular Secretary","Recursive Secretary w/o Initial Survey","Recursive Secretary w/ Initial Survey"])
 
     #data_color_mapping = {}
     #data_color_mapping["revisit_on_complete"] = ("Revisit On Complete", "red")
