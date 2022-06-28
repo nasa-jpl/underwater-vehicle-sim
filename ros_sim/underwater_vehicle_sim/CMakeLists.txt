@@ -19,7 +19,7 @@ find_package(catkin REQUIRED COMPONENTS
   tf2_geometry_msgs
 )
 
-find_library(UNDERWATER_AUTONOMY_LIB underwater_autonomy)
+find_library(UNDERWATER_AUTONOMY_COMMON_LIB underwater_autonomy_common)
 find_path(UNDERWATER_AUTONOMY_INCLUDE underwater_autonomy)
 
 find_package(OceanModelInterfaces REQUIRED)
@@ -147,7 +147,7 @@ catkin_package(
 
  target_include_directories(underwater_vehicles PUBLIC ${UNDERWATER_AUTONOMY_INCLUDE})
  target_link_libraries(underwater_vehicles 
-    ${UNDERWATER_AUTONOMY_LIB} 
+    ${UNDERWATER_AUTONOMY_COMMON_LIB} 
     OceanModelInterfaces::ocean_model_interfaces
     ${catkin_LIBRARIES})
 
@@ -178,7 +178,7 @@ catkin_package(
  
  target_link_libraries(${PROJECT_NAME}_node
    underwater_vehicles
-   ${UNDERWATER_AUTONOMY_LIB} 
+   ${UNDERWATER_AUTONOMY_COMMON_LIB} 
    OceanModelInterfaces::ocean_model_interfaces
    ${catkin_LIBRARIES}
  )

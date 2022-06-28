@@ -24,7 +24,7 @@ find_package(catkin REQUIRED
 find_package (Eigen3 3.3 REQUIRED NO_MODULE)
 
 find_library(ALG_LIB alg_lib)
-find_library(UNDERWATER_AUTONOMY_LIB underwater_autonomy)
+find_library(UNDERWATER_AUTONOMY_COMMON_LIB underwater_autonomy_common)
 find_path(UNDERWATER_AUTONOMY_INCLUDE underwater_autonomy)
 find_library(VENT_PLANNER_LIB vent_behaviors)
 find_path(VENT_PLANNER_INCLUDE vent_behaviors)
@@ -32,6 +32,7 @@ find_library(NAVIGATION_PLANNER_LIB navigation_behaviors)
 find_path(NAVIGATION_PLANNER_INCLUDE navigation_behaviors)
 find_library(EXPLORE_PLANNER_LIB explore_behaviors)
 find_path(EXPLORE_PLANNER_INCLUDE explore_behaviors)
+find_library(UNDERWATER_AUTONOMY_NAVIGATION_LIB underwater_autonomy_navigation)
 
 find_package (Eigen3 3.3 REQUIRED NO_MODULE)
 
@@ -162,7 +163,8 @@ add_library(${PROJECT_NAME}
    ${NAVIGATION_PLANNER_LIB}
    ${VENT_PLANNER_LIB}
    ${EXPLORE_PLANNER_LIB}
-   ${UNDERWATER_AUTONOMY_LIB}
+   ${UNDERWATER_AUTONOMY_NAVIGATION_LIB}
+   ${UNDERWATER_AUTONOMY_COMMON_LIB}
    ${catkin_LIBRARIES}
  )
 
@@ -173,14 +175,15 @@ add_library(${PROJECT_NAME}
  target_include_directories(ros_sim_behavior_server_node PRIVATE 
   ${NAVIGATION_PLANNER_INCLUDE} 
   ${VENT_PLANNER_INCLUDE}
-  ${EXPLORE_PLANNER_INCLUDE} 
+  ${EXPLORE_PLANNER_INCLUDE}
   ${UNDERWATER_AUTONOMY_INCLUDE})
  target_link_libraries(ros_sim_behavior_server_node
    ros_sim_autonomy_interface
    ${NAVIGATION_PLANNER_LIB}
    ${VENT_PLANNER_LIB}
    ${EXPLORE_PLANNER_LIB}
-   ${UNDERWATER_AUTONOMY_LIB}
+   ${UNDERWATER_AUTONOMY_NAVIGATION_LIB}
+   ${UNDERWATER_AUTONOMY_COMMON_LIB}
    ${ALG_LIB}
    ${catkin_LIBRARIES}
  )
@@ -201,7 +204,7 @@ add_library(${PROJECT_NAME}
  target_link_libraries(ros_sim_dr_navigation_node
    ros_sim_autonomy_interface
    underwater_vehicle_msgs
-   ${UNDERWATER_AUTONOMY_LIB}
+   ${UNDERWATER_AUTONOMY_COMMON_LIB}
    ${catkin_LIBRARIES}
  )
 
@@ -212,7 +215,7 @@ add_library(${PROJECT_NAME}
  target_link_libraries(ros_sim_sb_navigation_node
    ros_sim_autonomy_interface
    underwater_vehicle_msgs
-   ${UNDERWATER_AUTONOMY_LIB}
+   ${UNDERWATER_AUTONOMY_COMMON_LIB}
    ${ALG_LIB}
    ${catkin_LIBRARIES}
  )

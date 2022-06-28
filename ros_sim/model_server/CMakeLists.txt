@@ -14,7 +14,7 @@ find_package(catkin REQUIRED COMPONENTS
   message_generation
 )
 
-find_library(UNDERWATER_AUTONOMY_LIB underwater_autonomy)
+find_library(UNDERWATER_AUTONOMY_COMMON_LIB underwater_autonomy_common)
 find_path(UNDERWATER_AUTONOMY_INCLUDE underwater_autonomy)
 
 find_package(OceanModelInterfaces REQUIRED)
@@ -147,7 +147,7 @@ include_directories(
  target_include_directories(${PROJECT_NAME}_node PRIVATE ${UNDERWATER_AUTONOMY_INCLUDE})
  target_link_libraries(${PROJECT_NAME}_node
    OceanModelInterfaces::ocean_model_interfaces
-   ${UNDERWATER_AUTONOMY_LIB}
+   ${UNDERWATER_AUTONOMY_COMMON_LIB}
    ${catkin_LIBRARIES}
  )
 
