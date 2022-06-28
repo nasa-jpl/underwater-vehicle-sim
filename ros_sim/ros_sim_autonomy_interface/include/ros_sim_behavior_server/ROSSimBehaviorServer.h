@@ -3,8 +3,8 @@
 
 #include "ros_sim_autonomy_interface/ROSSimVehicleInterface.h"
 
-#include "underwater_autonomy/planner/Behavior.h"
-#include "underwater_autonomy/planner/BehaviorController.h"
+#include "underwater_autonomy/behaviors/Behavior.h"
+#include "underwater_autonomy/behaviors/BehaviorController.h"
 
 #include "ros/ros.h"
 

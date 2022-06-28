@@ -11,10 +11,10 @@
 
 #include "underwater_vehicle_msgs/PropulsionControllerState.h"
 
-#include "underwater_autonomy/planner/commands/Command.h"
+#include "underwater_autonomy/behaviors/commands/Command.h"
 
 #include "ros_sim_behavior_server/command_executors/CircleSimCommandExecutor.h"
-#include "underwater_autonomy/planner/commands/CircleCommand.h"
+#include "underwater_autonomy/behaviors/commands/CircleCommand.h"
 
 using namespace underwater_autonomy;
 

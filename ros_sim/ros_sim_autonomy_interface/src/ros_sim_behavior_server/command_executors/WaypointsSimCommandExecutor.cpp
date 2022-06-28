@@ -11,10 +11,10 @@
 
 #include "underwater_vehicle_msgs/PropulsionControllerState.h"
 
-#include "underwater_autonomy/planner/commands/Command.h"
+#include "underwater_autonomy/behaviors/commands/Command.h"
 
 #include "ros_sim_behavior_server/command_executors/WaypointsSimCommandExecutor.h"
-#include "underwater_autonomy/planner/commands/WaypointsCommand.h"
+#include "underwater_autonomy/behaviors/commands/WaypointsCommand.h"
 
 using namespace underwater_autonomy;
 

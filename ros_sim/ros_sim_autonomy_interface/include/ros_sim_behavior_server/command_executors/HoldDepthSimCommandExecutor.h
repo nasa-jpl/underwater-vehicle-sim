@@ -15,8 +15,8 @@
 #include "underwater_vehicle_msgs/PropulsionControllerState.h"
 #include "underwater_vehicle_msgs/VehicleInfo.h"
 
-#include "underwater_autonomy/planner/CommandExecutor.h"
-#include "underwater_autonomy/planner/commands/HoldDepthCommand.h"
+#include "underwater_autonomy/behaviors/CommandExecutor.h"
+#include "underwater_autonomy/behaviors/commands/HoldDepthCommand.h"
 #include "underwater_autonomy/util/VehiclePose.h"
 
 #include "ros_sim_behavior_server/command_executors/SimCommandExecutorFactoryMethod.h"

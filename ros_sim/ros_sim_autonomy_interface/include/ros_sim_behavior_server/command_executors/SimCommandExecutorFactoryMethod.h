@@ -5,7 +5,7 @@
 #include <memory>
 #include <functional>
 
-#include "underwater_autonomy/planner/CommandExecutor.h"
+#include "underwater_autonomy/behaviors/CommandExecutor.h"
 
 template <class T1, class T2>
 class SimCommandExecutorFactoryMethod
