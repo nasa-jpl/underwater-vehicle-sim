@@ -13,8 +13,8 @@
 
 #include "underwater_vehicle_msgs/PropulsionControllerState.h"
 
-#include "underwater_autonomy/planner/commands/Command.h"
-#include "underwater_autonomy/planner/commands/YoYoCommand.h"
+#include "underwater_autonomy/behaviors/commands/Command.h"
+#include "underwater_autonomy/behaviors/commands/YoYoCommand.h"
 
 using namespace underwater_autonomy;
 

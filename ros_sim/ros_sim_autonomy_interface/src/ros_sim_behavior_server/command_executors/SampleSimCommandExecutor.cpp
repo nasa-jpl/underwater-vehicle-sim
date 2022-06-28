@@ -8,7 +8,7 @@
 
 #include "std_msgs/String.h"
 
-#include "underwater_autonomy/planner/commands/SampleCommand.h"
+#include "underwater_autonomy/behaviors/commands/SampleCommand.h"
 
 using namespace underwater_autonomy;
 

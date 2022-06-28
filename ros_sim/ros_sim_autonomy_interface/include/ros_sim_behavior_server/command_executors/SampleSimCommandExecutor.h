@@ -6,9 +6,9 @@
 
 #include "ros/ros.h"
 
-#include "underwater_autonomy/planner/CommandExecutor.h"
+#include "underwater_autonomy/behaviors/CommandExecutor.h"
 #include "underwater_autonomy/util/VehiclePose.h"
-#include "underwater_autonomy/planner/commands/SampleCommand.h"
+#include "underwater_autonomy/behaviors/commands/SampleCommand.h"
 
 #include "underwater_vehicle_msgs/VehicleInfo.h"
 #include "underwater_vehicle_msgs/RequestSample.h"

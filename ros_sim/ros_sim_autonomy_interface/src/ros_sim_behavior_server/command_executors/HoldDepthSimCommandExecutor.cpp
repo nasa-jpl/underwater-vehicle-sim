@@ -13,9 +13,9 @@
 #include "tf2_geometry_msgs/tf2_geometry_msgs.h"
 #include "underwater_vehicle_msgs/PropulsionControllerState.h"
 
-#include "underwater_autonomy/planner/commands/Command.h"
+#include "underwater_autonomy/behaviors/commands/Command.h"
 
-#include "underwater_autonomy/planner/commands/HoldDepthCommand.h"
+#include "underwater_autonomy/behaviors/commands/HoldDepthCommand.h"
 
 using namespace underwater_autonomy;
 

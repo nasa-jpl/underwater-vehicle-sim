@@ -2,12 +2,12 @@
 
 #include "std_msgs/String.h"
 
-#include "underwater_autonomy/planner/Behavior.h"
+#include "underwater_autonomy/behaviors/Behavior.h"
 #include "underwater_autonomy/util/BoxOperationRegion.h"
-#include "underwater_autonomy/planner/SingleCommandBehavior.h"
+#include "underwater_autonomy/behaviors/SingleCommandBehavior.h"
 #include "underwater_autonomy/util/ConfigurationFile.h"
-#include "underwater_autonomy/planner/BehaviorFactory.h"
-#include "underwater_autonomy/planner/WaypointsBehavior.h"
+#include "underwater_autonomy/behaviors/BehaviorFactory.h"
+#include "underwater_autonomy/behaviors/WaypointsBehavior.h"
 
 #include "ros_sim_behavior_server/ROSSimBehaviorServer.h"
 #include "ros_sim_autonomy_interface/ROSSimVehicleInterface.h"

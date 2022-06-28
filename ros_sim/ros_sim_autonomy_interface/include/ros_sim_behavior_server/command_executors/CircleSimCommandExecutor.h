@@ -13,9 +13,9 @@
 #include "underwater_vehicle_msgs/PropulsionControllerState.h"
 #include "std_msgs/Bool.h"
 
-#include "underwater_autonomy/planner/CommandExecutor.h"
+#include "underwater_autonomy/behaviors/CommandExecutor.h"
 #include "underwater_autonomy/util/VehiclePose.h"
-#include "underwater_autonomy/planner/commands/CircleCommand.h"
+#include "underwater_autonomy/behaviors/commands/CircleCommand.h"
 
 #include "underwater_vehicle_msgs/VehicleInfo.h"
 

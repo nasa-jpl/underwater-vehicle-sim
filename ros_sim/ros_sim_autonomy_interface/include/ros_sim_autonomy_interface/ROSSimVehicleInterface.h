@@ -3,7 +3,7 @@
 
 #include "ros/ros.h"
 
-#include "underwater_autonomy/planner/VehicleInterface.h"
+#include "underwater_autonomy/behaviors/VehicleInterface.h"
 #include "underwater_autonomy/util/LogData.h"
 
 #include "underwater_vehicle_msgs/VehicleInfo.h"

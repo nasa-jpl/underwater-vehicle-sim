@@ -12,8 +12,8 @@
 #include "nav_msgs/Odometry.h"
 #include "std_msgs/Bool.h"
 
-#include "underwater_autonomy/planner/CommandExecutor.h"
-#include "underwater_autonomy/planner/commands/FollowHeadingCommand.h"
+#include "underwater_autonomy/behaviors/CommandExecutor.h"
+#include "underwater_autonomy/behaviors/commands/FollowHeadingCommand.h"
 
 #include "underwater_vehicle_msgs/VehicleInfo.h"
 
