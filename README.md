@@ -1,4 +1,4 @@
-# pstar-oceanworlds
+# ROS Underwater Simulation
 Extraterrestrial hydrothermal vent search
 
 ## Build
