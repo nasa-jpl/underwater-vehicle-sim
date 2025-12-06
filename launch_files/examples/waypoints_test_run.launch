@@ -1,6 +1,8 @@
 <launch>
     <remap from="primary_navigation" to="true_nav/pose" />
 
+    <arg name="record_rosbag" default="true" />
+
     <!--Simulation-->
     <node pkg="underwater_vehicle_sim" type="underwater_vehicle_sim_node" name="vehicle_sim" ns="v1" output="screen">
         <rosparam param="sim_hertz">10</rosparam>
@@ -73,7 +75,7 @@
 
 
     <!--Autonomy-->
-    <node pkg="ros_sim_autonomy_interface" type="ros_sim_behavior_server_node" name="ros_sim_behavior_server" ns="v1" output="screen">
+    <node pkg="ros_sim_autonomy_interface" type="ros_sim_behavior_server_node" name="ros_sim_behavior_server" ns="v1" output="log">
         <param name="planner_config_file" value="$(dirname)/planner_parameters/waypoints_test.toml"/>
 
         <rosparam param="fail_time">5011200</rosparam>
@@ -85,14 +87,23 @@
     <rosparam param="speed_up_factor">100</rosparam>
     <rosparam param="sim_start_time">2592000</rosparam>
 
-<!--
-    <rosparam param="model_type">constant</rosparam>
-    <rosparam param="model/depth">200</rosparam>
--->
 
+    <rosparam param="model_type">linear</rosparam>
+    <rosparam param="model/zeroDistance">3000</rosparam>
+    <rosparam param="model/temp">10</rosparam>
+    <rosparam param="model/dye">5</rosparam>
+
+
+<!--
     <rosparam param="model_type">fvcom</rosparam>
     <rosparam param="model/fvcom_directory" subst_value="True">/home/dev/proj/axial/</rosparam>
+-->
 
     <node pkg="tf2_ros" type="static_transform_publisher" name="ned_publisher" args="0 0 0 1.57079632679 0 3.14159265359 world world_ned"/>
     <node pkg="underwater_vehicle_sim" type="clock_server_node" name="clock_server" output="screen"/>
+
+     <node pkg="rosbag" type="record" name="rosbag_record"
+       args='record -o /ocean_worlds/docker_data/waypoints -e "/v1/(.*)" /rosout'
+       if="$(arg record_rosbag)" />   
+
 </launch>
