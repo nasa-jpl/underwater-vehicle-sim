@@ -54,6 +54,7 @@ int main(int argc, char **argv)
     ros::NodeHandle nh;
     ros::NodeHandle nhPriv("~");
 
+
     float loopHertz;
     if(!nhPriv.getParam("hertz", loopHertz))
     {
@@ -83,7 +84,6 @@ int main(int argc, char **argv)
     CircleCommand::setExecutorCreateFunction(std::bind(&CircleSimCommandExecutor::create, std::placeholders::_1, nh, info));
     SampleCommand::setExecutorCreateFunction(std::bind(&SampleSimCommandExecutor::create, std::placeholders::_1, nh, info));
 
-
     std::string configFilename;
     nhPriv.getParam("planner_config_file", configFilename);
     ConfigurationFile config(configFilename);
@@ -98,7 +98,6 @@ int main(int argc, char **argv)
     BehaviorFactory::registerBehavior("OutAndBackExplore", &OutAndBackExploreBehavior::create);
     BehaviorFactory::registerBehavior("InWaterTest", &InWaterTestBehavior::create);
     BehaviorFactory::registerBehavior("FixedPathSampler", &FixedPathSamplerBehavior::create);
-
 
     std::string plannerType = config.readSimpleEntry<std::string>("planner_type");
     std::unique_ptr<Behavior> behavior = BehaviorFactory::create(plannerType, interface, config);
