@@ -76,7 +76,7 @@ def dye_plot(fvcomData, plotType, siglays, minColor=-1, maxColor=-1):
             z.append(d[2][siglay])
             depth.append(d[3])
 
-            if(d[4][siglay] >= 0125):
+            if(d[4][siglay] >= 0):
                 dye.append(d[4][siglay])
             else:
                 dye.append(0)
