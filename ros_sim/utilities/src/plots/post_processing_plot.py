@@ -107,7 +107,7 @@ def plot_data(bag, vehicle_namespace, measurment_type="dye", data_step=1, fig_3d
                 size=10,
                 color='red',
                 opacity=0.8
-            )))
+            )))        
 
     if fig_2d is not None:
         fig_2d.add_trace(go.Scatter(x=x, y=y, mode='markers',
@@ -124,6 +124,9 @@ def plot_data(bag, vehicle_namespace, measurment_type="dye", data_step=1, fig_3d
                 color='red',
                 opacity=0.8
             )))
+        
+        fig_2d.update_layout(yaxis=dict(scaleanchor='x', scaleratio=1)) # Makes 1 data unit on y equal to 1 data unit on x
+
 
     if fig_depth is not None:
         fig_depth.add_trace(go.Scatter(x=data_time, y=z, mode='markers',

@@ -6,10 +6,10 @@
     <!--Simulation-->
     <node pkg="underwater_vehicle_sim" type="underwater_vehicle_sim_node" name="vehicle_sim" ns="v1" output="screen">
         <rosparam param="sim_hertz">10</rosparam>
-        <rosparam param="start_x">0</rosparam>
-        <rosparam param="start_y">0</rosparam>
+        <rosparam param="start_x">-2000</rosparam>
+        <rosparam param="start_y">2000</rosparam>
 
-        <rosparam param="start_z">0</rosparam>
+        <rosparam param="start_z">600</rosparam>
         <rosparam param="evect_by_currents">false</rosparam>
         <rosparam param="local_model">true</rosparam>
 
@@ -84,14 +84,21 @@
     </node>
 
     <param name="use_sim_time" value="true" />
-    <rosparam param="speed_up_factor">100</rosparam>
-    <rosparam param="sim_start_time">2592000</rosparam>
+    <rosparam param="speed_up_factor">10</rosparam>
+    <rosparam param="sim_start_time">2506505</rosparam>
 
 
+<!--
     <rosparam param="model_type">linear</rosparam>
     <rosparam param="model/zeroDistance">3000</rosparam>
     <rosparam param="model/temp">10</rosparam>
     <rosparam param="model/dye">5</rosparam>
+-->
+
+    <rosparam param="model_type">geodetic_grid</rosparam>
+    <rosparam param="model/directory" subst_value="True">/ocean_models/regularized_vailuluu_plume/</rosparam>
+    <rosparam param="model/lat_origin">-14.215</rosparam>
+    <rosparam param="model/lon_origin">-169.065</rosparam>
 
 
 <!--

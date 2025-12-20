@@ -1,10 +1,10 @@
 planner_type = "Waypoints"
 
-waypoints_x = [1000, 1000, 1000, 1000]
-waypoints_y = [1000, 2000, 2000, 1000]
-waypoints_z = [100, 100, 100, 100]
+waypoints_y = [2000, 4000]
+waypoints_x = [2000, 2000]
+waypoints_z = [600, 600]
 
-yoyo = true
+yoyo = false
 upper_depth = 10
 lower_depth = 200
 
