@@ -13,18 +13,8 @@
 
 using namespace ocean_model_interfaces;
 
-Vehicle::Vehicle()
-{
-	ros::NodeHandle nhPriv("~");
-	nhPriv.getParam("evect_by_currents", evectByCurrents);
-
-	modelClient = nh.serviceClient<model_server::GetModelData>("/get_model_data");
-
-	initalizeVehicleFrame();
-  	
-	initalizePropulsionModule();
-	initalizeGeneralModules();
-}
+Vehicle::Vehicle() :
+	Vehicle(nullptr) {}
 
 Vehicle::Vehicle(std::unique_ptr<ModelInterface> model)	:
 	model(std::move(model))

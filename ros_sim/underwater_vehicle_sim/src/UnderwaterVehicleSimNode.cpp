@@ -5,6 +5,8 @@
 #include "ocean_model_interfaces/general_models/ConstantModel.h"
 #include "ocean_model_interfaces/general_models/OceanFrontModel.h"
 #include "ocean_model_interfaces/fvcom/FVCOM.h"
+#include "ocean_model_interfaces/geodetic_grid/GeodeticGrid.h"
+#include "ocean_model_interfaces/geodetic_grid/GeodeticGridParameters.h"
 
 #include "underwater_autonomy/util/ConfigurationFile.h"
 
@@ -79,6 +81,54 @@ void loadModelLocal(ros::NodeHandle& nhPriv)
             model->setOffsets(offsetX, offsetY, offsetHeight, offsetTime);
 
             ROS_INFO("FVCOM Model Loaded: %s", fvcom_directory.c_str());
+        }
+        else if(model_type == "geodetic_grid") {
+            std::string modelDirectory;
+            double latOrigin;
+            double lonOrigin;
+            if(!nhPriv.getParam("/model/directory", modelDirectory))
+            {
+                ROS_FATAL("Parameter \"/model/directory\" not present in the parameter server.");
+                exit(1);
+            }
+
+            if(!nhPriv.getParam("/model/lat_origin", latOrigin))
+            {
+                ROS_FATAL("Parameter \"/model/lat_origin\" not present in the parameter server.");
+                exit(1);
+            }
+
+            if(!nhPriv.getParam("/model/lon_origin", lonOrigin))
+            {
+                ROS_FATAL("Parameter \"/model/lon_origin\" not present in the parameter server.");
+                exit(1);
+            }
+
+            GeodeticGridParameters parameters;
+            parameters.modelDirectory = modelDirectory;
+            parameters.startLoad = startModelLoad;
+            parameters.endLoad = endModelLoad;
+
+            int timeChunkSize = parameters.timeChunkSize;
+            int depthChunkSize = parameters.depthChunkSize;
+            int latChunkSize = parameters.latChunkSize;
+            int lonChunkSize = parameters.lonChunkSize;
+
+            nhPriv.getParam("/model/time_chunk_size", timeChunkSize);
+            nhPriv.getParam("/model/depth_chunk_size", depthChunkSize);
+            nhPriv.getParam("/model/lat_chunk_size", latChunkSize);
+            nhPriv.getParam("/model/lon_chunk_size", lonChunkSize);
+
+            parameters.timeChunkSize = timeChunkSize;
+            parameters.depthChunkSize = depthChunkSize;
+            parameters.latChunkSize = latChunkSize;
+            parameters.lonChunkSize = lonChunkSize;
+
+            model.reset(new GeodeticGrid(parameters));
+            model->setOffsets(offsetX, offsetY, offsetHeight, offsetTime);
+            model->setOrigin(Point(lonOrigin, latOrigin, 0));
+
+            ROS_INFO("Geodetic Grid Model Loaded: %s", modelDirectory.c_str());
         }
         else if(model_type == "constant")
         {
