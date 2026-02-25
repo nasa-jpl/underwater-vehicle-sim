@@ -1,3 +1,0 @@
-velocity_timeout = 5
-velocity_mode = "best"
-default_linear_velocity_variance = 0.01

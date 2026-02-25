@@ -1,5 +1,0 @@
-velocity_timeout = 5
-default_linear_velocity_sigma = 0.6
-velocity_mode = "best"
-
-use_heading = true
