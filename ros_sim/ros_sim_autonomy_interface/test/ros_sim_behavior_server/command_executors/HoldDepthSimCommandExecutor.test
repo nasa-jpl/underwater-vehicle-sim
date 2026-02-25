@@ -1,5 +1,0 @@
-<launch>
- 
- <test test-name="hold_depth_sim_action_executor_test" pkg="ros_sim_autonomy_interface" type="hold_depth_sim_action_executor_test" ns="v1">
- </test>
-</launch>
