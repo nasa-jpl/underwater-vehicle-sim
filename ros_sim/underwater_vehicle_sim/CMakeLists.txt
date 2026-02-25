@@ -179,6 +179,15 @@ catkin_package(
    ${catkin_LIBRARIES}
  )
 
+  #Create node for publishing the true navigation data that other nodes can use.
+  add_executable(underwater_vehicle_sim_true_navigation_node src/navigation/UnderwaterVehicleSimTrueNavigationNode.cpp)
+  add_dependencies(underwater_vehicle_sim_true_navigation_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+  target_include_directories(underwater_vehicle_sim_true_navigation_node PRIVATE ${EIGEN3_INCLUDE_DIR})
+  target_link_libraries(underwater_vehicle_sim_true_navigation_node
+    underwater_vehicle_msgs
+    ${catkin_LIBRARIES}
+  )
+
 #############
 ## Install ##
 #############

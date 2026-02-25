@@ -83,7 +83,6 @@ def plot_data(bag, vehicle_namespace, measurment_type="dye", data_step=1, fig_3d
         sample_y = []
         sample_z = []
 
-
     #Convert times to hours after filtering
     data_time = [(t - start_time)/3600 for t in data_time]
     sample_time = [(t - start_time)/3600 for t in sample_time]
@@ -176,7 +175,7 @@ def main(args):
         fig_histogram = go.Figure()
         fig_data = go.Figure()
 
-        start_time, end_time = plot_data(file_data, args.vehicle_namespace, data_step=50, fig_3d=fig_3d, fig_2d=fig_2d, fig_depth=fig_depth, fig_data=fig_data, log_data=True, plot_threshold=0)
+        start_time, end_time = plot_data(file_data, args.vehicle_namespace, data_step=10, fig_3d=fig_3d, fig_2d=fig_2d, fig_depth=fig_depth, fig_data=fig_data, log_data=True, plot_threshold=0)
 
         external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
         app = dash.Dash(external_stylesheets=external_stylesheets)
