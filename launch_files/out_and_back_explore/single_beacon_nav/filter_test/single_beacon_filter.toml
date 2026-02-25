@@ -1,6 +1,0 @@
-opt_range_count = 20
-velocity_timeout = 5
-velocity_mode = "prop"
-initial_pos_variance = 1
-initial_heading_variance = 0.007
-default_linear_velocity_variance = 0.04
