@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(utilities)
+project(ros_underwater_sim_utilities)
+
+add_definitions(-DEIGEN_DONT_VECTORIZE -DEIGEN_DISABLE_UNALIGNED_ARRAY_ASSERT)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
 # add_compile_options(-std=c++11)
@@ -15,6 +17,7 @@ find_package(catkin REQUIRED
             underwater_vehicle_msgs
 )
 
+find_package (Eigen3 3.3 REQUIRED NO_MODULE)
 find_package(OceanModelInterfaces REQUIRED)
 
 ## System dependencies are found with CMake's conventions
@@ -107,8 +110,8 @@ find_package(OceanModelInterfaces REQUIRED)
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-#  INCLUDE_DIRS include
-#  LIBRARIES utilities
+  INCLUDE_DIRS include
+#  LIBRARIES ros_underwater_sim_utilities
 #  CATKIN_DEPENDS other_catkin_pkg
 #  DEPENDS system_lib
 )
@@ -125,9 +128,13 @@ include_directories(
 )
 
 ## Declare a C++ library
-# add_library(${PROJECT_NAME}
-#   src/${PROJECT_NAME}/utilities.cpp
-# )
+ add_library(${PROJECT_NAME}
+   src/${PROJECT_NAME}/LinearPiecewise.cpp
+   src/${PROJECT_NAME}/VehiclePose.cpp
+
+ )
+
+target_include_directories(${PROJECT_NAME} PUBLIC ${EIGEN3_INCLUDE_DIR})
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
@@ -137,7 +144,7 @@ include_directories(
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
-add_executable(model_fetcher src/misc/model_data_fetcher.cpp)
+add_executable(model_fetcher src/scripts/misc/model_data_fetcher.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -204,10 +211,10 @@ target_link_libraries(model_fetcher
 #############
 
 ## Add gtest based cpp test target and link libraries
-# catkin_add_gtest(${PROJECT_NAME}-test test/test_utilities.cpp)
-# if(TARGET ${PROJECT_NAME}-test)
-#   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
-# endif()
+ catkin_add_gtest(linear_piecewise_test test/LinearPiecewise_test.cpp)
+ if(TARGET linear_piecewise_test)
+   target_link_libraries(linear_piecewise_test ${PROJECT_NAME})
+ endif()
 
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)

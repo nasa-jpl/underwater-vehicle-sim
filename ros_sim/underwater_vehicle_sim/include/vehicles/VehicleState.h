@@ -10,7 +10,6 @@
 #include "tf2/LinearMath/Vector3.h"
 #include "tf2/LinearMath/Transform.h"
 
-#include "model_server/GetModelData.h"
 #include "ocean_model_interfaces/model_interface/ModelData.h"
 
 /**

@@ -5,21 +5,19 @@
 #include "propulsion_controller/FourDOFPropulsionLogic.h"
 #include "propulsion_controller/FourDOFPropulsionPIDLogic.h"
 
-#include "underwater_autonomy/util/LinearPiecewise.h"
+#include "ros_underwater_sim_utilities/LinearPiecewise.h"
 
 #include "underwater_vehicle_msgs/FloatMeasurement.h"
 
-using namespace underwater_autonomy;
-
-underwater_autonomy::LinearPiecewise forwardThruster;
-underwater_autonomy::LinearPiecewise verticalThruster;
+LinearPiecewise forwardThruster;
+LinearPiecewise verticalThruster;
 
 ros::Publisher forwardVelocityPub;
 ros::Publisher verticalVelocityPub;
 
 double thrusterStdDev;
 
-underwater_autonomy::LinearPiecewise loadForwardThruster() {
+LinearPiecewise loadForwardThruster() {
     ros::NodeHandle nhPriv("~");
 
     if(nhPriv.hasParam("forward_thruster_thrust") && 
@@ -39,12 +37,12 @@ underwater_autonomy::LinearPiecewise loadForwardThruster() {
             }
             else
             {
-                std::vector<underwater_autonomy::LinearPiecewise::Point> points;
+                std::vector<LinearPiecewise::Point> points;
                 for(unsigned int i = 0; i < thrust.size(); i++)
                 {
                     points.push_back({velocity[i], thrust[i]});
                 }
-                return underwater_autonomy::LinearPiecewise(points);
+                return LinearPiecewise(points);
             }
         }
         else
@@ -59,10 +57,10 @@ underwater_autonomy::LinearPiecewise loadForwardThruster() {
         exit(1);
     }
 
-    return underwater_autonomy::LinearPiecewise();
+    return LinearPiecewise();
 }
 
-underwater_autonomy::LinearPiecewise loadVerticalThruster() {
+LinearPiecewise loadVerticalThruster() {
     ros::NodeHandle nhPriv("~");
 
     if(nhPriv.hasParam("vertical_thruster_thrust") && 
@@ -82,12 +80,12 @@ underwater_autonomy::LinearPiecewise loadVerticalThruster() {
             }
             else
             {
-                std::vector<underwater_autonomy::LinearPiecewise::Point> points;
+                std::vector<LinearPiecewise::Point> points;
                 for(unsigned int i = 0; i < thrust.size(); i++)
                 {
                     points.push_back({velocity[i], thrust[i]});
                 }
-                return underwater_autonomy::LinearPiecewise(points);
+                return LinearPiecewise(points);
             }
         }
         else
@@ -102,10 +100,10 @@ underwater_autonomy::LinearPiecewise loadVerticalThruster() {
         exit(1);
     }
 
-    return underwater_autonomy::LinearPiecewise();
+    return LinearPiecewise();
 }
 
-underwater_autonomy::LinearPiecewise loadRudder() {
+LinearPiecewise loadRudder() {
     ros::NodeHandle nhPriv("~");
 
     if(nhPriv.hasParam("rudder_angle") && 
@@ -125,12 +123,12 @@ underwater_autonomy::LinearPiecewise loadRudder() {
             }
             else
             {
-                std::vector<underwater_autonomy::LinearPiecewise::Point> points;
+                std::vector<LinearPiecewise::Point> points;
                 for(unsigned int i = 0; i < angle.size(); i++)
                 {
                     points.push_back({velocity[i], angle[i]});
                 }
-                return underwater_autonomy::LinearPiecewise(points);
+                return LinearPiecewise(points);
             }
         }
         else
@@ -145,7 +143,7 @@ underwater_autonomy::LinearPiecewise loadRudder() {
         exit(1);
     }
 
-    return underwater_autonomy::LinearPiecewise();
+    return LinearPiecewise();
 }
 
 /**
@@ -221,7 +219,7 @@ int main(int argc, char **argv)
     {
         forwardThruster = loadForwardThruster();
         verticalThruster = loadVerticalThruster();
-        underwater_autonomy::LinearPiecewise rudder = loadRudder();
+        LinearPiecewise rudder = loadRudder();
 
         std::unique_ptr<PropulsionLogicInterface> logic(new FourDOFPropulsionLogic(vehicleInfo, 
                                                                                    forwardThruster, 

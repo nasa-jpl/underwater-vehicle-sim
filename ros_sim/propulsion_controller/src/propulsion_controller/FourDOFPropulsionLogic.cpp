@@ -13,12 +13,10 @@
 #include "std_msgs/Float64.h"
 #include "std_msgs/Bool.h"
 
-using namespace underwater_autonomy;
-
 FourDOFPropulsionLogic::FourDOFPropulsionLogic(VehicleInfo& vehicleInfo,
-                                               underwater_autonomy::LinearPiecewise forwardThruster,
-                                               underwater_autonomy::LinearPiecewise verticalThruster,
-                                               underwater_autonomy::LinearPiecewise rudder) :
+                                               LinearPiecewise forwardThruster,
+                                               LinearPiecewise verticalThruster,
+                                               LinearPiecewise rudder) :
     PropulsionLogicInterface(vehicleInfo),
     forwardThruster(forwardThruster),
     verticalThruster(verticalThruster),
@@ -68,7 +66,7 @@ void FourDOFPropulsionLogic::goToXY(VehiclePose& pose)
     }
 }
 
-void FourDOFPropulsionLogic::followHeading(underwater_autonomy::VehiclePose& pose)
+void FourDOFPropulsionLogic::followHeading(VehiclePose& pose)
 {
     double currentForwardVelocity = pose.getLinearVelocity()[0];
     double currentAngle = pose.getOrientation().toRotationMatrix().eulerAngles(0, 1, 2)[2];
@@ -113,7 +111,7 @@ void FourDOFPropulsionLogic::goToZ(VehiclePose& pose)
     }
 }
 
-void FourDOFPropulsionLogic::avoidSeafloor(underwater_autonomy::VehiclePose& pose)
+void FourDOFPropulsionLogic::avoidSeafloor(VehiclePose& pose)
 {
     if(minSeafloorDistance > latestSonarDepth)
     {
@@ -152,13 +150,13 @@ void FourDOFPropulsionLogic::stopZ(void)
     verticalThrustPub.publish(data);
 }
 
-bool FourDOFPropulsionLogic::isAtXY(underwater_autonomy::VehiclePose& pose)
+bool FourDOFPropulsionLogic::isAtXY(VehiclePose& pose)
 {
     tf2::Vector3 point(targetX - pose.getPosition()[0], targetY - pose.getPosition()[1], 0);
     return abs(point.length()) <= lateralError;
 }
 
-bool FourDOFPropulsionLogic::isAtZ(underwater_autonomy::VehiclePose& pose)
+bool FourDOFPropulsionLogic::isAtZ(VehiclePose& pose)
 {
     double targetVertPosition = std::min(targetZ, (pose.getPosition()[2] + latestSonarDepth) - minSeafloorDistance);
     tf2::Vector3 point(0, 0, targetVertPosition - pose.getPosition()[2]);

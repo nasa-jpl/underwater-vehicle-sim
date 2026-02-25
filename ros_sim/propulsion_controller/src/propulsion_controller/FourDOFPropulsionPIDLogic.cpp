@@ -13,8 +13,6 @@
 #include "std_msgs/Float64.h"
 #include "std_msgs/Bool.h"
 
-using namespace underwater_autonomy;
-
 FourDOFPropulsionPIDLogic::FourDOFPropulsionPIDLogic(VehicleInfo& vehicleInfo) :
     PropulsionLogicInterface(vehicleInfo),
     lateralError(25.0),
@@ -116,7 +114,7 @@ void FourDOFPropulsionPIDLogic::goToXY(VehiclePose& pose)
     }
 }
 
-void FourDOFPropulsionPIDLogic::followHeading(underwater_autonomy::VehiclePose& pose)
+void FourDOFPropulsionPIDLogic::followHeading(VehiclePose& pose)
 {
     if(!xyEnabled)
     {
@@ -192,7 +190,7 @@ void FourDOFPropulsionPIDLogic::goToZ(VehiclePose& pose)
     }
 }
 
-void FourDOFPropulsionPIDLogic::avoidSeafloor(underwater_autonomy::VehiclePose& pose)
+void FourDOFPropulsionPIDLogic::avoidSeafloor(VehiclePose& pose)
 {
     if(minSeafloorDistance > latestSonarDepth)
     {
@@ -258,13 +256,13 @@ void FourDOFPropulsionPIDLogic::stopZ(void)
     verticalThrustPub.publish(msg);
 }
 
-bool FourDOFPropulsionPIDLogic::isAtXY(underwater_autonomy::VehiclePose& pose)
+bool FourDOFPropulsionPIDLogic::isAtXY(VehiclePose& pose)
 {
     tf2::Vector3 point(targetX - pose.getPosition()[0], targetY - pose.getPosition()[1], 0);
     return abs(point.length()) <= lateralError;
 }
 
-bool FourDOFPropulsionPIDLogic::isAtZ(underwater_autonomy::VehiclePose& pose)
+bool FourDOFPropulsionPIDLogic::isAtZ(VehiclePose& pose)
 {
     double targetVertPosition = std::min(targetZ, (pose.getPosition()[2] + latestSonarDepth) - minSeafloorDistance);
     tf2::Vector3 point(0, 0, targetVertPosition - pose.getPosition()[2]);

@@ -5,13 +5,10 @@
 #include "tf2/LinearMath/Vector3.h"
 
 #include "vehicles/FourDOFPropulsion.h"
-#include "model_server/GetModelData.h"
 
 #include "underwater_vehicle_msgs/FloatMeasurement.h"
 
 #define SECONDS_IN_DAY 86400
-
-using namespace underwater_autonomy;
 
 FourDOFPropulsion::FourDOFPropulsion(VehicleState& vehicleState) :
     PropulsionModule("FourDOFPropulsion", vehicleState),

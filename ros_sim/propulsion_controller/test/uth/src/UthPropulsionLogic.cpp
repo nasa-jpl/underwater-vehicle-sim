@@ -13,8 +13,6 @@
 #include "std_msgs/Float64.h"
 #include "std_msgs/Bool.h"
 
-using namespace underwater_autonomy;
-
 UthPropulsionLogic::UthPropulsionLogic(VehicleInfo& vehicleInfo) :
     PropulsionLogicInterface(vehicleInfo),
     xyMovement(false),
@@ -35,7 +33,7 @@ void UthPropulsionLogic::goToXY(VehiclePose& pose)
     goToXYCalls++;
 }
 
-void UthPropulsionLogic::followHeading(underwater_autonomy::VehiclePose& pose)
+void UthPropulsionLogic::followHeading(VehiclePose& pose)
 {
     xyMovement = true;
     followHeadingCalls++;
@@ -47,7 +45,7 @@ void UthPropulsionLogic::goToZ(VehiclePose& pose)
     goToZCalls++;
 }
 
-void UthPropulsionLogic::avoidSeafloor(underwater_autonomy::VehiclePose& pose)
+void UthPropulsionLogic::avoidSeafloor(VehiclePose& pose)
 {
     zMovement = true;
     avoidSeafloorCalls++;

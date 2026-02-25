@@ -9,13 +9,11 @@
 #include <geometry_msgs/TransformStamped.h>
 #include <std_msgs/Bool.h>
 
-#include "underwater_autonomy/util/VehiclePose.h"
+#include "ros_underwater_sim_utilities/VehiclePose.h"
 #include "underwater_vehicle_msgs/VehicleData.h"
 
 
 #include "propulsion_controller/FourDOFPropulsionPIDLogic.h"
-
-using namespace underwater_autonomy;
 
 std::vector<std_msgs::Bool> forwardEnables;
 std::vector<std_msgs::Bool> lateralEnables;

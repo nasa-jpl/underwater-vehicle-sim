@@ -13,19 +13,22 @@
 
 using namespace ocean_model_interfaces;
 
-Vehicle::Vehicle() :
-	Vehicle(nullptr) {}
+Vehicle::Vehicle()
+{
+	ros::NodeHandle nhPriv("~");
+	nhPriv.getParam("evect_by_currents", evectByCurrents);
+
+	initalizeVehicleFrame();
+  	
+	initalizePropulsionModule();
+	initalizeGeneralModules();
+}
 
 Vehicle::Vehicle(std::unique_ptr<ModelInterface> model)	:
 	model(std::move(model))
 {
 	ros::NodeHandle nhPriv("~");
 	nhPriv.getParam("evect_by_currents", evectByCurrents);
-
-	if(model == NULL)
-	{
-		modelClient = nh.serviceClient<model_server::GetModelData>("/get_model_data");
-	}
 
 	initalizeVehicleFrame();
   	
@@ -154,37 +157,6 @@ ModelData Vehicle::getModelData()
 											enuPosition.getZ(), 
 											lastTransformTime.toSec());
 		}    
-	}
-	else
-	{
-		model_server::GetModelData srv;
-
-		srv.request.x = enuPosition.getX();
-		srv.request.y = enuPosition.getY();
-		srv.request.h = enuPosition.getZ();
-		srv.request.time = lastTransformTime.toSec();
-
-
-		bool success = modelClient.call(srv);
-
-		if(success)
-		{
-			data.u = srv.response.u;
-			data.v = srv.response.v;
-			data.temp = srv.response.temp;
-			data.salt = srv.response.salt;
-			data.dye = srv.response.dye;
-			data.depth = srv.response.depth;
-		}
-		else
-		{
-			data.u = std::numeric_limits<double>::quiet_NaN();
-			data.v = std::numeric_limits<double>::quiet_NaN();
-			data.temp = std::numeric_limits<double>::quiet_NaN();
-			data.salt = std::numeric_limits<double>::quiet_NaN();
-			data.dye = std::numeric_limits<double>::quiet_NaN();
-			data.depth = std::numeric_limits<double>::quiet_NaN();
-		}
 	}
 
 	return data;

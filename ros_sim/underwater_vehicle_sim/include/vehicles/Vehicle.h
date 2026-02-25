@@ -15,8 +15,11 @@
 
 #include "ocean_model_interfaces/model_interface/ModelInterface.h"
 #include "ocean_model_interfaces/model_interface/ModelData.h"
+<<<<<<< HEAD
 
 #include "model_server/GetModelData.h"
+=======
+>>>>>>> e27bb84 (Removed underwater_autonomy dependency)
 
 /**
  * Class used to represent a vehicle in the simulation

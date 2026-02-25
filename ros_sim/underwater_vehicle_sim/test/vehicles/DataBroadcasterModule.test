@@ -13,6 +13,5 @@
  <rosparam param="model/dye">30</rosparam>
  <rosparam param="model/depth">200</rosparam>
 
- <node pkg="model_server" type="model_server_node" name="model_server" output="screen"/>
  <test test-name="data_broadcaster_module_test" pkg="underwater_vehicle_sim" ns="v1" type="data_broadcaster_module_test"/>
 </launch>

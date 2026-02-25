@@ -14,13 +14,10 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   std_msgs
   sensor_msgs
-  model_server
   underwater_vehicle_msgs
+  ros_underwater_sim_utilities
   tf2_geometry_msgs
 )
-
-find_library(UNDERWATER_AUTONOMY_COMMON_LIB underwater_autonomy_common)
-find_path(UNDERWATER_AUTONOMY_INCLUDE underwater_autonomy)
 
 find_package(OceanModelInterfaces REQUIRED)
 
@@ -145,11 +142,10 @@ catkin_package(
    src/vehicles/VehicleState.cpp
  )
 
- target_include_directories(underwater_vehicles PUBLIC ${UNDERWATER_AUTONOMY_INCLUDE})
  target_link_libraries(underwater_vehicles 
-    ${UNDERWATER_AUTONOMY_COMMON_LIB} 
     OceanModelInterfaces::ocean_model_interfaces
-    ${catkin_LIBRARIES})
+    ${catkin_LIBRARIES}
+    ros_underwater_sim_utilities)
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
@@ -178,7 +174,7 @@ catkin_package(
  
  target_link_libraries(${PROJECT_NAME}_node
    underwater_vehicles
-   ${UNDERWATER_AUTONOMY_COMMON_LIB} 
+   ros_underwater_sim_utilities
    OceanModelInterfaces::ocean_model_interfaces
    ${catkin_LIBRARIES}
  )

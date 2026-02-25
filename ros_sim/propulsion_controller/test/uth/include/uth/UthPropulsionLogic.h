@@ -19,16 +19,16 @@ public:
 	UthPropulsionLogic(VehicleInfo& vehicleInfo);
 	~UthPropulsionLogic() {}
 	
-	void goToXY(underwater_autonomy::VehiclePose& pose) override;
-	void followHeading(underwater_autonomy::VehiclePose& pose) override;
-	void goToZ(underwater_autonomy::VehiclePose& pose) override;
-	void avoidSeafloor(underwater_autonomy::VehiclePose& pose) override;
+	void goToXY(VehiclePose& pose) override;
+	void followHeading(VehiclePose& pose) override;
+	void goToZ(VehiclePose& pose) override;
+	void avoidSeafloor(VehiclePose& pose) override;
 
 	void stopXY() override;
 	void stopZ() override;
 
-	bool isAtXY(underwater_autonomy::VehiclePose& pose) override;
-	bool isAtZ(underwater_autonomy::VehiclePose& pose) override;
+	bool isAtXY(VehiclePose& pose) override;
+	bool isAtZ(VehiclePose& pose) override;
 
 	void processNewData(const underwater_vehicle_msgs::VehicleData data) override;
 

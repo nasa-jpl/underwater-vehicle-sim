@@ -12,28 +12,29 @@
 
 #include "underwater_vehicle_msgs/VehicleData.h"
 
-#include "underwater_autonomy/util/LinearPiecewise.h"
+#include "ros_underwater_sim_utilities/LinearPiecewise.h"
+#include "ros_underwater_sim_utilities/VehiclePose.h"
 
 class FourDOFPropulsionLogic : public PropulsionLogicInterface
 {
 
 public:
 	FourDOFPropulsionLogic(VehicleInfo& vehicleInfo,
-						   underwater_autonomy::LinearPiecewise forwardThruster,
-						   underwater_autonomy::LinearPiecewise verticalThruster,
-						   underwater_autonomy::LinearPiecewise rudder);
+						   LinearPiecewise forwardThruster,
+						   LinearPiecewise verticalThruster,
+						   LinearPiecewise rudder);
 	~FourDOFPropulsionLogic() {}
 	
-	void goToXY(underwater_autonomy::VehiclePose& pose) override;
-	void followHeading(underwater_autonomy::VehiclePose& pose) override;
-	void goToZ(underwater_autonomy::VehiclePose& pose) override;
-	void avoidSeafloor(underwater_autonomy::VehiclePose& pose) override;
+	void goToXY(VehiclePose& pose) override;
+	void followHeading(VehiclePose& pose) override;
+	void goToZ(VehiclePose& pose) override;
+	void avoidSeafloor(VehiclePose& pose) override;
 
 	void stopXY() override;
 	void stopZ() override;
 
-	bool isAtXY(underwater_autonomy::VehiclePose& pose);
-	bool isAtZ(underwater_autonomy::VehiclePose& pose);
+	bool isAtXY(VehiclePose& pose);
+	bool isAtZ(VehiclePose& pose);
 
 	void processNewData(const underwater_vehicle_msgs::VehicleData data) override;
 
@@ -49,9 +50,9 @@ private:
 	double scaleRotationalVelocity(double angle);
 
 private:
-	underwater_autonomy::LinearPiecewise forwardThruster;
-	underwater_autonomy::LinearPiecewise verticalThruster;
-	underwater_autonomy::LinearPiecewise rudder;
+	LinearPiecewise forwardThruster;
+	LinearPiecewise verticalThruster;
+	LinearPiecewise rudder;
 
 	//Error bars for claiming the vehicle is at a point
 	double lateralError;

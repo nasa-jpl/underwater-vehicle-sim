@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>utilities</name>
+  <name>ros_underwater_sim_utilities</name>
   <version>0.0.0</version>
   <description>Package containing utilities for data visualization and analysis for the ros simulation.</description>
 

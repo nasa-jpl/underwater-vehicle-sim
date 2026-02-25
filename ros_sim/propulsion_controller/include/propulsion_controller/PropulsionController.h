@@ -23,7 +23,7 @@
 #include "underwater_vehicle_msgs/FollowHeading.h"
 #include "underwater_vehicle_msgs/PropulsionControllerState.h"
 
-#include "underwater_autonomy/util/VehiclePose.h"
+#include "ros_underwater_sim_utilities/VehiclePose.h"
 
 
 class PropulsionController
@@ -88,7 +88,7 @@ private:
 
 	ros::Subscriber poseSub;
 
-	underwater_autonomy::VehiclePose currentPose;
+	VehiclePose currentPose;
 };
 
 #endif

@@ -1,7 +1,5 @@
 #include "ros/ros.h"
 
-#include "model_server/GetModelData.h"
-
 #include "tf2/LinearMath/Vector3.h"
 #include "tf2/LinearMath/Transform.h"
 
@@ -16,7 +14,6 @@ DataBroadcasterModule::DataBroadcasterModule(std::string name) :
 	GeneralModule(name, "DataBroadcaster")
 {
 	dataRecorder = nh.advertise<underwater_vehicle_msgs::VehicleData>("data", 1000);
-	client = nh.serviceClient<model_server::GetModelData>("/get_model_data");
 }
 
 void DataBroadcasterModule::update(const ros::Time& lastTime, VehicleState& vehicleState, ModelData& modelData) 

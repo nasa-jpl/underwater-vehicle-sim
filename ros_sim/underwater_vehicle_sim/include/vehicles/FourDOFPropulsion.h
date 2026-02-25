@@ -9,7 +9,7 @@
 
 #include "vehicles/PropulsionModule.h"
 
-#include "underwater_autonomy/util/LinearPiecewise.h"
+#include "ros_underwater_sim_utilities/LinearPiecewise.h"
 
 /**
 *Propulson module which provides the vehicle with 4 degrees of freedom
@@ -73,10 +73,10 @@ private:
 	/*
 	*Functions defining thrust to velocity
 	*/
-	underwater_autonomy::LinearPiecewise forwardThrusterFunc;
-	underwater_autonomy::LinearPiecewise lateralThrusterFunc;
-	underwater_autonomy::LinearPiecewise verticalThrusterFunc;
-	underwater_autonomy::LinearPiecewise rudderFunc;
+	LinearPiecewise forwardThrusterFunc;
+	LinearPiecewise lateralThrusterFunc;
+	LinearPiecewise verticalThrusterFunc;
+	LinearPiecewise rudderFunc;
 
 	/*
 	*Latest thrust commands

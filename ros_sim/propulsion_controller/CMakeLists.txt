@@ -19,10 +19,8 @@ find_package(catkin REQUIRED COMPONENTS
  geometry_msgs
  underwater_vehicle_msgs
  nav_msgs
+ ros_underwater_sim_utilities
  message_generation)
-
-find_library(UNDERWATER_AUTONOMY_COMMON_LIB underwater_autonomy_common)
-find_path(UNDERWATER_AUTONOMY_INCLUDE underwater_autonomy)
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -131,8 +129,7 @@ include_directories(
    src/${PROJECT_NAME}/FourDOFPropulsionLogic.cpp
 
  )
- target_include_directories(${PROJECT_NAME} PUBLIC ${UNDERWATER_AUTONOMY_INCLUDE})
- target_link_libraries(${PROJECT_NAME} ${UNDERWATER_AUTONOMY_COMMON_LIB} ${catkin_LIBRARIES})
+
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
 ## either from message generation or dynamic reconfigure
@@ -157,6 +154,7 @@ include_directories(
  target_link_libraries(four_dof_propulsion_control_node
    ${PROJECT_NAME}
    ${catkin_LIBRARIES}
+   ros_underwater_sim_utilities
  )
 
 #############
@@ -202,20 +200,17 @@ include_directories(
 add_library(${PROJECT_NAME}_uth
   test/uth/src/UthPropulsionLogic.cpp)
 target_include_directories(${PROJECT_NAME}_uth PUBLIC test/uth/include ${catkin_INCLUDE_DIRS})
-target_include_directories(${PROJECT_NAME}_uth PUBLIC ${UNDERWATER_AUTONOMY_INCLUDE})
-target_link_libraries(${PROJECT_NAME}_uth ${UNDERWATER_AUTONOMY_COMMON_LIB} ${PROJECT_NAME} ${catkin_LIBRARIES})
+target_link_libraries(${PROJECT_NAME}_uth ${PROJECT_NAME} ${catkin_LIBRARIES} ros_underwater_sim_utilities)
 
 ## Add gtest based cpp test target and link libraries
 if (CATKIN_ENABLE_TESTING)
  find_package(rostest REQUIRED)
 
  add_rostest_gtest(four_dof_propulsion_pid_logic_test test/propulsion_controller/FourDOFPropulsionPIDLogic.test test/propulsion_controller/FourDOFPropulsionPIDLogic_test.cpp)
- target_include_directories(four_dof_propulsion_pid_logic_test PRIVATE ${UNDERWATER_AUTONOMY_INCLUDE})
- target_link_libraries(four_dof_propulsion_pid_logic_test ${UNDERWATER_AUTONOMY_COMMON_LIB} ${PROJECT_NAME} ${catkin_LIBRARIES})
+ target_link_libraries(four_dof_propulsion_pid_logic_test ${PROJECT_NAME} ${catkin_LIBRARIES} ros_underwater_sim_utilities)
 
  add_rostest_gtest(propulsion_controller_test test/propulsion_controller/PropulsionController.test test/propulsion_controller/PropulsionController_test.cpp)
- target_include_directories(propulsion_controller_test PRIVATE ${UNDERWATER_AUTONOMY_INCLUDE})
- target_link_libraries(propulsion_controller_test ${UNDERWATER_AUTONOMY_COMMON_LIB} ${PROJECT_NAME} ${PROJECT_NAME}_uth ${catkin_LIBRARIES})
+ target_link_libraries(propulsion_controller_test ${PROJECT_NAME} ${PROJECT_NAME}_uth ${catkin_LIBRARIES} ros_underwater_sim_utilities)
 
 
 endif()

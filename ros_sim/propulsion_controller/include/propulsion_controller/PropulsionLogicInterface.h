@@ -15,7 +15,7 @@
 #include "underwater_vehicle_msgs/VehicleInfo.h"
 #include "underwater_vehicle_msgs/VehicleData.h"
 
-#include "underwater_autonomy/util/VehiclePose.h"
+#include "ros_underwater_sim_utilities/VehiclePose.h"
 
 class PropulsionLogicInterface
 {
@@ -29,22 +29,22 @@ public:
 	/**
 	* Sends messages to make vehicle go to xy location
 	*/
-	virtual void goToXY(underwater_autonomy::VehiclePose& pose)=0;
+	virtual void goToXY(VehiclePose& pose)=0;
 
 	/**
 	* Sends messages to make vehicle follow a specified heading
 	*/
-	virtual void followHeading(underwater_autonomy::VehiclePose& pose)=0;
+	virtual void followHeading(VehiclePose& pose)=0;
 
 	/**
 	* Sends messages to make vehicle go to z location
 	*/
-	virtual void goToZ(underwater_autonomy::VehiclePose& pose)=0;
+	virtual void goToZ(VehiclePose& pose)=0;
 
 	/**
 	* Sends messages to make vehicle avoid the seafloor
 	*/
-	virtual void avoidSeafloor(underwater_autonomy::VehiclePose& pose)=0;
+	virtual void avoidSeafloor(VehiclePose& pose)=0;
 
 	/**
 	* Sends messages to stop xy movement
@@ -104,12 +104,12 @@ public:
 	/**
 	* Determines if the vehicle has reached the xy location
 	*/
-	virtual bool isAtXY(underwater_autonomy::VehiclePose& pose)=0;
+	virtual bool isAtXY(VehiclePose& pose)=0;
 
 	/**
 	* Determines if the vehicle has reached the z location
 	*/
-	virtual bool isAtZ(underwater_autonomy::VehiclePose& pose)=0;
+	virtual bool isAtZ(VehiclePose& pose)=0;
 
 protected:
 	ros::NodeHandle vehicleNode;

@@ -14,8 +14,6 @@
 
 #include "uth/UthPropulsionLogic.h"
 
-using namespace underwater_autonomy;
-
 TEST(PropulsionController, avoidSeafloor) 
 {       
     ros::NodeHandle nh("avoidSeafloor");

@@ -8,8 +8,6 @@
 #include "ocean_model_interfaces/geodetic_grid/GeodeticGrid.h"
 #include "ocean_model_interfaces/geodetic_grid/GeodeticGridParameters.h"
 
-#include "underwater_autonomy/util/ConfigurationFile.h"
-
 #include "vehicles/Vehicle.h"
 #include "std_msgs/Float64.h"
 
@@ -178,26 +176,22 @@ void loadModelLocal(ros::NodeHandle& nhPriv)
             ROS_INFO("Linear Model Loaded");
         } 
         else if(model_type == "front") {
-            std::string paramFilename;
-            nhPriv.getParam("/model/param_file", paramFilename);
-
-            underwater_autonomy::ConfigurationFile configFile(paramFilename);
             OceanFrontModel::Parameters parameters;
 
-            parameters.frontX = configFile.readSimpleEntry<double>("front_x", parameters.frontX);
-            parameters.frontY = configFile.readSimpleEntry<double>("front_y", parameters.frontY);
-            parameters.frontOrientation = configFile.readSimpleEntry<double>("front_orientation", parameters.frontOrientation);
-            parameters.frontWidth = configFile.readSimpleEntry<double>("front_width", parameters.frontWidth);
+            nhPriv.getParam("/model/front_x", parameters.frontX);
+            nhPriv.getParam("/model/front_y", parameters.frontY);
+            nhPriv.getParam("/model/front_orientation", parameters.frontOrientation);
+            nhPriv.getParam("/model/front_width", parameters.frontWidth);
 
-            parameters.depths = configFile.readArrayEntry<double>("depths", parameters.depths);
-            parameters.side1Temps = configFile.readArrayEntry<double>("side1_temp", parameters.side1Temps);
-            parameters.side2Temps = configFile.readArrayEntry<double>("side2_temp", parameters.side2Temps);
-            parameters.side1Salts = configFile.readArrayEntry<double>("side1_salt", parameters.side1Salts);
-            parameters.side2Salts = configFile.readArrayEntry<double>("side2_salt", parameters.side2Salts);
+            nhPriv.getParam("/model/depths", parameters.depths);
+            nhPriv.getParam("/model/side1_temp", parameters.side1Temps);
+            nhPriv.getParam("/model/side2_temp", parameters.side2Temps);
+            nhPriv.getParam("/model/side1_salt", parameters.side1Salts);
+            nhPriv.getParam("/model/side2_salt", parameters.side2Salts);
 
-            parameters.currentU = configFile.readSimpleEntry<double>("current_u", parameters.currentU);
-            parameters.currentV = configFile.readSimpleEntry<double>("current_v", parameters.currentV);
-            parameters.dye = configFile.readSimpleEntry<double>("dye", parameters.dye);
+            nhPriv.getParam("/model/current_u", parameters.currentU);
+            nhPriv.getParam("/model/current_v", parameters.currentV);
+            nhPriv.getParam("/model/dye", parameters.dye);
 
             model.reset(new OceanFrontModel(parameters));
             model->setOffsets(offsetX, offsetY, offsetHeight, offsetTime);
@@ -236,17 +230,6 @@ int main(int argc, char **argv)
     std_msgs::Float64 slowSim;
     slowSim.data = 1;
     clockSpeedPub.publish(slowSim);
-
-    if(model != NULL)
-    {
-        ros::ServiceClient modelDataClient = nh.serviceClient<model_server::GetModelData>("/get_model_data");
-
-        //Wait for model
-        if(nhPriv.hasParam("/model_type"))
-        {
-            modelDataClient.waitForExistence();
-        }
-    }
     
     ros::ServiceServer service = nh.advertiseService("get_info", &getVehicleInfo);;
 
