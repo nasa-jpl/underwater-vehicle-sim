@@ -110,26 +110,28 @@ void Vehicle::update()
 	ros::Time currentTime = ros::Time::now();
 	ros::Duration deltaTime = currentTime - lastTransformTime;
 
-	//Update the transform
-	vehicleState.updatePose(currentTime, deltaTime);
+	if(deltaTime.toSec() > 0.0) {
+		//Update the transform
+		vehicleState.updatePose(currentTime, deltaTime);
 
-	//Update time and data
-	lastTransformTime = currentTime;
-	dataAtLastTransform = getModelData();
-
-	//Prevent the vehicle from clipping through the seafloor
-	if(vehicleState.seafloorCollision(dataAtLastTransform))
-	{
+		//Update time and data
+		lastTransformTime = currentTime;
 		dataAtLastTransform = getModelData();
-	}
 
-	if(evectByCurrents)
-	{
-		vehicleState.updateModelData(dataAtLastTransform);
-	}
+		//Prevent the vehicle from clipping through the seafloor
+		if(vehicleState.seafloorCollision(dataAtLastTransform))
+		{
+			dataAtLastTransform = getModelData();
+		}
 
-	//Broadcast the latest transform
-	broadcastTransform();
+		if(evectByCurrents)
+		{
+			vehicleState.updateModelData(dataAtLastTransform);
+		}
+
+		//Broadcast the latest transform
+		broadcastTransform();
+	}
 }
 
 ModelData Vehicle::getModelData()
