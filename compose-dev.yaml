@@ -6,7 +6,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-      target: ros-underwater-sim-dependencies
+      target: ros-underwater-sim-all-dependencies
     image: ros-underwater-sim-dev
     container_name: ros-underwater-sim-dev
     stdin_open: true

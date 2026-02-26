@@ -4,7 +4,7 @@ Extraterrestrial hydrothermal vent search
 ## Docker
 
 ### Dockerfile
-A Dockerfile is included to setup the environemnt.  The Dockerfile has multiple stages. The first stage `ros-underwater-sim-dependencies` Sets up just the dependencies while `ros-underwater-sim` copies over and builds the source code for the simulation. 
+A Dockerfile is included to setup the environemnt.  The Dockerfile has multiple stages. The first stage `ros-underwater-sim-external-dependencies` sets up just the external dependencies, the second stage `ros-underwater-sim-all-dependencies` adds internal dependencies in the form of the `ocean-model-interface`, the third stage `ros-underwater-sim` copies over and builds the source code for the simulation. 
 
 The libraries needed for using numerical ocean models in the simulation are included in `ros-underwater-sim-dependencies` .
 

@@ -2,7 +2,7 @@
 #Use a multi-part build so we can have a development setup which mounts the code into the container
 #as well as a deployment setup which copies it in.
 
-FROM osrf/ros:noetic-desktop-full AS ros-underwater-sim-dependencies
+FROM osrf/ros:noetic-desktop-full AS ros-underwater-sim-external-dependencies
 LABEL authors="branch"
 
 RUN apt update
@@ -53,6 +53,14 @@ RUN make install
 WORKDIR ../..
 RUN rm -rf cpptoml
 
+#Fix library path since for some reason /usr/local/lib isn't included in the path
+RUN echo "export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH" >> ~/.bashrc
+RUN echo "source /opt/ros/noetic/setup.bash" >> ~/.bashrc
+
+RUN mkdir /ros_workspace
+WORKDIR /ros_workspace
+
+FROM ros-underwater-sim-external-dependencies AS ros-underwater-sim-all-dependencies
 
 #Download and install the ocean model interface
 WORKDIR /libs
@@ -61,10 +69,6 @@ RUN mkdir /libs/ocean-model-interfaces/build
 WORKDIR /libs/ocean-model-interfaces/build
 RUN cmake ..
 RUN make install
-
-#Fix library path since for some reason /usr/local/lib isn't included in the path
-RUN echo "export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH" >> ~/.bashrc
-RUN echo "source /opt/ros/noetic/setup.bash" >> ~/.bashrc
 
 RUN mkdir /ros_workspace
 WORKDIR /ros_workspace
