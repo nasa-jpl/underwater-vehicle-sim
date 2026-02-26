@@ -1,0 +1,17 @@
+#This compose script uses the image that includes the simulation environment source code.
+
+name: ros-underwater-sim
+services:
+  ros-underwater-sim:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: ros-underwater-sim
+    image: ros-underwater-sim
+    container_name: ros-underwater-sim
+    stdin_open: true
+    tty: true
+    volumes:
+      - ./config:/config
+      - ./docker_data:/docker_data/
+    entrypoint: ["/usr/bin/tail", "-f", "/dev/null"]

@@ -32,10 +32,9 @@
             IMU publishes angular velocity and heading data
             DVL publishes speed through water and speed over ground
             Depth publishes water depth.
+            USBL publisher pings from a simulated usbl beacon.
             
             The DataBroadcaster is primarily used for science data while the others are primarily navigation data.
-            Other modules that are not included here also exist such as USBL and a physical sampler. Looking at the source
-            code for those will show the parameters to use for configuring those modules.
 
             When adding a new module a name should be added to moduleNames and parameters for that module should be
             <name>/param. <name>/type is used to define the type of the module.
@@ -64,6 +63,20 @@
         <rosparam param="depth/depth_bias_error">0.5</rosparam>
         <rosparam param="depth/hertz">2.5</rosparam>
 
+        <rosparam param="usbl/type">USBL</rosparam>
+        <rosparam param="usbl/configuration">inverted</rosparam>
+        <rosparam param="usbl/bearing_random_error">0.0872665</rosparam> <!--5 degrees-->
+        <rosparam param="usbl/bearing_bias_error">0.0174533</rosparam>   <!--1 degree-->
+        <rosparam param="usbl/range_random_error">0.01</rosparam> <!--Percent of range measurment-->
+        <rosparam param="usbl/range_bias_error">0</rosparam> <!--Percent of range measurment-->
+        <rosparam param="usbl/valid_bearing_distance">300</rosparam>
+        <rosparam param="usbl/valid_range_distance">5000</rosparam>
+        <rosparam param="usbl/bad_range_probability">0.1</rosparam>
+        <rosparam param="usbl/bad_range_error">1</rosparam> <!--Percent of range measurment-->
+        <rosparam param="usbl/beacon_x">0</rosparam>
+        <rosparam param="usbl/beacon_y">0</rosparam>
+        <rosparam param="usbl/beacon_z">10</rosparam>
+        <rosparam param="usbl/hertz">0.01666666666</rosparam>
     </node>
 
     <!--This defines the propulsion controller. Specifically a 4 DOF controller that allows the vehicle to go 

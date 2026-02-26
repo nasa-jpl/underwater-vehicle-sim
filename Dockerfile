@@ -62,20 +62,23 @@ WORKDIR /libs/ocean-model-interfaces/build
 RUN cmake ..
 RUN make install
 
-#Fix library path
-RUN export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
+#Fix library path since for some reason /usr/local/lib isn't included in the path
+RUN echo "export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH" >> ~/.bashrc
+RUN echo "source /opt/ros/noetic/setup.bash" >> ~/.bashrc
 
+RUN mkdir /ros_workspace
+WORKDIR /ros_workspace
 
 #Next build stage which includes the ros underwater sim
 FROM ros-underwater-sim-dependencies AS ros-underwater-sim
 
-#Copy ros underwater sim into the ros workspace in the image
-RUN mkdir /ros_workspace
-COPY . /ros_workspace
+#Copy the source for ros underwater sim into the ros workspace in the image
+RUN mkdir -p /ros_workspace/src/ros-underwater-sim
+COPY src /ros_workspace/src/ros-underwater-sim/src
 
 WORKDIR /ros_workspace
+
+#Automatically source the workspace.
+RUN echo "source /ros_workspace/devel/setup.bash" >> ~/.bashrc
+
 RUN bash -c "source /opt/ros/noetic/setup.bash && catkin_make"
-
-#Fix library path
-RUN export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
-
