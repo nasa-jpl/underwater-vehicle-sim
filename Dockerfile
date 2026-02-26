@@ -70,11 +70,10 @@ WORKDIR /libs/ocean-model-interfaces/build
 RUN cmake ..
 RUN make install
 
-RUN mkdir /ros_workspace
 WORKDIR /ros_workspace
 
 #Next build stage which includes the ros underwater sim
-FROM ros-underwater-sim-dependencies AS ros-underwater-sim
+FROM ros-underwater-sim-all-dependencies AS ros-underwater-sim
 
 #Copy the source for ros underwater sim into the ros workspace in the image
 RUN mkdir -p /ros_workspace/src/ros-underwater-sim
