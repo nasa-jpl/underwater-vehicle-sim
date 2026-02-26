@@ -6,9 +6,22 @@ Extraterrestrial hydrothermal vent search
 ### Dockerfile
 A Dockerfile is included to setup the environemnt.  The Dockerfile has multiple stages. The first stage `ros-underwater-sim-external-dependencies` sets up just the external dependencies, the second stage `ros-underwater-sim-all-dependencies` adds internal dependencies in the form of the `ocean-model-interface`, the third stage `ros-underwater-sim` copies over and builds the source code for the simulation. 
 
-The libraries needed for using numerical ocean models in the simulation are included in `ros-underwater-sim-dependencies` .
-
 ### Compose Scripts
+
+Two compose scripts are provided for a development environment and a deployment environment
+
+
+#### Development Environment
+
+`compose-dev.yaml` uses `ros-underwater-sim-all-dependencies` as the base and bind mounts the source code for development. The source code is mounted in `/ros_workspace`
+
+Build and start the container for the development environment.
+
+`docker compose -f compose-dev.yaml up -d --build`
+
+Attach to the container via a terminal.
+
+`docker exec -it ros-underwater-sim-dev bash`
 
 #### Deployment Environment
 
@@ -23,18 +36,6 @@ Attach to the container via a terminal.
 `docker exec -it ros-underwater-sim bash`
 
 
-#### Development Environment
-
-`compose-dev.yaml` uses `ros-underwater-sim-dependencies` as the base and bind mounts the source code for development. 
-
-Build and start the container for the development environment.
-
-`docker compose -f compose-dev.yaml up -d --build`
-
-Attach to the container via a terminal.
-
-`docker exec -it ros-underwater-sim-dev bash`
-
 ### Mounted Volumes
 In both setups, there are two volumes that are mounted automatically.
 
@@ -43,8 +44,11 @@ In both setups, there are two volumes that are mounted automatically.
 
 ### Extending the Docker Images
 
-When developing new software that uses the simulation environment the easiest way to set it up is to build of off the docker image produced by the end stage of the Dockerfile (`ros-underwater-sim`). Running `docker build . -t ros-underwater-sim` will build the image and name it `ros-underwater-sim`. Then this can be used as the base for other Dockerfiles containing the setup for the environment for the new software. This puts the new code being developed in the same container as the simulation environment, which is nice for development as it makes it easy to start and stop the simulation environment, create launch files that start both the simulation and other ROS nodes, and save results. The ros workspace is created at `/ros_workspace` and contains the packages needed for the ros-underwater-sim. Other ROS packages can be added to this folder and built alongside the simulation environment. The base image also includes all the needed ROS dependencies so those do not need to be setup again. `docker_examples/compose-extend-example.yaml` provides an example of how you might do this. This example just uses the provided `ros-underwater-sim` image, but it might be useful to use that image as the base for anther Dockerfile to install other dependencies as needed.
+When developing new software that uses the simulation environment the easiest way to set it up is to build of off the docker image produced by the end stage of the Dockerfile (`ros-underwater-sim`). This places the simulation and the new software all in one container with simplifies coordination for starting and stopping the simulation, creating launch files, and saving results.
 
+Running `docker build . -t ros-underwater-sim` will build the image and name it `ros-underwater-sim`. The ros workspace is created at `/ros_workspace` and contains the packages needed for the ros-underwater-sim. Other ROS packages can be added to this folder and built alongside the simulation environment.
+
+Then image containing the simulation environment can be used directly in a compose script (see `docker_examples/compose-extend-example.yaml`) or it can be used as the base for other Dockerfiles containing the setup for the development environment for the new software.
 
 The alternative is to run the ros simulation and the other ros nodes in two separate services, but this complicates coordination of all the ROS nodes.
 
@@ -59,6 +63,8 @@ Then run the following command so ros knows about the packages
 `source devel/setup.bash`
 
 ## Unit Tests
+
+Run the following in `/ros_workspace`
 
 `catkin_make run_tests`
 
