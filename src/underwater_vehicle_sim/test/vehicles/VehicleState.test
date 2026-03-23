@@ -1,0 +1,6 @@
+<launch>
+     <rosparam param="model_type">constant</rosparam>
+     <rosparam param="model/depth">200</rosparam>
+
+    <test test-name="vehicle_state_test" pkg="underwater_vehicle_sim" type="vehicle_state_test" />
+</launch>

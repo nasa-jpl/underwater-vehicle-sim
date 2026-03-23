@@ -1,0 +1,18 @@
+#This compose script bind mounts the simulation environment source code for development.
+
+name: ros-underwater-sim-dev
+services:
+  ros-underwater-sim-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: ros-underwater-sim-all-dependencies
+    image: ros-underwater-sim-dev
+    container_name: ros-underwater-sim-dev
+    stdin_open: true
+    tty: true
+    volumes:
+      - ./config:/config
+      - ./docker_data:/docker_data/
+      - ./src:/ros_workspace/src/ros-underwater-sim/src
+    entrypoint: ["/usr/bin/tail", "-f", "/dev/null"]

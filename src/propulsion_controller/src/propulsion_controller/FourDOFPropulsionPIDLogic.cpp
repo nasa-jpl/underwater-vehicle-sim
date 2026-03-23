@@ -1,0 +1,339 @@
+#include <math.h>
+#include <algorithm>
+
+#include "ros/ros.h"
+
+#include "actionlib/server/simple_action_server.h"
+
+#include "tf2_geometry_msgs/tf2_geometry_msgs.h"
+
+#include "propulsion_controller/Velocity.h"
+#include "propulsion_controller/FourDOFPropulsionPIDLogic.h"
+
+#include "std_msgs/Float64.h"
+#include "std_msgs/Bool.h"
+
+FourDOFPropulsionPIDLogic::FourDOFPropulsionPIDLogic(VehicleInfo& vehicleInfo) :
+    PropulsionLogicInterface(vehicleInfo),
+    lateralError(25.0),
+    verticalError(1.0),
+    latestSonarDepth(1000),
+    minSeafloorDistance(3.0),
+    horizontalScaleError(25),
+    verticalErrorScale(15),
+    xyEnabled(false),
+    zEnabled(false)
+{
+    ros::NodeHandle nh;
+
+    forwardThrustPub = vehicleNode.advertise<std_msgs::Float64>("command_forward_thruster", 1000);
+    lateralThrustPub = vehicleNode.advertise<std_msgs::Float64>("command_lateral_thruster", 1000);
+    verticalThrustPub = vehicleNode.advertise<std_msgs::Float64>("command_vertical_thruster", 1000);
+    rudderPub = vehicleNode.advertise<std_msgs::Float64>("command_rudder", 1000);
+
+    forwardThrusterState = nh.advertise<std_msgs::Float64>("forward_thruster/state", 10);
+	forwardThrusterSetpoint = nh.advertise<std_msgs::Float64>("forward_thruster/setpoint", 10);
+	forwardThrusterEnable = nh.advertise<std_msgs::Bool>("forward_thruster/pid_enable", 10);
+	forwardThrusterControlEffort = nh.subscribe("forward_thruster/control_effort", 
+                                                1, 
+                                                &FourDOFPropulsionPIDLogic::forwardThrusterControlEffortCB, 
+                                                this);
+
+    lateralThrusterState = nh.advertise<std_msgs::Float64>("lateral_thruster/state", 10);
+	lateralThrusterSetpoint = nh.advertise<std_msgs::Float64>("lateral_thruster/setpoint", 10);
+	lateralThrusterEnable = nh.advertise<std_msgs::Bool>("lateral_thruster/pid_enable", 10);
+	lateralThrusterControlEffort = nh.subscribe("lateral_thruster/control_effort", 
+                                                1,
+                                                &FourDOFPropulsionPIDLogic::lateralThrusterControlEffortCB, 
+                                                this);
+
+    verticalThrusterState = nh.advertise<std_msgs::Float64>("vertical_thruster/state", 10);
+	verticalThrusterSetpoint = nh.advertise<std_msgs::Float64>("vertical_thruster/setpoint", 10);
+	verticalThrusterEnable = nh.advertise<std_msgs::Bool>("vertical_thruster/pid_enable", 10);
+	verticalThrusterControlEffort = nh.subscribe("vertical_thruster/control_effort", 
+                                                 1, 
+                                                 &FourDOFPropulsionPIDLogic::verticalThrusterControlEffortCB, 
+                                                 this);
+
+    rudderState = nh.advertise<std_msgs::Float64>("rudder/state", 10);
+	rudderSetpoint = nh.advertise<std_msgs::Float64>("rudder/setpoint", 10);
+	rudderEnable = nh.advertise<std_msgs::Bool>("rudder/pid_enable", 10);
+	rudderControlEffort = nh.subscribe("rudder/control_effort", 
+                                       1, 
+                                       &FourDOFPropulsionPIDLogic::rudderControlEffortCB, 
+                                       this);
+}
+
+void FourDOFPropulsionPIDLogic::goToXY(VehiclePose& pose)
+{
+    if(!xyEnabled)
+    {
+        std_msgs::Bool enableMsg;
+        enableMsg.data = true;
+        forwardThrusterEnable.publish(enableMsg);
+        rudderEnable.publish(enableMsg);
+        xyEnabled = true;
+    }
+    
+    
+    Eigen::Vector3d point(targetX, targetY, 0);
+
+    //transform point to vehicle frame
+    point = point - pose.getPosition();
+    point = pose.getOrientation().inverse() * point;
+    point[2] = 0; //Zero z as we do not care about it
+
+    double angle = atan2(point[1], point[0]);
+
+    double targetForwardVelocity = scaleHorizontalVelocity(point.norm());
+
+    //rotate angular velocity from body frame into world frame and get angular velocity corresponding to heading
+    double currentForwardVelocity = pose.getLinearVelocity()[0];
+
+    if(std::isfinite(currentForwardVelocity) &&
+       std::isfinite(targetForwardVelocity))
+    {
+        std_msgs::Float64 forwardStateMsg;
+        forwardStateMsg.data = currentForwardVelocity;
+        forwardThrusterState.publish(forwardStateMsg);
+
+        std_msgs::Float64 forwardSetpointMsg;
+        forwardSetpointMsg.data = targetForwardVelocity;
+        forwardThrusterSetpoint.publish(forwardSetpointMsg);
+    }
+    
+    if(std::isfinite(angle))
+    {
+        std_msgs::Float64 angularStateMsg;
+        angularStateMsg.data = angle;
+        rudderState.publish(angularStateMsg);
+
+        std_msgs::Float64 angularSetpointMsg;
+        angularSetpointMsg.data = 0;
+        rudderSetpoint.publish(angularSetpointMsg);
+    }
+}
+
+void FourDOFPropulsionPIDLogic::followHeading(VehiclePose& pose)
+{
+    if(!xyEnabled)
+    {
+        std_msgs::Bool enableMsg;
+        enableMsg.data = true;
+        forwardThrusterEnable.publish(enableMsg);
+        rudderEnable.publish(enableMsg);
+        xyEnabled = true;
+    }
+
+    double currentForwardVelocity = pose.getLinearVelocity()[0];
+    double currentAngle = pose.getOrientation().toRotationMatrix().eulerAngles(0, 1, 2)[2];
+
+    //Get and normalize the angle difference
+    double angle = targetHeading - currentAngle;
+    angle = std::fmod(angle, 2 * M_PI);
+    angle = std::fmod(angle + (2 * M_PI), 2 * M_PI);
+    if(angle > M_PI)
+    {
+        angle -= 2 * M_PI;
+    }
+
+    if(std::isfinite(currentForwardVelocity) &&
+       std::isfinite(targetLinearVelocity.x()))
+    {
+        std_msgs::Float64 forwardStateMsg;
+        forwardStateMsg.data = currentForwardVelocity;
+        forwardThrusterState.publish(forwardStateMsg);
+
+
+        std_msgs::Float64 forwardSetpointMsg;
+        forwardSetpointMsg.data = targetLinearVelocity.x();
+        forwardThrusterSetpoint.publish(forwardSetpointMsg);
+    }
+    if(std::isfinite(angle))
+    {
+        std_msgs::Float64 angularStateMsg;
+        angularStateMsg.data = angle;
+        rudderState.publish(angularStateMsg);
+
+        std_msgs::Float64 angularSetpointMsg;
+        angularSetpointMsg.data = 0;
+        rudderSetpoint.publish(angularSetpointMsg);
+    }
+}
+
+void FourDOFPropulsionPIDLogic::goToZ(VehiclePose& pose)
+{
+    if(!zEnabled)
+    {
+        std_msgs::Bool enableMsg;
+        enableMsg.data = true;
+        verticalThrusterEnable.publish(enableMsg);
+        zEnabled = true;
+    }
+
+    double targetVertPosition = std::min(targetZ, (pose.getPosition()[2] + latestSonarDepth) - minSeafloorDistance);
+    double targetVertVelocity = scaleVerticalVelocity(targetVertPosition - pose.getPosition()[2]);
+
+    double currentVertVelocity = pose.getLinearVelocity()[2];
+
+    if(std::isfinite(currentVertVelocity) &&
+       std::isfinite(targetVertVelocity))
+    {
+        std_msgs::Float64 verticalStateMsg;
+        verticalStateMsg.data = currentVertVelocity;
+        verticalThrusterState.publish(verticalStateMsg);
+
+        std_msgs::Float64 verticalSetpointMsg;
+        verticalSetpointMsg.data = targetVertVelocity;
+        verticalThrusterSetpoint.publish(verticalSetpointMsg);
+
+    }
+}
+
+void FourDOFPropulsionPIDLogic::avoidSeafloor(VehiclePose& pose)
+{
+    if(minSeafloorDistance > latestSonarDepth)
+    {
+        double targetMaxDepth = (pose.getPosition()[2] + latestSonarDepth) - minSeafloorDistance;
+        double targetVertVelocity = scaleVerticalVelocity(targetMaxDepth - pose.getPosition()[2]);
+        double currentVertVelocity = pose.getLinearVelocity()[2];
+        if(std::isfinite(currentVertVelocity) &&
+           std::isfinite(targetVertVelocity))
+        {
+            if(!zEnabled)
+            {
+                std_msgs::Bool enableMsg;
+                enableMsg.data = true;
+                verticalThrusterEnable.publish(enableMsg);
+                zEnabled = true;
+            }
+
+            std_msgs::Float64 verticalStateMsg;
+            verticalStateMsg.data = currentVertVelocity;
+            verticalThrusterState.publish(verticalStateMsg);
+
+            std_msgs::Float64 verticalSetpointMsg;
+            verticalSetpointMsg.data = targetVertVelocity;
+            verticalThrusterSetpoint.publish(verticalSetpointMsg);
+        }
+    }
+    else
+    {
+        if(zEnabled)
+        {
+            std_msgs::Bool enableMsg;
+            enableMsg.data = false;
+            verticalThrusterEnable.publish(enableMsg);
+            zEnabled = false;
+        }
+    }    
+}
+
+void FourDOFPropulsionPIDLogic::stopXY(void)
+{
+    xyEnabled = false;
+    std_msgs::Bool enableMsg;
+    enableMsg.data = false;
+    forwardThrusterEnable.publish(enableMsg);
+    rudderEnable.publish(enableMsg);
+
+    std_msgs::Float64 msg;
+    msg.data = 0;
+    forwardThrustPub.publish(msg);
+    lateralThrustPub.publish(msg);
+    rudderPub.publish(msg);
+}
+
+void FourDOFPropulsionPIDLogic::stopZ(void)
+{
+    zEnabled = false;
+    std_msgs::Bool enableMsg;
+    enableMsg.data = false;
+    verticalThrusterEnable.publish(enableMsg);
+
+    std_msgs::Float64 msg;
+    msg.data = 0;
+    verticalThrustPub.publish(msg);
+}
+
+bool FourDOFPropulsionPIDLogic::isAtXY(VehiclePose& pose)
+{
+    tf2::Vector3 point(targetX - pose.getPosition()[0], targetY - pose.getPosition()[1], 0);
+    return abs(point.length()) <= lateralError;
+}
+
+bool FourDOFPropulsionPIDLogic::isAtZ(VehiclePose& pose)
+{
+    double targetVertPosition = std::min(targetZ, (pose.getPosition()[2] + latestSonarDepth) - minSeafloorDistance);
+    tf2::Vector3 point(0, 0, targetVertPosition - pose.getPosition()[2]);
+
+    //We only care about z
+    return abs(point.z()) <= verticalError;
+}
+
+void FourDOFPropulsionPIDLogic::processNewData(const underwater_vehicle_msgs::VehicleData data)
+{
+    latestSonarDepth = data.sonarDepth;
+}
+
+double FourDOFPropulsionPIDLogic::scaleHorizontalVelocity(double distance)
+{
+    if(distance >= horizontalScaleError)
+    {
+        return targetLinearVelocity.x();
+    }
+    
+    return targetLinearVelocity.x() * (distance / horizontalScaleError);
+}
+
+double FourDOFPropulsionPIDLogic::scaleVerticalVelocity(double zDifference)
+{
+    int sign = 0;
+    if(zDifference >= 0)
+    {
+        sign = 1;
+    }
+    else
+    {
+        sign = -1;
+    }
+
+    if(abs(zDifference) >= verticalErrorScale)
+    {
+        return targetLinearVelocity.z() * sign;
+    }
+    
+    return targetLinearVelocity.z() * (zDifference / verticalErrorScale);
+}
+
+void FourDOFPropulsionPIDLogic::forwardThrusterControlEffortCB(std_msgs::Float64 data)
+{
+    if(xyEnabled)
+    {
+        forwardThrustPub.publish(data);
+    }
+}
+
+void FourDOFPropulsionPIDLogic::lateralThrusterControlEffortCB(std_msgs::Float64 data)
+{
+    if(xyEnabled)
+    {
+        lateralThrustPub.publish(data);
+    }
+}
+
+void FourDOFPropulsionPIDLogic::verticalThrusterControlEffortCB(std_msgs::Float64 data)
+{
+    if(zEnabled)
+    {
+        verticalThrustPub.publish(data);
+    }
+}
+
+void FourDOFPropulsionPIDLogic::rudderControlEffortCB(std_msgs::Float64 data)
+{
+    if(xyEnabled)
+    {
+        rudderPub.publish(data);
+    }
+}
