@@ -2,6 +2,13 @@
     <!--This argument allows disabling of rosbag recording if that is not needed.-->
     <arg name="record_rosbag" default="true" />
 
+    <!-- Set the primary navigation source for all vehicles to be true_nav/pose from underwater_vehicle_sim_true_navigation_node
+         See https://wiki.ros.org/Remapping%20Arguments to better understand remap argument meaning. If different vehicles need
+         different navigation sources then the vehicle namespace should be specified or this should be moved to the underwater_vehicle_sim_node
+         <node> definition.
+    -->
+    <remap from="primary_navigation" to="true_nav/pose" />
+
     <!--This defines the vehicle and the different modules that vehicle has-->
     <node pkg="underwater_vehicle_sim" type="underwater_vehicle_sim_node" name="vehicle_sim" ns="v1" output="screen">
         <rosparam param="sim_hertz">10</rosparam>
@@ -176,7 +183,6 @@
     <node pkg="underwater_vehicle_sim" type="underwater_vehicle_sim_true_navigation_node" name="underwater_vehicle_sim_true_navigation_node" ns="v1">
         <rosparam param="hertz">5</rosparam>
     </node>
-    <remap from="primary_navigation" to="true_nav/pose" />
 
     <!--The simulation can use sim time to allow for faster than realtime simulation
         The follow block sets that up.-->

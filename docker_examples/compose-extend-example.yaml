@@ -1,4 +1,4 @@
-#This compose script bind mounts all the different repos, except for the simulation and ocean-model-interface into a docker container
+#This compose script shows an example of bind mounting additional repositories that can then interact with the simulation environment.
 
 name: compose-extend-example
 services:
