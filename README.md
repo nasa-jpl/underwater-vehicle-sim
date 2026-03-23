@@ -70,8 +70,9 @@ Run the following in `/ros_workspace`
 
 `catkin_test_results`
 
-## Running the Simulation
+## Using the Simulation
 
+### Running
 `roslaunch <path/to/launch/file>`
 
 If you want to output a rosbag you can place the following in the launch file, replacing `<dir_name>` with some subdirectory to store rosbags from this particular launch file. This should then be available outside of the docker container via the mounted directory.
@@ -80,6 +81,141 @@ If you want to output a rosbag you can place the following in the launch file, r
  <node pkg="rosbag" type="record" name="rosbag_record"
    args='record -o /docker_data/<dir_name> -e "/v1/(.*)" /rosout'
    if="$(arg record_rosbag)" />   
+```
+
+### Services
+
+**/<vehicle_namespace>/go_to_xy : GoToXY.srv**
+
+Commands the vehicle to go to an xy waypoint or to stop xy movement.  This will override any previous commands controlling the XY vehicle movement.
+```
+float64 x : X coordination of the target waypoint in meters from origin
+float64 y : Y coordination of the target waypoint in meters from origin
+float64 xLinearVelocity : The target linear velocity of the vehicle when going to the waypoint
+float64 zAngularVelocity : The target rotational velocity when going to the waypoint
+bool enable : If true target the provided xy waypoint, if false stop xy movement.
+---
+# No service result information
+```
+
+**/<vehicle_namespace>/go_to_z : GoToZ.srv**
+
+Commands the vehicle to go to a specified depth or to stop Z movement
+```
+float64 depth : The depth to target in meters
+float64 zLinearVelocity : The target vertical velocity when going to the depth
+bool holdDepth : If true the vehicle will actively hold this depth
+bool enable : If true target the provided depth, if false stop z movement.
+---
+# No service result information
+```
+
+**/<vehicle_namespace>/follow_heading : FollowHeading.srv**
+
+Commands the vehicle to follow a specified heading. This will override any previous commands controlling the XY vehicle movement.
+```
+float64 heading : The target heading for the vehicle to follow in radians
+float64 xLinearVelocity : The target linear velocity of the vehicle when following the heading
+float64 zAngularVelocity : The target rotational velocity when following the heading
+bool enable : If true target the provided heading, if false stop xy movement.
+---
+# No service result information
+```
+
+### Topics
+
+**/<vehicle_namespace>/primary_navigation : nav_msgs::Odometry**
+
+The primary source of navigation information for the vehicle. This is the navgiation source used by the propulsion control system. The primary_navigation topic is controlled via _remap_ in the launch xml file.
+
+**/<vehicle_namespace>/prop_state : PropulsionControllerState.msg**
+
+This topic is published by the propulsion controller and contains the current state of the controller.
+
+```
+Header header : The header containing the message timestamp.
+
+bool xyEnable : True if the xy (horizontal) propulsion system is enabled, false otherwise
+bool xyComplete : True if the latest xy command has been completed, false if it is still active
+int64 xySeqNum : A sequence number that increments each time an xy command is completed.
+float64 x : The x target of the current xy command
+float64 y : The y target of the current xy command
+
+bool zEnable : True if the z (vertical) propulsion system is enabled, false otherwise
+bool zComplete : True if the latest z (depth) command has been completed, false if it is still active
+int64 zSeqNum : A sequence number that increments each time an z (depth) command is completed.
+float64 z : The depth target of the current z command.
+bool holdDepth : True if the current command is set to actively hold depth, false otherwise
+```
+
+**/<vehicle_namespace>/<data_broadcaster_module_name>/data : PropulsionControllerState.msg**
+
+This topic will be published if a `DataBroadcaster` module is defined in the vehicle sim node. The example launch files at `config/launch` show this. In those examples the topic name is `/v1/data_broadcaster/data`. This topic contains sensor data retreived from the ocean model that is being used as well as the ground truth vehicle position information.
+
+```
+string name : The name of the vehicle
+float64 x : The x position of the vehicle
+float64 y : The y position of the vehicle
+float64 h : The h (height) position of the vehicle
+float64 sonarDepth : The distance from the vehicle to the seafloor
+time time : The time of the data
+float64 temp : The temperature from the model
+float64 salt : The salinity from the model
+float64 dye : The neutrally buoyant tracer dye from the model
+float64 u : The u current from the model
+float64 v : The v current form the model
+```
+
+**/<vehicle_namespace>/<usbl_module_name>/data : USBL.msg**
+
+This topic will be published if a `USBL` module is defined in the vehicle sim node. The example launch files at `config/launch` show this. This topic contains data from a simulated usbl sensor
+
+```
+Header header : The header containing the timestamp of the data
+
+string name : The name of the vehicle
+
+float64 beacon_x : The ground truth beacon x location
+float64 beacon_y : The ground truth beacon y location
+float64 beacon_z : The ground truth beacon z location
+
+float64 range : The range between the two partso f the USBL system. This can either be a standard or inverted configuration.
+float64 bearing : The bearing between the two partso f the USBL system. This can either be a standard or inverted configuration.
+
+float64[4] range_bearing_covariance : The covariance of the measurement
+```
+
+**/<vehicle_namespace>/<dvl_module_name>/data : DVL.msg**
+
+This topic will be published if a `DVL` module is defined in the vehicle sim node. The example launch files at `config/launch` show this. This topic contains data from a simulated dvl sensor
+
+```
+Header header : The header containing the timestamp of the data
+string name : The vehicle name
+geometry_msgs/Vector3 velocity : Measured velocity [m/s] in sensor frame
+float64[9] velocity_covariance : Row major, xyz axes
+float64 range : Bottom range, only valid if the velocity_reference is VELOCITY_REFERENCE_BOTTOM
+
+uint8 VELOCITY_REFERENCE_UNKNOWN = 0
+uint8 VELOCITY_REFERENCE_WATER = 1
+uint8 VELOCITY_REFERENCE_BOTTOM = 2
+uint8 velocity_reference : The reference for the velocity measurement. Should be one of the above constants
+```
+
+
+### Configuration
+
+See `config/launch/example_vehicle.launch` or `config/launch/example_vehicle_pid.launch` to see example configurations for the vehicle sim nodes.
+
+#### Ocean Model
+An ocean model can be specified in the configuration file to be loaded and used to populate the vehicle sensor information. The https://github.com/nasa-jpl/ocean-model-interfaces.git library is used to manage the access the model data. The `void loadModelLocal(ros::NodeHandle& nhPriv)` function in `UnderwaterVehicleSimNode.cpp` is used to load the model and looking at that function can show the parameter used for each model. All models in the `ocean-model-interface` library are supported. Those are currently:
+
+```
+fvcom
+geodetic_grid (e.g. ROMS that has been processed into a regular geodetic grid)
+constant
+linear
+front
 ```
 
 ## ROS Bag Visualization
