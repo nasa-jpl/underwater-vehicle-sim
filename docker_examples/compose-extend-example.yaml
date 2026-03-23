@@ -1,0 +1,20 @@
+#This compose script bind mounts all the different repos, except for the simulation and ocean-model-interface into a docker container
+
+name: compose-extend-example
+services:
+  compose-extend-example:
+    build: #This can be changed to point to a different Dockerfile that uses the ros-underwater-sim image as the base.
+      context: .
+      dockerfile: Dockerfile
+      target: ros-underwater-sim
+    image: ros-underwater-sim
+    container_name: compose-extend-example
+    stdin_open: true
+    tty: true
+    volumes:
+      - ./config:/config
+      - ./docker_data:/docker_data/
+    #Add additional bind mounts here with the software that is using the simulation environment
+    # - local_source:/docker_source
+
+    entrypoint: ["/usr/bin/tail", "-f", "/dev/null"]
