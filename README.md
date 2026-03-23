@@ -72,6 +72,8 @@ Run the following in `/ros_workspace`
 
 ## Using the Simulation
 
+This section covers the basics of using the simulation including configuration, running, and interacting with the simulation from other ROS nodes via Topics and Services.
+
 ### Running
 `roslaunch <path/to/launch/file>`
 
