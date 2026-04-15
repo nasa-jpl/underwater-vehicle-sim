@@ -1,11 +1,11 @@
 import plotly.graph_objects as go
 import argparse
 import numpy as np
-import pickle
 
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
+import json
 
 def eval_nested_keys(dict, keys):
     """
@@ -159,7 +159,7 @@ def plot_data(bag, vehicle_namespace, measurment_type="dye", data_step=1, fig_3d
     return start_time, end_time
 def main(args):
     print("Opening and Parsing ROS Bag")
-    file_data = pickle.load(open(args.filename,"rb"))
+    file_data = json.load(open(args.filename,"rb"))
     print("Opened and Parsed ROS Bag\n")
 
     if args.list_topics:

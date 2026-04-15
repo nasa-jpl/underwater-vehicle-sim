@@ -2,7 +2,7 @@ from genericpath import isdir
 import rosbag
 import argparse
 import numpy as np
-import pickle
+import json
 import os
 
 
@@ -58,7 +58,7 @@ def parse_bag(bag_filename, topics):
 
 def generate_output_filename(input_file, input_dir, output_dir):
     base = os.path.basename(input_file)
-    filename = os.path.splitext(base)[0] + ".p"
+    filename = os.path.splitext(base)[0] + ".json"
     relative_dir = os.path.relpath(os.path.dirname(input_file), input_dir)
     if output_dir is None:
         output_dir = input_dir
@@ -87,7 +87,10 @@ def main(args):
             o_dir = os.path.dirname(o)
             if not os.path.exists(o_dir):
                 os.makedirs(o_dir)
-            pickle.dump(parse_bag(i, args.topics), open(o, "wb"))
+            with open(o, "wb") as f:
+                json.dump(parse_bag(i, args.topics), f, indent=4)
+            
+            
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Convert bag files to pickled data for faster loading.')
