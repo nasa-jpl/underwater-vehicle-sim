@@ -1,10 +1,10 @@
 # ROS Underwater Simulation
-Extraterrestrial hydrothermal vent search
+An underwater vehicle simulation with coupled numerical ocean models for the development and testing of autonomous behaviors for AUVs.
 
 ## Docker
 
 ### Dockerfile
-A Dockerfile is included to setup the environemnt.  The Dockerfile has multiple stages. The first stage `ros-underwater-sim-external-dependencies` sets up just the external dependencies, the second stage `ros-underwater-sim-all-dependencies` adds internal dependencies in the form of the `ocean-model-interface`, the third stage `ros-underwater-sim` copies over and builds the source code for the simulation. 
+A Dockerfile is included to setup the environment.  The Dockerfile has multiple stages. The first stage `ros-underwater-sim-external-dependencies` sets up just the external dependencies, the second stage `ros-underwater-sim-all-dependencies` adds internal dependencies in the form of the `ocean-model-interface`, the third stage `ros-underwater-sim` copies over and builds the source code for the simulation. 
 
 ### Compose Scripts
 
