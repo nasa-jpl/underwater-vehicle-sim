@@ -1,4 +1,5 @@
 #include <math.h>
+#include <cmath>
 #include <algorithm>
 
 #include "ros/ros.h"
@@ -259,7 +260,7 @@ void FourDOFPropulsionPIDLogic::stopZ(void)
 bool FourDOFPropulsionPIDLogic::isAtXY(VehiclePose& pose)
 {
     tf2::Vector3 point(targetX - pose.getPosition()[0], targetY - pose.getPosition()[1], 0);
-    return abs(point.length()) <= lateralError;
+    return std::fabs(point.length()) <= lateralError;
 }
 
 bool FourDOFPropulsionPIDLogic::isAtZ(VehiclePose& pose)
@@ -268,7 +269,7 @@ bool FourDOFPropulsionPIDLogic::isAtZ(VehiclePose& pose)
     tf2::Vector3 point(0, 0, targetVertPosition - pose.getPosition()[2]);
 
     //We only care about z
-    return abs(point.z()) <= verticalError;
+    return std::fabs(point.z()) <= verticalError;
 }
 
 void FourDOFPropulsionPIDLogic::processNewData(const underwater_vehicle_msgs::VehicleData data)
@@ -298,7 +299,7 @@ double FourDOFPropulsionPIDLogic::scaleVerticalVelocity(double zDifference)
         sign = -1;
     }
 
-    if(abs(zDifference) >= verticalErrorScale)
+    if(std::fabs(zDifference) >= verticalErrorScale)
     {
         return targetLinearVelocity.z() * sign;
     }

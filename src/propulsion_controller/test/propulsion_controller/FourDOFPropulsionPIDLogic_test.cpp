@@ -418,6 +418,54 @@ void runAvoidSeafloorTest()
 
 }
 
+//Regression test for the isAtXY/isAtZ fractional-distance bug.
+//Previously these used the C `abs(int)` overload (via <math.h>) instead of
+//`fabs(double)`, silently truncating any distance < 1.0 to 0. This meant a
+//vehicle 0.99m away from the target with a 0.5m error tolerance would
+//incorrectly be reported as "arrived". Using `std::fabs` fixes this.
+void runIsAtXYZFractionalDistanceTest()
+{
+    clearVectors();
+    VehicleInfo info;
+    FourDOFPropulsionPIDLogic logic(info);
+
+    //--- isAtXY: a 0.9m offset with a tight 0.5m error bar should NOT be "at" ---
+    logic.setTargetXY(0.9, 0);
+    VehiclePose poseXY(Eigen::Vector3d(0, 0, 0));
+    // Default lateralError in the constructor is 25.0, which would mask the
+    // bug (abs(0.9) truncated to 0 still satisfies <= 25.0, same as fabs).
+    // To actually exercise the truncation bug we need a target far enough
+    // away that the *integer part* differs, while still landing within the
+    // error bar only when using proper fabs.
+    logic.setTargetXY(24.9, 0);
+    EXPECT_TRUE(logic.isAtXY(poseXY))
+        << "24.9m distance with 25.0 default error bar should be considered "
+           "'at' the target (fabs(24.9) <= 25.0).";
+
+    logic.setTargetXY(25.4, 0);
+    EXPECT_FALSE(logic.isAtXY(poseXY))
+        << "25.4m distance with 25.0 default error bar should NOT be "
+           "considered 'at' the target. With the old int-truncating abs(), "
+           "abs(25.4) truncates to 25, which incorrectly satisfies <= 25.0.";
+
+    //--- isAtZ: same truncation risk applies to depth comparisons ---
+    underwater_vehicle_msgs::VehicleData data;
+    data.sonarDepth = 1000; // Deep water, so avoidSeafloor clamping doesn't interfere.
+    logic.processNewData(data);
+
+    VehiclePose poseZ(Eigen::Vector3d(0, 0, 0));
+    // Default verticalError is 1.0.
+    logic.setTargetZ(0.9);
+    EXPECT_TRUE(logic.isAtZ(poseZ))
+        << "0.9m depth offset with 1.0m error bar should be 'at' the target.";
+
+    logic.setTargetZ(1.4);
+    EXPECT_FALSE(logic.isAtZ(poseZ))
+        << "1.4m depth offset with 1.0m error bar should NOT be 'at' the "
+           "target. With the old int-truncating abs(), abs(1.4) truncates "
+           "to 1, which incorrectly satisfies <= 1.0.";
+}
+
 //All tests are combined into one so they do not run in parallel becuase they use the same queue.
 TEST(FourDOFPropulsionLogic, all)
 {
@@ -426,6 +474,7 @@ TEST(FourDOFPropulsionLogic, all)
     runGoToZTest();
     runFollowHeadingTest();
     runAvoidSeafloorTest();
+    runIsAtXYZFractionalDistanceTest();
 
 }
 
